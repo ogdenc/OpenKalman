@@ -18,7 +18,7 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "linear-algebra/coordinates/concepts/dynamic_pattern.hpp"
+#include "coordinates/concepts/dynamic_pattern.hpp"
 
 namespace OpenKalman::internal
 {
@@ -28,10 +28,10 @@ namespace OpenKalman::internal
     struct Iterator
     {
       using difference_type = std::ptrdiff_t;
-      using value_type = std::decay_t<decltype(get_vector_space_descriptor<0>(std::declval<Indexible>()))>; 
+      using value_type = std::decay_t<decltype(get_pattern_collection<0>(std::declval<Indexible>()))>;
       static_assert(dynamic_pattern<value_type>);
       constexpr Iterator(const Indexible& indexible, const std::size_t p) : my_indexible{indexible}, pos{p} {}
-      constexpr value_type operator*() const { return get_vector_space_descriptor(my_indexible, pos); } 
+      constexpr value_type operator*() const { return get_pattern_collection(my_indexible, pos); }
       constexpr auto& operator++() noexcept { ++pos; return *this; }
       constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
       constexpr auto& operator--() noexcept { --pos; return *this; }
@@ -42,7 +42,7 @@ namespace OpenKalman::internal
       constexpr auto operator-(const difference_type diff) const noexcept { return Iterator {pos - diff}; }
       constexpr auto operator+(const Iterator& other) const noexcept { return Iterator {pos + other.pos}; }
       constexpr difference_type operator-(const Iterator& other) const noexcept { return pos - other.pos; }
-      constexpr value_type operator[](difference_type offset) const { return get_vector_space_descriptor(my_indexible, pos + offset); }
+      constexpr value_type operator[](difference_type offset) const { return get_pattern_collection(my_indexible, pos + offset); }
       constexpr bool operator==(const Iterator& other) const noexcept { return pos == other.pos; }
 #ifdef __cpp_impl_three_way_comparison
       constexpr auto operator<=>(const Iterator& other) const noexcept { return pos <=> other.pos; }
@@ -80,6 +80,6 @@ namespace OpenKalman::internal
     
   };
   
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_VECTORSPACEDESCRIPTORRANGE_HPP
+#endif

@@ -60,12 +60,12 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(index_dimension_of_v<M11, 1> == 1);
   static_assert(index_dimension_of_v<M21, 1> == 1);
   static_assert(index_dimension_of_v<Mxx, 1> == dynamic_size);
-  EXPECT_EQ(get_vector_space_descriptor<0>(M11{}), 1);
-  EXPECT_EQ(get_vector_space_descriptor<0>(M21{}), 2);
-  EXPECT_EQ((get_vector_space_descriptor<0>(Mxx{2, 1})), 2);
-  EXPECT_EQ((get_vector_space_descriptor<1>(M11{})), 1);
-  EXPECT_EQ((get_vector_space_descriptor<1>(M21{})), 1);
-  EXPECT_EQ((get_vector_space_descriptor<1>(Mxx{2, 1})), 1);
+  EXPECT_EQ(get_pattern_collection<0>(M11{}), 1);
+  EXPECT_EQ(get_pattern_collection<0>(M21{}), 2);
+  EXPECT_EQ((get_pattern_collection<0>(Mxx{2, 1})), 2);
+  EXPECT_EQ((get_pattern_collection<1>(M11{})), 1);
+  EXPECT_EQ((get_pattern_collection<1>(M21{})), 1);
+  EXPECT_EQ((get_pattern_collection<1>(Mxx{2, 1})), 1);
 
   static_assert(std::is_same_v<typename interface::indexible_object_traits<Mxx>::scalar_type, double>);
 
@@ -191,34 +191,34 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not empty_object<M1x>);
   static_assert(not empty_object<Mx1>);
   static_assert(not empty_object<Mxx>);
-  static_assert(empty_object<M1x, Applicability::permitted>);
-  static_assert(empty_object<Mx1, Applicability::permitted>);
-  static_assert(empty_object<Mxx, Applicability::permitted>);
+  static_assert(empty_object<M1x, applicability::permitted>);
+  static_assert(empty_object<Mx1, applicability::permitted>);
+  static_assert(empty_object<Mxx, applicability::permitted>);
 
   static_assert(one_dimensional<M11>);
   static_assert(not one_dimensional<M1x>);
-  static_assert(one_dimensional<M1x, Applicability::permitted>);
+  static_assert(one_dimensional<M1x, applicability::permitted>);
   static_assert(not one_dimensional<M00>);
   static_assert(not one_dimensional<M01>);
   static_assert(not one_dimensional<M10>);
-  static_assert(not one_dimensional<M00, Applicability::permitted>);
-  static_assert(not one_dimensional<Mx0, Applicability::permitted>);
-  static_assert(not one_dimensional<M0x, Applicability::permitted>);
+  static_assert(not one_dimensional<M00, applicability::permitted>);
+  static_assert(not one_dimensional<Mx0, applicability::permitted>);
+  static_assert(not one_dimensional<M0x, applicability::permitted>);
 
-  static_assert(square_shaped<M00, Applicability::permitted>);
-  static_assert(square_shaped<M0x, Applicability::permitted>);
-  static_assert(square_shaped<Mx0, Applicability::permitted>);
-  static_assert(square_shaped<M11, Applicability::permitted>);
-  static_assert(square_shaped<M22, Applicability::permitted>);
-  static_assert(not square_shaped<M32, Applicability::permitted>);
-  static_assert(square_shaped<M2x, Applicability::permitted>);
-  static_assert(square_shaped<Mx2, Applicability::permitted>);
-  static_assert(square_shaped<Mxx, Applicability::permitted>);
-  static_assert(square_shaped<CM22, Applicability::permitted>);
-  static_assert(not square_shaped<CM32, Applicability::permitted>);
-  static_assert(square_shaped<CM2x, Applicability::permitted>);
-  static_assert(square_shaped<CMx2, Applicability::permitted>);
-  static_assert(square_shaped<CMxx, Applicability::permitted>);
+  static_assert(square_shaped<M00, applicability::permitted>);
+  static_assert(square_shaped<M0x, applicability::permitted>);
+  static_assert(square_shaped<Mx0, applicability::permitted>);
+  static_assert(square_shaped<M11, applicability::permitted>);
+  static_assert(square_shaped<M22, applicability::permitted>);
+  static_assert(not square_shaped<M32, applicability::permitted>);
+  static_assert(square_shaped<M2x, applicability::permitted>);
+  static_assert(square_shaped<Mx2, applicability::permitted>);
+  static_assert(square_shaped<Mxx, applicability::permitted>);
+  static_assert(square_shaped<CM22, applicability::permitted>);
+  static_assert(not square_shaped<CM32, applicability::permitted>);
+  static_assert(square_shaped<CM2x, applicability::permitted>);
+  static_assert(square_shaped<CMx2, applicability::permitted>);
+  static_assert(square_shaped<CMxx, applicability::permitted>);
 
   static_assert(square_shaped<M00>);
   static_assert(not square_shaped<M0x>);
@@ -262,17 +262,17 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(dimension_size_of_index_is<M31, 1, 1>);
   static_assert(dimension_size_of_index_is<Mx1, 1, 1>);
-  static_assert(dimension_size_of_index_is<M3x, 1, 1, Applicability::permitted>);
-  static_assert(dimension_size_of_index_is<Mxx, 1, 1, Applicability::permitted>);
-  static_assert(not dimension_size_of_index_is<M32, 1, 1, Applicability::permitted>);
-  static_assert(not dimension_size_of_index_is<Mx2, 1, 1, Applicability::permitted>);
+  static_assert(dimension_size_of_index_is<M3x, 1, 1, applicability::permitted>);
+  static_assert(dimension_size_of_index_is<Mxx, 1, 1, applicability::permitted>);
+  static_assert(not dimension_size_of_index_is<M32, 1, 1, applicability::permitted>);
+  static_assert(not dimension_size_of_index_is<Mx2, 1, 1, applicability::permitted>);
 
   static_assert(dimension_size_of_index_is<M13, 0, 1>);
   static_assert(dimension_size_of_index_is<M1x, 0, 1>);
-  static_assert(dimension_size_of_index_is<Mx3, 0, 1, Applicability::permitted>);
-  static_assert(dimension_size_of_index_is<Mxx, 0, 1, Applicability::permitted>);
-  static_assert(not dimension_size_of_index_is<M23, 0, 1, Applicability::permitted>);
-  static_assert(not dimension_size_of_index_is<M2x, 0, 1, Applicability::permitted>);
+  static_assert(dimension_size_of_index_is<Mx3, 0, 1, applicability::permitted>);
+  static_assert(dimension_size_of_index_is<Mxx, 0, 1, applicability::permitted>);
+  static_assert(not dimension_size_of_index_is<M23, 0, 1, applicability::permitted>);
+  static_assert(not dimension_size_of_index_is<M2x, 0, 1, applicability::permitted>);
 
   M21 m21 {1, 2};
   M2x m2x_1 {m21};
@@ -287,11 +287,11 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(is_vector(m11_1));
 
   static_assert(vector<M21>);
-  static_assert(vector<M2x, 0, Applicability::permitted>);
-  static_assert(vector<Mx1, 0, Applicability::permitted>);
-  static_assert(vector<Mxx, 0, Applicability::permitted>);
-  static_assert(not vector<M12, 0, Applicability::permitted>);
-  static_assert(not vector<Mx2, 0, Applicability::permitted>);
+  static_assert(vector<M2x, 0, applicability::permitted>);
+  static_assert(vector<Mx1, 0, applicability::permitted>);
+  static_assert(vector<Mxx, 0, applicability::permitted>);
+  static_assert(not vector<M12, 0, applicability::permitted>);
+  static_assert(not vector<Mx2, 0, applicability::permitted>);
   static_assert(is_vector(m21));
   EXPECT_TRUE(is_vector(m2x_1));
   static_assert(is_vector(mx1_2));
@@ -299,11 +299,11 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_FALSE(is_vector(mxx_12));
 
   static_assert(vector<M12, 1>);
-  static_assert(vector<M1x, 1, Applicability::permitted>);
-  static_assert(vector<Mx2, 1, Applicability::permitted>);
-  static_assert(vector<Mxx, 1, Applicability::permitted>);
-  static_assert(not vector<M21, 1, Applicability::permitted>);
-  static_assert(not vector<M2x, 1, Applicability::permitted>);
+  static_assert(vector<M1x, 1, applicability::permitted>);
+  static_assert(vector<Mx2, 1, applicability::permitted>);
+  static_assert(vector<Mxx, 1, applicability::permitted>);
+  static_assert(not vector<M21, 1, applicability::permitted>);
+  static_assert(not vector<M2x, 1, applicability::permitted>);
   static_assert(is_vector<1>(m12));
   static_assert(is_vector<1>(m1x_2));
   EXPECT_TRUE(is_vector<1>(mx2_1));

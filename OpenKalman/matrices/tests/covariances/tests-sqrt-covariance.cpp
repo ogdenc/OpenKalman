@@ -18,14 +18,14 @@ using M2 = eigen_matrix_t<double, 2, 2>;
 using C = std::tuple<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
-using SA2l = HermitianAdapter<M2, TriangleType::lower>;
-using SA2u = HermitianAdapter<M2, TriangleType::upper>;
-using T2l = TriangularAdapter<M2, TriangleType::lower>;
-using T2u = TriangularAdapter<M2, TriangleType::upper>;
-using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
+using SA2l = HermitianAdapter<M2, triangle_type::lower>;
+using SA2u = HermitianAdapter<M2, triangle_type::upper>;
+using T2l = TriangularAdapter<M2, triangle_type::lower>;
+using T2u = TriangularAdapter<M2, triangle_type::upper>;
+using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
 using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = Eigen3::IdentityMatrix<eigen_matrix_t<double, 2, 2>>;
-using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using Z2 = zero_adapter<eigen_matrix_t<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -44,7 +44,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>();
+inline Z2 z2 = zero_adapter<eigen_matrix_t<double, 2, 2>>();
 inline CovI2 covi2 {i2};
 inline CovZ2 covz2 {z2};
 inline SqCovI2 sqcovi2 {i2};
@@ -639,20 +639,20 @@ TEST(covariance_tests, SquareRootCovariance_make)
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance(SqCovSA2l {3, 0, 1, 3}).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance(SqCovSA2u {3, 1, 0, 3}).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance(SqCovT2l {3, 0, 1, 3}).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance(SqCovT2u {3, 1, 0, 3}).get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance(SqCovT2l {3, 0, 1, 3}).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance(SqCovT2u {3, 1, 0, 3}).get_triangular_nested_matrix()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance(SqCovD2 {1, 2}).get_triangular_nested_matrix())>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance(adjoint(SqCovSA2l {3, 0, 1, 3})).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance(adjoint(SqCovSA2u {3, 1, 0, 3})).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance(adjoint(SqCovT2l {3, 0, 1, 3})).get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance(adjoint(SqCovT2u {3, 1, 0, 3})).get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance(adjoint(SqCovT2l {3, 0, 1, 3})).get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance(adjoint(SqCovT2u {3, 1, 0, 3})).get_triangular_nested_matrix()), triangle_type::lower>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance(adjoint(SqCovD2 {1, 2})).get_triangular_nested_matrix())>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<SqCovSA2l>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<SqCovSA2u>().get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<SqCovT2l>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<SqCovT2u>().get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<SqCovT2l>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<SqCovT2u>().get_triangular_nested_matrix()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<SqCovD2>().get_triangular_nested_matrix())>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<SqCovSA2l>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
@@ -668,71 +668,71 @@ TEST(covariance_tests, SquareRootCovariance_make)
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C>(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C>(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(T2l {3, 0, 1, 3}).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(T2u {3, 1, 0, 3}).get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(T2l {3, 0, 1, 3}).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(T2u {3, 1, 0, 3}).get_triangular_nested_matrix()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<C>(D2 {1, 2}).get_triangular_nested_matrix())>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C>(adjoint(SA2l {9, 3, 3, 10})).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C>(adjoint(SA2u {9, 3, 3, 10})).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2l {3, 0, 1, 3})).get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2u {3, 1, 0, 3})).get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2l {3, 0, 1, 3})).get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(adjoint(T2u {3, 1, 0, 3})).get_triangular_nested_matrix()), triangle_type::lower>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<C>(adjoint(D2 {1, 2})).get_triangular_nested_matrix())>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C, SA2l>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C, SA2u>().get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2l>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2u>().get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, D2>().get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2l>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2u>().get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, D2>().get_triangular_nested_matrix()), triangle_type::lower>);
 
   static_assert(hermitian_adapter<decltype(make_square_root_covariance(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(hermitian_adapter<decltype(make_square_root_covariance<C>(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<T2u>().get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2l>().get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<T2u>().get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, T2l>().get_triangular_nested_matrix()), triangle_type::lower>);
   static_assert(diagonal_matrix<decltype(make_square_root_covariance<C, D2>().get_triangular_nested_matrix())>);
 
   // Regular matrices:
-  EXPECT_TRUE(is_near(make_square_root_covariance<C, TriangleType::lower>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(make_square_root_covariance<C, TriangleType::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<C, triangle_type::lower>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<C, triangle_type::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_square_root_covariance<C>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::lower>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix()), triangle_type::upper>);
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower, M2>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper, M2>().get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::lower, M2>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::upper, M2>().get_triangular_nested_matrix()), triangle_type::upper>);
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, M2>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::upper, M2>().get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(Mat2 {3, 0, 1, 3}.nested_object()).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::upper>(Mat2 {3, 1, 0, 3}.nested_object()).get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, M2>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::upper, M2>().get_triangular_nested_matrix()), triangle_type::upper>);
 
   // Typed matrices:
-  EXPECT_TRUE(is_near(make_square_root_covariance<TriangleType::lower>(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(make_square_root_covariance<TriangleType::upper>(Mat2 {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<triangle_type::lower>(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<triangle_type::upper>(Mat2 {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_square_root_covariance(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::lower>(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::upper>(Mat2 {3, 1, 0, 3}).get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::lower>(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::upper>(Mat2 {3, 1, 0, 3}).get_triangular_nested_matrix()), triangle_type::upper>);
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::lower, Mat2>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::upper, Mat2>().get_triangular_nested_matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::lower, Mat2>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::upper, Mat2>().get_triangular_nested_matrix()), triangle_type::upper>);
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<Mat2>().get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance(Mat2 {3, 0, 1, 3}).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<Mat2>().get_triangular_nested_matrix()), triangle_type::lower>);
 
   // Eigen defaults
-  EXPECT_TRUE(is_near(make_square_root_covariance<C, TriangleType::lower>(3., 0, 1, 3).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(make_square_root_covariance<C, TriangleType::upper>(3., 1, 0, 3).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<C, triangle_type::lower>(3., 0, 1, 3).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
+  EXPECT_TRUE(is_near(make_square_root_covariance<C, triangle_type::upper>(3., 1, 0, 3).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_square_root_covariance<C>(3., 0, 1, 3).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>(3., 0, 1, 3).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>(3., 1, 0, 3).get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(9., 3, 3, 10).get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::lower>(3., 0, 1, 3).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::upper>(3., 1, 0, 3).get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>(9., 3, 3, 10).get_triangular_nested_matrix()), triangle_type::lower>);
 
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<TriangleType::lower>(3., 0, 1, 3).get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>().get_triangular_nested_matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>().get_triangular_nested_matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<triangle_type::lower>(3., 0, 1, 3).get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::lower>().get_triangular_nested_matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C, triangle_type::upper>().get_triangular_nested_matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(make_square_root_covariance<C>().get_triangular_nested_matrix()), triangle_type::lower>);
   static_assert(dimension_size_of_vvector_space_descriptor_of_t<decltype(make_square_root_covariance<C>()), 0>> == 2);
 }
 
@@ -745,8 +745,8 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(not cholesky_form<SqCovSA2l>);
   static_assert(triangular_matrix<SqCovSA2l>);
   static_assert(triangular_matrix<SqCovSA2u>);
-  static_assert(triangular_matrix<SqCovSA2l, TriangleType::lower>);
-  static_assert(triangular_matrix<SqCovSA2u, TriangleType::upper>);
+  static_assert(triangular_matrix<SqCovSA2l, triangle_type::lower>);
+  static_assert(triangular_matrix<SqCovSA2u, triangle_type::upper>);
   static_assert(not identity_matrix<SqCovSA2l>);
   static_assert(not zero<SqCovSA2l>);
 
@@ -757,9 +757,9 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(cholesky_form<SqCovT2l>);
   static_assert(triangular_matrix<SqCovT2l>);
   static_assert(triangular_matrix<SqCovT2u>);
-  static_assert(triangular_matrix<SqCovT2l, TriangleType::lower>);
-  static_assert(not triangular_matrix<SqCovT2l, TriangleType::upper>);
-  static_assert(triangular_matrix<SqCovT2u, TriangleType::upper>);
+  static_assert(triangular_matrix<SqCovT2l, triangle_type::lower>);
+  static_assert(not triangular_matrix<SqCovT2l, triangle_type::upper>);
+  static_assert(triangular_matrix<SqCovT2u, triangle_type::upper>);
   static_assert(not identity_matrix<SqCovT2l>);
   static_assert(not zero<SqCovT2l>);
 
@@ -768,8 +768,8 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(hermitian_matrix<SqCovD2>);
   static_assert(not cholesky_form<SqCovD2>);
   static_assert(triangular_matrix<SqCovD2>);
-  static_assert(triangular_matrix<SqCovD2, TriangleType::lower>);
-  static_assert(triangular_matrix<SqCovD2, TriangleType::upper>);
+  static_assert(triangular_matrix<SqCovD2, triangle_type::lower>);
+  static_assert(triangular_matrix<SqCovD2, triangle_type::upper>);
   static_assert(not identity_matrix<SqCovD2>);
   static_assert(not zero<SqCovD2>);
 
@@ -778,8 +778,8 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(hermitian_matrix<SqCovI2>);
   static_assert(not cholesky_form<SqCovI2>);
   static_assert(triangular_matrix<SqCovI2>);
-  static_assert(triangular_matrix<SqCovI2, TriangleType::lower>);
-  static_assert(triangular_matrix<SqCovI2, TriangleType::upper>);
+  static_assert(triangular_matrix<SqCovI2, triangle_type::lower>);
+  static_assert(triangular_matrix<SqCovI2, triangle_type::upper>);
   static_assert(identity_matrix<SqCovI2>);
   static_assert(not zero<SqCovI2>);
 
@@ -788,8 +788,8 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(hermitian_matrix<SqCovZ2>);
   static_assert(not cholesky_form<SqCovZ2>);
   static_assert(triangular_matrix<SqCovZ2>);
-  static_assert(triangular_matrix<SqCovZ2, TriangleType::lower>);
-  static_assert(triangular_matrix<SqCovZ2, TriangleType::upper>);
+  static_assert(triangular_matrix<SqCovZ2, triangle_type::lower>);
+  static_assert(triangular_matrix<SqCovZ2, triangle_type::upper>);
   static_assert(not identity_matrix<SqCovZ2>);
   static_assert(zero<SqCovZ2>);
 
@@ -832,7 +832,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
   EXPECT_TRUE(is_near(square(SqCovT2u {3, 1, 0, 3}), Mat2 {9, 3, 3, 10}));
   EXPECT_TRUE(is_near(square(SqCovD2 {2, 3}), Mat2 {4, 0, 0, 9}));
   EXPECT_TRUE(is_near(square(SqCovI2 {i2}), Mat2 {1, 0, 0, 1}));
-  EXPECT_TRUE(is_near(square(SquareRootCovariance<C, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>()), Mat2 {0, 0, 0, 0}));
+  EXPECT_TRUE(is_near(square(SquareRootCovariance<C, zero_adapter<eigen_matrix_t<double, 2, 2>>>()), Mat2 {0, 0, 0, 0}));
 
   EXPECT_TRUE(is_near(make_dense_object_from(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(make_dense_object_from(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
@@ -911,10 +911,10 @@ TEST(covariance_tests, SquareRootCovariance_blocks)
   using C4 = static_concatenate_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
-  using SqCovSA4l = SquareRootCovariance<C4, HermitianAdapter<M4, TriangleType::lower>>;
-  using SqCovSA4u = SquareRootCovariance<C4, HermitianAdapter<M4, TriangleType::upper>>;
-  using SqCovT4l = SquareRootCovariance<C4, TriangularAdapter<M4, TriangleType::lower>>;
-  using SqCovT4u = SquareRootCovariance<C4, TriangularAdapter<M4, TriangleType::upper>>;
+  using SqCovSA4l = SquareRootCovariance<C4, HermitianAdapter<M4, triangle_type::lower>>;
+  using SqCovSA4u = SquareRootCovariance<C4, HermitianAdapter<M4, triangle_type::upper>>;
+  using SqCovT4l = SquareRootCovariance<C4, TriangularAdapter<M4, triangle_type::lower>>;
+  using SqCovT4u = SquareRootCovariance<C4, TriangularAdapter<M4, triangle_type::upper>>;
   Mat2 m1l {3, 0, 1, 3}, m2l {2, 0, 1, 2}, m1u {3, 1, 0, 3}, m2u {2, 1, 0, 2};
   Mat4 nl {3, 0, 0, 0,
           1, 3, 0, 0,

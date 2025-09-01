@@ -42,75 +42,34 @@ namespace OpenKalman
 
 
   /**
-   * \brief The layout format of a multidimensional array.
-   */
-  enum struct Layout : int {
-    none, ///< No storage layout (e.g., if the elements are calculated rather than stored).
-    right, ///< Row-major storage (C or C++ style): contiguous storage in which the right-most index has a stride of 1.
-    left, ///< Column-major storage (Fortran, Matlab, or Eigen style): contiguous storage in which the left-most extent has a stride of 1.
-    stride, ///< A generalization of the above: a custom stride is specified for each index.
-  };
-
-
-  /**
-   * \brief The type of a triangular matrix.
-   * \details This is generally applicable to a rank-2 tensor (e.g., a matrix).
-   * It also applies to tensors of rank > 2, in which case every rank-2 slice over dimensions 0 and 1 must be a triangle of this type.
-   */
-  enum struct TriangleType : int {
-    diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
-    lower, ///< A lower-left triangular matrix.
-    upper, ///< An upper-right triangular matrix.
-    any, ///< Lower, upper, or diagonal matrix.
-    // \todo strict_diagonal,
-      //< A specific diagonal object for rank 2k (k:ℕ) tensors in which each element is zero
-      //< unless its indices can be divided into two identical sequences.
-      //< (Examples, component x[1,0,2,1,0,2] in rank-6 tensor x or component y[2,5,2,5] in rank-4 tensor y.)
-  };
-
-
-  /**
-   * \brief The type of a hermitian adapter, indicating which triangle of the nested matrix is used.
-   * \details This type can be statically cast from \ref TriangleType so that <code>lower</code>, <code>upper</code>,
-   * and <code>any</code> correspond to each other. The value <code>none</code> corresponds to TriangleType::diagonal.
-   *
-   */
-  enum struct HermitianAdapterType : int {
-    any = static_cast<int>(TriangleType::diagonal), ///< Either lower or upper hermitian adapter.
-    lower = static_cast<int>(TriangleType::lower), ///< A lower-left hermitian adapter.
-    upper = static_cast<int>(TriangleType::upper), ///< An upper-right hermitian adapter.
-  };
-
-
-  /**
    * \brief The applicability of a concept, trait, or restraint.
    * \details Determines whether something is necessarily applicable, or alternatively just permissible, at compile time.
    * Examples:
-   * - <code>square_shaped<T, Applicability::guaranteed></code> means that T is known at compile time to be square shaped.
-   * - <code>square_shaped<T, Applicability::permitted></code> means that T <em>could</em> be square shaped,
+   * - <code>square_shaped<T, applicability::guaranteed></code> means that T is known at compile time to be square shaped.
+   * - <code>square_shaped<T, applicability::permitted></code> means that T <em>could</em> be square shaped,
    * but whether it actually <em>is</em> cannot be determined at compile time.
    */
-  enum struct Applicability : int {
+  enum struct applicability : int {
     guaranteed, ///< The concept, trait, or restraint represents a compile-time guarantee.
     permitted, ///< The concept, trait, or restraint is permitted, but whether it applies is not necessarily known at compile time.
   };
 
 
-  constexpr Applicability operator not (Applicability x)
+  constexpr applicability operator not (applicability x)
   {
-    return x == Applicability::guaranteed ? Applicability::permitted : Applicability::guaranteed;
+    return x == applicability::guaranteed ? applicability::permitted : applicability::guaranteed;
   }
 
 
-  constexpr Applicability operator and (Applicability x, Applicability y)
+  constexpr applicability operator and (applicability x, applicability y)
   {
-    return x == Applicability::guaranteed and y == Applicability::guaranteed ? Applicability::guaranteed : Applicability::permitted;
+    return x == applicability::guaranteed and y == applicability::guaranteed ? applicability::guaranteed : applicability::permitted;
   }
 
 
-  constexpr Applicability operator or (Applicability x, Applicability y)
+  constexpr applicability operator or (applicability x, applicability y)
   {
-    return x == Applicability::guaranteed or y == Applicability::guaranteed ? Applicability::guaranteed : Applicability::permitted;
+    return x == applicability::guaranteed or y == applicability::guaranteed ? applicability::guaranteed : applicability::permitted;
   }
 
 
@@ -141,10 +100,12 @@ namespace OpenKalman
      * \brief If T is an rvalue reference, remove the reference. Otherwise, the result is T.
      */
     template<typename T>
-    struct remove_rvalue_reference
-    {
-      using type = std::conditional_t<std::is_rvalue_reference_v<T>, std::remove_reference_t<T>, T>;
-    };
+    struct remove_rvalue_reference { using type = T; };
+
+
+    /// \overload
+    template<typename T>
+    struct remove_rvalue_reference<T&&> { using type = T; };
 
 
     /**
@@ -154,8 +115,8 @@ namespace OpenKalman
     using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 
-  } // namespace internal
+  }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_GLOBAL_DEFINITIONS_HPP
+#endif

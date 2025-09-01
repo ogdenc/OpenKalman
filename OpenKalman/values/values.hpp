@@ -29,18 +29,16 @@ namespace OpenKalman::values {}
 
 #include "interface/number_traits.hpp"
 
-#include "concepts/number.hpp"
 #include "concepts/fixed.hpp"
 #include "concepts/dynamic.hpp"
+#include "concepts/number.hpp"
+
+#include "functions/to_value_type.hpp"
+#include "traits/fixed_value_of.hpp"
+#include "traits/value_type_of.hpp"
+#include "concepts/fixed_value_compares_with.hpp"
+
 #include "concepts/value.hpp"
-
-#include "functions/to_number.hpp"
-#include "traits/fixed_number_of.hpp"
-#include "traits/number_type_of.hpp"
-#include "concepts/fixed_number_compares_with.hpp"
-
-#include "functions/internal/update_real_part.hpp"
-
 #include "concepts/complex.hpp"
 #include "concepts/integral.hpp"
 #include "concepts/index.hpp"
@@ -49,7 +47,7 @@ namespace OpenKalman::values {}
 #include "concepts/not_complex.hpp"
 
 #include "functions/operation.hpp"
-#include "classes/Fixed.hpp"
+#include "classes/fixed_value.hpp"
 #include "classes/fixed-constants.hpp"
 
 #include "math/real.hpp"
@@ -58,8 +56,9 @@ namespace OpenKalman::values {}
 #include "functions/internal/make_complex_number.hpp"
 #include "traits/complex_type_of.hpp"
 
+#include "functions/internal/update_real_part.hpp"
+
 #include "functions/cast_to.hpp"
-#include "functions/value-arithmetic.hpp"
 
 #include "math/isinf.hpp"
 #include "math/isnan.hpp"
@@ -89,4 +88,4 @@ namespace OpenKalman::values {}
 #include "math/atan2.hpp"
 #include "math/pow.hpp"
 
-#endif //OPENKALMAN_VALUES_HPP
+#endif

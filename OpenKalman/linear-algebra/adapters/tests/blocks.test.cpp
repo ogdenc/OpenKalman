@@ -43,32 +43,32 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalAdapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
-  using L22 = HermitianAdapter<M22, TriangleType::lower>;
-  using L20 = HermitianAdapter<M2x, TriangleType::lower>;
-  using L02 = HermitianAdapter<Mx2, TriangleType::lower>;
-  using L00 = HermitianAdapter<Mxx, TriangleType::lower>;
+  using L22 = HermitianAdapter<M22, triangle_type::lower>;
+  using L20 = HermitianAdapter<M2x, triangle_type::lower>;
+  using L02 = HermitianAdapter<Mx2, triangle_type::lower>;
+  using L00 = HermitianAdapter<Mxx, triangle_type::lower>;
 
-  using U22 = HermitianAdapter<M22, TriangleType::upper>;
-  using U20 = HermitianAdapter<M2x, TriangleType::upper>;
-  using U02 = HermitianAdapter<Mx2, TriangleType::upper>;
-  using U00 = HermitianAdapter<Mxx, TriangleType::upper>;
+  using U22 = HermitianAdapter<M22, triangle_type::upper>;
+  using U20 = HermitianAdapter<M2x, triangle_type::upper>;
+  using U02 = HermitianAdapter<Mx2, triangle_type::upper>;
+  using U00 = HermitianAdapter<Mxx, triangle_type::upper>;
   
-  using CL22 = HermitianAdapter<C22, TriangleType::lower>;
-  using CU22 = HermitianAdapter<C22, TriangleType::upper>;
+  using CL22 = HermitianAdapter<C22, triangle_type::lower>;
+  using CU22 = HermitianAdapter<C22, triangle_type::upper>;
 
-  using DM22 = HermitianAdapter<M22, TriangleType::diagonal>;
-  using DM20 = HermitianAdapter<M2x, TriangleType::diagonal>;
-  using DM02 = HermitianAdapter<Mx2, TriangleType::diagonal>;
-  using DM00 = HermitianAdapter<Mxx, TriangleType::diagonal>;
+  using DM22 = HermitianAdapter<M22, triangle_type::diagonal>;
+  using DM20 = HermitianAdapter<M2x, triangle_type::diagonal>;
+  using DM02 = HermitianAdapter<Mx2, triangle_type::diagonal>;
+  using DM00 = HermitianAdapter<Mxx, triangle_type::diagonal>;
   
-  using DD2 = HermitianAdapter<D2, TriangleType::diagonal>;
-  using DD0 = HermitianAdapter<D0, TriangleType::diagonal>;
+  using DD2 = HermitianAdapter<D2, triangle_type::diagonal>;
+  using DD0 = HermitianAdapter<D0, triangle_type::diagonal>;
   
-  using DL2 = HermitianAdapter<D2, TriangleType::lower>;
-  using DL0 = HermitianAdapter<D0, TriangleType::lower>;
+  using DL2 = HermitianAdapter<D2, triangle_type::lower>;
+  using DL0 = HermitianAdapter<D0, triangle_type::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
@@ -76,11 +76,11 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = DiagonalAdapter<T>;
-  template<typename T> using Tl = TriangularAdapter<T, TriangleType::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, TriangleType::upper>;
-  template<typename T> using SAl = HermitianAdapter<T, TriangleType::lower>;
-  template<typename T> using SAu = HermitianAdapter<T, TriangleType::upper>;
+  template<typename T> using D = diagonal_adapter<T>;
+  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
+  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
+  template<typename T> using SAl = HermitianAdapter<T, triangle_type::lower>;
+  template<typename T> using SAu = HermitianAdapter<T, triangle_type::upper>;
 }
 
 
@@ -104,25 +104,25 @@ TEST(special_matrices, set_triangle)
 
   M33 a;
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a, b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(a, b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33, b33), d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(a33, b33), d33));
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a.triangularView<Eigen::Lower>(), b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(a.triangularView<Eigen::Lower>(), b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(a33.triangularView<Eigen::Lower>(), b33)), d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<triangle_type::diagonal>(a33.triangularView<Eigen::Lower>(), b33)), d33));
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.triangularView<Eigen::Upper>()}, b33)), d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<triangle_type::diagonal>(EigenWrapper {a33.triangularView<Eigen::Upper>()}, b33)), d33));
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a.selfadjointView<Eigen::Upper>(), b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(a.selfadjointView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33.selfadjointView<Eigen::Upper>(), b33), d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(a33.selfadjointView<Eigen::Upper>(), b33), d33));
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, b33), d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, b33), d33));
 
   a = a33; internal::set_triangle(a, e33);
   EXPECT_TRUE(is_near(a, d33));
@@ -148,13 +148,13 @@ TEST(special_matrices, set_triangle)
 
   d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, b33);
   EXPECT_TRUE(is_near(d, e31));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), b33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(d31.asDiagonal(), b33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), b33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, b33), e33));
 
   d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, e33);
   EXPECT_TRUE(is_near(d, e31));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), e33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(d31.asDiagonal(), e33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), e33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, e33), e33));
 }

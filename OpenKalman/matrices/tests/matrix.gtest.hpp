@@ -20,4 +20,4 @@
 #include "matrices/matrices.hpp"
 
 
-#endif //OPENKALMAN_MATRIX_GTEST_HPP
+#endif

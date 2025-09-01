@@ -56,6 +56,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_IS_VECTOR_HPP
+#endif

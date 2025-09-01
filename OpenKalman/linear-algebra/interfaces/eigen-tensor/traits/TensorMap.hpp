@@ -33,7 +33,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_pattern_collection(const Arg& arg, N n) { return arg.dimension(n); }
 
     // nested_object() not defined
 
@@ -73,10 +73,10 @@ namespace OpenKalman::interface
     static constexpr auto * const
     raw_data(Arg& arg) { return arg.data(); }
 
-    static constexpr Layout layout = layout_of_v<PlainObjectType>;
+    static constexpr data_layout layout = layout_of_v<PlainObjectType>;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORMAP_HPP
+#endif

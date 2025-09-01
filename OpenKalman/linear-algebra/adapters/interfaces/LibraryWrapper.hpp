@@ -43,9 +43,9 @@ namespace OpenKalman::interface
 
 
     template<typename N>
-    static constexpr auto get_vector_space_descriptor(const Xpr& arg, N n)
+    static constexpr auto get_pattern_collection(const Xpr& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg.nested_object(), n);
+      return OpenKalman::get_pattern_collection(arg.nested_object(), n);
     }
 
 
@@ -68,22 +68,22 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<NestedObject, t>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Applicability::permitted>;
+    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, applicability::permitted>;
 
 
     static constexpr bool is_writable = writable<NestedObject>;
@@ -101,13 +101,13 @@ namespace OpenKalman::interface
     }
 
 
-    static constexpr Layout layout = layout_of_v<NestedObject>;
+    static constexpr data_layout layout = layout_of_v<NestedObject>;
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (layout != Layout::none)
+    template<typename Arg> requires (layout != data_layout::none)
 #else
-    template<Layout l = layout, typename Arg, std::enable_if_t<l != Layout::none, int> = 0>
+    template<data_layout l = layout, typename Arg, std::enable_if_t<l != data_layout::none, int> = 0>
 #endif
     static auto
     strides(Arg&& arg)
@@ -191,9 +191,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Layout layout, typename Scalar, typename D> requires interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>
+    template<data_layout layout, typename Scalar, typename D> requires interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>
 #else
-    template<Layout layout, typename Scalar, typename D, std::enable_if_t<interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>, int> = 0>
+    template<data_layout layout, typename Scalar, typename D, std::enable_if_t<interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>, int> = 0>
 #endif
     static auto make_default(D&& d)
     {
@@ -202,10 +202,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Layout layout, typename Arg, typename...Scalars> requires
+    template<data_layout layout, typename Arg, typename...Scalars> requires
       interface::fill_components_defined_for<NestedObject, layout, nested_object_of_t<Arg&>, Scalars...>
 #else
-    template<Layout layout, typename Arg, typename...Scalars, std::enable_if_t<
+    template<data_layout layout, typename Arg, typename...Scalars, std::enable_if_t<
       interface::fill_components_defined_for<NestedObject, layout, typename nested_object_of<Arg&>::type, Scalars...>, int> = 0>
 #endif
     static void fill_components(Arg& arg, const Scalars...scalars)
@@ -239,11 +239,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<TriangleType t, indexible Arg> requires
+    template<triangle_type t, indexible Arg> requires
       interface::make_triangular_matrix_defined_for<LibraryObject, t, Arg&&>
     static constexpr triangular_matrix<t> auto
 #else
-    template<TriangleType t, typename Arg, std::enable_if_t<
+    template<triangle_type t, typename Arg, std::enable_if_t<
       interface::make_triangular_matrix_defined_for<LibraryObject, t, Arg&&>, int> = 0>
     static constexpr auto
 #endif
@@ -297,10 +297,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<TriangleType t, typename A, typename B> requires
+    template<triangle_type t, typename A, typename B> requires
       interface::set_triangle_defined_for<NestedObject, t, nested_object_of_t<A&&>, B&&>
 #else
-    template<TriangleType t, typename A, typename B, std::enable_if_t<
+    template<triangle_type t, typename A, typename B, std::enable_if_t<
       interface::set_triangle_defined_for<NestedObject, t, typename nested_object_of<A&&>::type, B&&>, int> = 0>
 #endif
     static void
@@ -325,25 +325,25 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg> requires diagonal_adapter<NestedObject> or 
-      (diagonal_adapter<NestedObject, 1> and 
+    template<indexible Arg> requires (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
+      (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
       interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
-    template<typename Arg, std::enable_if_t<diagonal_adapter<NestedObject> or 
-      (diagonal_adapter<NestedObject, 1> and 
+    template<typename Arg, std::enable_if_t<(diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
+      (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
       interface::diagonal_of_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     diagonal_of(Arg&& arg)
     {
-      if constexpr (diagonal_adapter<NestedObject>)
+      if constexpr (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>)
       {
         return to_LibraryObject_native(nested_object(nested_object(std::forward<Arg>(arg))));
       }
-      else if constexpr (diagonal_adapter<NestedObject, 1>)
+      else if constexpr (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1>)
       {
         if constexpr (interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>)
           return to_LibraryObject_native(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
@@ -661,25 +661,25 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type, indexible Arg> requires
-      interface::cholesky_factor_defined_for<NestedObject, triangle_type, Arg&&> or
-      interface::cholesky_factor_defined_for<NestedObject, triangle_type, nested_object_of_t<Arg&&>>
-    static constexpr triangular_matrix<triangle_type> auto
+    template<triangle_type tri, indexible Arg> requires
+      interface::cholesky_factor_defined_for<NestedObject, tri, Arg&&> or
+      interface::cholesky_factor_defined_for<NestedObject, tri, nested_object_of_t<Arg&&>>
+    static constexpr triangular_matrix<tri> auto
 #else
-    template<TriangleType triangle_type, typename Arg, std::enable_if_t<
-      interface::cholesky_factor_defined_for<NestedObject, triangle_type, Arg&&> or
-      interface::cholesky_factor_defined_for<NestedObject, triangle_type, typename nested_object_of<Arg&&>::type>, int> = 0>
+    template<triangle_type tri, typename Arg, std::enable_if_t<
+      interface::cholesky_factor_defined_for<NestedObject, tri, Arg&&> or
+      interface::cholesky_factor_defined_for<NestedObject, tri, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     cholesky_factor(Arg&& arg)
     {
-      if constexpr (interface::cholesky_factor_defined_for<NestedObject, triangle_type, Arg&&>)
+      if constexpr (interface::cholesky_factor_defined_for<NestedObject, tri, Arg&&>)
       {
-        return NestedInterface::template cholesky_factor<triangle_type>(std::forward<Arg>(arg));
+        return NestedInterface::template cholesky_factor<tri>(std::forward<Arg>(arg));
       }
       else
       {
-        auto tri = NestedInterface::template cholesky_factor<triangle_type>(nested_object(std::forward<Arg>(arg)));
+        auto tri = NestedInterface::template cholesky_factor<tri>(nested_object(std::forward<Arg>(arg)));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -711,25 +711,25 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<TriangleType triangle_type, indexible A, indexible U> requires
-      interface::rank_update_triangular_defined_for<NestedObject, triangle_type, A&&, U&&, const scalar_type_of_t<A>&> or
-      interface::rank_update_triangular_defined_for<NestedObject, triangle_type, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
-    static constexpr triangular_matrix<triangle_type> auto
+    template<triangle_type tri, indexible A, indexible U> requires
+      interface::rank_update_triangular_defined_for<NestedObject, tri, A&&, U&&, const scalar_type_of_t<A>&> or
+      interface::rank_update_triangular_defined_for<NestedObject, tri, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
+    static constexpr triangular_matrix<tri> auto
 #else
-    template<TriangleType triangle_type, typename A, typename U, std::enable_if_t<
-      interface::rank_update_triangular_defined_for<NestedObject, triangle_type, A&&, U&&, const typename scalar_type_of<A>::type&> or
-      interface::rank_update_triangular_defined_for<NestedObject, triangle_type, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
+    template<triangle_type tri, typename A, typename U, std::enable_if_t<
+      interface::rank_update_triangular_defined_for<NestedObject, tri, A&&, U&&, const typename scalar_type_of<A>::type&> or
+      interface::rank_update_triangular_defined_for<NestedObject, tri, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
     static constexpr auto
 #endif
     rank_update_triangular(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
     {
-      if constexpr (interface::rank_update_triangular_defined_for<NestedObject, triangle_type, A&&, U&&, const scalar_type_of_t<A>&>)
+      if constexpr (interface::rank_update_triangular_defined_for<NestedObject, tri, A&&, U&&, const scalar_type_of_t<A>&>)
       {
-        return NestedInterface::template rank_update_triangular<triangle_type>(std::forward<A>(a), std::forward<U>(u), alpha);
+        return NestedInterface::template rank_update_triangular<tri>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
       else
       {
-        auto tri = NestedInterface::template rank_update_triangular<triangle_type>(nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
+        auto tri = NestedInterface::template rank_update_triangular<tri>(nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -812,6 +812,6 @@ namespace OpenKalman::interface
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_INTERFACES_LIBRARYWRAPPER_HPP
+#endif

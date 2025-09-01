@@ -26,27 +26,27 @@ namespace OpenKalman
     struct is_triangular_adapter : std::false_type {};
 
     template<typename T>
-    struct is_triangular_adapter<T, std::enable_if_t<interface::indexible_object_traits<std::decay_t<T>>::is_triangular_adapter>>
+    struct is_triangular_adapter<T, std::enable_if_t<interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_triangular_adapter>>
       : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief Specifies that a type is a triangular adapter of triangle type triangle_type.
+   * \brief Specifies that a type is a triangular adapter of triangle type tri.
    * \details A triangular adapter takes a matrix and presents a view in which, in one or both triangular
    * (or trapezoidal) sides on either side of the diagonal are zero. The matrix need not be square.
    * \tparam T A matrix or tensor.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept triangular_adapter = interface::indexible_object_traits<std::decay_t<T>>::is_triangular_adapter and
+  concept triangular_adapter = interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_triangular_adapter and
 #else
   constexpr bool triangular_adapter = detail::is_triangular_adapter<T>::value and has_nested_object<T> and
 #endif
     has_nested_object<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TRIANGULAR_ADAPTER_HPP
+#endif

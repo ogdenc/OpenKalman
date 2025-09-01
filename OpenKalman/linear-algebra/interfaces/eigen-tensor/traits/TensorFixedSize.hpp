@@ -30,7 +30,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (values::fixed<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
@@ -81,10 +81,10 @@ namespace OpenKalman::interface
     static constexpr auto * const
     raw_data(Arg& arg) { return arg.data(); }
 
-    static constexpr Layout layout = options & Eigen::RowMajor ? Layout::right : Layout::left;
+    static constexpr data_layout layout = options & Eigen::RowMajor ? data_layout::right : data_layout::left;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORFIXEDSIZE_HPP
+#endif

@@ -26,7 +26,7 @@ namespace OpenKalman::internal
     {
       return (... and uniform_pattern<vector_space_descriptor_of_t<Arg, Is>>);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -45,6 +45,6 @@ namespace OpenKalman::internal
     (sizeof...(indices) > 0 or detail::indices_are_uniform_impl<Arg>(std::make_index_sequence<index_count_v<Arg>>{}));
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_HAS_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTORS_HPP
+#endif

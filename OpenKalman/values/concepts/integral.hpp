@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,15 +13,12 @@
  * \brief Definition for \ref values::integral.
  */
 
-#ifndef OPENKALMAN_VALUE_INTEGRAL_HPP
-#define OPENKALMAN_VALUE_INTEGRAL_HPP
+#ifndef OPENKALMAN_VALUES_INTEGRAL_HPP
+#define OPENKALMAN_VALUES_INTEGRAL_HPP
 
-#include <type_traits>
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
+#include "basics/basics.hpp"
 #include "value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 
 namespace OpenKalman::values
 {
@@ -33,18 +30,18 @@ namespace OpenKalman::values
 
 
     template<typename T>
-    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<number_type_of_t<T>>>>
+    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<value_type_of_t<T>>>>
       : std::true_type {};
   }
 #endif
 
 
 /**
-   * \brief T is an integral value.
+   * \brief T is an integral \ref value.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept integral = value<T> and std::integral<number_type_of_t<T>>;
+  concept integral = value<T> and std::integral<value_type_of_t<T>>;
 #else
   template<typename T>
   constexpr bool integral = value<T> and detail::reduces_to_integral<T>::value;

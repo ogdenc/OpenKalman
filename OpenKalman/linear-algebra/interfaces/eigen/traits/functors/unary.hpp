@@ -592,6 +592,6 @@ namespace OpenKalman::Eigen3
   };
 
 
-} // namespace OpenKalman::Eigen3
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_FUNCTORS_UNARY_HPP
+#endif

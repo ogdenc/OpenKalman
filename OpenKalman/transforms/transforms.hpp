@@ -48,4 +48,4 @@
 #include "RecursiveLeastSquaresTransform.hpp"
 
 
-#endif //OPENKALMAN_TRANSFORMS_HPP
+#endif

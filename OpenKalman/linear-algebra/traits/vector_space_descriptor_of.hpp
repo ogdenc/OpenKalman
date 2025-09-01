@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,7 +24,7 @@ namespace OpenKalman
    * \details Usually, this is defined by the traits for T.
    * \tparam T A matrix, expression, or array
    * \tparam N An index number (0 = rows, 1 = columns, etc.)
-   * \internal \sa interface::indexible_object_traits::get_vector_space_descriptor
+   * \internal \sa interface::indexible_object_traits::get_pattern_collection
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N = 0>
@@ -38,14 +38,14 @@ namespace OpenKalman
    * \overload As defined by the traits for T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires requires(T t) { {get_vector_space_descriptor<N>(t)} -> coordinates::pattern; }
+  template<indexible T, std::size_t N> requires requires(T t) { {get_pattern_collection<N>(t)} -> coordinates::pattern; }
   struct vector_space_descriptor_of<T, N>
 #else
   template<typename T, std::size_t N>
-  struct vector_space_descriptor_of<T, N, std::enable_if_t<coordinates::pattern<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>>>
+  struct vector_space_descriptor_of<T, N, std::enable_if_t<coordinates::pattern<decltype(get_pattern_collection<N>(std::declval<T>()))>>>
 #endif
   {
-    using type = std::decay_t<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>;
+    using type = std::decay_t<decltype(get_pattern_collection<N>(std::declval<T>()))>;
   };
 
 
@@ -56,6 +56,6 @@ namespace OpenKalman
   using vector_space_descriptor_of_t = typename vector_space_descriptor_of<T, N>::type;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_OF_HPP
+#endif

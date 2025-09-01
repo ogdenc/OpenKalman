@@ -116,10 +116,10 @@ TEST(eigen3, get_and_set_components)
   fill_components(elxx_22, 5, 6, 7, 8); EXPECT_TRUE(is_near(elxx_22, m_5678));
 
   M22 m_5768; m_5768 << 5, 7, 6, 8;
-  fill_components<Layout::left>(el22, 5, 6, 7, 8); EXPECT_TRUE(is_near(el22, m_5768));
-  fill_components<Layout::left>(el2x_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(el2x_2, m_5768));
-  fill_components<Layout::left>(elx2_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(elx2_2, m_5768));
-  fill_components<Layout::left>(elxx_22, 5, 6, 7, 8); EXPECT_TRUE(is_near(elxx_22, m_5768));
+  fill_components<data_layout::left>(el22, 5, 6, 7, 8); EXPECT_TRUE(is_near(el22, m_5768));
+  fill_components<data_layout::left>(el2x_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(el2x_2, m_5768));
+  fill_components<data_layout::left>(elx2_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(elx2_2, m_5768));
+  fill_components<data_layout::left>(elxx_22, 5, 6, 7, 8); EXPECT_TRUE(is_near(elxx_22, m_5768));
 
   M21 el21 {m21}; // 1, 2
   M2x el2x_1 {m21};
@@ -668,16 +668,16 @@ TEST(eigen3, set_triangle)
 
   M33 a;
 
-  a = a33; internal::set_triangle<TriangleType::lower>(a, b33);
+  a = a33; internal::set_triangle<triangle_type::lower>(a, b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(a, b33);
+  a = a33; internal::set_triangle<triangle_type::upper>(a, b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(a.triangularView<Eigen::Lower>(), b33);
+  a = a33; internal::set_triangle<triangle_type::lower>(a.triangularView<Eigen::Lower>(), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(a.triangularView<Eigen::Upper>(), b33);
+  a = a33; internal::set_triangle<triangle_type::upper>(a.triangularView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, u33));
 
   a = a33; internal::set_triangle(a.triangularView<Eigen::Lower>(), b33);
@@ -686,22 +686,22 @@ TEST(eigen3, set_triangle)
   a = a33; internal::set_triangle(a.triangularView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Lower>()), b33);
+  a = a33; internal::set_triangle<triangle_type::lower>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Lower>()), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Upper>()), b33);
+  a = a33; internal::set_triangle<triangle_type::upper>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Upper>()), b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(a.selfadjointView<Eigen::Lower>(), b33);
+  a = a33; internal::set_triangle<triangle_type::lower>(a.selfadjointView<Eigen::Lower>(), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(a.selfadjointView<Eigen::Upper>(), b33);
+  a = a33; internal::set_triangle<triangle_type::upper>(a.selfadjointView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Lower>()), b33);
+  a = a33; internal::set_triangle<triangle_type::lower>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Lower>()), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Upper>()), b33);
+  a = a33; internal::set_triangle<triangle_type::upper>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Upper>()), b33);
   EXPECT_TRUE(is_near(a, u33));
 
   a = a33; internal::set_triangle(a, bl33);
@@ -724,9 +724,9 @@ TEST(eigen3, set_triangle)
   const auto e31 = make_dense_object_from<M31>(1.5, 4.5, 6.5);
   const auto e33 = e31.asDiagonal();
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a, b33);
+  a = a33; internal::set_triangle<triangle_type::diagonal>(a, b33);
   EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33, b33), d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<triangle_type::diagonal>(a33, b33), d33));
 
   a = a33; internal::set_triangle(a, e33);
   EXPECT_TRUE(is_near(a, d33));

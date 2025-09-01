@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_DIAGONAL_OF_HPP
 #define OPENKALMAN_DIAGONAL_OF_HPP
 
+
 namespace OpenKalman
 {
   /**
@@ -32,11 +33,11 @@ namespace OpenKalman
 #endif
   diagonal_of(Arg&& arg)
   {
-    if constexpr (diagonal_adapter<Arg>)
+    if constexpr (diagonal_matrix<Arg> and internal::has_nested_vector<Arg>)
     {
       return nested_object(std::forward<Arg>(arg));
     }
-    else if constexpr (diagonal_adapter<Arg, 1>)
+    else if constexpr (diagonal_matrix<Arg> and internal::has_nested_vector<Arg, 1>)
     {
       return transpose(nested_object(std::forward<Arg>(arg)));
     }
@@ -79,6 +80,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_DIAGONAL_OF_HPP
+#endif

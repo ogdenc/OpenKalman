@@ -18,7 +18,7 @@
 #define OPENKALMAN_COMPATIBILITY_MOVABLE_BOX_HPP
 
 #include <optional>
-#include "basics/compatibility/core-concepts.hpp"
+#include "basics/compatibility/object-concepts.hpp"
 
 namespace OpenKalman::internal
 {

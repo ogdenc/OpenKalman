@@ -34,7 +34,7 @@ namespace OpenKalman
         assign_slice_elements(arg, std::forward<Block>(block), begin_tup, std::index_sequence<Is...>{}, j...,
           std::tuple{i, std::get<I>(begin_tup) + i});
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -80,6 +80,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_SET_SLICE_HPP
+#endif

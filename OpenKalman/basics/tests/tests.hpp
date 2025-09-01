@@ -21,7 +21,6 @@
 #include <tuple>
 #include <string>
 #include <gtest/gtest.h>
-#include "collections/concepts/tuple_like.hpp"
 
 
 namespace OpenKalman::test
@@ -62,7 +61,7 @@ namespace OpenKalman::test
     return TestComparison {arg1, arg2, err};
   }
 
-} // namespace OpenKalman::test
+}
 
 
-#endif //OPENKALMAN_TESTS_HPP
+#endif

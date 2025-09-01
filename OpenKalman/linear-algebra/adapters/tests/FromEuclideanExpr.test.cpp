@@ -124,13 +124,13 @@ TEST(special_matrices, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d4, m));
   From42 d5 {make_zero_matrix_like<M42>()};
   EXPECT_TRUE(is_near(d5, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d6 {ZeroAdapter<eigen_matrix_t<double, 4, 2>>()};
+  From42 d6 {zero_adapter<eigen_matrix_t<double, 4, 2>>()};
   EXPECT_TRUE(is_near(d6, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d7 = From42(ZeroAdapter<eigen_matrix_t<double, 4, 2>>());
+  From42 d7 = From42(zero_adapter<eigen_matrix_t<double, 4, 2>>());
   EXPECT_TRUE(is_near(d7, mat3(0, 0, 0, 0, 0, 0)));
   From42 d8 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
-  EXPECT_TRUE(is_near(From42(ZeroAdapter<eigen_matrix_t<double, 4, 2>>()), mat3(0, 0, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(From42(zero_adapter<eigen_matrix_t<double, 4, 2>>()), mat3(0, 0, 0, 0, 0, 0)));
   FromTo32 d9 {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d9.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat3(1, 2, pi/6, pi/3, 3, 4)));
@@ -267,10 +267,10 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
 
   auto m23_wrap_ar = make_dense_writable_matrix_from<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
 
-  ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
-  ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size_v>, 5> c530_4 {4};
-  ConstantAdapter<eigen_matrix_t<double, dynamic_size_v, 4>, 5> c504_3 {3};
-  ConstantAdapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>, 5> c500_34 {3, 4};
+  constant_adapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
+  constant_adapter<eigen_matrix_t<double, 3, dynamic_size_v>, 5> c530_4 {4};
+  constant_adapter<eigen_matrix_t<double, dynamic_size_v, 4>, 5> c504_3 {3};
+  constant_adapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>, 5> c500_34 {3, 4};
 
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c534), c534));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c530_4), c534));
@@ -292,17 +292,17 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(from_euclidean(DynamicTypedIndex {std::tuple<angle::Radians, Axis>{}}, c504_3), m24_from_ra));
   //EXPECT_TRUE(is_near(from_euclidean(DynamicTypedIndex {std::tuple<angle::Radians, Axis>{}}, c500_34), m24_from_ra));
 
-  ZeroAdapter<eigen_matrix_t<double, 2, 3>> z23;
-  ZeroAdapter<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
-  ZeroAdapter<eigen_matrix_t<double, dynamic_size_v, 3>> z03_2 {2};
-  ZeroAdapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>> z00_23 {2, 3};
+  zero_adapter<eigen_matrix_t<double, 2, 3>> z23;
+  zero_adapter<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
+  zero_adapter<eigen_matrix_t<double, dynamic_size_v, 3>> z03_2 {2};
+  zero_adapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>> z00_23 {2, 3};
 
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z23), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z20_3), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z03_2), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z00_23), z23));
 
-  ZeroAdapter<eigen_matrix_t<double, 1, 3>> z13;
+  zero_adapter<eigen_matrix_t<double, 1, 3>> z13;
 
   EXPECT_TRUE(is_near(from_euclidean<angle::Radians>(z23), z13));
   EXPECT_TRUE(is_near(from_euclidean<angle::Radians>(z20_3), z13));
@@ -344,7 +344,7 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(wrap_angles<Axis, angle::Radians>(z03_2), z23));
   EXPECT_TRUE(is_near(wrap_angles<Axis, angle::Radians>(z00_23), z23));
 
-  EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<Cara, eigen_matrix_t<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), DiagonalAdapter {1, pi/6, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<Cara, eigen_matrix_t<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), diagonal_adapter {1, pi/6, 3}));
   EXPECT_TRUE(is_near(diagonal_of(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), make_eigen_matrix<double, 2, 1>(1, pi/3)));
   EXPECT_TRUE(is_near(transpose(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_TRUE(is_near(adjoint(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
@@ -647,7 +647,7 @@ TEST(special_matrices, FromEuclideanExpr_arithmetic)
   EXPECT_TRUE(is_near(2 * From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}, mat3(2, 4, pi/3, pi*2/3, 6, 8)));
   EXPECT_TRUE(is_near(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4} / 2, mat3(0.5, 1, pi/12, pi/6, 1.5, 2)));
   EXPECT_TRUE(is_near(-From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}, mat3(-1, -2, -pi/6, -pi/3, -3, -4)));
-  EXPECT_TRUE(is_near(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4} * DiagonalAdapter {1., 2}, mat3(1, 4, pi/6, pi*2/3, 3, 8)));
+  EXPECT_TRUE(is_near(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4} * diagonal_adapter {1., 2}, mat3(1, 4, pi/6, pi*2/3, 3, 8)));
   using To3 = ToEuclideanExpr<Cara, M32>;
   using FromTo32 = FromEuclideanExpr<Cara, To3>;
   EXPECT_TRUE(is_near(FromTo32(To3 {1, 2, pi/6 + 2*pi, pi/3 - 6*pi, 3, 4}) + FromTo32(To3 {1, 2, pi/6, pi/3, 3, 4}), mat3(2, 4, pi/3, pi*2/3, 6, 8)));

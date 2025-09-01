@@ -13,56 +13,63 @@
  * \brief Definition for \values::fixed.
  */
 
-#ifndef OPENKALMAN_VALUE_FIXED_HPP
-#define OPENKALMAN_VALUE_FIXED_HPP
+#ifndef OPENKALMAN_VALUES_FIXED_HPP
+#define OPENKALMAN_VALUES_FIXED_HPP
 
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
-#include <type_traits>
-#include "number.hpp"
+#include "basics/basics.hpp"
 
 namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace internal
   {
-    // These functions are also used in values::to_number
+    // These functions are also used in values::to_value_type
 
     template<typename T, typename = void>
     struct has_value_member : std::false_type {};
 
     template<typename T>
-    struct has_value_member<T, std::enable_if_t<number<decltype(T::value)>>> : std::true_type {};
+    struct has_value_member<T, std::void_t<decltype(T::value)>> : std::true_type {};
+
 
     template<typename T, typename = void>
-    struct call_result_is_fixed : std::false_type {};
+    struct call_result_is_defined : std::false_type {};
 
     template<typename T>
-    struct call_result_is_fixed<T, std::void_t<std::bool_constant<(T{}(), true)>>> : std::true_type {};
+    struct call_result_is_defined<T, std::void_t<decltype(std::declval<T>()())>> : std::true_type {};
 
-  } // namespace internal
+
+    template<typename T, typename = void>
+    struct call_result_is_constexpr : std::false_type {};
+
+    template<typename T>
+    struct call_result_is_constexpr<T, std::void_t<std::bool_constant<(T{}(), true)>>> : std::true_type {};
+
+  }
 #endif
 
 
   /**
-   * \brief T is a values::value that is determinable at compile time.
+   * \brief T is a \ref value that is determinable at compile time.
    * \todo Include objects that can be implicitly converted to a number at compile time?
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept fixed = std::default_initializable<std::decay_t<T>> and
-    (requires { {std::decay_t<T>::value} -> number; } or
-      requires {
-        {std::decay_t<T>{}()} -> number;
+  concept fixed =
+    std::default_initializable<std::decay_t<T>> and
+    (requires { std::decay_t<T>::value; } or
+      requires() {
+        std::decay_t<T>{}();
         typename std::bool_constant<(std::decay_t<T>{}(), true)>;
       });
 #else
-  constexpr bool fixed = stdcompat::default_initializable<std::decay_t<T>> and
-    (internal::has_value_member<std::decay_t<T>>::value or internal::call_result_is_fixed<std::decay_t<T>>::value);
+  constexpr bool fixed =
+    stdcompat::default_initializable<std::decay_t<T>> and
+    (internal::has_value_member<std::decay_t<T>>::value or
+      (internal::call_result_is_defined<std::decay_t<T>>::value and internal::call_result_is_constexpr<std::decay_t<T>>::value));
 #endif
 
 
-} // namespace OpenKalman::values
+}
 
-#endif //OPENKALMAN_VALUE_FIXED_HPP
+#endif

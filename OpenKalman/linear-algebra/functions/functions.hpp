@@ -112,4 +112,4 @@
 #include "solve.hpp"
 
 
-#endif //OPENKALMAN_FUNCTIONS_HPP
+#endif

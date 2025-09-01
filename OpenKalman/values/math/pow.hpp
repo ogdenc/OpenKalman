@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::pow.
  */
 
-#ifndef OPENKALMAN_VALUE_POW_HPP
-#define OPENKALMAN_VALUE_POW_HPP
+#ifndef OPENKALMAN_VALUES_POW_HPP
+#define OPENKALMAN_VALUES_POW_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
@@ -83,19 +83,19 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<value Arg, value Exponent> requires
-    (integral<Exponent> or std::common_with<number_type_of_t<Arg>, number_type_of_t<Exponent>>)
+    (integral<Exponent> or std::common_with<value_type_of_t<Arg>, value_type_of_t<Exponent>>)
   constexpr value auto
 #else
   template <typename Arg, typename Exponent, std::enable_if_t<value<Arg> and value<Exponent> and
     (values::integral<Exponent> or
-      std::is_void_v<std::void_t<typename std::common_type<number_type_of_t<Arg>, number_type_of_t<Exponent>>::type>>), int> = 0>
+      std::is_void_v<std::void_t<typename std::common_type<value_type_of_t<Arg>, value_type_of_t<Exponent>>::type>>), int> = 0>
   constexpr auto
 #endif
   pow(const Arg& arg, const Exponent& exponent)
   {
     if constexpr (fixed<Arg> or fixed<Exponent>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a, const number_type_of_t<Exponent>& e) const { return values::pow(a, e); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a, const value_type_of_t<Exponent>& e) const { return values::pow(a, e); } };
       return values::operation(Op{}, arg, exponent);
     }
     else
@@ -202,7 +202,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_POW_HPP
+#endif

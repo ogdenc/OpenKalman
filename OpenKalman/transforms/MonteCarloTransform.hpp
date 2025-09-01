@@ -52,13 +52,13 @@ namespace OpenKalman
       static_assert((coordinates::compares_with<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::StaticDescriptor> and ...));
 
-      using InputMeanMatrix = dense_writable_matrix_t<In_Mean, Layout::none, Scalar,
+      using InputMeanMatrix = dense_writable_matrix_t<In_Mean, data_layout::none, Scalar,
         std::tuple<coordinates::dimension_of<InputCoefficients>, Axis>>;
-      using OutputEuclideanMeanMatrix = dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar, std::tuple<coordinates::dimension_of<OutputCoefficients>, Axis>>;
-      using OutputCovarianceMatrix = dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar,
+      using OutputEuclideanMeanMatrix = dense_writable_matrix_t<InputMeanMatrix, data_layout::none, Scalar, std::tuple<coordinates::dimension_of<OutputCoefficients>, Axis>>;
+      using OutputCovarianceMatrix = dense_writable_matrix_t<InputMeanMatrix, data_layout::none, Scalar,
         std::tuple<coordinates::dimension_of<OutputCoefficients>, coordinates::dimension_of<OutputCoefficients>>>;
       using OutputCovarianceSA = typename MatrixTraits<std::decay_t<OutputCovarianceMatrix>>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar,
+      using CrossCovarianceMatrix = dense_writable_matrix_t<InputMeanMatrix, data_layout::none, Scalar,
         std::tuple<coordinates::dimension_of<InputCoefficients>, coordinates::dimension_of<OutputCoefficients>>>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;
@@ -300,4 +300,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_MONTECARLOTRANSFORM_HPP
+#endif

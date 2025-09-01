@@ -12,8 +12,8 @@
  * \brief Definition for various utilities for log functions.
  */
 
-#ifndef OPENKALMAN_VALUE_LOG_UTILS_HPP
-#define OPENKALMAN_VALUE_LOG_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_LOG_UTILS_HPP
+#define OPENKALMAN_VALUES_LOG_UTILS_HPP
 
 #include "basics/basics.hpp"
 #include "values/functions/internal/near.hpp"
@@ -61,7 +61,7 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_LOG_UTILS_HPP
+#endif

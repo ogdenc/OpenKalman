@@ -36,6 +36,6 @@ namespace OpenKalman::internal
     std::is_assignable_v<To, decltype(to_native_matrix<To>(std::declval<From>()))>;
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_ASSIGNABLE_HPP
+#endif

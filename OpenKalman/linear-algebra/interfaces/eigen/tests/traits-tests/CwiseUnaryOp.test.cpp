@@ -48,8 +48,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_opposite_op)
 
   static_assert(zero<decltype(-z)>);
   static_assert(identity_matrix<decltype(-std::declval<C11_m1>())>);
-  static_assert(triangular_matrix<decltype(-std::declval<Tlv22>()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(-std::declval<Tuv22>()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(-std::declval<Tlv22>()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(-std::declval<Tuv22>()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(-z)>);
   static_assert(diagonal_matrix<decltype(-std::declval<C11_m1>())>);
   static_assert(diagonal_matrix<decltype(-std::declval<I22>())>);
@@ -93,7 +93,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs_op)
   static_assert(identity_matrix<decltype((-id).abs())>);
   static_assert(identity_matrix<decltype(std::declval<C11_m1>().abs())>);
   static_assert(zero<decltype(z.abs())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * -3).abs())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().cwiseAbs())>);
   static_assert(hermitian_matrix<decltype(cxa.abs())>);
@@ -125,7 +125,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs2_op)
   static_assert(identity_matrix<decltype((-id).abs2())>);
   static_assert(identity_matrix<decltype(std::declval<C11_m1>().abs2())>);
   static_assert(zero<decltype(z.abs2())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs2()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs2()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * -3).abs2())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().cwiseAbs2())>);
   static_assert(hermitian_matrix<decltype(cxa.abs2())>);
@@ -139,8 +139,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_conjugate_op)
   EXPECT_EQ((constant_coefficient{cxb.conjugate()}()), (std::complex<double>{3, -4}));
   static_assert(constant_diagonal_coefficient_v<decltype(M11::Identity().conjugate())> == 1);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().conjugate())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().conjugate()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().conjugate()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().conjugate()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().conjugate()), triangle_type::upper>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().conjugate())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().conjugate())>);
   static_assert(hermitian_matrix<decltype(std::declval<I22>().conjugate())>);
@@ -156,9 +156,9 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_arg_op)
   EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxa.arg()}()), (std::arg(std::complex<double>{1, 2}))));
   EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().arg())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cwiseAbs()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cwiseAbs()), triangle_type::lower>);
   static_assert(not diagonal_matrix<decltype(std::declval<Cd22_2>().arg())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cwiseAbs()), triangle_type::upper>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().cwiseAbs())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().cwiseAbs())>);
   static_assert(hermitian_matrix<decltype(cxa.arg())>);
@@ -171,8 +171,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cast_op)
   static_assert(std::is_same_v<typename constant_coefficient<Eigen::CwiseUnaryOp<SCOp, C22_2>>::value_type, int>);
   static_assert(std::is_same_v<typename constant_coefficient<Eigen::CwiseUnaryOp<Eigen::internal::scalar_cast_op<std::complex<double>, std::complex<int>>, decltype(cxa)>>::value_type, std::complex<int>>);
   static_assert(constant_diagonal_matrix<Eigen::CwiseUnaryOp<SCOp, Cd22_2>>);
-  static_assert(triangular_matrix<Eigen::CwiseUnaryOp<SCOp, Tlv22>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::CwiseUnaryOp<SCOp, Tuv22>, TriangleType::upper>);
+  static_assert(triangular_matrix<Eigen::CwiseUnaryOp<SCOp, Tlv22>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::CwiseUnaryOp<SCOp, Tuv22>, triangle_type::upper>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<SCOp, Cd22_2>>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<SCOp, Salv22>>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<SCOp, Sauv22>>);
@@ -200,8 +200,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_shift_right_op)
   EXPECT_EQ(0, cdp2_int.shiftRight<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftRight<1>()}(), 1);
   static_assert(values::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftRight<1>())>>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftRight<1>()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftRight<1>()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftRight<1>()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftRight<1>()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftRight<1>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().cast<int>().array().shiftRight<1>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().cast<int>().array().shiftRight<1>())>);
@@ -217,8 +217,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_shift_left_op)
   EXPECT_EQ(0, cdp2_int.shiftLeft<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftLeft<1>()}(), 4);
   static_assert(values::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftLeft<1>())>>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftLeft<1>()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftLeft<1>()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftLeft<1>()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftLeft<1>()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftLeft<1>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().cast<int>().array().shiftLeft<1>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().cast<int>().array().shiftLeft<1>())>);
@@ -256,7 +256,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_exp_op)
   EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.exp()}(), cxb.exp()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().exp())>);
   static_assert(not zero<decltype(z.exp())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().exp()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().exp()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * -3).exp())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().exp())>);
   static_assert(not hermitian_matrix<decltype(cxa.exp())>); // because cxa is not necessarily hermitian
@@ -279,7 +279,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_expm1_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdm2.expm1()}(), cdm2.expm1()(0, 0)));
   EXPECT_EQ(0, cdm2.expm1()(0, 1));
   static_assert(zero<decltype(z.expm1())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().expm1()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().expm1()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * -3).expm1())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().expm1())>);
   static_assert(not hermitian_matrix<decltype(cxa.expm1())>); // because cxa is not necessarily hermitian
@@ -295,7 +295,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log_op)
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).log())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().log())>);
   static_assert(not hermitian_matrix<decltype(cxa.log())>); // because cxa is not necessarily hermitian
@@ -312,7 +312,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log1p_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.log1p()}(), cdp2.log1p()(0, 0)));
   EXPECT_EQ(0, cdp2.log1p()(0, 1));
   static_assert(zero<decltype(z.log1p())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().log1p()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().log1p()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * -3).log1p())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().log1p())>);
   static_assert(not hermitian_matrix<decltype(cxa.log1p())>); // because cxa is not necessarily hermitian
@@ -327,7 +327,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log10_op)
   EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.log10()}(), cxb.log10()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log10())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log10())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log10()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log10()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).log10())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().log10())>);
   static_assert(not hermitian_matrix<decltype(cxa.log10())>); // because cxa is not necessarily hermitian
@@ -343,7 +343,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log2_op)
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log2())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log2())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log2()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log2()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).log2())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().log2())>);
   static_assert(not hermitian_matrix<decltype(cxa.log2())>); // because cxa is not necessarily hermitian
@@ -361,7 +361,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sqrt_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sqrt()}(), cdp2.sqrt()(0, 0)));
   EXPECT_EQ(0, cdp2.sqrt()(0, 1));
   static_assert(zero<decltype(z.sqrt())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sqrt()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sqrt()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).sqrt())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().sqrt())>);
   static_assert(not hermitian_matrix<decltype(cxa.sqrt())>); // because cxa is not necessarily hermitian
@@ -376,7 +376,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_rsqrt_op)
   EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.rsqrt()}(), cxb.rsqrt()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().rsqrt())>);
   static_assert(not zero<decltype(z.rsqrt())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().rsqrt()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().rsqrt()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).rsqrt())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().rsqrt())>);
   static_assert(not hermitian_matrix<decltype(cxa.rsqrt())>); // because cxa is not necessarily hermitian
@@ -391,7 +391,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cos_op)
   EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.cos()}(), cxb.cos()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().cos())>);
   static_assert(not zero<decltype(z.cos())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cos()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cos()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).cos())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().cos())>);
   static_assert(not hermitian_matrix<decltype(cxa.cos())>); // because cxa is not necessarily hermitian
@@ -408,7 +408,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sin_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sin()}(), cdp2.sin()(0, 0)));
   EXPECT_EQ(0, cdp2.sin()(0, 1));
   static_assert(zero<decltype(z.sin())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sin()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sin()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).sin())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().sin())>);
   static_assert(not hermitian_matrix<decltype(cxa.sin())>); // because cxa is not necessarily hermitian
@@ -425,7 +425,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tan_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.tan()}(), cdp2.tan()(0, 0)));
   EXPECT_EQ(0, cdp2.tan()(0, 1));
   static_assert(zero<decltype(z.tan())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tan()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tan()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).tan())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().tan())>);
   static_assert(not hermitian_matrix<decltype(cxa.tan())>); // because cxa is not necessarily hermitian
@@ -440,7 +440,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acos_op)
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.acos()}(), cxb.acos()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_m1>().acos())>);
   static_assert(not zero<decltype(z.acos())>);
-  static_assert(not triangular_matrix<decltype((std::declval<Tuv22>()* 0.25).array().acos()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype((std::declval<Tuv22>()* 0.25).array().acos()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id* 0.25).acos())>);
   static_assert(hermitian_matrix<decltype((std::declval<Salv22>()* 0.25).array().acos())>);
   static_assert(not hermitian_matrix<decltype((cxa* 0.25).acos())>); // because cxa is not necessarily hermitian
@@ -457,7 +457,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asin_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2*0.25).asin()}(), (cdp2*0.25).asin()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).asin()(0, 1));
   static_assert(zero<decltype(z.asin())>);
-  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().asin()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().asin()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 0.25).asin())>);
   static_assert(hermitian_matrix<decltype((std::declval<Salv22>() * 0.25).array().asin())>);
   static_assert(not hermitian_matrix<decltype((cxa* 0.25).asin())>); // because cxa is not necessarily hermitian
@@ -475,7 +475,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atan_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2*0.25).atan()}(), (cdp2*0.25).atan()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).atan()(0, 1));
   static_assert(zero<decltype(z.atan())>);
-  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().atan()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().atan()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 0.25).atan())>);
   static_assert(hermitian_matrix<decltype((std::declval<Salv22>() * 0.25).array().atan())>);
   static_assert(not hermitian_matrix<decltype((cxa * 0.25).atan())>); // because cxa is not necessarily hermitian
@@ -492,7 +492,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tanh_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.tanh()}(), cdp2.tanh()(0, 0)));
   EXPECT_EQ(0, cdp2.tanh()(0, 1));
   static_assert(zero<decltype(z.tanh())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tanh()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tanh()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).tanh())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().tanh())>);
   static_assert(not hermitian_matrix<decltype(cxa.tanh())>); // because cxa is not necessarily hermitian
@@ -508,7 +508,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atanh_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2 * 0.3).atanh()}(), (cdp2 * 0.3).atanh()(0, 0)));
   EXPECT_EQ(0, (cdp2 * 0.3).atanh()(0, 1));
   static_assert(zero<decltype(z.atanh())>);
-  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.3).array().atanh()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.3).array().atanh()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * -0.9).atanh())>);
   static_assert(hermitian_matrix<decltype((std::declval<Salv22>() * 0.3).array().atanh())>);
   static_assert(not hermitian_matrix<decltype(cxa.atanh())>); // because cxa is not necessarily hermitian
@@ -526,7 +526,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sinh_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sinh()}(), cdp2.sinh()(0, 0)));
   EXPECT_EQ(0, cdp2.sinh()(0, 1));
   static_assert(zero<decltype(z.sinh())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sinh()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sinh()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).sinh())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().sinh())>);
   static_assert(not hermitian_matrix<decltype(cxa.sinh())>); // because cxa is not necessarily hermitian
@@ -544,7 +544,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asinh_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.asinh()}(), cdp2.asinh()(0, 0)));
   EXPECT_EQ(0, cdp2.asinh()(0, 1));
   static_assert(zero<decltype(z.asinh())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().asinh()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().asinh()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).asinh())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().asinh())>);
   static_assert(not hermitian_matrix<decltype(cxa.asinh())>); // because cxa is not necessarily hermitian
@@ -560,7 +560,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cosh_op)
   EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.cosh()}(), cxb.cosh()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().cosh())>);
   static_assert(not zero<decltype(z.cosh())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cosh()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cosh()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).cosh())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().cosh())>);
   static_assert(not hermitian_matrix<decltype(cxa.cosh())>); // because cxa is not necessarily hermitian
@@ -575,7 +575,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acosh_op)
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.acosh()}(), cxb.acosh()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().acosh())>);
   static_assert(not zero<decltype(z.acosh())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().acosh()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().acosh()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).acosh())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().acosh())>);
   static_assert(not hermitian_matrix<decltype(cxa.acosh())>); // because cxa is not necessarily hermitian
@@ -590,7 +590,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_inverse_op)
   EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.inverse()}(), cxa.inverse()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().inverse())>);
   static_assert(not zero<decltype(z.inverse())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().inverse()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().inverse()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).inverse())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().inverse())>);
   static_assert(not hermitian_matrix<decltype(cxa.inverse())>); // because cxa is not necessarily hermitian
@@ -608,7 +608,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_square_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.square()}(), cdp2.square()(0, 0)));
   EXPECT_EQ(0, cdp2.square()(0, 1));
   static_assert(zero<decltype(z.square())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().square()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().square()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).square())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().square())>);
   static_assert(not hermitian_matrix<decltype(cxa.square())>); // because cxa is not necessarily hermitian
@@ -625,7 +625,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cube_op)
   EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.cube()}(), cdp2.cube()(0, 0)));
   EXPECT_EQ(0, cdp2.cube()(0, 1));
   static_assert(zero<decltype(z.cube())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().cube()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().cube()), triangle_type::upper>);
   static_assert(diagonal_matrix<decltype((id * 3).cube())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().cube())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array().cube())>);
@@ -674,7 +674,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_logistic_op)
   EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.logistic()}(), cxb.logistic()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().logistic())>);
   static_assert(not zero<decltype(z.logistic())>);
-  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().logistic()), TriangleType::upper>);
+  static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().logistic()), triangle_type::upper>);
   static_assert(not diagonal_matrix<decltype((id * 3).logistic())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().logistic())>);
   static_assert(not hermitian_matrix<decltype(cxa.logistic())>); // because cxa is not necessarily hermitian
@@ -690,7 +690,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   static_assert(values::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB1sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Applicability::permitted>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cm2)>>);
 
   using CB1prod = Eigen::internal::bind1st_op<Eigen::internal::scalar_product_op<double, double>>;
@@ -700,7 +700,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   static_assert(zero<Eigen::CwiseUnaryOp<CB1prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, Applicability::permitted>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cm2)>>);
 }
 
@@ -713,7 +713,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   static_assert(values::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB2sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Applicability::permitted>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cm2)>>);
 
   using CB2prod = Eigen::internal::bind2nd_op<Eigen::internal::scalar_product_op<double, double>>;
@@ -723,7 +723,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   static_assert(zero<Eigen::CwiseUnaryOp<CB2prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, Applicability::permitted>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cm2)>>);
 }
 

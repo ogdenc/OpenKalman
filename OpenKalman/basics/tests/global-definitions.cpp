@@ -20,21 +20,21 @@
 using namespace OpenKalman;
 
 
-TEST(basics, Applicability)
+TEST(basics, applicability)
 {
 
-  static_assert(Applicability::guaranteed == not Applicability::permitted);
-  static_assert((not Applicability::guaranteed) == Applicability::permitted);
+  static_assert(applicability::guaranteed == not applicability::permitted);
+  static_assert((not applicability::guaranteed) == applicability::permitted);
 
-  static_assert((Applicability::guaranteed and Applicability::guaranteed) == Applicability::guaranteed);
-  static_assert((Applicability::guaranteed and Applicability::permitted) == Applicability::permitted);
-  static_assert((Applicability::permitted and Applicability::guaranteed) == Applicability::permitted);
-  static_assert((Applicability::permitted and Applicability::permitted) == Applicability::permitted);
+  static_assert((applicability::guaranteed and applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::guaranteed and applicability::permitted) == applicability::permitted);
+  static_assert((applicability::permitted and applicability::guaranteed) == applicability::permitted);
+  static_assert((applicability::permitted and applicability::permitted) == applicability::permitted);
 
-  static_assert((Applicability::guaranteed or Applicability::guaranteed) == Applicability::guaranteed);
-  static_assert((Applicability::guaranteed or Applicability::permitted) == Applicability::guaranteed);
-  static_assert((Applicability::permitted or Applicability::guaranteed) == Applicability::guaranteed);
-  static_assert((Applicability::permitted or Applicability::permitted) == Applicability::permitted);
+  static_assert((applicability::guaranteed or applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::guaranteed or applicability::permitted) == applicability::guaranteed);
+  static_assert((applicability::permitted or applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::permitted or applicability::permitted) == applicability::permitted);
 }
 
 

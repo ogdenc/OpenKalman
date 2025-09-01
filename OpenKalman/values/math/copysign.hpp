@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::copysign.
  */
 
-#ifndef OPENKALMAN_VALUE_COPYSIGN_HPP
-#define OPENKALMAN_VALUE_COPYSIGN_HPP
+#ifndef OPENKALMAN_VALUES_COPYSIGN_HPP
+#define OPENKALMAN_VALUES_COPYSIGN_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
@@ -39,18 +39,18 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<value Mag, value Sgn> requires
-    (not complex<number_type_of_t<Mag>>) and (not complex<number_type_of_t<Sgn>>) and
-    (std::common_with<number_type_of_t<Mag>, number_type_of_t<Sgn>>)
+    (not complex<value_type_of_t<Mag>>) and (not complex<value_type_of_t<Sgn>>) and
+    (std::common_with<value_type_of_t<Mag>, value_type_of_t<Sgn>>)
   constexpr value auto copysign(const Mag& mag, const Sgn& sgn)
 #else
   template <typename Mag, typename Sgn, std::enable_if_t<value<Mag> and value<Sgn> and
-    (not complex<number_type_of_t<Mag>>) and (not complex<number_type_of_t<Sgn>>), int> = 0>
+    (not complex<value_type_of_t<Mag>>) and (not complex<value_type_of_t<Sgn>>), int> = 0>
   constexpr auto copysign(const Mag& mag, const Sgn& sgn)
 #endif
   {
     if constexpr (fixed<Mag> or fixed<Sgn>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Mag>& m, const number_type_of_t<Sgn>& s) const { return values::copysign(m, s); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Mag>& m, const value_type_of_t<Sgn>& s) const { return values::copysign(m, s); } };
       return values::operation(Op{}, mag, sgn);
     }
     else
@@ -67,7 +67,7 @@ namespace OpenKalman::values
     }
   }
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_COPYSIGN_HPP
+#endif

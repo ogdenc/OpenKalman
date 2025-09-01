@@ -17,7 +17,7 @@
 #ifndef OPENKALMAN_TRANSFORMBASE_HPP
 #define OPENKALMAN_TRANSFORMBASE_HPP
 
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
 
 namespace OpenKalman::internal
 {
@@ -43,10 +43,10 @@ namespace OpenKalman::internal
     * \return The posterior distribution.
     **/
 #ifdef __cpp_concepts
-    template<distribution InputDist, tuple_like T, tuple_like...Ts>
+    template<distribution InputDist, collections::uniformly_gettable T, collections::uniformly_gettable...Ts>
 #else
     template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
-      distribution<InputDist> and (tuple_like<T> and ... and tuple_like<Ts>), int> = 0>
+      distribution<InputDist> and (collections::uniformly_gettable<T> and ... and collections::uniformly_gettable<Ts>), int> = 0>
 #endif
     auto operator()(const InputDist& x, const T& t, const Ts&...ts) const
     {
@@ -72,10 +72,10 @@ namespace OpenKalman::internal
      * \return A tuple containing the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
-    template<distribution InputDist, tuple_like T, tuple_like...Ts>
+    template<distribution InputDist, collections::uniformly_gettable T, collections::uniformly_gettable...Ts>
 #else
     template<typename InputDist, typename T, typename...Ts, std::enable_if_t<
-      distribution<InputDist> and (tuple_like<T> and ... and tuple_like<Ts>), int> = 0>
+      distribution<InputDist> and (collections::uniformly_gettable<T> and ... and collections::uniformly_gettable<Ts>), int> = 0>
 #endif
     auto transform_with_cross_covariance(const InputDist& x, const T& t, const Ts&...ts) const
     {
@@ -96,4 +96,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_TRANSFORMBASE_HPP
+#endif

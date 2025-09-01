@@ -104,6 +104,6 @@ namespace OpenKalman::interface
     static constexpr auto make_complex = [](T re, T im) { return std::complex<T> {std::move(re), std::move(im)}; };
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_NUMBER_TRAITS_HPP
+#endif

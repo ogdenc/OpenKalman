@@ -20,19 +20,19 @@ namespace OpenKalman
 {
   /**
    * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * \tparam A The matrix to be decomposed satisfying <code>triangular_matrix<A, TriangleType::lower></code>
+   * \tparam A The matrix to be decomposed satisfying <code>triangular_matrix<A, triangle_type::lower></code>
    * \returns L as a lower \ref triangular_matrix which is also \ref square_shaped
    */
 #ifdef __cpp_concepts
   template<indexible A> requires (not euclidean_transformed<A>)
-  constexpr triangular_matrix<TriangleType::lower> decltype(auto)
+  constexpr triangular_matrix<triangle_type::lower> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A> and (not euclidean_transformed<A>), int> = 0>
   constexpr decltype(auto)
 #endif
   LQ_decomposition(A&& a)
   {
-    if constexpr (triangular_matrix<A, TriangleType::lower>)
+    if constexpr (triangular_matrix<A, triangle_type::lower>)
     {
       return internal::clip_square_shaped(std::forward<A>(a));
     }
@@ -52,15 +52,15 @@ namespace OpenKalman
         if (get_dimension(dim) == 1) m = std::move(col1);
         else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - coordinates::Axis{}));
 
-        auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};
+        auto ret {make_triangular_matrix<triangle_type::lower>(std::move(m))};
 
         // \todo Fix this:
         if constexpr (has_untyped_index<A, 0>) return ret;
-        else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<0>(a)};
+        else return SquareRootCovariance {std::move(ret), get_pattern_collection<0>(a)};
       }
       else
       {
-        auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
+        auto ret = make_triangular_matrix<triangle_type::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
           auto col1 = make_constant<A>(elem, coordinates::Dimensions<dim>{}, coordinates::Axis{});
           if constexpr (dim == 1) return col1;
@@ -89,16 +89,16 @@ namespace OpenKalman
       }(std::forward<A>(a));
       using Ret = decltype(ret);
 
-      static_assert(triangular_matrix<Ret, TriangleType::lower>,
+      static_assert(triangular_matrix<Ret, triangle_type::lower>,
         "Interface implementation error: interface::library_interface<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (has_untyped_index<A, 0>) return ret;
-      else return SquareRootCovariance {std::forward<Ret>(ret), get_vector_space_descriptor<0>(a)};
+      else return SquareRootCovariance {std::forward<Ret>(ret), get_pattern_collection<0>(a)};
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_LQ_DECOMPOSITION_HPP
+#endif

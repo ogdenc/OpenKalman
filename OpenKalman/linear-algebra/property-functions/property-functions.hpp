@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,7 +21,7 @@
 
 
 #include "count_indices.hpp"
-#include "get_vector_space_descriptor.hpp"
+#include "get_pattern_collection.hpp"
 #include "get_index_dimension_of.hpp"
 #include "tensor_order.hpp"
 
@@ -37,4 +37,4 @@
 #include "linear-algebra/property-functions/internal/truncate_indices.hpp"
 
 
-#endif //OPENKALMAN_PROPERTIES_FUNCTIONS_HPP
+#endif

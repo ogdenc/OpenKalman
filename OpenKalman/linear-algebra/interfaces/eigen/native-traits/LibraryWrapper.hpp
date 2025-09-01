@@ -64,7 +64,7 @@ namespace OpenKalman::Eigen3::internal
 
     using ElementRef = decltype(OpenKalman::get_component(std::declval<std::add_lvalue_reference_t<T>>(), 0, 0));
     static constexpr auto lvalue_bit = std::is_same_v<ElementRef, std::decay_t<ElementRef>&> ? Eigen::LvalueBit : 0x0;
-    static constexpr auto layout_bit = OpenKalman::layout_of_v<T> == OpenKalman::Layout::right ? Eigen::RowMajorBit : 0x0;
+    static constexpr auto layout_bit = OpenKalman::layout_of_v<T> == OpenKalman::data_layout::right ? Eigen::RowMajorBit : 0x0;
     static constexpr auto direct = OpenKalman::directly_accessible<T> ? Eigen::DirectAccessBit : 0x0;
 
 #ifdef __cpp_concepts
@@ -75,16 +75,16 @@ namespace OpenKalman::Eigen3::internal
     struct Strides { using type = std::decay_t<decltype(OpenKalman::internal::strides(std::declval<Arg>()))>; };
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (OpenKalman::layout_of_v<Arg> == OpenKalman::Layout::none)
+    template<typename Arg> requires (OpenKalman::layout_of_v<Arg> == OpenKalman::data_layout::none)
     struct Strides<Arg>
 #else
     template<typename Arg>
-  struct Strides<Arg, std::enable_if_t<(OpenKalman::layout_of_v<Arg> == OpenKalman::Layout::none)>>
+  struct Strides<Arg, std::enable_if_t<(OpenKalman::layout_of_v<Arg> == OpenKalman::data_layout::none)>>
 #endif
     { using type = std::tuple<std::size_t, std::size_t>; };
 
-    using Stride0 = std::tuple_element_t<0, typename Strides<T>::type>;
-    using Stride1 = std::tuple_element_t<1, typename Strides<T>::type>;
+    using Stride0 = collections::collection_element_t<0, typename Strides<T>::type>;
+    using Stride1 = collections::collection_element_t<1, typename Strides<T>::type>;
 
     using IndexType = typename std::decay_t<T>::Index;
 
@@ -111,4 +111,4 @@ namespace OpenKalman::Eigen3::internal
 } // OpenKalman::Eigen3::internal
 
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_LIBRARYWRAPPER_HPP
+#endif

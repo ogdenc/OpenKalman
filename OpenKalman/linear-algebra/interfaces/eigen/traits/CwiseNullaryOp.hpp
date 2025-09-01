@@ -61,15 +61,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<PlainObjectType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<PlainObjectType, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = NullaryTraits::template is_triangular<t>;
 
 
@@ -81,6 +81,6 @@ namespace OpenKalman::interface
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_CWISENULLARYOP_HPP
+#endif

@@ -202,4 +202,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_BASEMATRIX_HPP
+#endif

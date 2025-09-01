@@ -43,11 +43,11 @@ namespace OpenKalman::internal
     template<typename T, typename Descriptors, std::size_t...Ix>
     static constexpr bool less_fixed_than_impl(std::index_sequence<Ix...>)
     {
-      return ((dynamic_dimension<T, Ix> and fixed_pattern<std::tuple_element_t<Ix, Descriptors>>) or ... or
+      return ((dynamic_dimension<T, Ix> and fixed_pattern<collections::collection_element_t<Ix, Descriptors>>) or ... or
         an_extended_dim_is_dynamic<T, sizeof...(Ix)>());
     }
 #endif
-  } // namespace detail
+  }
 
 
   /**
@@ -59,17 +59,17 @@ namespace OpenKalman::internal
     indexible<T> and pattern_collection<Descriptors> and
       (not pattern_tuple<Descriptors> or
         []<std::size_t...Ix>(std::index_sequence<Ix...>)
-          { return ((dynamic_dimension<T, Ix> and fixed_pattern<std::tuple_element_t<Ix, Descriptors>>) or ... or
+          { return ((dynamic_dimension<T, Ix> and fixed_pattern<collections::collection_element_t<Ix, Descriptors>>) or ... or
               detail::an_extended_dim_is_dynamic<T, sizeof...(Ix)>()); }
-          (std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
+          (std::make_index_sequence<collections::size_of_v<Descriptors>>{}));
 #else
   constexpr bool less_fixed_than =
     indexible<T> and pattern_collection<Descriptors> and
     (not pattern_tuple<Descriptors> or
-      detail::less_fixed_than_impl<T, Descriptors>(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
+      detail::less_fixed_than_impl<T, Descriptors>(std::make_index_sequence<collections::size_of_v<Descriptors>>{}));
 #endif
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_LESS_FIXED_THAN_HPP
+#endif

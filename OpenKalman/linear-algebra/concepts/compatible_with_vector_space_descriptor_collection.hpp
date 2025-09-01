@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename T, std::size_t N, std::size_t...Ix>
     constexpr bool compatible_extension(std::index_sequence<Ix...>)
     {
-      return (... and (compares_with<vector_space_descriptor_of_t<T, N + Ix>, coordinates::Dimensions<1>, equal_to<>, Applicability::permitted>));
+      return (... and (compares_with<vector_space_descriptor_of_t<T, N + Ix>, coordinates::Dimensions<1>, equal_to<>, applicability::permitted>));
     }
 
 
@@ -32,7 +32,7 @@ namespace OpenKalman
     constexpr bool is_compatible_descriptor_tuple(std::index_sequence<Ix...>)
     {
       constexpr std::size_t N = sizeof...(Ix);
-      constexpr bool Dsmatch = (... and (compares_with<vector_space_descriptor_of_t<T, Ix>, std::tuple_element_t<Ix, D>, equal_to<>, Applicability::permitted>));
+      constexpr bool Dsmatch = (... and (compares_with<vector_space_descriptor_of_t<T, Ix>, collections::collection_element_t<Ix, D>, equal_to<>, applicability::permitted>));
 
       if constexpr (index_count_v<T> != dynamic_size and N < index_count_v<T>)
         return Dsmatch and compatible_extension<T, N>(std::make_index_sequence<index_count_v<T> - N>{});
@@ -57,9 +57,9 @@ namespace OpenKalman
     struct compatible_with_vector_space_descriptor_collection_impl<T, D, std::enable_if_t<
       pattern_tuple<D>>>
 #endif
-      : std::bool_constant<is_compatible_descriptor_tuple<T, D>(std::make_index_sequence<std::tuple_size_v<D>>{})> {}; 
+      : std::bool_constant<is_compatible_descriptor_tuple<T, D>(std::make_index_sequence<collections::size_of_v<D>>{})> {};
 
-  } // namespace detail
+  }
 
 
   /**
@@ -77,6 +77,6 @@ namespace OpenKalman
       detail::compatible_with_vector_space_descriptor_collection_impl<T, D>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COMPATIBLE_WITH_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
+#endif

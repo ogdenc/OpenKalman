@@ -30,7 +30,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg&) { return std::monostate {}; }
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -44,9 +44,9 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Arg&) { return std::monostate {}; }
 
     template<typename Arg>
-    static constexpr auto get_constant_diagonal(const Arg&) { return values::Fixed<Scalar, 1>{}; }
+    static constexpr auto get_constant_diagonal(const Arg&) { return values::fixed_value<Scalar, 1>{}; }
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = true;
 
     static constexpr bool is_hermitian = true;
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg&) { return std::monostate {}; }
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -78,12 +78,12 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg&) { return std::monostate {}; }
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = not values::complex<Scalar>;
   };
 
-} // namespace OpenKalman::Eigen3
+}
 
-#endif //OPENKALMAN_EIGEN_NULLARYFUNCTORTRAITS_HPP
+#endif

@@ -28,7 +28,7 @@ namespace OpenKalman
     {
       auto c = constant_coefficient{t0} + constant_coefficient{t1};
       return make_constant<T0>(std::move(c), internal::most_fixed_pattern(
-        get_vector_space_descriptor<Ix>(t0), get_vector_space_descriptor<Ix>(t1))...);
+        get_pattern_collection<Ix>(t0), get_pattern_collection<Ix>(t1))...);
     }
 
 
@@ -96,7 +96,7 @@ namespace OpenKalman
         // \todo Add a default loop in case the library interface does not include sums?
       }
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -113,7 +113,7 @@ namespace OpenKalman
   {
     auto s {internal::make_fixed_size_adapter_like<Ts...>(detail::sum_impl(std::forward<Ts>(ts)...))};
     constexpr auto t = triangle_type_of_v<Ts...>;
-    if constexpr (t != TriangleType::any and not triangular_matrix<decltype(s), t>)
+    if constexpr (t != triangle_type::any and not triangular_matrix<decltype(s), t>)
       return make_triangular_matrix<t>(std::move(s));
     else if constexpr ((... and hermitian_matrix<Ts>) and not hermitian_matrix<decltype(s)>)
       return make_hermitian_matrix(std::move(s));
@@ -121,7 +121,7 @@ namespace OpenKalman
       return s;
   }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_SUM_HPP
+#endif

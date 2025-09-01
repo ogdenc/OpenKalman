@@ -13,8 +13,8 @@
  * \brief Definition for \ref values::internal::NaN.
  */
 
-#ifndef OPENKALMAN_VALUE_NAN_HPP
-#define OPENKALMAN_VALUE_NAN_HPP
+#ifndef OPENKALMAN_VALUES_NAN_HPP
+#define OPENKALMAN_VALUES_NAN_HPP
 
 #include <limits>
 #include <stdexcept>
@@ -47,7 +47,7 @@ namespace OpenKalman::values::internal
       throw std::domain_error {"Domain error in arithmetic operation: result is not a number"};
   }
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_NAN_HPP
+#endif

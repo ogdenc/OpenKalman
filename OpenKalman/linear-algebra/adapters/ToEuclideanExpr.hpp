@@ -17,7 +17,7 @@
 #define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
 #include "basics/basics.hpp"
-#include "linear-algebra/coordinates/coordinates.hpp"
+#include "coordinates/coordinates.hpp"
 #include "linear-algebra/concepts/identity_matrix.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 #include "linear-algebra/property-functions/count_indices.hpp"
@@ -77,20 +77,20 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>,
-        decltype(from_euclidean(std::declval<Arg>(), get_vector_space_descriptor<0>(std::declval<NestedObject>())))>
+        decltype(from_euclidean(std::declval<Arg>(), get_pattern_collection<0>(std::declval<NestedObject>())))>
 #else
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>,
-        decltype(from_euclidean(std::declval<Arg>(), get_vector_space_descriptor<0>(std::declval<NestedObject>())))>, int> = 0>
+        decltype(from_euclidean(std::declval<Arg>(), get_pattern_collection<0>(std::declval<NestedObject>())))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
-      using FArg = decltype(from_euclidean(std::declval<Arg>(), get_vector_space_descriptor<0>(std::declval<NestedObject>())));
+      using FArg = decltype(from_euclidean(std::declval<Arg>(), get_pattern_collection<0>(std::declval<NestedObject>())));
       if constexpr ((zero<NestedObject> and zero<FArg>) or (identity_matrix<NestedObject> and identity_matrix<FArg>))
       {}
       else
       {
-        this->nested_object() = from_euclidean(std::forward<Arg>(arg), get_vector_space_descriptor<0>(nested_object(arg)));
+        this->nested_object() = from_euclidean(std::forward<Arg>(arg), get_pattern_collection<0>(nested_object(arg)));
       }
       return *this;
     }
@@ -122,18 +122,18 @@ template<indexible Arg>
 
       template<typename Arg, typename N>
       static constexpr auto
-      get_vector_space_descriptor(Arg&& arg, const N& n)
+      get_pattern_collection(Arg&& arg, const N& n)
       {
         if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return Axis;
-          else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);
+          else return OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n);
         }
         else
         {
           using Desc = coordinates::DynamicDescriptor<scalar_type_of<Arg>>;
           if (n == 0) return Desc {coordinates::Axis};
-          else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
+          else return Desc {OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
 
@@ -168,17 +168,17 @@ template<indexible Arg>
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool
       one_dimensional = has_untyped_index<NestedObject, 0> and OpenKalman::one_dimensional<NestedObject, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool
       is_square = has_untyped_index<NestedObject, 0> and square_shaped<NestedObject, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool
       is_triangular = has_untyped_index<NestedObject, 0> and triangular_matrix<NestedObject, t>;
 
@@ -209,14 +209,14 @@ template<indexible Arg>
       }
 
 
-      static constexpr Layout
-      layout = has_untyped_index<NestedObject, 0> ? layout_of_v<NestedObject> : Layout::none;
+      static constexpr data_layout
+      layout = has_untyped_index<NestedObject, 0> ? layout_of_v<NestedObject> : data_layout::none;
 
 
 #ifdef __cpp_concepts
-      template<typename Arg> requires (layout != Layout::none)
+      template<typename Arg> requires (layout != data_layout::none)
 #else
-      template<Layout l = layout, typename Arg, std::enable_if_t<l != Layout::none, int> = 0>
+      template<data_layout l = layout, typename Arg, std::enable_if_t<l != data_layout::none, int> = 0>
 #endif
       static auto
       strides(Arg&& arg)
@@ -237,7 +237,7 @@ template<indexible Arg>
     public:
 
       template<typename Derived>
-      using LibraryBase = internal::library_base_t<Derived, pattern_matrix_of_t<T>>;
+      using library_base = internal::library_base_t<Derived, std::decay_t<NestedObject>>;
 
 
 #ifdef __cpp_lib_ranges
@@ -256,7 +256,7 @@ template<indexible Arg>
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return coordinates::to_stat_space(get_vector_space_descriptor<0>(arg), g, i);
+          return coordinates::to_stat_space(get_pattern_collection<0>(arg), g, i);
         }
       }
 
@@ -287,7 +287,7 @@ template<indexible Arg>
       }
 
 
-      template<Layout layout, typename Scalar, typename D>
+      template<data_layout layout, typename Scalar, typename D>
       static auto make_default(D&& d)
       {
         return make_dense_object<NestedObject, layout, Scalar>(std::forward<D>(d));
@@ -327,8 +327,7 @@ template<indexible Arg>
         }
         else
         {
-          using P = pattern_matrix_of_t<T>;
-          return library_interface<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+          return library_interface<P>::to_diagonal(to_native_matrix<NestedObject>(std::forward<Arg>(arg)));
         }
       }
 
@@ -343,8 +342,7 @@ template<indexible Arg>
         }
         else
         {
-          using P = pattern_matrix_of_t<T>;
-          return library_interface<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
+          return library_interface<P>::diagonal_of(to_native_matrix<NestedObject>(std::forward<Arg>(arg)));
         }
       }
 
@@ -361,7 +359,7 @@ template<indexible Arg>
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
       {
-        using P = pattern_matrix_of_t<T>;
+        using P = std::decay_t<NestedObject>;
         return library_interface<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
       }
 
@@ -370,7 +368,7 @@ template<indexible Arg>
       static constexpr decltype(auto)
       reduce(BinaryFunction&& b, Arg&& arg)
       {
-        using P = pattern_matrix_of_t<T>;
+        using P = std::decay_t<NestedObject>;
         return library_interface<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
       }
 
@@ -450,7 +448,7 @@ template<indexible Arg>
       }
 
 
-      template<TriangleType triangle, typename A, typename U, typename Alpha>
+      template<triangle_type triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
         return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
@@ -484,11 +482,11 @@ template<indexible Arg>
     };
 
 
-  } // namespace interface
+  }
 
 
 } // OpenKalman
 
 
 
-#endif //OPENKALMAN_TOEUCLIDEANEXPR_HPP
+#endif

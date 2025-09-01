@@ -71,4 +71,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_LINEARTRANSFORM_HPP
+#endif

@@ -57,17 +57,17 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional =
-      (b != Applicability::guaranteed or (RowFactor == 1 and ColFactor == 1)) and
+      (b != applicability::guaranteed or (RowFactor == 1 and ColFactor == 1)) and
       (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
       (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
         OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square =
-      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
+      (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
       (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
         ((RowFactor != ColFactor or square_shaped<MatrixType, b>) and
         (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
@@ -77,22 +77,22 @@ namespace OpenKalman::interface
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<MatrixType, t> and
-      ((RowFactor == 1 and ColFactor != 0 and (t == TriangleType::upper or t == TriangleType::any)) or
-        (ColFactor == 1 and RowFactor != 0 and (t == TriangleType::lower or t == TriangleType::any)) or
-        (RowFactor == 1 and ColFactor == 1 and t == TriangleType::diagonal));
+      ((RowFactor == 1 and ColFactor != 0 and (t == triangle_type::upper or t == triangle_type::any)) or
+        (ColFactor == 1 and RowFactor != 0 and (t == triangle_type::lower or t == triangle_type::any)) or
+        (RowFactor == 1 and ColFactor == 1 and t == triangle_type::diagonal));
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Applicability::permitted> and
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted> and
       ((RowFactor == 1 and ColFactor == 1) or not values::complex<scalar_type> or
         values::not_complex<constant_coefficient<MatrixType>> or values::not_complex<constant_diagonal_coefficient<MatrixType>>);
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_REPLICATE_HPP
+#endif

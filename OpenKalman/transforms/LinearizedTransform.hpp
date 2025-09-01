@@ -88,14 +88,14 @@ namespace OpenKalman
       template<typename OutputCoeffs, typename Hessian, typename Dist>
       static auto second_order_term(const Hessian& hessian, const Dist& x)
       {
-        constexpr auto output_dim = std::tuple_size_v<Hessian>;
+        constexpr auto output_dim = collections::size_of_v<Hessian>;
         static_assert(output_dim == coordinates::dimension_of_v<OutputCoeffs>);
         static_assert(order >= 2);
 
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
         using CovIn = nested_object_of_t<typename DistributionTraits<Dist>::Covariance>;
-        using MeanOut = dense_writable_matrix_t<CovIn, Layout::none, scalar_type_of_t<CovIn>, std::tuple<Dimensions<output_dim>, Axis>>;
-        constexpr TriangleType tri = triangle_type_of_v<typename MatrixTraits<std::decay_t<CovIn>>::template TriangularAdapterFrom<>>;
+        using MeanOut = dense_writable_matrix_t<CovIn, data_layout::none, scalar_type_of_t<CovIn>, std::tuple<Dimensions<output_dim>, Axis>>;
+        constexpr triangle_type tri = triangle_type_of_v<typename MatrixTraits<std::decay_t<CovIn>>::template TriangularAdapterFrom<>>;
         using CovOut = typename MatrixTraits<std::decay_t<CovIn>>::template SelfAdjointMatrixFrom<tri, output_dim>;
 
         auto P = covariance_of(x);
@@ -119,8 +119,8 @@ namespace OpenKalman
       static constexpr auto zip_tuples(T1&& t1, T2&& t2)
       {
         static_assert(order >= 2);
-        constexpr auto s = std::tuple_size_v<std::decay_t<T1>>;
-        static_assert(s == std::tuple_size_v<std::decay_t<T2>>);
+        constexpr auto s = collections::size_of_v<T1>;
+        static_assert(s == collections::size_of_v<T2>);
         return zip_tuples_impl<OutputCoeffs>(std::forward<T1>(t1), std::forward<T2>(t2), std::make_index_sequence<s> {});
       }
 
@@ -182,4 +182,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_LINEARIZEDTRANSFORM_HPP
+#endif

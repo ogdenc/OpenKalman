@@ -22,4 +22,4 @@
 #include "untyped_adapter.hpp"
 #include "linear-algebra/traits/dense_writable_matrix_t.hpp"
 
-#endif //OPENKALMAN_OTHER_TRAITS_HPP
+#endif

@@ -33,7 +33,7 @@ namespace OpenKalman
     internal::diagonal_expr<T> or internal::hermitian_expr<T> or internal::triangular_expr<T>;
 
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_UNTYPED_ADAPTER_HPP
+#endif

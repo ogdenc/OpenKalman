@@ -49,6 +49,9 @@ TEST(collections, repeat_tuple_view)
 
 TEST(collections, repeat_view)
 {
+  static_assert(views::repeat(5, std::integral_constant<std::size_t, 3>{})[1U] == 5);
+  static_assert(collections::get(views::repeat(5, std::integral_constant<std::size_t, 10>{}), std::integral_constant<std::size_t, 3>{}) == 5);
+
   constexpr auto c0 = std::integral_constant<std::size_t, 0>{};
   auto i3 = views::repeat(7., 4u);
   static_assert(stdcompat::ranges::view<decltype(i3)>);

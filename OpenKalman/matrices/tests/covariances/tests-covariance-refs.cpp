@@ -18,11 +18,11 @@ using M1 = eigen_matrix_t<double, 3, 1>;
 using C = std::tuple<Axis, angle::Radians, Axis>;
 using Mat3 = Matrix<C, C, M>;
 using Mat31 = Matrix<C, Axis, M1>;
-template<typename Mat> using SAl = HermitianAdapter<Mat, TriangleType::lower>;
-template<typename Mat> using SAu = HermitianAdapter<Mat, TriangleType::upper>;
-template<typename Mat> using Tl = TriangularAdapter<Mat, TriangleType::lower>;
-template<typename Mat> using Tu = TriangularAdapter<Mat, TriangleType::upper>;
-template<typename Mat> using D = DiagonalAdapter<Mat>;
+template<typename Mat> using SAl = HermitianAdapter<Mat, triangle_type::lower>;
+template<typename Mat> using SAu = HermitianAdapter<Mat, triangle_type::upper>;
+template<typename Mat> using Tl = TriangularAdapter<Mat, triangle_type::lower>;
+template<typename Mat> using Tu = TriangularAdapter<Mat, triangle_type::upper>;
+template<typename Mat> using D = diagonal_adapter<Mat>;
 
 
 // -----------Case 2 from Case 1----------- //

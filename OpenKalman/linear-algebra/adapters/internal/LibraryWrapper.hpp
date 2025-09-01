@@ -80,7 +80,7 @@ namespace OpenKalman::internal
   };
 
 
-} // namespace OpenKalman::internal
+}
 
 
-#endif //OPENKALMAN_LIBRARYWRAPPER_HPP
+#endif

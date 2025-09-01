@@ -32,9 +32,9 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
     }
 
 
@@ -59,28 +59,28 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<ExpressionType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<ExpressionType, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<ExpressionType, t>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<ExpressionType, Applicability::permitted>;
+    static constexpr bool is_hermitian = hermitian_matrix<ExpressionType, applicability::permitted>;
 
 
-    static constexpr Layout layout = layout_of_v<ExpressionType>;
+    static constexpr data_layout layout = layout_of_v<ExpressionType>;
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_NESTBYVALUE_HPP
+#endif

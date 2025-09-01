@@ -34,14 +34,14 @@ namespace OpenKalman::collections::views
       constexpr collection_view auto
 #else
       template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
-      constexpr auto
+      constexpr decltype(auto)
 #endif
       operator() (R&& r) const
       {
         using namespace std;
-        if constexpr (collection_view<std::decay_t<R>>)
+        if constexpr (collection_view<R>)
         {
-          return static_cast<std::decay_t<R>>(std::forward<R>(r));
+          return std::forward<R>(r);
         }
         else if constexpr (viewable_tuple_like<R> and stdcompat::ranges::random_access_range<R> and stdcompat::ranges::viewable_range<R>)
         {

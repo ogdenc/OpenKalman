@@ -24,7 +24,7 @@
 #include "collections/concepts/collection.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/functions/get.hpp"
-#include "collections/functions/comparison_operators.hpp"
+#include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "all.hpp"
 
 namespace OpenKalman::collections
@@ -42,10 +42,10 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
   template<collection V, values::index Offset, values::index Extent> requires
     std::same_as<std::decay_t<Offset>, Offset> and std::same_as<std::decay_t<Extent>, Extent> and
-    (size_of_v<V> == dynamic_size or
-    ((values::dynamic<Offset> or values::fixed_number_of_v<Offset> <= std::tuple_size_v<std::decay_t<V>>) and
-    (values::dynamic<Extent> or values::fixed_number_of_v<Extent> <= std::tuple_size_v<std::decay_t<V>>) and
-    (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= std::tuple_size_v<std::decay_t<V>>)))
+    (not sized<V> or size_of_v<V> == dynamic_size or
+    ((values::dynamic<Offset> or values::fixed_value_of_v<Offset> <= size_of_v<V>) and
+    (values::dynamic<Extent> or values::fixed_value_of_v<Extent> <= size_of_v<V>) and
+    (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_value_of_v<Offset> + values::fixed_value_of_v<Extent> <= size_of_v<V>)))
 #else
   template<typename V, typename Offset, typename Extent>
 #endif
@@ -89,6 +89,7 @@ namespace OpenKalman::collections
     constexpr const V&& base() const && noexcept { return std::move(*this).v_; }
 #endif
 
+#ifndef __cpp_explicit_this_parameter
   private:
 
     template<typename Self>
@@ -99,20 +100,28 @@ namespace OpenKalman::collections
     }
 
   public:
+#endif
 
     /**
      * \returns An iterator at the beginning, if the base object is a range.
      */
 #ifdef __cpp_explicit_this_parameter
     constexpr auto
-    begin(this auto&& self) noexcept
+    begin(this auto&& self) noexcept requires stdcompat::ranges::range<const V>
     {
-      return begin_impl(std::forward<decltype(self)>(self)) + std::forward<decltype(self)>(self).offset_;
+      return stdcompat::ranges::begin(std::forward<decltype(self)>(self).v_) + std::forward<decltype(self)>(self).offset_;
     }
 #else
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
     constexpr auto begin() & { return begin_impl(*this) + offset_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
     constexpr auto begin() const & { return begin_impl(*this) + offset_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
     constexpr auto begin() && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
     constexpr auto begin() const && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_; }
 #endif
 
@@ -122,16 +131,22 @@ namespace OpenKalman::collections
      */
 #ifdef __cpp_explicit_this_parameter
     constexpr auto
-    end(this auto&& self) noexcept
+    end(this auto&& self) noexcept requires stdcompat::ranges::range<const V>
     {
-      return begin_impl(std::forward<decltype(self)>(self)) +
-        std::forward<decltype(self)>(self).offset_ + std::forward<decltype(self)>(self).extent_;
+      return std::forward<decltype(self)>(self).begin() + std::forward<decltype(self)>(self).extent_;
     }
 #else
-    constexpr auto end() & { return begin_impl(*this) + offset_ + extent_; }
-    constexpr auto end() const & { return begin_impl(*this) + offset_ + extent_; }
-    constexpr auto end() && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_ + std::move(*this).extent_; }
-    constexpr auto end() const && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_ + std::move(*this).extent_; }
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto end() & { return this->begin() + extent_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto end() const & { return this->begin() + extent_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto end() && noexcept { return std::move(*this).begin() + std::move(*this).extent_; }
+
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto end() const && noexcept { return std::move(*this).begin() + std::move(*this).extent_; }
 #endif
 
 
@@ -155,7 +170,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get(this auto&& self) noexcept
     {
-      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
+      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
       return collections::get(std::forward<decltype(self)>(self).v_,
         values::operation(std::plus{}, std::forward<decltype(self)>(self).offset_, std::integral_constant<std::size_t, i>{}));
     }
@@ -164,7 +179,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() &
     {
-      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
+      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
       return collections::get(v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
@@ -173,7 +188,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const &
     {
-      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
+      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
       return collections::get(v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
@@ -182,7 +197,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() && noexcept
     {
-      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
+      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
       return collections::get(std::move(*this).v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
@@ -191,7 +206,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const && noexcept
     {
-      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
+      if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
       return collections::get(std::move(*this).v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).get_t())));
     }
@@ -212,7 +227,7 @@ namespace OpenKalman::collections
   template<typename V, typename O, typename E>
   slice_view(const V&, const O&, const E&) -> slice_view<V, O, E>;
 
-} // namespace OpenKalman
+}
 
 
 #ifdef __cpp_lib_ranges
@@ -230,14 +245,11 @@ namespace OpenKalman::stdcompat::ranges
 namespace OpenKalman::collections::detail
 {
   template<std::size_t i, typename V, typename O, typename = void>
-  struct slice_tuple_element
-  {
-    using type = stdcompat::ranges::range_value_t<V>;
-  };
+  struct slice_tuple_element {};
 
   template<std::size_t i, typename V, typename O>
   struct slice_tuple_element<i, V, O, std::enable_if_t<values::fixed<O>>>
-    : std::tuple_element<values::fixed_number_of_v<O> + i, std::decay_t<V>> {};
+    : collection_element<values::fixed_value_of_v<O> + i, std::decay_t<V>> {};
 }
 #endif
 
@@ -245,25 +257,22 @@ namespace OpenKalman::collections::detail
 namespace std
 {
   template<typename V, typename O, typename E>
-  struct tuple_size<OpenKalman::collections::slice_view<V, O, E>> : OpenKalman::values::fixed_number_of<E> {};
+  struct tuple_size<OpenKalman::collections::slice_view<V, O, E>> : OpenKalman::values::fixed_value_of<E> {};
 
 
 #ifdef __cpp_concepts
+  template<size_t i, typename V, typename O, typename E>
+  struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>> {};
+
   template<size_t i, typename V, OpenKalman::values::fixed O, typename E>
   struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>>
-    : tuple_element<OpenKalman::values::fixed_number_of_v<O> + i, std::decay_t<V>> {};
-
-  template<size_t i, typename V, typename O, typename E> requires (not OpenKalman::values::fixed<O>)
-  struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>>
-  {
-    using type = OpenKalman::stdcompat::ranges::range_value_t<V>;
-  };
+    : OpenKalman::collections::collection_element<OpenKalman::values::fixed_value_of_v<O> + i, std::decay_t<V>> {};
 #else
   template<size_t i, typename V, typename O, typename E>
   struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>>
     : OpenKalman::collections::detail::slice_tuple_element<i, V, O> {};
 #endif
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -284,7 +293,7 @@ namespace OpenKalman::collections::views
     template<typename O, typename E, typename N>
     struct slice_is_whole<O, E, N, std::enable_if_t<values::fixed<O> and values::fixed<E> and values::fixed<N>>>
 #endif
-      : std::bool_constant<(values::fixed_number_of_v<O> == 0_uz and values::fixed_number_of_v<E> == values::fixed_number_of_v<N>)> {};
+      : std::bool_constant<(values::fixed_value_of_v<O> == 0_uz and values::fixed_value_of_v<E> == values::fixed_value_of_v<N>)> {};
 
 
 
@@ -358,4 +367,4 @@ namespace OpenKalman::collections::views
 }
 
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_SLICE_HPP
+#endif

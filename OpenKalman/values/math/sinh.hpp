@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::sinh.
  */
 
-#ifndef OPENKALMAN_VALUE_SINH_HPP
-#define OPENKALMAN_VALUE_SINH_HPP
+#ifndef OPENKALMAN_VALUES_SINH_HPP
+#define OPENKALMAN_VALUES_SINH_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
@@ -39,17 +39,17 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::sinh function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto
+  template<value Arg>
+  constexpr value auto
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto
 #endif
   sinh(const Arg& arg)
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::sinh(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::sinh(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -87,7 +87,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_SINH_HPP
+#endif

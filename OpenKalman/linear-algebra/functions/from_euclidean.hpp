@@ -49,6 +49,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_FROM_EUCLIDEAN_HPP
+#endif

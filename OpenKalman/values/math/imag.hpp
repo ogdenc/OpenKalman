@@ -13,8 +13,8 @@
  * \brief Definition for values::imag.
  */
 
-#ifndef OPENKALMAN_VALUE_IMAG_HPP
-#define OPENKALMAN_VALUE_IMAG_HPP
+#ifndef OPENKALMAN_VALUES_IMAG_HPP
+#define OPENKALMAN_VALUES_IMAG_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
@@ -25,7 +25,7 @@ namespace OpenKalman::values
   /**
    * \brief A constexpr function to obtain the imaginary part of a (complex) number.
    * \details If arg is \ref values::complex "complex", arg must either match
-   * <code>std::imag(values::to_number(arg))</code> or some defined function <code>imag(values::to_number(arg))</code>.
+   * <code>std::imag(values::to_value_type(arg))</code> or some defined function <code>imag(values::to_value_type(arg))</code>.
    * If arg is not \ref values::complex "complex" and no <code>imag</code> function is defined, the result will be
    * - <code>static_cast<double>(0)</code> if Arg is \ref values::integral "integral" or
    * - <code>static_cast<std::decay_t<Arg>>(0)</code> otherwise.
@@ -41,7 +41,7 @@ namespace OpenKalman::values
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::imag(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::imag(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -51,7 +51,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_IMAG_HPP
+#endif

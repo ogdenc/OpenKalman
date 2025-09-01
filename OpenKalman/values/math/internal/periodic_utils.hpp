@@ -12,8 +12,8 @@
  * \brief Definition for periodic-function utilities for math functions.
  */
 
-#ifndef OPENKALMAN_VALUE_PERIODIC_UTILS_HPP
-#define OPENKALMAN_VALUE_PERIODIC_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_PERIODIC_UTILS_HPP
+#define OPENKALMAN_VALUES_PERIODIC_UTILS_HPP
 
 #include <cstdint>
 #include <limits>
@@ -62,7 +62,7 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_PERIODIC_UTILS_HPP
+#endif

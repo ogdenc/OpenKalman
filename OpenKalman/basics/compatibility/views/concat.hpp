@@ -17,10 +17,8 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_CONCAT_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_CONCAT_HPP
 
-#include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/common.hpp"
 #include "basics/compatibility/invoke.hpp"
-#include "view-concepts.hpp"
 #include "view_interface.hpp"
 #include "all.hpp"
 
@@ -43,13 +41,13 @@ namespace OpenKalman::stdcompat::ranges
 #else
   template<typename...Views>
 #endif
-  struct concat_view : stdcompat::ranges::view_interface<concat_view<Views...>>
+  struct concat_view : view_interface<concat_view<Views...>>
   {
   private:
 
-    template<typename...Rs> using concat_reference_t = stdcompat::common_reference_t<stdcompat::ranges::range_reference_t<Rs>...>;
-    template<typename...Rs> using concat_value_t = std::common_type_t<stdcompat::ranges::range_value_t<Rs>...>;
-    template<typename...Rs> using concat_rvalue_reference_t = stdcompat::common_reference_t<stdcompat::ranges::range_rvalue_reference_t<Rs>...>;
+    template<typename...Rs> using concat_reference_t = common_reference_t<range_reference_t<Rs>...>;
+    template<typename...Rs> using concat_value_t = std::common_type_t<range_value_t<Rs>...>;
+    template<typename...Rs> using concat_rvalue_reference_t = common_reference_t<range_rvalue_reference_t<Rs>...>;
 
     template<bool Const, typename Rs>
     using maybe_const = std::conditional_t<Const, const Rs, Rs>;
@@ -127,7 +125,7 @@ namespace OpenKalman::stdcompat::ranges
       using iterator_concept = std::random_access_iterator_tag;
       using iterator_category = iterator_concept;
       using value_type = concat_value_t<maybe_const<Const, Views>...>;
-      using difference_type = std::common_type_t<stdcompat::ranges::range_difference_t<maybe_const<Const, Views>>...>;
+      using difference_type = std::common_type_t<range_difference_t<maybe_const<Const, Views>>...>;
       using pointer = void;
       using reference = concat_reference_t<maybe_const<Const, Views>...>;
 
@@ -165,7 +163,7 @@ namespace OpenKalman::stdcompat::ranges
       constexpr iterator() : parent{nullptr} {};
 
       template<bool C = Const, std::enable_if_t<C and
-        (... and stdcompat::convertible_to<stdcompat::ranges::iterator_t<Views>, stdcompat::ranges::iterator_t<const Views>>), int> = 0>
+        (... and stdcompat::convertible_to<iterator_t<Views>, iterator_t<const Views>>), int> = 0>
       constexpr iterator(iterator<not C> it) : parent(it.parent), current(it.current) {}
 #endif
 
@@ -304,9 +302,9 @@ namespace OpenKalman::stdcompat::ranges
   public:
 
 #ifdef __cpp_concepts
-    constexpr auto size() const requires (... and stdcompat::ranges::sized_range<Views>)
+    constexpr auto size() const requires (... and std::ranges::sized_range<Views>)
 #else
-    template<typename aT = void, std::enable_if_t<std::is_void_v<aT> and (... and stdcompat::ranges::sized_range<Views>), int> = 0>
+    template<bool enable = true, std::enable_if_t<enable and (... and sized_range<Views>), int> = 0>
     constexpr auto size() const
 #endif
     {
@@ -326,11 +324,7 @@ namespace OpenKalman::stdcompat::ranges
 
 
   template<typename...Rs>
-#ifdef __cpp_lib_ranges
-  concat_view(Rs&&...) -> concat_view<std::ranges::views::all_t<Rs>...>;
-#else
   concat_view(Rs&&...) -> concat_view<views::all_t<Rs>...>;
-#endif
 
 
   namespace views
@@ -340,17 +334,17 @@ namespace OpenKalman::stdcompat::ranges
       struct concat_adaptor
       {
   #ifdef __cpp_lib_ranges
-        template<stdcompat::ranges::viewable_range...Rs> requires (... and stdcompat::ranges::random_access_range<Rs>)
+        template<std::ranges::viewable_range...Rs> requires (... and std::ranges::random_access_range<Rs>)
   #else
-        template<typename...Rs, std::enable_if_t<(... and (stdcompat::ranges::viewable_range<Rs> and stdcompat::ranges::random_access_range<Rs>)), int> = 0>
+        template<typename...Rs, std::enable_if_t<(... and (viewable_range<Rs> and random_access_range<Rs>)), int> = 0>
   #endif
         constexpr auto
         operator() (Rs&&...rs) const
         {
-          if constexpr (sizeof...(Rs) == 1 and (... and stdcompat::ranges::input_range<Rs>))
-            return stdcompat::ranges::views::all(std::forward<Rs>(rs)...);
+          if constexpr (sizeof...(Rs) == 1 and (... and input_range<Rs>))
+            return all(std::forward<Rs>(rs)...);
           else
-            return concat_view { stdcompat::ranges::views::all(std::forward<Rs>(rs))...};
+            return concat_view { all(std::forward<Rs>(rs))...};
         }
       };
     }

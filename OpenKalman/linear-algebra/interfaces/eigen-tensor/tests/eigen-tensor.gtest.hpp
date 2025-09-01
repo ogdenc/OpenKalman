@@ -110,6 +110,6 @@ namespace OpenKalman::test
   };
 
 
-} // namespace OpenKalman::test
+}
 
 #endif //EIGEN_TENSOR_GTEST_HPP

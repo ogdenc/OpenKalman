@@ -69,13 +69,6 @@ namespace OpenKalman::stdcompat {}
 
 #include "global-definitions.hpp"
 
-#include "classes/equal_to.hpp"
-#include "classes/not_equal_to.hpp"
-#include "classes/less.hpp"
-#include "classes/less_equal.hpp"
-#include "classes/greater.hpp"
-#include "classes/greater_equal.hpp"
-
 #include "compatibility/internal/generalized_std_get.hpp"
 
 #endif

@@ -27,10 +27,10 @@ namespace
   using Mat32 = VectorSpaceDescriptor<M32, C3, C2>;
   using Mat33 = VectorSpaceDescriptor<M33, C3, C3>;
 
-  using SA2l = HermitianAdapter<M22, TriangleType::lower>;
-  using SA2u = HermitianAdapter<M22, TriangleType::upper>;
-  using T2l = TriangularAdapter<M22, TriangleType::lower>;
-  using T2u = TriangularAdapter<M22, TriangleType::upper>;
+  using SA2l = HermitianAdapter<M22, triangle_type::lower>;
+  using SA2u = HermitianAdapter<M22, triangle_type::upper>;
+  using T2l = TriangularAdapter<M22, triangle_type::lower>;
+  using T2u = TriangularAdapter<M22, triangle_type::upper>;
 
   inline I22 i22 = M22::Identity();
   inline Z22 z22 = Z22();
@@ -190,7 +190,7 @@ TEST(adapters, VectorSpaceDescriptor_deduction_guides)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
@@ -212,7 +212,7 @@ TEST(adapters, VectorSpaceDescriptor_make_functions)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
@@ -242,7 +242,7 @@ TEST(adapters, VectorSpaceDescriptor_traits)
   static_assert(not identity_matrix<VectorSpaceDescriptor<C2, Dimensions<2>, I22>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<VectorSpaceDescriptor<C2, C2, Z22>>);
-  static_assert(zero<VectorSpaceDescriptor<C2, C3, ZeroAdapter<eigen_matrix_t<double, 2, 3>>>>);
+  static_assert(zero<VectorSpaceDescriptor<C2, C3, zero_adapter<eigen_matrix_t<double, 2, 3>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));

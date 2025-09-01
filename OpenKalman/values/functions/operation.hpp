@@ -18,20 +18,20 @@
 #define OPENKALMAN_VALUES_OPERATION_HPP
 
 #include "basics/basics.hpp"
-#include "values/functions/to_number.hpp"
-#include "values/traits/fixed_number_of.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/functions/to_value_type.hpp"
+#include "values/traits/fixed_value_of.hpp"
+#include "values/traits/value_type_of.hpp"
 
 namespace OpenKalman::values
 {
   /**
-   * \brief An operation involving some number of \ref values::value "values".
+   * \brief An operation involving some number of values.
    * \tparam Operation An operation taking <code>sizeof...(Args)</code> parameters
    * \tparam Args A set of \ref values::fixed types
    */
 #ifdef __cpp_concepts
   template<typename Operation, fixed...Args> requires
-    std::bool_constant<(stdcompat::invoke(Operation{}, fixed_number_of_v<Args>...), true)>::value
+    std::bool_constant<(stdcompat::invoke(Operation{}, fixed_value_of_v<Args>...), true)>::value
 #else
   template<typename Operation, typename...Args>
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman::values
   {
     constexpr consteval_operation() = default;
     explicit constexpr consteval_operation(const Operation&, const Args&...) {};
-    static constexpr auto value = stdcompat::invoke(Operation{}, fixed_number_of_v<Args>...);
+    static constexpr auto value = stdcompat::invoke(Operation{}, fixed_value_of_v<Args>...);
     using value_type = std::decay_t<decltype(value)>;
     using type = consteval_operation;
     constexpr operator value_type() const { return value; }
@@ -69,7 +69,7 @@ namespace OpenKalman::values
     struct operation_consteval_invocable_impl<Op, Args...>
 #else
     template<typename Op, typename...Args>
-    struct operation_consteval_invocable_impl<Op, std::enable_if_t<std::bool_constant<(stdcompat::invoke(Op{}, fixed_number_of<Args>::value...), true)>::value>, Args...>
+    struct operation_consteval_invocable_impl<Op, std::enable_if_t<std::bool_constant<(stdcompat::invoke(Op{}, fixed_value_of<Args>::value...), true)>::value>, Args...>
 #endif
       : std::true_type{};
 
@@ -84,13 +84,13 @@ namespace OpenKalman::values
 
 
   /**
-   * \brief A potentially constant-evaluated operation involving some number of \ref values::value "values".
+   * \brief A potentially constant-evaluated operation involving some number of values.
    * \details In this unspecialized case, the operation is not constant-evaluated.
    * \tparam Operation An operation taking <code>sizeof...(Args)</code> parameters
-   * \tparam Args A set of \ref values::value types
+   * \tparam Args A set of values
    */
 #ifdef __cpp_concepts
-  template<typename Operation, value...Args> requires std::invocable<Operation&&, number_type_of_t<Args&&>...>
+  template<typename Operation, typename...Args> requires std::invocable<Operation&&, value_type_of_t<Args&&>...>
 #else
   template<typename Operation, typename...Args>
 #endif
@@ -103,7 +103,7 @@ namespace OpenKalman::values
     }
     else
     {
-      return stdcompat::invoke(std::forward<Operation>(op), to_number(std::forward<Args>(args))...);
+      return stdcompat::invoke(std::forward<Operation>(op), to_value_type(std::forward<Args>(args))...);
     }
   }
 

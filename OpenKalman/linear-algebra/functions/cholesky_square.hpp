@@ -24,10 +24,10 @@ namespace OpenKalman
    * \return AA<sup>*</sup> (if A is lower \ref triangular_matrix) or otherwise A<sup>*</sup>A.
    */
 #ifdef __cpp_concepts
-  template<triangular_matrix A> requires square_shaped<A, Applicability::permitted>
+  template<triangular_matrix A> requires square_shaped<A, applicability::permitted>
   constexpr hermitian_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<triangular_matrix<A> and square_shaped<A, Applicability::permitted>, int> = 0>
+  template<typename A, std::enable_if_t<triangular_matrix<A> and square_shaped<A, applicability::permitted>, int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_square(A&& a)
@@ -46,7 +46,7 @@ namespace OpenKalman
         else return x * x;
       }, diagonal_of(std::forward<A>(a))));
     }
-    else if constexpr (triangular_matrix<A, TriangleType::upper>)
+    else if constexpr (triangular_matrix<A, triangle_type::upper>)
     {
       return make_hermitian_matrix<HermitianAdapterType::upper>(contract(adjoint(a), a));
     }
@@ -57,7 +57,7 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_CHOLESKY_SQUARE_HPP
+#endif

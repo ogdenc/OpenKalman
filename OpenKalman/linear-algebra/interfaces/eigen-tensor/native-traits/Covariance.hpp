@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3::internal
   };
 
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_COVARIANCE_HPP
+#endif

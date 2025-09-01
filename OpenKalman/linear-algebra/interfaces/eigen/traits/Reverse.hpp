@@ -32,9 +32,9 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
     }
 
 
@@ -60,18 +60,18 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<MatrixType,
-        t == TriangleType::upper ? TriangleType::lower :
-        t == TriangleType::lower ? TriangleType::upper : t> and
+        t == triangle_type::upper ? triangle_type::lower :
+        t == triangle_type::lower ? triangle_type::upper : t> and
       (Direction == Eigen::BothDirections or (Direction == Eigen::Horizontal and vector<MatrixType, 0>) or
         (Direction == Eigen::Vertical and vector<MatrixType, 1>));
 
@@ -79,11 +79,11 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Applicability::permitted> and
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted> and
         (Direction == Eigen::BothDirections or vector<MatrixType, 0> or vector<MatrixType, 1>);
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_REVERSE_HPP
+#endif

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,6 +31,6 @@ namespace OpenKalman
     interface::nested_object_defined_for<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_HAS_NESTED_OBJECT_HPP
+#endif

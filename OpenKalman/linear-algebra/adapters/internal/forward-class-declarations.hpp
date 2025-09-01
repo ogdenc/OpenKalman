@@ -16,122 +16,12 @@
 #ifndef OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
 #define OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
 
-#include <type_traits>
-#include <random>
-#include "basics/traits/traits.hpp"
+#include "coordinates/coordinates.hpp"
 
 namespace OpenKalman
 {
-  // ----------------- //
-  //  ConstantAdapter  //
-  // ----------------- //
-
-  /**
-   * \brief A tensor or other matrix in which all elements are a constant scalar value.
-   * \details The constant value can be \ref values::fixed "static" (known at compile time), or
-   * \ref values::dynamic "dynamic" (known only at runtime).
-   * Examples:
-   * \code
-   * using T = Eigen::Matrix<double, 3, 2>; // A 3-by-2 matrix of scalar-type double.
-   * ConstantAdapter<T> c1 {3.0}; // Construct a 3-by-2 double constant of shape T with value 3.0 (known at runtime).
-   * ConstantAdapter<T, int> c2 {3}; // Construct a 3-by-2 int constant of shape T with value 3 (known at runtime).
-   * ConstantAdapter<T, int, 1> c3; // Construct a 3-by-2 int constant of shape T with value 1 (known at compile time).
-   * ConstantAdapter<T, double, 1> c4; // Construct a 3-by-2 double constant of shape T with value 1.0 (known at compile time).
-   * ConstantAdapter<T, std::integral_constant<int, 1>> c5; // Construct a 3-by-2 int constant of shape T with value 1 (known at compile time).
-   * ConstantAdapter<T, std::complex<double>> c6 {std::complex<double>{4, 5}}; // Construct a 3-by-2 complex constant of shape T and value 4.0 + 5.0i (known at runtime).
-   * ConstantAdapter<T, std::complex<double>, 4, 5> c7; // Construct a 3-by-2 A complex constant of shape T and value 4.0 + 5.0i (known at compile time).
-   * \endcode
-   * \tparam PatternMatrix An \ref indexible object reflecting the size and shape of the constant object
-   * \tparam Scalar A \ref values::number reflecting the type of the constant
-   * \tparam constant Optional parameters for constructing Scalar at compile time.
-   */
-#ifdef __cpp_concepts
-  template<indexible PatternMatrix, values::scalar Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
-    requires (sizeof...(constant) == 0) or requires { Scalar {constant...}; }
-#else
-  template<typename PatternMatrix, typename Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
-#endif
-  struct ConstantAdapter;
-
-
-  // ------------------ //
-  //  constant_adapter  //
-  // ------------------ //
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_constant_adapter : std::false_type {};
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct is_constant_adapter<ConstantAdapter<PatternMatrix, Scalar, constant...>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a ConstantAdapter.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept constant_adapter = detail::is_constant_adapter<std::decay_t<T>>::value;
-#else
-  constexpr bool constant_adapter = detail::is_constant_adapter<std::decay_t<T>>::value;
-#endif
-
-
-  // ------------- //
-  //  ZeroAdapter  //
-  // ------------- //
-
-    /**
-   * \brief A ConstantAdapter in which all elements are 0.
-   * \tparam PatternObject An indexible object, in some library, defining the shape of the resulting zero object
-   */
-#ifdef __cpp_concepts
-  template<indexible PatternObject, values::number Scalar = scalar_type_of_t<PatternObject>>
-#else
-  template<typename PatternObject, typename Scalar = scalar_type_of_t<PatternObject>>
-#endif
-  using ZeroAdapter = ConstantAdapter<PatternObject, Scalar, 0>;
-
-
-  // ---------------------------------------- //
-  //  pattern_matrix_of, pattern_matrix_of_t  //
-  // ---------------------------------------- //
-
-  /**
-   * \brief The native matrix on which an OpenKalman matrix adapter is patterned.
-   * \details If T has a nested matrix, the pattern matrix will be that nested matrix.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct pattern_matrix_of;
-
-  template<typename PatternMatrix, typename Scalar, auto...constant>
-  struct pattern_matrix_of<ConstantAdapter<PatternMatrix, Scalar, constant...>> { using type = PatternMatrix; };
-
-
-#ifdef __cpp_concepts
-  template<has_nested_object T>
-  struct pattern_matrix_of<T> { using type = nested_object_of_t<T>; };
-#else
-  template<typename T>
-  struct pattern_matrix_of<T, std::enable_if_t<has_nested_object<T>>> { using type = nested_object_of_t<T>; };
-#endif
-
-
-  /**
-   * \brief Helper template for pattern_matrix_of.
-   */
-  template<typename T>
-  using pattern_matrix_of_t = typename pattern_matrix_of<std::decay_t<T>>::type;
-
-
   // ------------------------------------------ //
-  //  DiagonalAdapter, internal::diagonal_expr  //
+  //  diagonal_adapter, internal::diagonal_expr  //
   // ------------------------------------------ //
 
   /**
@@ -142,11 +32,11 @@ namespace OpenKalman
    * indexible_object_traits outside the diagonal are automatically 0.
    */
 #ifdef __cpp_concepts
-  template<vector<0, Applicability::permitted> NestedMatrix>
+  template<vector<0, applicability::permitted> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
-  struct DiagonalAdapter;
+  struct diagonal_adapter;
 
 
   namespace internal
@@ -157,7 +47,7 @@ namespace OpenKalman
       struct is_diagonal_expr : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_diagonal_expr<DiagonalAdapter<NestedMatrix>> : std::true_type {};
+      struct is_diagonal_expr<diagonal_adapter<NestedMatrix>> : std::true_type {};
     }
 
 
@@ -170,7 +60,7 @@ namespace OpenKalman
 #else
     constexpr bool diagonal_expr = detail::is_diagonal_expr<std::decay_t<T>>::value;
 #endif
-  } // namespace internal
+  }
 
 
   // -------------------------------------------- //
@@ -187,22 +77,22 @@ namespace OpenKalman
    * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
    * elements are mapped (as complex conjugates) from this selected triangle to the elements in the other triangle to
    * ensure that the matrix is hermitian. Also, any imaginary part of the diagonal elements is discarded.
-   * If storage_triangle is TriangleType::diagonal, 0 is automatically mapped to each matrix element outside the
+   * If storage_triangle is triangle_type::diagonal, 0 is automatically mapped to each matrix element outside the
    * diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Applicability::permitted> NestedMatrix, HermitianAdapterType storage_triangle =
-      triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
-      triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
+  template<square_shaped<applicability::permitted> NestedMatrix, HermitianAdapterType storage_triangle =
+      triangular_matrix<NestedMatrix, triangle_type::diagonal> ? HermitianAdapterType::lower :
+      triangular_matrix<NestedMatrix, triangle_type::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or values::not_complex<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_coefficient<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>)
+    (not triangular_matrix<NestedMatrix, triangle_type::any> or triangular_matrix<NestedMatrix, static_cast<triangle_type>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =
-    triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
-    triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower>
+    triangular_matrix<NestedMatrix, triangle_type::diagonal> ? HermitianAdapterType::lower :
+    triangular_matrix<NestedMatrix, triangle_type::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower>
 #endif
   struct HermitianAdapter;
 
@@ -228,7 +118,7 @@ namespace OpenKalman
 #else
     constexpr bool hermitian_expr = detail::is_hermitian_expr<std::decay_t<T>>::value;
 #endif
-  } // namespace internal
+  }
 
 
   // ---------------------------------------------- //
@@ -237,22 +127,22 @@ namespace OpenKalman
 
   /**
    * \brief A \ref triangular_adapter, where components above or below the diagonal (or both) are zero.
-   * \details The matrix may be a diagonal matrix if triangle_type is TriangleType::diagonal.
+   * \details The matrix may be a diagonal matrix if tri is triangle_type::diagonal.
    * Implicit conversions are available from any \ref triangular_matrix of compatible size.
    * \tparam NestedMatrix A nested matrix on which the triangular matrix is based. Components above or below the diagonal
    * (or both) are ignored and will read as zero.
-   * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
-   * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+   * \tparam tri The triangle_type (\ref triangle_type::lower "lower", \ref triangle_type::upper "upper", or
+   * \ref triangle_type::diagonal "diagonal") in which the data is stored.
    */
 #ifdef __cpp_concepts
   template<
-    square_shaped<Applicability::permitted> NestedMatrix,
-    TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-      (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
+    square_shaped<applicability::permitted> NestedMatrix,
+    triangle_type tri = (diagonal_matrix<NestedMatrix> ? triangle_type::diagonal :
+      (triangular_matrix<NestedMatrix, triangle_type::upper> ? triangle_type::upper : triangle_type::lower))>
     requires (index_count_v<NestedMatrix> <= 2)
 #else
-  template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-    (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
+  template<typename NestedMatrix, triangle_type tri = (diagonal_matrix<NestedMatrix> ? triangle_type::diagonal :
+    (triangular_matrix<NestedMatrix, triangle_type::upper> ? triangle_type::upper : triangle_type::lower))>
 #endif
   struct TriangularAdapter;
 
@@ -264,8 +154,8 @@ namespace OpenKalman
       template<typename T>
       struct is_triangular_expr : std::false_type {};
 
-      template<typename NestedMatrix, TriangleType triangle_type>
-      struct is_triangular_expr<TriangularAdapter<NestedMatrix, triangle_type>> : std::true_type {};
+      template<typename NestedMatrix, triangle_type tri>
+      struct is_triangular_expr<TriangularAdapter<NestedMatrix, tri>> : std::true_type {};
     }
 
 
@@ -309,7 +199,7 @@ namespace OpenKalman
 
       template<typename NestedObject, typename Descriptors>
       struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Descriptors>> : std::true_type {};
-    } // namespace detail
+    }
 
 
     /**
@@ -324,7 +214,7 @@ namespace OpenKalman
 #endif
       detail::is_vector_space_adapter<std::decay_t<T>>::value;
 
-  } // namespace internal
+  }
 
 
   // -------------------------------------------------------- //
@@ -339,7 +229,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible NestedObject, coordinates::pattern RowDescriptor> requires
-    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinates::Dimensions<coordinates::stat_dimension_of_v<RowDescriptor>>, equal_to<>, Applicability::permitted>
+    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinates::Dimensions<coordinates::stat_dimension_of_v<RowDescriptor>>, equal_to<>, applicability::permitted>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif
@@ -587,7 +477,7 @@ namespace OpenKalman
 
       template<typename N, typename L>
       struct is_library_wrapper<internal::LibraryWrapper<N, L>> : std::true_type {};
-    } // namespace detail
+    }
 
 
     /**
@@ -646,7 +536,7 @@ namespace OpenKalman
     template<typename Descriptor, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<Descriptor, NestedMatrix>> : std::true_type {};
 
-  } // namespace internal
+  }
 
 
   /**
@@ -686,4 +576,4 @@ namespace OpenKalman
 
 } // OpenKalman
 
-#endif //OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
+#endif

@@ -46,8 +46,8 @@ namespace OpenKalman::Eigen3
     struct const_is_zero : std::false_type {};
 
     template<typename C>
-    struct const_is_zero<C, std::enable_if_t<values::to_number(C{}) == 0>> : std::true_type {};
-  } // namespace detail
+    struct const_is_zero<C, std::enable_if_t<values::to_value_type(C{}) == 0>> : std::true_type {};
+  }
 #endif
 
 
@@ -95,12 +95,12 @@ namespace OpenKalman::Eigen3
         else throw std::domain_error {"Domain error in lpnorm<0>: result is infinity"};
       }
 #ifdef __cpp_concepts
-      else if constexpr (requires { requires values::to_number(C{}) == 0; })
+      else if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       else if constexpr (detail::const_is_zero<C>::value)
 #endif
       {
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       }
       else if constexpr (not at_least_square)
       {
@@ -184,11 +184,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       else
         return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
@@ -198,11 +198,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       else if constexpr (at_least_square)
         return values::operation(Op{}, c, factor);
       else
@@ -238,11 +238,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       else
         return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
@@ -273,11 +273,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       else if constexpr (at_least_square)
         return (c * factor) / dim;
       else
@@ -298,11 +298,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
   #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
   #else
         if constexpr (detail::const_is_zero<C>::value)
   #endif
-        return values::Fixed<Scalar, 0>{};
+        return values::fixed_value<Scalar, 0>{};
       else
         return values::operation(std::multiplies<Scalar>{}, c, values::operation(std::multiplies<Scalar>{}, factor, dim));
     }
@@ -312,11 +312,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<Scalar, 0>{};
+        return values::fixed_value<Scalar, 0>{};
       else if constexpr (at_least_square)
         return values::operation(std::multiplies<Scalar>{}, c, factor);
       else
@@ -380,7 +380,7 @@ namespace OpenKalman::Eigen3
       else if constexpr (values::fixed<C>)
       {
         if constexpr (C::value < 0) return std::monostate{};
-        else return values::Fixed<ResultType, 0>{};
+        else return values::fixed_value<ResultType, 0>{};
       }
       else return std::monostate{};
     }
@@ -436,7 +436,7 @@ namespace OpenKalman::Eigen3
       else if constexpr (values::fixed<C>)
       {
         if constexpr (C::value > 0) return std::monostate{};
-        else return values::Fixed<ResultType, 0>{};
+        else return values::fixed_value<ResultType, 0>{};
       }
       else return std::monostate{};
     }
@@ -622,11 +622,11 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
-      if constexpr (requires { requires values::to_number(C{}) == 0; })
+      if constexpr (requires { requires values::to_value_type(C{}) == 0; })
 #else
         if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return values::Fixed<ResultType, 0>{};
+        return values::fixed_value<ResultType, 0>{};
       else
         return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
@@ -635,7 +635,7 @@ namespace OpenKalman::Eigen3
     template<bool at_least_square, typename C, typename Factor, typename Dim>
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
-      return values::Fixed<ResultType, 0>{};
+      return values::fixed_value<ResultType, 0>{};
     }
   };
 
@@ -657,6 +657,6 @@ namespace OpenKalman::Eigen3
     : ReduxTraits<Eigen::internal::member_prod<Scalar>, direction> {};
 #endif
 
-} // namespace OpenKalman::Eigen3
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_FUNCTORS_REDUX_HPP
+#endif

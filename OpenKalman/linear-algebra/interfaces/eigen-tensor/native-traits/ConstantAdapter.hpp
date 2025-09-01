@@ -11,20 +11,20 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 tensor traits for Eigen3 ConstantAdapter
+ * \brief Native Eigen3 tensor traits for Eigen3 constant_adapter
  */
 
-#ifndef OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_CONSTANTADAPTER_HPP
-#define OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_CONSTANTADAPTER_HPP
+#ifndef OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_CONSTANT_ADAPTER_HPP
+#define OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_CONSTANT_ADAPTER_HPP
 
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_tensor_general PatternMatrix, typename Scalar, auto...constant>
-  struct native_traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>>
+  struct native_traits<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>>
 #else
   template<typename PatternMatrix, typename Scalar, auto...constant>
-  struct native_traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>, std::enable_if_t<
+  struct native_traits<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_tensor_general<PatternMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<PatternMatrix>>
@@ -33,7 +33,7 @@ namespace OpenKalman::Eigen3::internal
   };
 
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_CONSTANTADAPTER_HPP
+#endif

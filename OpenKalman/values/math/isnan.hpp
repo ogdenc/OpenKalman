@@ -12,8 +12,8 @@
  * \brief Definition for \ref values::isnan.
  */
 
-#ifndef OPENKALMAN_VALUE_ISNAN_HPP
-#define OPENKALMAN_VALUE_ISNAN_HPP
+#ifndef OPENKALMAN_VALUES_ISNAN_HPP
+#define OPENKALMAN_VALUES_ISNAN_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
@@ -25,15 +25,15 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to std::isnan. Checks whether the input is not a number (NaN).
    */
 #ifdef __cpp_concepts
-  template <values::value Arg> requires (not values::complex<values::number_type_of_t<Arg>>)
+  template <value Arg> requires (not values::complex<values::value_type_of_t<Arg>>)
 #else
-  template <typename Arg, std::enable_if_t<values::value<Arg> and (not values::complex<values::number_type_of_t<Arg>>), int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg> and (not values::complex<values::value_type_of_t<Arg>>), int> = 0>
 #endif
   constexpr bool isnan(const Arg& arg)
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::isnan(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::isnan(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -45,7 +45,7 @@ namespace OpenKalman::values
     }
   }
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_ISNAN_HPP
+#endif

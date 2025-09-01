@@ -16,27 +16,85 @@
 #ifndef OPENKALMAN_LINEAR_ALGEBRA_TESTS_HPP
 #define OPENKALMAN_LINEAR_ALGEBRA_TESTS_HPP
 
-#include <type_traits>
-#include <array>
-#include <tuple>
-#include <iostream>
-
-#include <gtest/gtest.h>
-
-#include "basics/tests/tests.hpp"
-
+#include "collections/tests/tests.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra//property-functions//get_pattern_collection.hpp"
+#include "linear-algebra/functions/n_ary_operation.hpp"
+#include "linear-algebra/functions/reduce.hpp"
 
 namespace OpenKalman::test
 {
-  namespace detail
+#ifdef __cpp_concepts
+  template<indexible Arg1, indexible Arg2, typename Err> requires
+    (std::is_arithmetic_v<Err> or indexible<Err>) and
+    (not collections::collection<Arg1> or not collections::collection<Arg2>)
+  struct TestComparison<Arg1, Arg2, Err>
+#else
+    template<typename Arg1, typename Arg2, typename Err>
+    struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
+      indexible<Arg1> and indexible<Arg2> and
+      (std::is_arithmetic_v<Err> or indexible<Err>) and
+      (not collections::collection<Arg1> or not collections::collection<Arg2>)>>
+#endif
+    : ::testing::AssertionResult
   {
+  private:
+
     template<typename Arg, std::size_t...Is>
     inline ::testing::AssertionResult
     print_dimensions(::testing::AssertionResult& res, const Arg& arg, std::index_sequence<Is...>)
     {
       return (res << ... << (std::to_string(get_index_dimension_of<Is>(arg)) + (Is + 1 < sizeof...(Is) ? "," : "")));
     }
-  }
+
+
+    static ::testing::AssertionResult
+    compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
+    {
+      static_assert(vector_space_descriptors_may_match_with<Arg1, Arg2>, "Dimensions must match");
+
+      if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
+        if (not vector_space_descriptors_match(arg1, arg2))
+        {
+          auto ret = ::testing::AssertionFailure();
+          ret << "Dimensions of first argument (";
+          detail::print_dimensions(ret, arg1, std::make_index_sequence<index_count_v<Arg1>>{});
+          ret << ") and second argument (";
+          detail::print_dimensions(ret, arg2, std::make_index_sequence<index_count_v<Arg2>>{});
+          return ret << ") do not match";
+        }
+
+      if constexpr (std::is_arithmetic_v<Err>)
+      {
+        auto lhs = reduce(std::plus{}, n_ary_operation([](const auto& a, const auto& b){ auto c = a - b; return c * c; }, arg1, arg2));
+        auto sum1 = reduce(std::plus{}, n_ary_operation([](const auto& a){ return a * a; }, arg1));
+        auto sum2 = reduce(std::plus{}, n_ary_operation([](const auto& a){ return a * a; }, arg2));
+        auto err2 = err * err;
+        auto rhs = err2 * std::min(sum1, sum2);
+        if (lhs <= rhs or (sum1 <= err2 and sum2 <= err2)) return ::testing::AssertionSuccess();
+      }
+      else
+      {
+        auto err2 = reduce(
+          [](const auto& a, const auto& b){ return std::max(a, b); },
+          n_ary_operation([](const auto& a, const auto& b, const auto& e){ return values::abs(a - b) - e; }, arg1, arg2, err));
+        if (err2 <= 0) return ::testing::AssertionSuccess();
+      }
+
+      return ::testing::AssertionFailure() << std::endl << arg1 << std::endl << "is not near" << std::endl << arg2 << std::endl;
+    }
+
+  public:
+
+    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
+      : ::testing::AssertionResult {compare(arg1, arg2, err)} {};
+
+  };
+
+
+
+
+
 
 
   // ------------------- //
@@ -94,13 +152,13 @@ namespace OpenKalman::test
 
     template<typename T>
     static constexpr bool is_std_array_v = is_std_array<std::decay_t<T>>::value;
-  } // namespace detail
+  }
 
 
 #ifdef __cpp_concepts
   template<typename Arg1, typename Arg2, typename Err = double>
   requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
-    (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
+    (collections::size_of_v<Arg1> == collections::size_of_v<Arg2>) and
     (dynamic_dimension<typename Arg1::value_type, 0> or dynamic_dimension<typename Arg2::value_type, 0> or
       index_dimension_of_v<typename Arg1::value_type, 0> == index_dimension_of_v<typename Arg2::value_type, 0>) and
     (dynamic_dimension<typename Arg1::value_type, 1> or dynamic_dimension<typename Arg2::value_type, 1> or
@@ -108,7 +166,7 @@ namespace OpenKalman::test
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
-    (std::tuple_size<Arg1>::value == std::tuple_size<Arg2>::value) and
+    (collections::size_of<Arg1>::value == collections::size_of<Arg2>::value) and
     (dynamic_dimension<typename Arg1::value_type, 0> or dynamic_dimension<typename Arg2::value_type, 0> or
       index_dimension_of<typename Arg1::value_type, 0>::value == index_dimension_of<typename Arg2::value_type, 0>::value) and
     (dynamic_dimension<typename Arg1::value_type, 1> or dynamic_dimension<typename Arg2::value_type, 1> or
@@ -117,11 +175,11 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    if constexpr (std::tuple_size_v<Arg1> != std::tuple_size_v<Arg2>)
+    if constexpr (collections::size_of_v<Arg1> != collections::size_of_v<Arg2>)
     {
       return ::testing::AssertionFailure() << std::endl << "Size of first array (" <<
-        std::tuple_size_v<Arg1> << " elements) does not match size of second array (" <<
-        std::tuple_size_v<Arg2> << " elements)" << std::endl;
+        collections::size_of_v<Arg1> << " elements) does not match size of second array (" <<
+        collections::size_of_v<Arg2> << " elements)" << std::endl;
     }
     else
     {
@@ -129,14 +187,14 @@ namespace OpenKalman::test
     }
 
     if constexpr (dynamic_dimension<std::tuple_element_t<0, Arg1>, 0> or dynamic_dimension<std::tuple_element_t<0, Arg2>, 0>)
-      if (get_vector_space_descriptor<0>(std::get<0>(arg1)) != get_vector_space_descriptor<0>(std::get<0>(arg2)))
-        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_vector_space_descriptor<0>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_vector_space_descriptor<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_pattern_collection<0>(std::get<0>(arg1)) != get_pattern_collection<0>(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_pattern_collection<0>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_pattern_collection<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
     if constexpr (dynamic_dimension<std::tuple_element_t<0, Arg1>, 1> or dynamic_dimension<std::tuple_element_t<0, Arg2>, 1>)
-      if (get_vector_space_descriptor<1>(std::get<0>(arg1)) != get_vector_space_descriptor<1>(std::get<0>(arg2)))
-        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_vector_space_descriptor<1>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_vector_space_descriptor<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_pattern_collection<1>(std::get<0>(arg1)) != get_pattern_collection<1>(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_pattern_collection<1>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_pattern_collection<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 
@@ -219,7 +277,7 @@ namespace OpenKalman::test
         tuple_sizes_match<std::tuple<Args1...>, std::tuple<Args2...>>::value;
     };
 
-  } // namespace detail
+  }
 
 
 #ifdef __cpp_concepts
@@ -287,7 +345,7 @@ namespace OpenKalman::test
   };
 
 
-} // namespace OpenKalman::test
+}
 
 
-#endif //OPENKALMAN_LINEAR_ALGEBRA_TESTS_HPP
+#endif

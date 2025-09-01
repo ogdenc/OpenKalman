@@ -24,8 +24,8 @@ TEST(eigen3, Eigen_MatrixWrapper)
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().matrix())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array().matrix())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array().matrix())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().array().matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().array().matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().matrix()), triangle_type::upper>);
 
   static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::MatrixWrapper<M32>>()))>);
   static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::MatrixWrapper<I22>>()))>);

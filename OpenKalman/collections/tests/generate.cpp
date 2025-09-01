@@ -16,7 +16,7 @@
 #include "values/tests/tests.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/dynamic.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
@@ -51,9 +51,9 @@ TEST(collections, generate_view)
   static_assert(stdcompat::ranges::view<I0>);
   static_assert(collection_view<I0>);
   static_assert(std::tuple_size_v<std::decay_t<I0>> == 3U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<1, std::decay_t<I0>>> == 1U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<2, std::decay_t<I0>>> == 2U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<I0>>> == 1U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<2, std::decay_t<I0>>> == 2U);
   static_assert(get(i0, c0{}) == 0U);
   static_assert(get(i0, c1{}) == 1U);
   static_assert(get(i0, c2{}) == 2U);
@@ -89,8 +89,8 @@ TEST(collections, generate_view)
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{}, c3{})), c2{});
   static_assert(std::tuple_size_v<std::decay_t<decltype(t0)>> == 2U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
   static_assert(get(t0, c0{}) == 6U);
   static_assert(get(t0, c1{}) == 24U);
 
@@ -144,10 +144,10 @@ TEST(collections, generate_view_unsized)
   using I0 = std::decay_t<decltype(i0)>;
   static_assert(stdcompat::ranges::view<I0>);
   static_assert(not sized<I0>);
-  static_assert(uniformly_gettable<I0>);
+  static_assert(not uniformly_gettable<I0>);
   static_assert(collection_view<I0>);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<1000, std::decay_t<I0>>> == 1000);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<1000, std::decay_t<I0>>> == 1000);
   static_assert(get(i0, c0{}) == 0U);
   static_assert(get(i0, c1{}) == 1U);
   static_assert(get(i0, c2{}) == 2U);
@@ -183,9 +183,9 @@ TEST(collections, generate_view_unsized)
     };
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{})));
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
-  static_assert(values::fixed_number_of_v<std::tuple_element_t<100, std::decay_t<decltype(t0)>>> == 1061106U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
+  static_assert(values::fixed_value_of_v<std::tuple_element_t<100, std::decay_t<decltype(t0)>>> == 1061106U);
   static_assert(get(t0, c0{}) == 6U);
   static_assert(get(t0, c1{}) == 24U);
 

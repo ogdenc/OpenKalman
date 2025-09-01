@@ -45,6 +45,6 @@ namespace OpenKalman::interface
     // get_constant_diagonal() not defined
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_PERMUTATIONMATRIX_HPP
+#endif

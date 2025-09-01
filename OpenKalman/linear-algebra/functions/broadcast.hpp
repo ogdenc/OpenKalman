@@ -21,14 +21,14 @@
 namespace OpenKalman
 {
 #ifndef __cpp_concepts
-  namespace details
+  namespace detail
   {
     template<typename Factor, typename = void>
     struct FactorIs1 : std::false_type {};
 
     template<typename Factor>
     struct FactorIs1<Factor, std::enable_if_t<Factor::value == 1>> : std::true_type {};
-  } // namespace details
+  }
 #endif
 
   /**
@@ -53,9 +53,9 @@ namespace OpenKalman
       return std::forward<Arg>(arg);
     }
 #ifdef __cpp_concepts
-    else if constexpr (requires { requires std::tuple_element_t<sizeof...(Factors) - 1, std::tuple<Factors...>>::value == 1; })
+    else if constexpr (requires { requires collections::collection_element_t<sizeof...(Factors) - 1, std::tuple<Factors...>>::value == 1; })
 #else
-    else if constexpr (details::FactorIs1<std::tuple_element_t<sizeof...(Factors) - 1, std::tuple<Factors...>>>::value)
+    else if constexpr (detail::FactorIs1<collections::collection_element_t<sizeof...(Factors) - 1, std::tuple<Factors...>>>::value)
 #endif
     {
       // Recursively remove any trailing 1D vector space descriptors
@@ -77,6 +77,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_BROADCAST_HPP
+#endif

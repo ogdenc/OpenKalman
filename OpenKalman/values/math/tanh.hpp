@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::tanh.
  */
 
-#ifndef OPENKALMAN_VALUE_TANH_HPP
-#define OPENKALMAN_VALUE_TANH_HPP
+#ifndef OPENKALMAN_VALUES_TANH_HPP
+#define OPENKALMAN_VALUES_TANH_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
@@ -37,16 +37,16 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::tanh function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto tanh(const Arg& arg)
+  template<value Arg>
+  constexpr value auto tanh(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto tanh(const Arg& arg)
 #endif
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::tanh(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::tanh(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -87,7 +87,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_TANH_HPP
+#endif

@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::expm1.
  */
 
-#ifndef OPENKALMAN_VALUE_EXPM1_HPP
-#define OPENKALMAN_VALUE_EXPM1_HPP
+#ifndef OPENKALMAN_VALUES_EXPM1_HPP
+#define OPENKALMAN_VALUES_EXPM1_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
@@ -41,16 +41,16 @@ namespace OpenKalman::values
    * \note This function allows a complex argument, even though the C++ standard does not as of at least C++23.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto expm1(const Arg& arg)
+  template<value Arg>
+  constexpr value auto expm1(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto expm1(const Arg& arg)
 #endif
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::expm1(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::expm1(a); } };
       return values::operation(Op{}, arg);
     }
     else if constexpr (values::complex<Arg>) // Complex expm1 is not defined in the standard.
@@ -101,7 +101,7 @@ namespace OpenKalman::values
     }
   }
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_EXPM1_HPP
+#endif

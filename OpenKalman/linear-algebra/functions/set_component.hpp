@@ -31,7 +31,7 @@ namespace OpenKalman
       Trait::set_component(arg, s, internal::truncate_indices(indices, count_indices(arg)));
       return std::forward<Arg>(arg);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -42,10 +42,10 @@ namespace OpenKalman
    * \return The modified Arg
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, index_range_for<Arg> Indices> requires writable_by_component<Arg, Indices>
+  template<indexible Arg, index_collection_for<Arg> Indices> requires writable_by_component<Arg, Indices>
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    indexible<Arg> and index_range_for<Indices, Arg> and writable_by_component<Arg, Indices>, int> = 0>
+    indexible<Arg> and index_collection_for<Indices, Arg> and writable_by_component<Arg, Indices>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
@@ -97,6 +97,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_SET_COMPONENT_HPP
+#endif

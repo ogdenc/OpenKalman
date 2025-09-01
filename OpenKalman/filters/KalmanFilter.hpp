@@ -195,4 +195,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_KALMANFILTER_HPP
+#endif

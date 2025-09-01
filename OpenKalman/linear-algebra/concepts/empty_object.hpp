@@ -21,27 +21,27 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, Applicability b, std::size_t...Ix>
+    template<typename T, applicability b, std::size_t...Ix>
     constexpr bool has_0_dim(std::index_sequence<Ix...>)
     {
       return (dimension_size_of_index_is<T, Ix, 0, b> or ...);
     }
-  } // namespace detail
+  }
 
 
   /**
    * \brief Specifies that an object is empty (i.e., at least one index is zero-dimensional).
    */
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept empty_object =
 #else
   constexpr bool empty_object =
 #endif
-    indexible<T> and (index_count_v<T> != dynamic_size or b != Applicability::guaranteed) and
+    indexible<T> and (index_count_v<T> != dynamic_size or b != applicability::guaranteed) and
     (index_count_v<T> == dynamic_size or detail::has_0_dim<T, b>(std::make_index_sequence<index_count_v<T>>{}));
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_EMPTY_OBJECT_HPP
+#endif

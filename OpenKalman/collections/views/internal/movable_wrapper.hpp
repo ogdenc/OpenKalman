@@ -446,6 +446,6 @@ namespace std
 #endif
 
 
-} // namespace std
+}
 
 #endif

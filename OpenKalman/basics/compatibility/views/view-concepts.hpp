@@ -19,7 +19,6 @@
 
 #include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/internal/exposition.hpp"
-#include "basics/compatibility/ranges.hpp"
 #include "basics/global-definitions.hpp"
 #include "view_interface.hpp"
 
@@ -54,13 +53,15 @@ namespace OpenKalman::stdcompat::ranges
 
 
   template<class T>
-  inline constexpr bool enable_view =
-   (std::is_base_of_v<view_base, T> and stdcompat::convertible_to<const volatile T&, const volatile view_base&>) or
-   detail::is_derived_from_view_interface<T>::value;
+  inline constexpr bool
+  enable_view =
+    (std::is_base_of_v<view_base, T> and stdcompat::convertible_to<const volatile T&, const volatile view_base&>) or
+    detail::is_derived_from_view_interface<T>::value;
 
 
   template<typename T>
-  inline constexpr bool view = range<T> and stdcompat::movable<T> and enable_view<T>;
+  inline constexpr bool
+  view = range<T> and stdcompat::movable<T> and enable_view<T>;
 
 
   // ---
@@ -68,7 +69,8 @@ namespace OpenKalman::stdcompat::ranges
   // ---
 
   template<typename T>
-  constexpr bool viewable_range =  stdcompat::ranges::range<T> and
+  constexpr bool
+  viewable_range =  stdcompat::ranges::range<T> and
     ((view<stdcompat::remove_cvref_t<T>> and stdcompat::constructible_from<stdcompat::remove_cvref_t<T>, T>) or
      (not view<remove_cvref_t<T>> and
       (std::is_lvalue_reference_v<T> or
@@ -77,4 +79,4 @@ namespace OpenKalman::stdcompat::ranges
 #endif
 }
 
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_VIEW_CONCEPTS_HPP
+#endif

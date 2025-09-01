@@ -16,7 +16,7 @@
 #include "values/tests/tests.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/dynamic.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
@@ -29,14 +29,15 @@ TEST(values, integral)
   static_assert(values::index<std::integral_constant<int, 2>>);
   static_assert(values::fixed<std::integral_constant<int, 2>>);
   static_assert(not values::dynamic<std::integral_constant<int, 2>>);
-  static_assert(std::is_same_v<values::number_type_of_t<std::integral_constant<int, 2>>, int>);
-  static_assert(std::is_same_v<values::number_type_of_t<std::integral_constant<std::size_t, 2>>, std::size_t>);
-  static_assert(std::is_same_v<values::number_type_of_t<values::real_type_of_t<std::integral_constant<std::size_t, 2>>>, double>);
+  static_assert(not values::dynamic<std::integral_constant<int, 2>>);
+  static_assert(std::is_same_v<values::value_type_of_t<std::integral_constant<int, 2>>, int>);
+  static_assert(std::is_same_v<values::value_type_of_t<std::integral_constant<std::size_t, 2>>, std::size_t>);
+  static_assert(std::is_same_v<values::value_type_of_t<values::real_type_of_t<std::integral_constant<std::size_t, 2>>>, double>);
 
   static_assert(values::index<std::size_t>);
   static_assert(not values::fixed<std::size_t>);
   static_assert(values::dynamic<std::size_t>);
-  static_assert(std::is_same_v<values::number_type_of_t<std::size_t>, std::size_t>);
+  static_assert(std::is_same_v<values::value_type_of_t<std::size_t>, std::size_t>);
   static_assert(std::is_same_v<values::real_type_of_t<int>, double>);
   static_assert(std::is_same_v<values::real_type_of_t<std::size_t>, double>);
 

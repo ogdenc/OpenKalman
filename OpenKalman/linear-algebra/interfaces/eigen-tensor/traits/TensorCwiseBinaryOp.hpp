@@ -33,16 +33,16 @@ namespace OpenKalman::interface
 
     template<typename Arg, typename N>
     static constexpr auto
-    get_vector_space_descriptor(const Arg& arg, N n)
+    get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (values::fixed<N>)
       {
         if constexpr (not dynamic_dimension<LhsXprType, n>)
-          return OpenKalman::get_vector_space_descriptor(arg.lhsExpression(), n);
+          return OpenKalman::get_pattern_collection(arg.lhsExpression(), n);
         else
-          return OpenKalman::get_vector_space_descriptor(arg.rhsExpression(), n);
+          return OpenKalman::get_pattern_collection(arg.rhsExpression(), n);
       }
-      else return OpenKalman::get_vector_space_descriptor(arg.lhsExpression(), n);
+      else return OpenKalman::get_pattern_collection(arg.lhsExpression(), n);
     }
 
 
@@ -166,40 +166,40 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsXprType, Applicability::permitted> and OpenKalman::one_dimensional<RhsXprType, Applicability::permitted> and
-      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      OpenKalman::one_dimensional<LhsXprType, applicability::permitted> and OpenKalman::one_dimensional<RhsXprType, applicability::permitted> and
+      (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
         ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsXprType, Applicability::permitted> and square_shaped<RhsXprType, Applicability::permitted> and
-      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      square_shaped<LhsXprType, applicability::permitted> and square_shaped<RhsXprType, applicability::permitted> and
+      (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular =
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
       triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t> and
-      (t != TriangleType::any or triangle_type_of_v<LhsXprType, RhsXprType> != TriangleType::any) :
+      (t != triangle_type::any or triangle_type_of_v<LhsXprType, RhsXprType> != triangle_type::any) :
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and
       (triangular_matrix<LhsXprType, t> or triangular_matrix<RhsXprType, t> or
-       (triangular_matrix<LhsXprType, TriangleType::lower> and triangular_matrix<RhsXprType, TriangleType::upper>) or
-       (triangular_matrix<LhsXprType, TriangleType::upper> and triangular_matrix<RhsXprType, TriangleType::lower>));
+       (triangular_matrix<LhsXprType, triangle_type::lower> and triangular_matrix<RhsXprType, triangle_type::upper>) or
+       (triangular_matrix<LhsXprType, triangle_type::upper> and triangular_matrix<RhsXprType, triangle_type::lower>));
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and
-      hermitian_matrix<LhsXprType, Applicability::permitted> and hermitian_matrix<RhsXprType, Applicability::permitted>;;
+      hermitian_matrix<LhsXprType, applicability::permitted> and hermitian_matrix<RhsXprType, applicability::permitted>;;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORCWISEBINARYOP_HPP
+#endif

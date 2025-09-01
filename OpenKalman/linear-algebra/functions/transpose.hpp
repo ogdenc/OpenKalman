@@ -27,9 +27,9 @@ namespace OpenKalman
     constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>)
     {
       return make_constant<Arg>(std::forward<C>(c),
-        get_vector_space_descriptor<1>(arg), get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<Is + 2>(arg)...);
+        get_pattern_collection<1>(arg), get_pattern_collection<0>(arg), get_pattern_collection<Is + 2>(arg)...);
     }
-  } // namespace internal
+  }
 
 
 #ifndef __cpp_concepts
@@ -42,7 +42,7 @@ namespace OpenKalman
     struct constant_transpose_defined_for<T, Arg, std::enable_if_t<
       constant_matrix<decltype(interface::library_interface<T>::transpose(std::declval<Arg>()))>>>
       : std::true_type {};
-  } // namespace detail
+  }
 #endif
 
 
@@ -83,6 +83,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TRANSPOSE_HPP
+#endif

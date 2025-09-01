@@ -33,7 +33,7 @@ namespace OpenKalman
       for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
         copy_tensor_elements(m, std::forward<Arg>(arg), std::index_sequence<Is...> {}, j..., i);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -58,7 +58,7 @@ namespace OpenKalman
     {
       interface::library_interface<std::decay_t<To>>::assign(a, to_native_matrix<To>(std::forward<From>(b)));
     }
-    else if constexpr (std::is_assignable_v<std::add_lvalue_reference_t<To>, From&&>)
+    else if constexpr (stdcompat::assignable_from<std::add_lvalue_reference_t<To>, From&&>)
     {
       a = std::forward<From>(b);
     }
@@ -75,6 +75,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ASSIGN_HPP
+#endif

@@ -14,6 +14,7 @@
  */
 
 #include "tests.hpp"
+#include "basics/compatibility/views/view-concepts.hpp"
 #include "basics/compatibility/views/repeat.hpp"
 
 using namespace OpenKalman;

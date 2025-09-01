@@ -38,6 +38,6 @@ namespace OpenKalman::internal
     }
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_COUNT_REDUCED_DIMENSIONS_HPP
+#endif

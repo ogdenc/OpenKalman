@@ -36,6 +36,6 @@ namespace OpenKalman
     indexible<T> and values::scalar<constant_diagonal_coefficient<T>>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_CONSTANT_DIAGONAL_MATRIX_HPP
+#endif

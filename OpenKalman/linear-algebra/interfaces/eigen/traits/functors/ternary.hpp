@@ -36,13 +36,13 @@ namespace OpenKalman::Eigen3
       return std::monostate {};
     }
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
   };
 
 
-} // namespace OpenKalman::Eigen3
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_FUNCTORS_TERNARY_HPP
+#endif

@@ -22,52 +22,52 @@ namespace
 {
   using Axis2 = Dimensions<2>;
 
-  using ZA11 = ZeroAdapter<M11>;
-  using ZA10 = ZeroAdapter<M1x>;
-  using ZA01 = ZeroAdapter<Mx1>;
-  using ZA00 = ZeroAdapter<Mxx>;
+  using ZA11 = zero_adapter<M11>;
+  using ZA10 = zero_adapter<M1x>;
+  using ZA01 = zero_adapter<Mx1>;
+  using ZA00 = zero_adapter<Mxx>;
 
-  using ZA21 = ZeroAdapter<M21>;
-  using ZA12 = ZeroAdapter<M12>;
-  using ZA22 = ZeroAdapter<M22>;
-  using ZA23 = ZeroAdapter<M23>;
-  using ZA20 = ZeroAdapter<M2x>;
-  using ZA02 = ZeroAdapter<Mx2>;
-  using ZA03 = ZeroAdapter<Mx3>;
+  using ZA21 = zero_adapter<M21>;
+  using ZA12 = zero_adapter<M12>;
+  using ZA22 = zero_adapter<M22>;
+  using ZA23 = zero_adapter<M23>;
+  using ZA20 = zero_adapter<M2x>;
+  using ZA02 = zero_adapter<Mx2>;
+  using ZA03 = zero_adapter<Mx3>;
 
-  using ZA13 = ZeroAdapter<M13>;
-  using ZA31 = ZeroAdapter<M31>;
-  using ZA33 = ZeroAdapter<M33>;
-  using ZA30 = ZeroAdapter<M3x>;
+  using ZA13 = zero_adapter<M13>;
+  using ZA31 = zero_adapter<M31>;
+  using ZA33 = zero_adapter<M33>;
+  using ZA30 = zero_adapter<M3x>;
 }
 
 
-TEST(adapters, ConstantAdapter_functions)
+TEST(adapters, constant_adapter_functions)
 {
-  ConstantAdapter<M34, double, 5> c534 {};
-  ConstantAdapter<M3x, double, 5> c53x_4 {4};
-  ConstantAdapter<Mx4, double, 5> c5x4_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_34 {3, 4};
+  constant_adapter<M34, double, 5> c534 {};
+  constant_adapter<M3x, double, 5> c53x_4 {4};
+  constant_adapter<Mx4, double, 5> c5x4_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_34 {3, 4};
 
-  ConstantAdapter<M33, double, 5> c533 {};
-  ConstantAdapter<M3x, double, 5> c53x_3 {3};
-  ConstantAdapter<Mx3, double, 5> c5x3_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_33 {3, 3};
+  constant_adapter<M33, double, 5> c533 {};
+  constant_adapter<M3x, double, 5> c53x_3 {3};
+  constant_adapter<Mx3, double, 5> c5x3_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_33 {3, 3};
 
-  ConstantAdapter<M31, double, 5> c531 {};
-  ConstantAdapter<M3x, double, 5> c53x_1 {1};
-  ConstantAdapter<Mx1, double, 5> c5x1_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_31 {3, 1};
+  constant_adapter<M31, double, 5> c531 {};
+  constant_adapter<M3x, double, 5> c53x_1 {1};
+  constant_adapter<Mx1, double, 5> c5x1_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_31 {3, 1};
 
-  EXPECT_EQ(get_vector_space_descriptor<0>(c534), 3);
-  EXPECT_EQ(get_vector_space_descriptor<0>(c53x_4), 3);
-  EXPECT_EQ(get_vector_space_descriptor<0>(c5x4_3), 3);
-  EXPECT_EQ(get_vector_space_descriptor<0>(c5xx_34), 3);
+  EXPECT_EQ(get_pattern_collection<0>(c534), 3);
+  EXPECT_EQ(get_pattern_collection<0>(c53x_4), 3);
+  EXPECT_EQ(get_pattern_collection<0>(c5x4_3), 3);
+  EXPECT_EQ(get_pattern_collection<0>(c5xx_34), 3);
 
-  EXPECT_EQ(get_vector_space_descriptor<1>(c534), 4);
-  EXPECT_EQ(get_vector_space_descriptor<1>(c53x_4), 4);
-  EXPECT_EQ(get_vector_space_descriptor<1>(c5x4_3), 4);
-  EXPECT_EQ(get_vector_space_descriptor<1>(c5xx_34), 4);
+  EXPECT_EQ(get_pattern_collection<1>(c534), 4);
+  EXPECT_EQ(get_pattern_collection<1>(c53x_4), 4);
+  EXPECT_EQ(get_pattern_collection<1>(c5x4_3), 4);
+  EXPECT_EQ(get_pattern_collection<1>(c5xx_34), 4);
 
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.
   // from_euclidean is tested in FromEuclideanExpr.test.cpp.
@@ -77,14 +77,14 @@ TEST(adapters, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(transpose(c53x_4), M43::Constant(5)));
   EXPECT_TRUE(is_near(transpose(c5x4_3), M43::Constant(5)));
   EXPECT_TRUE(is_near(transpose(c5xx_34), M43::Constant(5)));
-  static_assert(constant_adapter<decltype(transpose(c5xx_34))>);
+  static_assert(constant_matrix<decltype(transpose(c5xx_34))>);
 
   EXPECT_TRUE(is_near(adjoint(c534), M43::Constant(5)));
   EXPECT_TRUE(is_near(adjoint(c53x_4), M43::Constant(5)));
   EXPECT_TRUE(is_near(adjoint(c5x4_3), M43::Constant(5)));
   EXPECT_TRUE(is_near(adjoint(c5xx_34), M43::Constant(5)));
-  EXPECT_TRUE(is_near(adjoint(ConstantAdapter<CM34, cdouble, 5> {}), CM43::Constant(cdouble(5,0))));
-  static_assert(constant_adapter<decltype(adjoint(c5xx_34))>);
+  EXPECT_TRUE(is_near(adjoint(constant_adapter<CM34, cdouble, 5> {}), CM43::Constant(cdouble(5,0))));
+  static_assert(constant_matrix<decltype(adjoint(c5xx_34))>);
 
   EXPECT_NEAR(determinant(c533), 0, 1e-6);
   EXPECT_NEAR(determinant(c53x_3), 0, 1e-6);
@@ -104,134 +104,134 @@ TEST(adapters, ConstantAdapter_functions)
   Mxx m00_23_66 {2,3}; m00_23_66 = m23_66;
   auto m23_12 = make_dense_object_from<M23>(1.5, 3.5, 5.5, 1.5, 3.5, 5.5);
 
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m00_23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m20_3_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m03_2_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, m23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, m00_23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, m20_3_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, m03_2_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, m23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, m20_3_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, m03_2_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, m00_23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, m23_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, m20_3_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, m03_2_66), m23_12));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, m00_23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, m23_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, m20_3_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, m03_2_66), m23_12));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, m00_23_66), m23_12));
 
-  ConstantAdapter<M23, double, 8> c23_8;
-  ConstantAdapter<M2x, double, 8> c2x_3_8 {3};
-  ConstantAdapter<Mx3, double, 8> cx3_2_8 {2};
-  ConstantAdapter<Mxx, double, 8> cxx_23_8 {2, 3};
-  ConstantAdapter<M23, double, 2> c23_2;
+  constant_adapter<M23, double, 8> c23_8;
+  constant_adapter<M2x, double, 8> c2x_3_8 {3};
+  constant_adapter<Mx3, double, 8> cx3_2_8 {2};
+  constant_adapter<Mxx, double, 8> cxx_23_8 {2, 3};
+  constant_adapter<M23, double, 2> c23_2;
 
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, c23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, cxx_23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, c2x_3_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, cx3_2_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, c23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, cxx_23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, c2x_3_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, cx3_2_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, c23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, c2x_3_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, cx3_2_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, cxx_23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, c23_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, c2x_3_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, cx3_2_8), c23_2));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, cxx_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, cxx_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, c2x_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, cx3_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, cxx_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, c2x_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, cx3_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, c2x_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, cx3_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, cxx_23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, c23_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, c2x_3_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, cx3_2_8), c23_2));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, cxx_23_8), c23_2));
 
-  ConstantAdapter<M23, double, 6> c23_6;
-  ConstantAdapter<M2x, double, 6> c2x_3_6 {3};
-  ConstantAdapter<Mx3, double, 6> cx3_2_6 {2};
-  ConstantAdapter<Mxx, double, 6> cxx_23_6 {2, 3};
+  constant_adapter<M23, double, 6> c23_6;
+  constant_adapter<M2x, double, 6> c2x_3_6 {3};
+  constant_adapter<Mx3, double, 6> cx3_2_6 {2};
+  constant_adapter<Mxx, double, 6> cxx_23_6 {2, 3};
   auto m23_15 = make_dense_object_from<M23>(1.5, 1.5, 1.5, 1.5, 1.5, 1.5);
 
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, c23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, cxx_23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, c2x_3_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, cx3_2_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, c23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, cxx_23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, c2x_3_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M2x, double, 2> {2}, cx3_2_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, c23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, c2x_3_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, cx3_2_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx2, double, 2> {2}, cxx_23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, c23_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, c2x_3_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, cx3_2_6), m23_15));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {2, 2}, cxx_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, cxx_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, c2x_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M22, double, 2> {}, cx3_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, cxx_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, c2x_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M2x, double, 2> {2}, cx3_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, c2x_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, cx3_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx2, double, 2> {2}, cxx_23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, c23_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, c2x_3_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, cx3_2_6), m23_15));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {2, 2}, cxx_23_6), m23_15));
 
   auto m11_8 = M11 {8};
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M11, double, 2> {}, m11_8), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M11, double, 2> {}, M1x(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M11, double, 2> {}, Mx1(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M11, double, 2> {}, Mxx(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M1x, double, 2> {1}, m11_8), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M1x, double, 2> {1}, M1x(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M1x, double, 2> {1}, Mx1(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<M1x, double, 2> {1}, Mxx(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx1, double, 2> {1}, m11_8), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx1, double, 2> {1}, M1x(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx1, double, 2> {1}, Mx1(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mx1, double, 2> {1}, Mxx(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, m11_8), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, M1x(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, Mx1(m11_8)), M11(4)));
-  EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, Mxx(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M11, double, 2> {}, m11_8), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M11, double, 2> {}, M1x(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M11, double, 2> {}, Mx1(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M11, double, 2> {}, Mxx(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M1x, double, 2> {1}, m11_8), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M1x, double, 2> {1}, M1x(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M1x, double, 2> {1}, Mx1(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<M1x, double, 2> {1}, Mxx(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx1, double, 2> {1}, m11_8), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx1, double, 2> {1}, M1x(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx1, double, 2> {1}, Mx1(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mx1, double, 2> {1}, Mxx(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {1, 1}, m11_8), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {1, 1}, M1x(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {1, 1}, Mx1(m11_8)), M11(4)));
+  EXPECT_TRUE(is_near(solve(constant_adapter<Mxx, double, 2> {1, 1}, Mxx(m11_8)), M11(4)));
 
   EXPECT_TRUE(is_near(solve(M11::Identity(), make_dense_object_from<M11>(8)), make_dense_object_from<M11>(8)));
 
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<eigen_matrix_t<double, 5, 3>, double, 7> ()), to_dense_object(LQ_decomposition(M53::Constant(7))).cwiseAbs()));
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<eigen_matrix_t<double, 5, 3>, double, 7> ()), to_dense_object(LQ_decomposition(M53::Constant(7))).cwiseAbs()));
   auto lq332 = make_self_contained(to_dense_object(LQ_decomposition(M32::Constant(3))).cwiseAbs());
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double, 3> ()), lq332));
-  auto lqzc3x_2 = LQ_decomposition(ConstantAdapter<M3x, double, 3> {2});
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<M32, double, 3> ()), lq332));
+  auto lqzc3x_2 = LQ_decomposition(constant_adapter<M3x, double, 3> {2});
   EXPECT_TRUE(is_near(lqzc3x_2, lq332));
-  EXPECT_EQ(get_vector_space_descriptor<0>(lqzc3x_2), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(lqzc3x_2), 3);
-  auto lqzcx2_3 = LQ_decomposition(ConstantAdapter<Mx2, double, 3> {3});
+  EXPECT_EQ(get_pattern_collection<0>(lqzc3x_2), 3);
+  EXPECT_EQ(get_pattern_collection<1>(lqzc3x_2), 3);
+  auto lqzcx2_3 = LQ_decomposition(constant_adapter<Mx2, double, 3> {3});
   EXPECT_TRUE(is_near(lqzcx2_3, lq332));
-  EXPECT_EQ(get_vector_space_descriptor<0>(lqzcx2_3), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(lqzcx2_3), 3);
-  auto lqzcxx_32 = LQ_decomposition(ConstantAdapter<Mxx, double, 3> {3, 2});
+  EXPECT_EQ(get_pattern_collection<0>(lqzcx2_3), 3);
+  EXPECT_EQ(get_pattern_collection<1>(lqzcx2_3), 3);
+  auto lqzcxx_32 = LQ_decomposition(constant_adapter<Mxx, double, 3> {3, 2});
   EXPECT_TRUE(is_near(lqzcxx_32, lq332));
-  EXPECT_EQ(get_vector_space_descriptor<0>(lqzcxx_32), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(lqzcxx_32), 3);
+  EXPECT_EQ(get_pattern_collection<0>(lqzcxx_32), 3);
+  EXPECT_EQ(get_pattern_collection<1>(lqzcxx_32), 3);
 
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double> (3.)), lq332));
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M3x, double> (3., 2)), lq332));
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<Mx2, double> (3., 3)), lq332));
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<Mxx, double> (3., 3, 2)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<M32, double> (3.)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<M3x, double> (3., 2)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<Mx2, double> (3., 3)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(constant_adapter<Mxx, double> (3., 3, 2)), lq332));
 
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<eigen_matrix_t<double, 3, 5>, double, 7> ()), to_dense_object(QR_decomposition(M35::Constant(7))).cwiseAbs()));
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<eigen_matrix_t<double, 3, 5>, double, 7> ()), to_dense_object(QR_decomposition(M35::Constant(7))).cwiseAbs()));
   auto qr323 = make_self_contained(to_dense_object(QR_decomposition(M23::Constant(3))).cwiseAbs());
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double, 3> ()), qr323));
-  auto qrzc2x_3 = QR_decomposition(ConstantAdapter<M2x, double, 3> {3});
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<M23, double, 3> ()), qr323));
+  auto qrzc2x_3 = QR_decomposition(constant_adapter<M2x, double, 3> {3});
   EXPECT_TRUE(is_near(qrzc2x_3, qr323));
-  EXPECT_EQ(get_vector_space_descriptor<0>(qrzc2x_3), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(qrzc2x_3), 3);
-  auto qrzcx3_2 = QR_decomposition(ConstantAdapter<Mx3, double, 3> {2});
+  EXPECT_EQ(get_pattern_collection<0>(qrzc2x_3), 3);
+  EXPECT_EQ(get_pattern_collection<1>(qrzc2x_3), 3);
+  auto qrzcx3_2 = QR_decomposition(constant_adapter<Mx3, double, 3> {2});
   EXPECT_TRUE(is_near(qrzcx3_2, qr323));
-  EXPECT_EQ(get_vector_space_descriptor<0>(qrzcx3_2), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(qrzcx3_2), 3);
-  auto qrzcxx_23 = QR_decomposition(ConstantAdapter<Mxx, double, 3> {2, 3});
+  EXPECT_EQ(get_pattern_collection<0>(qrzcx3_2), 3);
+  EXPECT_EQ(get_pattern_collection<1>(qrzcx3_2), 3);
+  auto qrzcxx_23 = QR_decomposition(constant_adapter<Mxx, double, 3> {2, 3});
   EXPECT_TRUE(is_near(qrzcxx_23, qr323));
-  EXPECT_EQ(get_vector_space_descriptor<0>(qrzcxx_23), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(qrzcxx_23), 3);
+  EXPECT_EQ(get_pattern_collection<0>(qrzcxx_23), 3);
+  EXPECT_EQ(get_pattern_collection<1>(qrzcxx_23), 3);
 
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double> (3.)), qr323));
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M2x, double> (3., 3)), qr323));
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<Mx3, double> (3., 2)), qr323));
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<Mxx, double> (3., 2, 3)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<M23, double> (3.)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<M2x, double> (3., 3)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<Mx3, double> (3., 2)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(constant_adapter<Mxx, double> (3., 2, 3)), qr323));
 }
 
 
-TEST(adapters, ZeroAdapter_functions)
+TEST(adapters, zero_adapter_functions)
 {
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.
   // from_euclidean is tested in FromEuclideanExpr.test.cpp.
@@ -314,7 +314,7 @@ TEST(adapters, ZeroAdapter_functions)
   EXPECT_TRUE(is_near(adjoint(z2x_3), M32::Zero()));
   EXPECT_TRUE(is_near(adjoint(zx3_2), M32::Zero()));
   EXPECT_TRUE(is_near(adjoint(zxx_23), M32::Zero()));
-  EXPECT_TRUE(is_near(adjoint(ZeroAdapter<CM23> {}), M32::Zero()));
+  EXPECT_TRUE(is_near(adjoint(zero_adapter<CM23> {}), M32::Zero()));
   static_assert(zero<decltype(adjoint(zxx_23))>);
 
   // determinant
@@ -720,9 +720,9 @@ TEST(adapters, constant_solve)
 TEST(adapters, constant_decompositions)
 {
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
-  ZeroAdapter<M32> z32;
-  ZeroAdapter<M3x> z3x_2 {2};
-  ZeroAdapter<Mx2> zx2_3 {3};
+  zero_adapter<M32> z32;
+  zero_adapter<M3x> z3x_2 {2};
+  zero_adapter<Mx2> zx2_3 {3};
   ZA00 zxx_32 {3, 2};
 
   ZA23 z23 {Dimensions<2>(), Dimensions<3>()};
@@ -829,15 +829,15 @@ TEST(adapters, constant_diagonalizing)
   EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()))> == 1);
 
-  ConstantAdapter<M33, double, 5> c533 {};
-  ConstantAdapter<M3x, double, 5> c53x_3 {3};
-  ConstantAdapter<Mx3, double, 5> c5x3_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_33 {3, 3};
+  constant_adapter<M33, double, 5> c533 {};
+  constant_adapter<M3x, double, 5> c53x_3 {3};
+  constant_adapter<Mx3, double, 5> c5x3_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_33 {3, 3};
 
-  ConstantAdapter<M31, double, 5> c531 {};
-  ConstantAdapter<M3x, double, 5> c53x_1 {1};
-  ConstantAdapter<Mx1, double, 5> c5x1_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_31 {3, 1};
+  constant_adapter<M31, double, 5> c531 {};
+  constant_adapter<M3x, double, 5> c53x_1 {1};
+  constant_adapter<Mx1, double, 5> c5x1_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_31 {3, 1};
 
   auto m33_d5 = make_dense_object_from<M33>(5, 0, 0, 0, 5, 0, 0, 0, 5);
 
@@ -866,10 +866,10 @@ TEST(adapters, constant_diagonalizing)
   EXPECT_TRUE(is_near(to_diagonal(z2x_1), z22));
   EXPECT_TRUE(is_near(to_diagonal(zx1_2), z22));
   EXPECT_TRUE(is_near(to_diagonal(zxx_21), z22));
-  static_assert(diagonal_adapter<decltype(to_diagonal(z21))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(zx1_2))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(z2x_1))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(zxx_21))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(z21))> and internal::has_nested_vector<decltype(to_diagonal(z21))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(zx1_2))> and internal::has_nested_vector<decltype(to_diagonal(zx1_2))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(z2x_1))> and internal::has_nested_vector<decltype(to_diagonal(z2x_1))>);
+  static_assert(diagonal_matrix<decltype(to_diagonal(zxx_21))> and internal::has_nested_vector<decltype(to_diagonal(zxx_21))>);
   static_assert(zero<decltype(to_diagonal(zxx_21))>);
 
   EXPECT_TRUE(is_near(diagonal_of(z22), z21));
@@ -1139,7 +1139,7 @@ TEST(adapters, constant_reductions)
   EXPECT_EQ(average_reduce(i01_2), 0.5);
   EXPECT_EQ(average_reduce(i00_21), 0.5);
 
-  // reduce ZeroAdapter
+  // reduce zero_adapter
 
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
   ZA20 z2x_2 {Dimensions<2>(), 2};
@@ -1158,31 +1158,31 @@ TEST(adapters, constant_reductions)
   EXPECT_TRUE(is_near(average_reduce<0>(zxx_22), ez12));
   static_assert(zero<decltype(average_reduce<0>(zxx_22))>);
 
-  // reduce ConstantAdapter
+  // reduce constant_adapter
 
-  ConstantAdapter<M34, double, 5> c534 {};
-  ConstantAdapter<M3x, double, 5> c53x_4 {4};
-  ConstantAdapter<Mx4, double, 5> c5x4_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_34 {3, 4};
+  constant_adapter<M34, double, 5> c534 {};
+  constant_adapter<M3x, double, 5> c53x_4 {4};
+  constant_adapter<Mx4, double, 5> c5x4_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_34 {3, 4};
 
-  ConstantAdapter<M33, double, 5> c533 {};
-  ConstantAdapter<M3x, double, 5> c53x_3 {3};
-  ConstantAdapter<Mx3, double, 5> c5x3_3 {3};
-  ConstantAdapter<Mxx, double, 5> c5xx_33 {3, 3};
+  constant_adapter<M33, double, 5> c533 {};
+  constant_adapter<M3x, double, 5> c53x_3 {3};
+  constant_adapter<Mx3, double, 5> c5x3_3 {3};
+  constant_adapter<Mxx, double, 5> c5xx_33 {3, 3};
 
   auto colzc34 = average_reduce<1>(c5xx_34);
-  EXPECT_TRUE(is_near(average_reduce<1>(ConstantAdapter<M23, double, 3> ()), (M21::Constant(3))));
-  EXPECT_EQ(colzc34, (ConstantAdapter<M31, double, 5> {}));
-  EXPECT_EQ(get_vector_space_descriptor<0>(colzc34), 3);
-  EXPECT_EQ(get_vector_space_descriptor<1>(colzc34), 1);
-  static_assert(constant_adapter<decltype(colzc34)>);
+  EXPECT_TRUE(is_near(average_reduce<1>(constant_adapter<M23, double, 3> ()), (M21::Constant(3))));
+  EXPECT_EQ(colzc34, (constant_adapter<M31, double, 5> {}));
+  EXPECT_EQ(get_pattern_collection<0>(colzc34), 3);
+  EXPECT_EQ(get_pattern_collection<1>(colzc34), 1);
+  static_assert(constant_matrix<decltype(colzc34)>);
 
   auto rowzc34 = average_reduce<0>(c5xx_34);
-  EXPECT_TRUE(is_near(average_reduce<0>(ConstantAdapter<M23, double, 3> ()), (M13::Constant(3))));
-  EXPECT_EQ(rowzc34, (ConstantAdapter<eigen_matrix_t<double, 1, 4>, double, 5> {}));
-  EXPECT_EQ(get_vector_space_descriptor<1>(rowzc34), 4);
-  EXPECT_EQ(get_vector_space_descriptor<0>(rowzc34), 1);
-  static_assert(constant_adapter<decltype(rowzc34)>);
+  EXPECT_TRUE(is_near(average_reduce<0>(constant_adapter<M23, double, 3> ()), (M13::Constant(3))));
+  EXPECT_EQ(rowzc34, (constant_adapter<eigen_matrix_t<double, 1, 4>, double, 5> {}));
+  EXPECT_EQ(get_pattern_collection<1>(rowzc34), 4);
+  EXPECT_EQ(get_pattern_collection<0>(rowzc34), 1);
+  static_assert(constant_matrix<decltype(rowzc34)>);
 }
 
 
@@ -1222,15 +1222,15 @@ TEST(adapters, constant_element_functions)
   EXPECT_NEAR(get_component(zx2_1, 0, 0), 0, 1e-6);
   EXPECT_NEAR(get_component(zxx_12, 0, 1), 0, 1e-6);
 
-  EXPECT_NEAR(get_component(ConstantAdapter<M22, double, 5> {}, 1, 0), 5, 1e-8);
+  EXPECT_NEAR(get_component(constant_adapter<M22, double, 5> {}, 1, 0), 5, 1e-8);
 
-  ConstantAdapter<Mxx, double, 5> cxx {2, 2};
+  constant_adapter<Mxx, double, 5> cxx {2, 2};
 
   EXPECT_NEAR((get_component(cxx, 0, 0)), 5, 1e-6);
   EXPECT_NEAR((get_component(cxx, 0, 1)), 5, 1e-6);
   EXPECT_NEAR((get_component(cxx, 1, 0)), 5, 1e-6);
   EXPECT_NEAR((get_component(cxx, 1, 1)), 5, 1e-6);
-  EXPECT_NEAR((get_component(ConstantAdapter<Mx1, double, 7> {3}, 0)), 7, 1e-6);
+  EXPECT_NEAR((get_component(constant_adapter<Mx1, double, 7> {3}, 0)), 7, 1e-6);
 
   // get_slice
 
@@ -1277,45 +1277,45 @@ TEST(adapters, constant_element_functions)
 
   // get_chip
 
-  ConstantAdapter<Mxx, double, 5> c5xx_34 {3, 4};
+  constant_adapter<Mxx, double, 5> c5xx_34 {3, 4};
 
-  EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, double, 6> {}, 1), (M21::Constant(6))));
-  EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, double, 7> {}, N1), (M21::Constant(7))));
+  EXPECT_TRUE(is_near(get_chip<1>(constant_adapter<M23, double, 6> {}, 1), (M21::Constant(6))));
+  EXPECT_TRUE(is_near(get_chip<1>(constant_adapter<M23, double, 7> {}, N1), (M21::Constant(7))));
 
   auto c5c34 = get_chip<1>(c5xx_34, 1);
-  EXPECT_EQ(get_vector_space_descriptor<0>(c5c34), 3);
+  EXPECT_EQ(get_pattern_collection<0>(c5c34), 3);
   static_assert(dimension_size_of_index_is<decltype(c5c34), 1, 1>);
   static_assert(constant_coefficient_v<decltype(c5c34)> == 5);
 
-  auto c5v34 = get_chip<1>(ConstantAdapter<Mx4, double, 5> {3}, N1);
-  EXPECT_EQ(get_vector_space_descriptor<0>(c5v34), 3);
+  auto c5v34 = get_chip<1>(constant_adapter<Mx4, double, 5> {3}, N1);
+  EXPECT_EQ(get_pattern_collection<0>(c5v34), 3);
   static_assert(dimension_size_of_index_is<decltype(c5v34), 1, 1>);
   static_assert(constant_coefficient_v<decltype(c5v34)> == 5);
 
-  EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, double, 6> {}, 1), (M12::Constant(6))));
-  EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, double, 7> {}, N1), (M12::Constant(7))));
+  EXPECT_TRUE(is_near(get_chip<0>(constant_adapter<M32, double, 6> {}, 1), (M12::Constant(6))));
+  EXPECT_TRUE(is_near(get_chip<0>(constant_adapter<M32, double, 7> {}, N1), (M12::Constant(7))));
 
   auto r5c34 = get_chip<0>(c5xx_34, 1);
-  EXPECT_EQ(get_vector_space_descriptor<1>(r5c34), 4);
+  EXPECT_EQ(get_pattern_collection<1>(r5c34), 4);
   static_assert(dimension_size_of_index_is<decltype(r5c34), 0, 1>);
   static_assert(constant_coefficient_v<decltype(r5c34)> == 5);
 
-  auto r5v34 = get_chip<0>(ConstantAdapter<M3x, double, 5> {4}, N1);
-  EXPECT_EQ(get_vector_space_descriptor<1>(r5v34), 4);
+  auto r5v34 = get_chip<0>(constant_adapter<M3x, double, 5> {4}, N1);
+  EXPECT_EQ(get_pattern_collection<1>(r5v34), 4);
   static_assert(dimension_size_of_index_is<decltype(r5v34), 0, 1>);
   static_assert(constant_coefficient_v<decltype(r5v34)> == 5);
 
-  EXPECT_TRUE(is_near(get_chip<1>(ZeroAdapter<M23>(), N1), (M21::Zero())));
-  EXPECT_TRUE(is_near(get_chip<1>(ZeroAdapter<M23>(), 1), (M21::Zero())));
+  EXPECT_TRUE(is_near(get_chip<1>(zero_adapter<M23>(), N1), (M21::Zero())));
+  EXPECT_TRUE(is_near(get_chip<1>(zero_adapter<M23>(), 1), (M21::Zero())));
 
-  auto zc34 = ZeroAdapter<M34> {};
+  auto zc34 = zero_adapter<M34> {};
   auto czc34 = get_chip<1>(zc34, 1);
-  EXPECT_EQ(get_vector_space_descriptor<0>(czc34), 3);
+  EXPECT_EQ(get_pattern_collection<0>(czc34), 3);
   static_assert(dimension_size_of_index_is<decltype(czc34), 1, 1>);
   static_assert(zero<decltype(czc34)>);
 
-  auto czv34 = get_chip<1>(ZeroAdapter<Mx4> {3}, N1);
-  EXPECT_EQ(get_vector_space_descriptor<0>(czv34), 3);
+  auto czv34 = get_chip<1>(zero_adapter<Mx4> {3}, N1);
+  EXPECT_EQ(get_pattern_collection<0>(czv34), 3);
   static_assert(dimension_size_of_index_is<decltype(czv34), 1, 1>);
   static_assert(zero<decltype(czv34)>);
 
@@ -1325,16 +1325,16 @@ TEST(adapters, constant_element_functions)
   EXPECT_TRUE(is_near(get_chip<1>(make_zero<Mx3>(3, Dimensions<3>{}), 2), make_dense_object_from<M31>(0., 0, 0)));
   EXPECT_TRUE(is_near(get_chip<1>(make_zero<Mxx>(3,3), 2), make_dense_object_from<M31>(0., 0, 0)));
 
-  EXPECT_TRUE(is_near(get_chip<0>(ZeroAdapter<M32>(Dimensions<3>{}, Dimensions<2>{}), N1), (M12::Zero())));
-  EXPECT_TRUE(is_near(get_chip<0>(ZeroAdapter<M32>(Dimensions<3>{}, Dimensions<2>{}), 1), (M12::Zero())));
+  EXPECT_TRUE(is_near(get_chip<0>(zero_adapter<M32>(Dimensions<3>{}, Dimensions<2>{}), N1), (M12::Zero())));
+  EXPECT_TRUE(is_near(get_chip<0>(zero_adapter<M32>(Dimensions<3>{}, Dimensions<2>{}), 1), (M12::Zero())));
 
   auto rzc34 = get_chip<0>(zc34, 1);
-  EXPECT_EQ(get_vector_space_descriptor<1>(rzc34), 4);
+  EXPECT_EQ(get_pattern_collection<1>(rzc34), 4);
   static_assert(dimension_size_of_index_is<decltype(rzc34), 0, 1>);
   static_assert(zero<decltype(rzc34)>);
 
-  auto rzv34 = get_chip<0>(ZeroAdapter<M3x> {Dimensions<3>{}, 4}, N1);
-  EXPECT_EQ(get_vector_space_descriptor<1>(rzv34), 4);
+  auto rzv34 = get_chip<0>(zero_adapter<M3x> {Dimensions<3>{}, 4}, N1);
+  EXPECT_EQ(get_pattern_collection<1>(rzv34), 4);
   static_assert(dimension_size_of_index_is<decltype(rzv34), 0, 1>);
   static_assert(zero<decltype(rzv34)>);
 

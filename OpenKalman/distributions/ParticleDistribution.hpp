@@ -32,4 +32,4 @@ namespace OpenKalman {
 
 }
 
-#endif //OPENKALMAN_PARTICLEDISTRIBUTION_HPP
+#endif

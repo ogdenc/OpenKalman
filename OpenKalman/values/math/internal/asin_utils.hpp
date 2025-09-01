@@ -13,8 +13,8 @@
  * \brief Utilities for the asin function.
  */
 
-#ifndef OPENKALMAN_VALUE_ASIN_UTILS_HPP
-#define OPENKALMAN_VALUE_ASIN_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_ASIN_UTILS_HPP
+#define OPENKALMAN_VALUES_ASIN_UTILS_HPP
 
 #include "values/math/copysign.hpp"
 #include "values/math/sqrt.hpp"
@@ -43,7 +43,7 @@ namespace OpenKalman::values::internal
   if (x == -1) return -pi2;
   return values::internal::NaN<T>();
  }
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_ASIN_UTILS_HPP
+#endif

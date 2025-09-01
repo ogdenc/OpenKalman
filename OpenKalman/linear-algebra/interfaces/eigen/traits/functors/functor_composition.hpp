@@ -139,7 +139,7 @@ namespace OpenKalman::Eigen3
 
   };
 
-} // namespace OpenKalman::Eigen3
+}
 
 
 namespace Eigen::internal
@@ -154,7 +154,7 @@ namespace Eigen::internal
     };
   };
 
-} // namespace Eigen::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_FUNCTOR_COMPOSITION_HPP
+#endif

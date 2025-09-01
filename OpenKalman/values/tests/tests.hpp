@@ -19,7 +19,7 @@
 #include <string>
 #include "basics/tests/tests.hpp"
 #include "values/concepts/value.hpp"
-#include "values/functions/to_number.hpp"
+#include "values/functions/to_value_type.hpp"
 #include "values/concepts/complex.hpp"
 #include "values/functions/internal/near.hpp"
 #include "values/math/real.hpp"
@@ -29,14 +29,15 @@ namespace OpenKalman::test
 {
   /**
    * \internal
-   * \brief Compare two values::value objects.
+   * \brief Compare two \ref values::value objects.
    */
 #ifdef __cpp_concepts
   template<values::value Arg1, values::value Arg2, values::value Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<values::value<Arg1> and values::value<Arg2> and values::value<Err>>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
+    values::value<Arg1> and values::value<Arg2> and values::value<Err>>>
 #endif
     : ::testing::AssertionResult
   {
@@ -62,8 +63,8 @@ namespace OpenKalman::test
       if (values::internal::near(arg1, arg2, err))
         return ::testing::AssertionSuccess();
       else
-        return ::testing::AssertionFailure() << print(values::to_number(arg2)) << " is not within " <<
-          print(values::to_number(err)) << " of " << print(values::to_number(arg1));
+        return ::testing::AssertionFailure() << print(values::to_value_type(arg2)) << " is not within " <<
+          print(values::to_value_type(err)) << " of " << print(values::to_value_type(arg1));
     }
 
   public:

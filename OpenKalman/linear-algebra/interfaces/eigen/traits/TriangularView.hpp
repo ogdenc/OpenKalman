@@ -41,9 +41,9 @@ namespace OpenKalman
 
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+      static constexpr auto get_pattern_collection(const Arg& arg, N n)
       {
-        return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+        return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
       }
 
 
@@ -58,7 +58,7 @@ namespace OpenKalman
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))
-          return values::Fixed<scalar_type_of_t<MatrixType>, 0>{};
+          return values::fixed_value<scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
       }
@@ -70,16 +70,16 @@ namespace OpenKalman
         using Scalar = scalar_type_of_t<MatrixType>;
 
         if constexpr ((Mode & Eigen::UnitDiag) != 0 and (
-          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
-          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
+          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, triangle_type::lower>) or
+          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, triangle_type::upper>)))
         {
-          return values::Fixed<Scalar, 1>{};
+          return values::fixed_value<Scalar, 1>{};
         }
         else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and (
-          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
-          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
+          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, triangle_type::lower>) or
+          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, triangle_type::upper>)))
         {
-          return values::Fixed<Scalar, 0>{};
+          return values::fixed_value<Scalar, 0>{};
         }
         else
         {
@@ -88,20 +88,20 @@ namespace OpenKalman
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool is_triangular =
-        (t == TriangleType::any) or
-        (t == TriangleType::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, TriangleType::lower>)) or
-        (t == TriangleType::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, TriangleType::upper>)) or
-        (t == TriangleType::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) != 0 ? TriangleType::upper : TriangleType::lower>);
+        (t == triangle_type::any) or
+        (t == triangle_type::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, triangle_type::lower>)) or
+        (t == triangle_type::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, triangle_type::upper>)) or
+        (t == triangle_type::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) != 0 ? triangle_type::upper : triangle_type::lower>);
 
 
       static constexpr bool is_triangular_adapter = true;
@@ -112,8 +112,8 @@ namespace OpenKalman
 
     };
 
-  } // namespace interface
+  }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_HPP
+#endif

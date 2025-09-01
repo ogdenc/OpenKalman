@@ -12,8 +12,8 @@
  * \brief Utilities for exp and expm1 functions.
  */
 
-#ifndef OPENKALMAN_VALUE_EXP_UTILS_HPP
-#define OPENKALMAN_VALUE_EXP_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_EXP_UTILS_HPP
+#define OPENKALMAN_VALUES_EXP_UTILS_HPP
 
 #include "basics/basics.hpp"
 
@@ -41,7 +41,7 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_EXP_UTILS_HPP
+#endif

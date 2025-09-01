@@ -29,6 +29,6 @@ namespace OpenKalman::interface
   {
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_INDEXEDVIEW_HPP
+#endif

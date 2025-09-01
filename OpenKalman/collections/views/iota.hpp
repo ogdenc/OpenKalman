@@ -17,18 +17,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP
 
-#include <type_traits>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
-#include "values/concepts/index.hpp"
-#include "values/concepts/size.hpp"
-#include "values/concepts/fixed.hpp"
-#include "values/traits/fixed_number_of.hpp"
-#include "values/traits/number_type_of.hpp"
-#include "collections/functions/comparison_operators.hpp"
+#include "values/values.hpp"
 #include "generate.hpp"
 
 namespace OpenKalman::collections
@@ -62,17 +51,17 @@ namespace OpenKalman::collections
 
 
   /**
-   * \brief An iota \ref collection that is a std::range and may also be \ref tuple_like.
+   * \brief An iota \ref collection that is a std::range and may also be \ref uniformly_gettable.
    * \details In all cases, the result will be a std::range.
    * If the Size parameter is \ref values::fixed, then the result will also be
-   * a \ref tuple_like sequence effectively in the form of
+   * a \ref uniformly_gettable sequence effectively in the form of
    * <code>std::integral_sequence<std::size_t, 0>{},...,std::integral_sequence<std::size_t, N>{}</code>
    * \tparam Start The start value of the iota.
    * \tparam Size The size of the resulting collection. The view is unsized if Size is <code>void</code>.
    */
 #ifdef __cpp_concepts
   template<values::integral Start = std::integral_constant<std::size_t, 0>, values::size Size = stdcompat::unreachable_sentinel_t>
-  requires (not values::index<Size> or std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>) and
+  requires (not values::index<Size> or std::convertible_to<values::value_type_of_t<Size>, values::value_type_of_t<Start>>) and
     std::same_as<Start, std::remove_reference_t<Start>> and
     std::same_as<Size, std::remove_reference_t<Size>>
 #else
@@ -153,7 +142,7 @@ namespace std
 #ifdef __cpp_concepts
   template<typename Start, OpenKalman::values::fixed Size>
   struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
-    : std::integral_constant<size_t, OpenKalman::values::fixed_number_of_v<Size>> {};
+    : std::integral_constant<size_t, OpenKalman::values::fixed_value_of_v<Size>> {};
 #else
   template<typename Start, typename Size>
   struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
@@ -165,7 +154,7 @@ namespace std
   template<std::size_t i, OpenKalman::values::fixed Start, typename Size>
   struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
   {
-    static_assert(not OpenKalman::values::fixed<Size> or requires { requires i < OpenKalman::values::fixed_number_of<Size>::value; });
+    static_assert(not OpenKalman::values::fixed<Size> or requires { requires i < OpenKalman::values::fixed_value_of<Size>::value; });
     using type = OpenKalman::values::operation_t<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
   };
 #else
@@ -174,7 +163,7 @@ namespace std
     : tuple_element<i, OpenKalman::collections::generate_view<OpenKalman::collections::detail::iota_generator<Start>, Size>> {};
 #endif
 
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -188,10 +177,10 @@ namespace OpenKalman::collections::views
        */
 #ifdef __cpp_concepts
       template<values::index Start, values::index Size> requires
-        std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>
+        std::convertible_to<values::value_type_of_t<Size>, values::value_type_of_t<Start>>
 #else
       template<typename Start, typename Size, std::enable_if_t<values::index<Start> and values::index<Size> and
-        stdcompat::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>, int> = 0>
+        stdcompat::convertible_to<values::value_type_of_t<Size>, values::value_type_of_t<Start>>, int> = 0>
 #endif
       constexpr auto
       operator() (Start start, Size size) const
@@ -239,4 +228,4 @@ namespace OpenKalman::collections::views
 }
 
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP
+#endif

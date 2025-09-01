@@ -456,4 +456,4 @@ namespace OpenKalman::internal
 
 } // OpenKalman::internal
 
-#endif //OPENKALMAN_COVARIANCEIMPL_HPP
+#endif

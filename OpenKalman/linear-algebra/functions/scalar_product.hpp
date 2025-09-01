@@ -34,7 +34,7 @@ namespace OpenKalman
         return n_ary_operation(std::multiplies<scalar_type_of_t<Arg>>{}, std::forward<Arg>(arg), make_constant(arg, s));
       }
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -42,7 +42,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible Arg, values::scalar S> requires
-    requires(S s) { {values::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+    requires(S s) { {values::to_value_type(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
   static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
   template<typename Arg, typename S>
@@ -70,11 +70,11 @@ namespace OpenKalman
           constant_diagonal_coefficient{arg},
           std::forward<S>(s))));
     }
-    else if constexpr (values::fixed_number_compares_with<S, 0>)
+    else if constexpr (values::fixed_value_compares_with<S, 0>)
     {
       return make_zero(arg);
     }
-    else if constexpr (values::fixed_number_compares_with<S, 1>)
+    else if constexpr (values::fixed_value_compares_with<S, 1>)
     {
       return std::forward<Arg>(arg);
     }
@@ -84,7 +84,7 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_SCALAR_PRODUCT_HPP
+#endif

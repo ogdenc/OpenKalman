@@ -42,9 +42,9 @@ namespace OpenKalman::interface
 
     template<typename Arg, typename N>
     static constexpr auto
-    get_vector_space_descriptor(const Arg& arg, N n)
+    get_pattern_collection(const Arg& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
     }
 
 
@@ -114,26 +114,26 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = Traits::preserves_triangle and triangular_matrix<XprType, t>;
 
 
-    static constexpr bool is_hermitian = Traits::preserves_hermitian and hermitian_matrix<XprType, Applicability::permitted>;
+    static constexpr bool is_hermitian = Traits::preserves_hermitian and hermitian_matrix<XprType, applicability::permitted>;
 
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_CWISEUNARYOP_HPP
+#endif

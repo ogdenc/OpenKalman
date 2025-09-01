@@ -411,12 +411,12 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
       static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+      static constexpr auto get_pattern_collection(const Arg& arg, N n)
       {
         if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return arg.my_dimension;
-          else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
+          else return OpenKalman::get_pattern_collection(nested_object(arg), n);
         }
         else if constexpr (coordinates::uniform_pattern<Coeffs>)
         {
@@ -425,7 +425,7 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
         else
         {
           if (n == 0) return DynamicDescriptor<scalar_type> {arg.my_dimension};
-          else return DynamicDescriptor<scalar_type> {OpenKalman::get_vector_space_descriptor(nested_object(arg), n)};
+          else return DynamicDescriptor<scalar_type> {OpenKalman::get_pattern_collection(nested_object(arg), n)};
         }
       }
 
@@ -457,15 +457,15 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool is_triangular = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
 
@@ -511,14 +511,14 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 
-      static constexpr Layout layout = coordinates::euclidean_pattern<Coeffs> ? layout_of_v<NestedMatrix> : Layout::none;
+      static constexpr data_layout layout = coordinates::euclidean_pattern<Coeffs> ? layout_of_v<NestedMatrix> : data_layout::none;
 
     };
 
-  } // namespace interface
+  }
 
 
-} // namespace OpenKalman::internal
+}
 
 
-#endif //OPENKALMAN_EUCLIDEANMEAN_HPP
+#endif

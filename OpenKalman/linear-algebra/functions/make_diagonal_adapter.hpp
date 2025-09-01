@@ -27,18 +27,18 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible Arg, coordinates::pattern D0, coordinates::pattern D1> requires
     (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
-    (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>)
+    (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, applicability::permitted>)
   constexpr diagonal_matrix auto
 #else
   template<typename Arg, typename D0, typename D1, std::enable_if_t<
     indexible<Arg> and coordinates::pattern<D0> and coordinates::pattern<D1> and
       (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
-      (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>), int> = 0>
+      (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, applicability::permitted>), int> = 0>
   constexpr auto
 #endif
   make_diagonal_adapter(Arg&& arg, D0&& d0, D1&& d1)
   {
-    return DiagonalAdapter {std::forward<Arg>(arg), std::forward<D0>(d0), std::forward<D1>(d1)};
+    return diagonal_adapter {std::forward<Arg>(arg), std::forward<D0>(d0), std::forward<D1>(d1)};
   }
 
 
@@ -56,10 +56,10 @@ namespace OpenKalman
 #endif
   make_diagonal_adapter(Arg&& arg)
   {
-    auto d = get_vector_space_descriptor<0>(arg);
-    return DiagonalAdapter {std::forward<Arg>(arg), d, d};
+    auto d = get_pattern_collection<0>(arg);
+    return diagonal_adapter {std::forward<Arg>(arg), d, d};
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAKE_DIAGONAL_ADAPTER_HPP
+#endif

@@ -24,7 +24,7 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using Z22 = zero_adapter<eigen_matrix_t<double, 2, 2>>;
 using C2 = std::tuple<Axis, angle::Radians>;
 using C3 = std::tuple<Axis, angle::Radians, Axis>;
 using Mat12 = Mean<Axis, M12>;
@@ -38,10 +38,10 @@ using TMat23 = Matrix<C2, Dimensions<3>, M23>;
 using TMat32 = Matrix<C3, Dimensions<2>, M32>;
 using EMat23 = EuclideanMean<C2, M33>;
 
-using SA2l = HermitianAdapter<M22, TriangleType::lower>;
-using SA2u = HermitianAdapter<M22, TriangleType::upper>;
-using T2l = TriangularAdapter<M22, TriangleType::lower>;
-using T2u = TriangularAdapter<M22, TriangleType::upper>;
+using SA2l = HermitianAdapter<M22, triangle_type::lower>;
+using SA2u = HermitianAdapter<M22, triangle_type::upper>;
+using T2l = TriangularAdapter<M22, triangle_type::lower>;
+using T2u = TriangularAdapter<M22, triangle_type::upper>;
 
 inline I22 i22 = M22::Identity();
 inline Z22 z22 = Z22();
@@ -263,7 +263,7 @@ TEST(matrices, Mean_traits)
   static_assert(not identity_matrix<Mean<Dimensions<2>, M23>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<Mean<C2, Z22>>);
-  static_assert(zero<Mean<C2, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>>);
+  static_assert(zero<Mean<C2, zero_adapter<eigen_matrix_t<double, 2, 2>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));

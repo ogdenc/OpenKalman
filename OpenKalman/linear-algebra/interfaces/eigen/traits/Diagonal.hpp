@@ -61,7 +61,7 @@ namespace OpenKalman::interface
           if (DiagIndex >= arg.nestedExpression().cols()) throw std::out_of_range{"DiagIndex in Eigen::Diagonal is too high for MatrixType."};
         }
 
-        return values::Fixed<Scalar, 0>{};
+        return values::fixed_value<Scalar, 0>{};
       }
       else if constexpr (constant_diagonal_matrix<MatrixType> and DiagIndex == Eigen::DynamicIndex)
       {
@@ -80,15 +80,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = dimension_size_of_index_is<Xpr, 0, 1, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = one_dimensional<b>;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_DIAGONAL_HPP
+#endif

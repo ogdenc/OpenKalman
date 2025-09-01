@@ -55,7 +55,7 @@ namespace OpenKalman::Eigen3
 
     template<typename Arg, typename N>
     static constexpr auto
-    get_vector_space_descriptor(const Arg& arg, N n)
+    get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (values::fixed<N>)
       {
@@ -72,7 +72,7 @@ namespace OpenKalman::Eigen3
       {
         if (n == 0_uz) return static_cast<std::size_t>(arg.rows());
         else return static_cast<std::size_t>(arg.cols()); // n == 1_uz
-        // n >= 2 is precluded by the general get_vector_space_descriptor function
+        // n >= 2 is precluded by the general get_pattern_collection function
       }
     }
 
@@ -120,7 +120,7 @@ namespace OpenKalman::Eigen3
 
   public:
 
-    static constexpr Layout layout = has_strides<T>::value and direct_access ? Layout::stride : row_major ? Layout::right : Layout::left;
+    static constexpr data_layout layout = has_strides<T>::value and direct_access ? data_layout::stride : row_major ? data_layout::right : data_layout::left;
 
 
 #ifdef __cpp_lib_concepts
@@ -146,7 +146,7 @@ namespace OpenKalman::Eigen3
   };
 
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_BASE_HPP
+#endif

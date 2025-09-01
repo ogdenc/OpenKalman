@@ -28,7 +28,7 @@ TEST(eigen3, Eigen_DiagonalMatrix)
   static_assert(diagonal_matrix<DM2>);
   static_assert(diagonal_matrix<DMx>);
 
-  static_assert(triangular_matrix<DMx, TriangleType::lower>);
+  static_assert(triangular_matrix<DMx, triangle_type::lower>);
 
   static_assert(std::is_same_v<nested_object_of_t<Eigen::DiagonalMatrix<double, 2>>, M21&&>);
 

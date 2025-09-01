@@ -27,7 +27,7 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept writable =
-    indexible<T> and interface::indexible_object_traits<std::decay_t<T>>::is_writable and
+    indexible<T> and interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_writable and
     (not std::is_const_v<std::remove_reference_t<T>>) and std::copy_constructible<std::decay_t<T>>;
 #else
   constexpr bool writable =
@@ -36,6 +36,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_WRITABLE_HPP
+#endif

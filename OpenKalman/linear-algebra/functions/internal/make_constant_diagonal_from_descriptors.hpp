@@ -18,8 +18,8 @@
 #define OPENKALMAN_MAKE_CONSTANT_DIAGONAL_FROM_DESCRIPTORS_HPP
 
 #include <vector>
-#include "linear-algebra/coordinates/concepts/pattern.hpp"
-#include "linear-algebra/coordinates/concepts/pattern_tuple.hpp"
+#include "coordinates/concepts/pattern.hpp"
+#include "coordinates/concepts/pattern_tuple.hpp"
 
 namespace OpenKalman::internal
 {
@@ -36,7 +36,7 @@ namespace OpenKalman::internal
       auto new_descriptors = std::tuple_cat(
         std::tuple(internal::smallest_pattern<scalar_type_of_t<T>>(
           std::get<0>(std::forward<Descriptors>(descriptors)), std::get<1>(std::forward<Descriptors>(descriptors)))),
-        internal::tuple_slice<2, std::tuple_size_v<Descriptors>>(descriptors));
+        internal::tuple_slice<2, collections::size_of_v<Descriptors>>(descriptors));
       return make_constant<T>(std::forward<C>(c), new_descriptors);
     }
     else
@@ -65,6 +65,6 @@ namespace OpenKalman::internal
     }
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAKE_CONSTANT_DIAGONAL_FROM_DESCRIPTORS_HPP
+#endif

@@ -69,4 +69,4 @@ namespace OpenKalman {
 
 }
 
-#endif //OPENKALMAN_MIXTUREOFCONTINUOUSDISTRIBUTIONS_HPP
+#endif

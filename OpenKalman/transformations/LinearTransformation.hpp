@@ -95,7 +95,7 @@ namespace OpenKalman
       detail::is_linear_transformation_input<T, RowCoefficients, ColumnCoefficients>::value;
 #endif
 
-  } // namespace internal
+  }
 
 
 #ifdef __cpp_concepts
@@ -190,7 +190,7 @@ namespace OpenKalman
 #endif
     auto jacobian(const In&, const Perturbations& ...) const
     {
-      constexpr auto mat_count = std::tuple_size_v<TransformationMatricesTuple>;
+      constexpr auto mat_count = collections::size_of_v<TransformationMatricesTuple>;
 
       // If there are more inputs than tests matrices, pad the tuple with extra identity matrices.
       if constexpr(sizeof...(Perturbations) + 1 > mat_count)
@@ -253,9 +253,9 @@ namespace OpenKalman
     template<typename InC, typename OutC, typename T, typename ... Ps>
     struct is_linearized_function<LinearTransformation<InC, OutC, T, Ps...>, 1> : std::true_type {};
 
-  } // namespace internal
+  }
 
 }
 
 
-#endif //OPENKALMAN_LINEARTRANSFORMATION_HPP
+#endif

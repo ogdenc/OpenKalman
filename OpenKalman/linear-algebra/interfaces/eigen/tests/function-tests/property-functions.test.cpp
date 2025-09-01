@@ -28,19 +28,19 @@ TEST(eigen3, count_indices)
 }
 
 
-TEST(eigen3, get_vector_space_descriptor)
+TEST(eigen3, get_pattern_collection)
 {
   M23 m23;
 
-  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<0>(m23))> == 2);
-  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<0>(M2x {m23}))> == 2);
-  EXPECT_EQ(get_dimension(get_vector_space_descriptor<0>(Mx3 {m23})), 2);
-  EXPECT_EQ(get_dimension(get_vector_space_descriptor<0>(Mxx {m23})), 2);
+  static_assert(coordinates::dimension_of_v<decltype(get_pattern_collection<0>(m23))> == 2);
+  static_assert(coordinates::dimension_of_v<decltype(get_pattern_collection<0>(M2x {m23}))> == 2);
+  EXPECT_EQ(get_dimension(get_pattern_collection<0>(Mx3 {m23})), 2);
+  EXPECT_EQ(get_dimension(get_pattern_collection<0>(Mxx {m23})), 2);
 
-  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<1>(m23))> == 3);
-  EXPECT_EQ(get_dimension(get_vector_space_descriptor<1>(M2x {m23})), 3);
-  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<1>(Mx3 {m23}))> == 3);
-  EXPECT_EQ(get_dimension(get_vector_space_descriptor<1>(Mxx {m23})), 3);
+  static_assert(coordinates::dimension_of_v<decltype(get_pattern_collection<1>(m23))> == 3);
+  EXPECT_EQ(get_dimension(get_pattern_collection<1>(M2x {m23})), 3);
+  static_assert(coordinates::dimension_of_v<decltype(get_pattern_collection<1>(Mx3 {m23}))> == 3);
+  EXPECT_EQ(get_dimension(get_pattern_collection<1>(Mxx {m23})), 3);
 }
 
 
@@ -158,7 +158,7 @@ TEST(eigen3, raw_data)
   Eigen::Matrix<double, 2, 2, Eigen::ColMajor> m22_1234c;
   m22_1234c << 1, 2, 3, 4;
   auto* datac = internal::raw_data(m22_1234c);
-  static_assert(layout_of_v<decltype(m22_1234c)> == Layout::left);
+  static_assert(layout_of_v<decltype(m22_1234c)> == data_layout::left);
 
   EXPECT_EQ(std::get<0>(internal::strides(m22_1234c)), 1);
   EXPECT_EQ(std::get<1>(internal::strides(m22_1234c)), 2);
@@ -170,7 +170,7 @@ TEST(eigen3, raw_data)
   Eigen::Matrix<double, 2, 2, Eigen::RowMajor> m22_1234r;
   m22_1234r << 1, 2, 3, 4;
   auto* datar = internal::raw_data(m22_1234r);
-  static_assert(layout_of_v<decltype(m22_1234r)> == Layout::right);
+  static_assert(layout_of_v<decltype(m22_1234r)> == data_layout::right);
   EXPECT_EQ(std::get<0>(internal::strides(m22_1234r)), 2);
   EXPECT_EQ(std::get<1>(internal::strides(m22_1234r)), 1);
 

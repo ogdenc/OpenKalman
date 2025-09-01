@@ -13,8 +13,8 @@
  * \brief Definition for \ref values::size.
  */
 
-#ifndef OPENKALMAN_VALUE_SIZE_HPP
-#define OPENKALMAN_VALUE_SIZE_HPP
+#ifndef OPENKALMAN_VALUES_SIZE_HPP
+#define OPENKALMAN_VALUES_SIZE_HPP
 
 #include <type_traits>
 #include "index.hpp"
@@ -33,6 +33,6 @@ namespace OpenKalman::values
 #endif
     index<T> or std::is_same_v<std::decay_t<T>, stdcompat::unreachable_sentinel_t>;
 
-} // namespace OpenKalman::values
+}
 
-#endif //OPENKALMAN_VALUE_SIZE_HPP
+#endif

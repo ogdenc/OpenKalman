@@ -18,46 +18,58 @@
 #define OPENKALMAN_VALUES_CAST_TO_HPP
 
 #include <cstdint>
-#include "values/concepts/number.hpp"
+#include "basics/basics.hpp"
+#include "values/concepts/value.hpp"
 #include "values/concepts/complex.hpp"
-#include "values/functions/to_number.hpp"
+#include "values/functions/to_value_type.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
-#include "values/traits/number_type_of.hpp"
-#include "values/traits/complex_type_of.hpp"
-#include "values/classes/Fixed.hpp"
+#include "values/traits/value_type_of.hpp"
+#include "values/classes/fixed_value.hpp"
 
 namespace OpenKalman::values
 {
-#if __cpp_nontype_template_args < 201911L
-  namespace detail
+  /**
+   * \brief A \ref fixed value cast from another \ref fixed value
+   * \tparam T The new value type
+   * \tparam Arg The underlying fixed value
+   */
+  template<typename T, typename Arg>
+  struct fixed_cast
   {
-    template<typename T, typename Arg>
-    struct FixedCast
-    {
-      using value_type = T;
-      static constexpr auto value {static_cast<value_type>(values::fixed_number_of_v<Arg>)};
-      using type = FixedCast;
-      constexpr operator value_type() const { return value; }
-      constexpr value_type operator()() const { return value; }
-    };
-  } // namespace detail
-#endif
+    using value_type = T;
+    static constexpr auto value {static_cast<value_type>(values::fixed_value_of_v<Arg>)};
+    using type = fixed_cast;
+    constexpr operator value_type() const { return value; }
+    constexpr value_type operator()() const { return value; }
+  };
+
 
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
-    struct is_complexible : std::false_type {};
+    template<typename Arg, typename T, typename = void>
+    struct value_type_convertible : std::false_type {};
 
-    template<typename T>
-    struct is_complexible<T, std::void_t<typename complex_type_of<T>::type>> : std::true_type {};
+    template<typename Arg, typename T>
+    struct value_type_convertible<Arg, T, std::enable_if_t<
+      stdcompat::convertible_to<typename value_type_of<Arg>::type, T>>>
+      : std::true_type {};
 
 
-    template<typename T, typename Arg, typename = void>
+    template<typename T, typename Arg, typename = void, typename = void>
     struct is_fixable : std::false_type {};
 
     template<typename T, typename Arg>
-    struct is_fixable<T, Arg, std::enable_if_t<(std::bool_constant<(static_cast<T>(fixed_number_of<Arg>::value) == static_cast<T>(fixed_number_of<Arg>::value))>::value)>>
+    struct is_fixable<T, Arg, std::void_t<fixed_value<T, fixed_value_of_v<Arg>>>>
+      : std::true_type {};
+
+
+    template<typename Arg, typename T, typename = void>
+    struct real_types_convertible : std::false_type {};
+
+    template<typename Arg, typename T>
+    struct real_types_convertible<Arg, T, std::enable_if_t<
+      stdcompat::convertible_to<typename real_type_of<Arg>::type, typename real_type_of<T>::type> >>
       : std::true_type {};
   }
 #endif
@@ -65,51 +77,76 @@ namespace OpenKalman::values
 
   /**
    * \internal
-   * \brief Cast a \ref values::value to another \ref values::value with a particular underlying real \ref values::number type.
-   * \details If the argument is complex, the result will be complex. If the argument is fixed, the result may or may not be fixed.
-   * \tparam T The \ref values::number type associated with the result
-   * \tparam Arg A \ref values::value
+   * \brief Cast a value to another value having a particular underlying value type.
+   * \details If the argument is \ref fixed, the result may or may not be fixed.
+   * \tparam T The underlying value type associated with the result
+   * \tparam Arg A \ref value
    */
 #ifdef __cpp_concepts
-  template<number T, value Arg> requires (not complex<T>) and std::same_as<T, std::decay_t<T>> and
-    requires { static_cast<T>(real(to_number(std::declval<Arg&&>()))); } and
-    (not complex<Arg> or requires { typename complex_type_of<T>::type; }) and
-    (complex<Arg> or not fixed<Arg> or requires { typename Fixed<T, fixed_number_of_v<Arg>>; })
-  constexpr value decltype(auto)
+  template<typename T, typename Arg> requires
+    std::same_as<T, std::decay_t<T>> and
+    (not number<T> or not complex<Arg>) and
+    std::convertible_to<value_type_of_t<Arg>, T>
 #else
   template<typename T, typename Arg, std::enable_if_t<
-    number<T> and value<Arg> and (not complex<T>) and std::is_same_v<T, std::decay_t<T>> and
-    (not complex<Arg> or detail::is_complexible<T>::value) and
-    (complex<Arg> or not fixed<Arg> or detail::is_fixable<T, Arg>::value), int> = 0,
-    typename = std::void_t<decltype(static_cast<T>(real(to_number(std::declval<Arg&&>()))))>>
+    (not number<T> or not complex<Arg>) and
+    std::is_same_v<T, std::decay_t<T>> and
+    detail::value_type_convertible<Arg, T>::value, int> = 0>
+#endif
+  constexpr decltype(auto)
+  cast_to(Arg&& arg)
+  {
+    if constexpr (std::is_same_v<T, value_type_of_t<Arg>>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (fixed<Arg>)
+    {
+#ifdef __cpp_concepts
+      if constexpr (requires { typename fixed_value<T, fixed_value_of_v<Arg>>; })
+#else
+      if constexpr (detail::is_fixable<T, Arg>::value)
+#endif
+        return fixed_value<T, fixed_value_of_v<Arg>>{};
+      else
+        return fixed_cast<T, std::decay_t<Arg>>{};
+    }
+    else
+    {
+      return static_cast<T>(values::to_value_type(std::forward<Arg>(arg)));
+    }
+  }
+
+
+  /**
+   * \overload
+   * \internal
+   * \brief Cast a \ref complex value to another \ref complex value having a particular underlying real value type.
+   * \details The result will be complex. If the argument is fixed, the result may or may not be fixed.
+   * \tparam T The \ref values::number type associated with the result, which may be either real or complex
+   * \tparam Arg A \ref complex value
+   */
+#ifdef __cpp_concepts
+  template<number T, complex Arg> requires
+    std::same_as<T, std::decay_t<T>> and
+    std::convertible_to<real_type_of_t<Arg>, real_type_of_t<T>>
+  constexpr complex decltype(auto)
+#else
+  template<typename T, typename Arg, std::enable_if_t<
+    number<T> and
+    complex<Arg> and
+    std::is_same_v<T, std::decay_t<T>> and
+    detail::real_types_convertible<Arg, T>::value, int> = 0>
   constexpr decltype(auto)
 #endif
   cast_to(Arg&& arg)
   {
-    if constexpr (std::is_same_v<T, number_type_of_t<Arg>>)
-    {
+    if constexpr (std::is_same_v<T, value_type_of_t<Arg>>)
       return std::forward<Arg>(arg);
-    }
-    else if constexpr (complex<Arg>)
-    {
-      return internal::make_complex_number<T>(std::forward<Arg>(arg));
-    }
-    else if constexpr (fixed<Arg>)
-    {
-      constexpr auto x = fixed_number_of_v<Arg>;
-#if __cpp_nontype_template_args >= 201911L
-      return Fixed<T, x>{};
-#else
-      if constexpr (x == static_cast<std::intmax_t>(x)) return Fixed<T, static_cast<std::intmax_t>(x)>{};
-      else return detail::FixedCast<T, std::decay_t<Arg>>{};
-#endif
-    }
     else
-    {
-      return static_cast<T>(values::to_number(std::forward<Arg>(arg)));
-    }
+      return internal::make_complex_number<real_type_of_t<T>>(std::forward<Arg>(arg));
   }
 
-} // namespace OpenKalman::values
+}
 
-#endif //OPENKALMAN_VALUES_CAST_TO_HPP
+#endif

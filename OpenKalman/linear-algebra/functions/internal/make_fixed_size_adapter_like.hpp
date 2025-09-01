@@ -24,7 +24,7 @@ namespace OpenKalman::internal
     template<std::size_t I, typename...Ts>
     constexpr decltype(auto) best_desc_Ts_impl(const Ts&...ts)
     {
-      return most_fixed_pattern(get_vector_space_descriptor<I>(ts)...);
+      return most_fixed_pattern(get_pattern_collection<I>(ts)...);
     }
 
 
@@ -40,7 +40,7 @@ namespace OpenKalman::internal
         else return std::forward<Arg>(arg);
       }
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -63,6 +63,6 @@ namespace OpenKalman::internal
   }
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_MAKE_FIXED_SIZE_ADAPTER_LIKE_HPP
+#endif

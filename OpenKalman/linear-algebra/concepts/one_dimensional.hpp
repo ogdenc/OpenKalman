@@ -17,67 +17,67 @@
 #ifndef OPENKALMAN_ONE_DIMENSIONAL_HPP
 #define OPENKALMAN_ONE_DIMENSIONAL_HPP
 
-#include "linear-algebra/coordinates/concepts/compares_with.hpp"
+#include "coordinates/concepts/compares_with.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, Applicability b, std::size_t I, std::size_t...Is>
+    template<typename T, applicability b, std::size_t I, std::size_t...Is>
     constexpr bool has_1_by_1_dims(std::index_sequence<I, Is...>)
     {
-      return compares_with<vector_space_descriptor_of_t<T, I>, vector_space_descriptor_of_t<T, Is>, equal_to<>, Applicability::permitted> and
+      return compares_with<vector_space_descriptor_of_t<T, I>, vector_space_descriptor_of_t<T, Is>, equal_to<>, applicability::permitted> and
         (dimension_size_of_index_is<T, I, 1, b> and ... and dimension_size_of_index_is<T, Is, 1, b>);
     }
 
 
 #ifdef __cpp_concepts
-    template<typename T, Applicability b>
+    template<typename T, applicability b>
 #else
-    template<typename T, Applicability b, typename = void>
+    template<typename T, applicability b, typename = void>
 #endif
     struct one_dimensional_impl : std::false_type {};
 
 
 #ifdef __cpp_concepts
-    template<typename T, Applicability b> requires (index_count_v<T> == dynamic_size)
+    template<typename T, applicability b> requires (index_count_v<T> == dynamic_size)
     struct one_dimensional_impl<T, b>
 #else
-    template<typename T, Applicability b>
+    template<typename T, applicability b>
     struct one_dimensional_impl<T, b, std::enable_if_t<index_count<T>::value == dynamic_size>>
 #endif
-      : std::bool_constant<b == Applicability::permitted and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
+      : std::bool_constant<b == applicability::permitted and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
 
 
 #ifdef __cpp_concepts
-    template<typename T, Applicability b> requires (index_count_v<T> == 0)
+    template<typename T, applicability b> requires (index_count_v<T> == 0)
     struct one_dimensional_impl<T, b>
 #else
-    template<typename T, Applicability b>
+    template<typename T, applicability b>
     struct one_dimensional_impl<T, b, std::enable_if_t<index_count<T>::value == 0>>
 #endif
       : std::true_type {};
 
 
 #ifdef __cpp_concepts
-      template<typename T, Applicability b> requires (index_count_v<T> != dynamic_size and index_count_v<T> > 0)
+      template<typename T, applicability b> requires (index_count_v<T> != dynamic_size and index_count_v<T> > 0)
       struct one_dimensional_impl<T, b>
   #else
-      template<typename T, Applicability b>
+      template<typename T, applicability b>
       struct one_dimensional_impl<T, b, std::enable_if_t<index_count<T>::value != dynamic_size and index_count<T>::value > 0>>
   #endif
         : std::bool_constant<detail::has_1_by_1_dims<T, b>(std::make_index_sequence<index_count_v<T>>{})> {};
-  } // namespace detail
+  }
 
 
   /**
    * \brief Specifies that a type is one-dimensional in every index.
    * \details Each index also must have an equivalent \ref coordinates::pattern object.
    */
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept one_dimensional = indexible<T> and
-    (not interface::one_dimensional_defined_for<T, b> or interface::indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>) and
+    (not interface::one_dimensional_defined_for<T, b> or interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::template one_dimensional<b>) and
     (interface::one_dimensional_defined_for<T, b> or detail::one_dimensional_impl<T, b>::value);
 #else
   constexpr bool one_dimensional = indexible<T> and
@@ -85,6 +85,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ONE_DIMENSIONAL_HPP
+#endif

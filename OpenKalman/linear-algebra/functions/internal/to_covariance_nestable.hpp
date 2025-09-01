@@ -101,6 +101,6 @@ namespace OpenKalman::internal
   to_covariance_nestable(Arg&&);
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_TO_COVARIANCE_NESTABLE_HPP
+#endif

@@ -124,7 +124,7 @@ namespace OpenKalman::internal
     weighted_means(YMeans&& y_means)
     {
       static_assert(index_dimension_of_v<YMeans, 1> == Derived::template sigma_point_count<dim>);
-      using Weights = dense_writable_matrix_t<YMeans, Layout::none, scalar_type_of_t<YMeans>,
+      using Weights = dense_writable_matrix_t<YMeans, data_layout::none, scalar_type_of_t<YMeans>,
         std::tuple<index_dimension_of<YMeans, 1>, Axis>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
@@ -155,7 +155,7 @@ namespace OpenKalman::internal
     {
       static_assert(index_dimension_of_v<X, 1> == Derived::template sigma_point_count<dim>);
       constexpr auto count = index_dimension_of_v<X, 1>;
-      using Weights = dense_writable_matrix_t<X, Layout::none, scalar_type_of_t<X>, std::tuple<Dimensions<count>, Axis>>;
+      using Weights = dense_writable_matrix_t<X, data_layout::none, scalar_type_of_t<X>, std::tuple<Dimensions<count>, Axis>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)
@@ -220,4 +220,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_SCALEDSIGMAPOINTSBASE_HPP
+#endif

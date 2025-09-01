@@ -74,10 +74,10 @@ namespace OpenKalman::interface
 
     // data() not defined
 
-    static constexpr Layout layout = layout_of_v<PlainObjectType>;
+    static constexpr data_layout layout = layout_of_v<PlainObjectType>;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORREF_HPP
+#endif

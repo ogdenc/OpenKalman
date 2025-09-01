@@ -46,7 +46,7 @@ namespace OpenKalman
 
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
+      static constexpr auto get_pattern_collection(const Arg& arg, N)
       {
         if constexpr (SizeAtCompileTime == Eigen::Dynamic) return static_cast<std::size_t>(arg.rows());
         else return Dimensions<SizeAtCompileTime>{};
@@ -70,15 +70,15 @@ namespace OpenKalman
       // get_constant_diagonal() not defined
 
 
-      template<Applicability b>
-      static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Applicability::permitted);
+      template<applicability b>
+      static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == applicability::permitted);
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = true;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool is_triangular = true;
 
 
@@ -92,8 +92,8 @@ namespace OpenKalman
 
     };
 
-  } // namespace interface
+  }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_DIAGONALMATRIX_HPP
+#endif

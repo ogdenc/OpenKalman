@@ -21,4 +21,4 @@
 
 #include "GaussianDistribution.hpp"
 
-#endif //OPENKALMAN_DISTRIBUTIONS_HPP
+#endif

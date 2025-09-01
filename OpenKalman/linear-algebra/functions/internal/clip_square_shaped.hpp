@@ -33,7 +33,7 @@ namespace OpenKalman::internal
       return ret;
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -42,7 +42,7 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<indexible Arg>
-  constexpr square_shaped<Applicability::permitted> decltype(auto)
+  constexpr square_shaped<applicability::permitted> decltype(auto)
 #else
   template<typename Arg>
   constexpr decltype(auto)
@@ -57,6 +57,6 @@ namespace OpenKalman::internal
     }
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_CLIP_SQUARE_SHAPED_HPP
+#endif

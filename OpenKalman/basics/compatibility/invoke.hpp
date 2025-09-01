@@ -24,30 +24,36 @@ namespace OpenKalman::stdcompat
   namespace detail
   {
     template<typename> static constexpr bool is_reference_wrapper_v = false;
+    template<typename U> static constexpr bool is_reference_wrapper_v<std::reference_wrapper<U>> = true;
     template<typename U> static constexpr bool is_reference_wrapper_v<stdcompat::reference_wrapper<U>> = true;
 
-    template<typename C, typename P, typename O, typename...Args>
+    template<typename C, typename Pointed, typename Object, typename...Args>
     static constexpr decltype(auto)
-    invoke_memptr(P C::* member, O&& object, Args&&... args)
+    invoke_memptr(Pointed C::* member, Object&& object, Args&&... args)
     {
-      if constexpr (std::is_function_v<P>)
+      using object_t = remove_cvref_t<Object>;
+      constexpr bool is_member_function = std::is_function_v<Pointed>;
+      constexpr bool is_wrapped = is_reference_wrapper_v<object_t>;
+      constexpr bool is_derived_object = std::is_same_v<C, object_t> or std::is_base_of_v<C, object_t>;
+
+      if constexpr (is_member_function)
       {
-        if constexpr (stdcompat::same_as<C, remove_cvref_t<O>> or std::is_base_of_v<C, remove_cvref_t<O>>)
-          return (std::forward<O>(object) .* member)(std::forward<Args>(args)...);
-        else if constexpr (is_reference_wrapper_v<remove_cvref_t<O>>)
+        if constexpr (is_derived_object)
+          return (std::forward<Object>(object) .* member) (std::forward<Args>(args)...);
+        else if constexpr (is_wrapped)
           return (object.get() .* member)(std::forward<Args>(args)...);
         else
-          return ((*std::forward<O>(object)) .* member)(std::forward<Args>(args)...);
+          return ((*std::forward<Object>(object)) .* member) (std::forward<Args>(args)...);
       }
       else
       {
-        static_assert(std::is_object_v<P> && sizeof...(args) == 0);
-        if constexpr (stdcompat::same_as<C, remove_cvref_t<O>> or std::is_base_of_v<C, remove_cvref_t<O>>)
-          return std::forward<O>(object) .* member;
-        else if constexpr (is_reference_wrapper_v<remove_cvref_t<O>>)
+        static_assert(std::is_object_v<Pointed> && sizeof...(args) == 0);
+        if constexpr (is_derived_object)
+          return std::forward<Object>(object) .* member;
+        else if constexpr (is_wrapped)
           return object.get() .* member;
         else
-          return (*std::forward<O>(object)) .* member;
+          return (*std::forward<Object>(object)) .* member;
       }
     }
   }
@@ -58,11 +64,11 @@ namespace OpenKalman::stdcompat
    * \brief A constexpr version of std::invoke, for use when compiling in c++17
    **/
   template<typename F, typename...Args>
-  static constexpr decltype(auto)
+  static constexpr std::invoke_result_t<F, Args...>
   invoke(F&& f, Args&&... args) noexcept(std::is_nothrow_invocable_v<F, Args...>)
   {
-    if constexpr (std::is_member_pointer_v<remove_cvref_t<F>>)
-      return invoke_memptr(f, std::forward<Args>(args)...);
+    if constexpr (std::is_member_pointer_v<stdcompat::remove_cvref_t<F>>)
+      return detail::invoke_memptr(f, std::forward<Args>(args)...);
     else
       return std::forward<F>(f)(std::forward<Args>(args)...);
   }

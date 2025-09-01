@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_DIAGONAL_MATRIX_HPP
 #define OPENKALMAN_DIAGONAL_MATRIX_HPP
 
+#include "linear-algebra/concepts/triangular_matrix.hpp"
 
 namespace OpenKalman
 {
@@ -23,7 +24,6 @@ namespace OpenKalman
    * \brief Specifies that a type is a diagonal matrix or tensor.
    * \details A diagonal matrix has zero components everywhere except the main diagonal. It is not necessarily square.
    * For rank >2 tensors, every rank-2 slice comprising dimensions 0 and 1 must be diagonal.
-   * \note A \ref diagonal_adapter is an diagonal matrix, but not all diagonal matrices are diagonal adapters.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -31,9 +31,8 @@ namespace OpenKalman
 #else
   constexpr bool diagonal_matrix =
 #endif
-    triangular_matrix<T, TriangleType::diagonal>;
+    triangular_matrix<T, triangle_type::diagonal>;
 
+}
 
-} // namespace OpenKalman
-
-#endif //OPENKALMAN_DIAGONAL_MATRIX_HPP
+#endif

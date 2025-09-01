@@ -28,8 +28,8 @@ TEST(eigen3, Eigen_Transpose)
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().transpose())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().transpose())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().transpose())>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().transpose()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().transpose()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().transpose()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().transpose()), triangle_type::upper>);
 }
 
 

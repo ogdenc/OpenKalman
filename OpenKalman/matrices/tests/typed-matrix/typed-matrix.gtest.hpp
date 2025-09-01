@@ -21,4 +21,4 @@
 #include "distributions/GaussianDistribution.hpp"
 
 
-#endif //OPENKALMAN_TYPED_MATRIX_GTEST_HPP
+#endif

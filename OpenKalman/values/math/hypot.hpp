@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::hypot.
  */
 
-#ifndef OPENKALMAN_VALUE_HYPOT_HPP
-#define OPENKALMAN_VALUE_HYPOT_HPP
+#ifndef OPENKALMAN_VALUES_HYPOT_HPP
+#define OPENKALMAN_VALUES_HYPOT_HPP
 
 #include <algorithm>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
@@ -38,16 +38,16 @@ namespace OpenKalman::values
    * Also, this function can take complex arguments
    */
 #ifdef __cpp_concepts
-  template<values::value...Args> requires (sizeof...(Args) > 0)
-  constexpr values::value auto hypot(const Args&...args)
+  template<value...Args> requires (sizeof...(Args) > 0)
+  constexpr value auto hypot(const Args&...args)
 #else
-  template <typename...Args, std::enable_if_t<(... and values::value<Args>) and (sizeof...(Args) > 0), int> = 0>
+  template <typename...Args, std::enable_if_t<(... and value<Args>) and (sizeof...(Args) > 0), int> = 0>
   constexpr auto hypot(const Args&...args)
 #endif
   {
     if constexpr ((... or fixed<Args>))
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Args>&...a) const { return values::hypot(a...); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Args>&...a) const { return values::hypot(a...); } };
       return values::operation(Op{}, args...);
     }
     else if constexpr (sizeof...(Args) == 1)
@@ -87,7 +87,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_HYPOT_HPP
+#endif

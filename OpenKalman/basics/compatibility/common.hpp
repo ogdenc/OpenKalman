@@ -57,14 +57,14 @@ namespace OpenKalman::stdcompat
     using common_ref_C = std::remove_reference_t<common_ref_t<A&, B&>>&&;
 
     template<typename A, typename B>
-    struct common_ref<A&&, B&&, std::enable_if_t<stdcompat::convertible_to<A&&, common_ref_C<A, B>> and stdcompat::convertible_to<B&&, common_ref_C<A, B>>>>
+    struct common_ref<A&&, B&&, std::enable_if_t<convertible_to<A&&, common_ref_C<A, B>> and convertible_to<B&&, common_ref_C<A, B>>>>
     { using type = common_ref_C<A, B>; };
 
     template<typename A, typename B>
     using common_ref_D = common_ref_t<const A&, B&>;
 
     template<typename A, typename B>
-    struct common_ref<A&&, B&, std::enable_if_t<stdcompat::convertible_to<A&&, common_ref_D<A, B>>>>
+    struct common_ref<A&&, B&, std::enable_if_t<convertible_to<A&&, common_ref_D<A, B>>>>
     { using type = common_ref_D<A, B>; };
 
     template<typename A, typename B>

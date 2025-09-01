@@ -12,8 +12,8 @@
  * \brief Definition for various utilities for math functions.
  */
 
-#ifndef OPENKALMAN_VALUE_MATH_UTILS_HPP
-#define OPENKALMAN_VALUE_MATH_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_MATH_UTILS_HPP
+#define OPENKALMAN_VALUES_MATH_UTILS_HPP
 
 #include <type_traits>
 #include <limits>
@@ -81,7 +81,7 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_MATH_UTILS_HPP
+#endif

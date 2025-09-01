@@ -95,7 +95,7 @@ namespace OpenKalman::Eigen3::detail
     }
   }
 
-} // namespace OpenKalman::Eigen3::detail
+}
 
 
 namespace OpenKalman::interface
@@ -138,6 +138,6 @@ namespace OpenKalman::interface
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_PARTIALREDUXEXPR_HPP
+#endif

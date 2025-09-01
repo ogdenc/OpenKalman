@@ -21,9 +21,6 @@
 #include "basics/basics.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::collections;
-
-#include "collections/concepts/tuple_like.hpp"
 
 namespace C1
 {
@@ -58,16 +55,50 @@ namespace std
 }
 
 
-#include "collections/concepts/sized_random_access_range.hpp"
-
-TEST(collections, size_random_access_range)
+namespace C3
 {
-  static_assert(sized_random_access_range<int[5]>);
-  static_assert(not sized_random_access_range<int*>);
-  static_assert(not sized_random_access_range<std::tuple<int, double, long double>>);
-  static_assert(sized_random_access_range<std::array<double, 5>>);
-  static_assert(sized_random_access_range<std::vector<double>>);
-  static_assert(sized_random_access_range<std::initializer_list<double>>);
+  struct C3
+  {
+    mutable int n1 = 4;
+  };
+
+  template<std::size_t i>
+  constexpr auto& get(const C3& c3) { return c3.n1 += i; }
+}
+
+namespace std
+{
+  template<> struct tuple_size<C3::C3> : std::integral_constant<std::size_t, 7> {};
+}
+
+
+struct C4
+{
+  mutable std::size_t x = 7_uz;
+
+  template<std::size_t i>
+  constexpr auto& get() const { return x += i; }
+};
+
+namespace std
+{
+  template<> struct tuple_size<C4> : std::integral_constant<std::size_t, 7> {};
+}
+
+
+#include "collections/traits/collection_element.hpp"
+using namespace OpenKalman::collections;
+
+TEST(collections, collection_element)
+{
+  static_assert(stdcompat::same_as<collection_element_t<0, std::tuple<double, int&>>, double>);
+  static_assert(stdcompat::same_as<collection_element_t<1, std::tuple<double, int&>>, int&>);
+  static_assert(stdcompat::same_as<collection_element_t<0, std::array<double, 5>>, double>);
+  static_assert(stdcompat::same_as<collection_element_t<4, std::array<double, 5>>, double>);
+  static_assert(stdcompat::same_as<collection_element_t<0, C1::C1>, int>);
+  static_assert(stdcompat::same_as<collection_element_t<0, C2>, std::size_t>);
+  static_assert(stdcompat::same_as<collection_element_t<0, C3::C3>, int&>);
+  static_assert(stdcompat::same_as<collection_element_t<0, C4>, std::size_t&>);
 }
 
 
@@ -93,12 +124,27 @@ TEST(collections, uniformly_gettable)
 }
 
 
+#include "collections/concepts/tuple_like.hpp"
+
 TEST(collections, tuple_like)
 {
   static_assert(tuple_like<std::tuple<double, int>>);
   static_assert(tuple_like<std::array<double, 5>>);
   static_assert(tuple_like<C1::C1>);
   static_assert(tuple_like<C2>);
+}
+
+
+#include "collections/concepts/sized_random_access_range.hpp"
+
+TEST(collections, size_random_access_range)
+{
+  static_assert(sized_random_access_range<int[5]>);
+  static_assert(not sized_random_access_range<int*>);
+  static_assert(not sized_random_access_range<std::tuple<int, double, long double>>);
+  static_assert(sized_random_access_range<std::array<double, 5>>);
+  static_assert(sized_random_access_range<std::vector<double>>);
+  static_assert(sized_random_access_range<std::initializer_list<double>>);
 }
 
 

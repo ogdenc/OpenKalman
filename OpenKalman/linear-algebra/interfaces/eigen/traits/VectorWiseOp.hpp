@@ -30,9 +30,9 @@ namespace OpenKalman::interface
     static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg._expression(), n);
+      return OpenKalman::get_pattern_collection(arg._expression(), n);
     }
 
     template<typename Arg>
@@ -47,15 +47,15 @@ namespace OpenKalman::interface
       return constant_coefficient {arg._expression()};
     }
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<ExpressionType, b>;
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<ExpressionType, b>;
 
     // No get or set defined.
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_VECTORWISEOP_HPP
+#endif

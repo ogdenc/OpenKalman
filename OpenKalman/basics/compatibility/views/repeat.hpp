@@ -19,7 +19,6 @@
 
 #include <type_traits>
 #include "basics/compatibility/language-features.hpp"
-#include "basics/compatibility/ranges.hpp"
 #include "basics/compatibility/internal/movable_box.hpp"
 #include "view_interface.hpp"
 

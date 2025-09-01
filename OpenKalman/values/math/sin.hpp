@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::sin.
  */
 
-#ifndef OPENKALMAN_VALUE_SIN_HPP
-#define OPENKALMAN_VALUE_SIN_HPP
+#ifndef OPENKALMAN_VALUES_SIN_HPP
+#define OPENKALMAN_VALUES_SIN_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
@@ -36,16 +36,16 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::sin function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto sin(const Arg& arg)
+  template<value Arg>
+  constexpr value auto sin(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto sin(const Arg& arg)
 #endif
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::sin(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::sin(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -75,7 +75,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_SIN_HPP
+#endif

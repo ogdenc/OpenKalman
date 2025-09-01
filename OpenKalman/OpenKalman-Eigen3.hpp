@@ -20,4 +20,4 @@
 #include "OpenKalman.hpp"
 #include "interfaces/eigen/eigen.hpp"
 
-#endif //OPENKALMAN_OPENKALMAN_EIGEN3_HPP
+#endif

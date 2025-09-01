@@ -13,4 +13,4 @@
 #include "test-transformations.hpp"
 
 
-#endif //OPENKALMAN_TRANSFORMATIONS_GTEST_HPP
+#endif

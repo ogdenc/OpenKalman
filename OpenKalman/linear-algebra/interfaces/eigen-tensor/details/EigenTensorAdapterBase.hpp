@@ -60,7 +60,7 @@ namespace OpenKalman::Eigen3
 
   };
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_EIGENTENSORADAPTERBASE_HPP
+#endif

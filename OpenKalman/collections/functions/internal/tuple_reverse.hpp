@@ -19,16 +19,19 @@
 
 #include <type_traits>
 #include <tuple>
+#include "collections/concepts/uniformly_gettable.hpp"
 #include "collections/concepts/tuple_like.hpp"
+#include "collections/traits/size_of.hpp"
+#include "collections/traits/collection_element.hpp"
 
 namespace OpenKalman::collections
 {
   /**
    * \brief A view of a tuple that reverses the order of a base tuple
-   * \tparam T A base \ref tuple_like object
+   * \tparam T A base \ref uniformly_gettable object
    */
 #ifdef __cpp_concepts
-  template<tuple_like T>
+  template<uniformly_gettable T>
 #else
   template<typename T>
 #endif
@@ -36,7 +39,7 @@ namespace OpenKalman::collections
   {
   private:
 
-    static constexpr auto base_size = std::tuple_size_v<std::decay_t<T>>;
+    static constexpr auto base_size = size_of_v<T>;
 
   public:
 
@@ -60,9 +63,9 @@ namespace OpenKalman::collections
      * \brief Get element i of a \ref tuple_reverse_view
      */
 #ifdef __cpp_concepts
-    template<std::size_t i> requires (i < std::tuple_size_v<std::decay_t<T>>)
+    template<std::size_t i> requires (i < size_of_v<T>)
 #else
-    template<std::size_t i, std::enable_if_t<i < std::tuple_size_v<std::decay_t<T>>, int> = 0>
+    template<std::size_t i, std::enable_if_t<i < size_of_v<T>, int> = 0>
 #endif
     friend constexpr decltype(auto)
     get(const tuple_reverse_view& v)
@@ -75,9 +78,9 @@ namespace OpenKalman::collections
      * \overload
      */
 #ifdef __cpp_concepts
-    template<std::size_t i> requires (i < std::tuple_size_v<std::decay_t<T>>)
+    template<std::size_t i> requires (i < size_of_v<T>)
 #else
-    template<std::size_t i, std::enable_if_t<i < std::tuple_size_v<std::decay_t<T>>, int> = 0>
+    template<std::size_t i, std::enable_if_t<i < size_of_v<T>, int> = 0>
 #endif
     friend constexpr decltype(auto)
     get(tuple_reverse_view&& v)
@@ -97,34 +100,34 @@ namespace OpenKalman::collections
   template<typename Arg>
   tuple_reverse_view(Arg&&) -> tuple_reverse_view<Arg>;
 
-} // namespace OpenKalman::internal
+}
 
 
 namespace std
 {
   template<typename T>
-  struct tuple_size<OpenKalman::collections::tuple_reverse_view<T>> : std::tuple_size<std::decay_t<T>> {};
+  struct tuple_size<OpenKalman::collections::tuple_reverse_view<T>> : OpenKalman::collections::size_of<T> {};
 
 
   template<std::size_t i, typename T>
   struct tuple_element<i, OpenKalman::collections::tuple_reverse_view<T>>
   {
-    static_assert(i < std::tuple_size_v<std::decay_t<T>>);
-    using type = std::tuple_element_t<std::tuple_size_v<std::decay_t<T>> - i - 1, std::decay_t<T>>;
+    static_assert(i < OpenKalman::collections::size_of_v<T>);
+    using type = OpenKalman::collections::collection_element_t<OpenKalman::collections::size_of_v<T> - i - 1, T>;
   };
-} // namespace std
+}
 
 
 namespace OpenKalman::collections
 {
   /**
-   * \brief Reverses the order of a \ref tuple_like object.
+   * \brief Reverses the order of a \ref uniformly_gettable object.
    */
 #ifdef __cpp_concepts
-  template<tuple_like Arg>
+  template<uniformly_gettable Arg>
   constexpr tuple_like auto
 #else
-  template<typename Arg, std::enable_if_t<tuple_like<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<uniformly_gettable<Arg>, int> = 0>
   constexpr auto
 #endif
   tuple_reverse(Arg&& arg)
@@ -137,16 +140,17 @@ namespace OpenKalman::collections
    * \overload
    */
 #ifdef __cpp_concepts
-  template<tuple_like T> requires std::default_initializable<T>
+  template<uniformly_gettable T> requires std::default_initializable<T>
+  constexpr tuple_like auto
 #else
-  template<typename T, std::enable_if_t<tuple_like<T> and stdcompat::default_initializable<T>, int> = 0>
-#endif
+  template<typename T, std::enable_if_t<uniformly_gettable<T> and stdcompat::default_initializable<T>, int> = 0>
   constexpr auto
+#endif
   tuple_reverse()
   {
     return tuple_reverse_view<T> {};
   }
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_TUPLE_REVERSE_HPP
+#endif

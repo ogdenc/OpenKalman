@@ -86,4 +86,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_IDENTITYTRANSFORM_HPP
+#endif

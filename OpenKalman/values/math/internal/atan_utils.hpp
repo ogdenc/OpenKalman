@@ -12,8 +12,8 @@
  * \brief Definition of utilities for atan functions.
  */
 
-#ifndef OPENKALMAN_VALUE_ATAN_UTILS_HPP
-#define OPENKALMAN_VALUE_ATAN_UTILS_HPP
+#ifndef OPENKALMAN_VALUES_ATAN_UTILS_HPP
+#define OPENKALMAN_VALUES_ATAN_UTILS_HPP
 
 #include <type_traits>
 #include <limits>
@@ -51,7 +51,7 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
 
-#endif //OPENKALMAN_VALUE_ATAN_UTILS_HPP
+#endif

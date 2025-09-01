@@ -35,6 +35,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ELEMENT_GETTABLE_HPP
+#endif

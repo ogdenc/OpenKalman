@@ -26,7 +26,7 @@ namespace OpenKalman::Eigen3::internal
 #endif
   struct native_traits;
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
 namespace Eigen::internal
@@ -47,8 +47,8 @@ namespace Eigen::internal
 
 
   template<typename PatternMatrix, typename Scalar, auto...constant>
-  struct traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>> {};
+  struct traits<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>> {};
 
 
   template<typename NestedObject, OpenKalman::HermitianAdapterType storage_triangle>
@@ -56,14 +56,14 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::HermitianAdapter<NestedObject, storage_triangle>> {};
 
 
-  template<typename NestedObject, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::TriangularAdapter<NestedObject, triangle_type>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularAdapter<NestedObject, triangle_type>> {};
+  template<typename NestedObject, OpenKalman::triangle_type tri>
+  struct traits<OpenKalman::TriangularAdapter<NestedObject, tri>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularAdapter<NestedObject, tri>> {};
 
 
   template<typename NestedObject>
-  struct traits<OpenKalman::DiagonalAdapter<NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalAdapter<NestedObject>> {};
+  struct traits<OpenKalman::diagonal_adapter<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::diagonal_adapter<NestedObject>> {};
 
 
   template<typename NestedObject>
@@ -108,4 +108,4 @@ namespace Eigen::internal
 
 }
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_HPP
+#endif

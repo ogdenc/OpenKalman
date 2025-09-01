@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_MAY_MATCH_WITH_HPP
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_MAY_MATCH_WITH_HPP
 
-#include "linear-algebra/coordinates/concepts/compares_with.hpp"
+#include "coordinates/concepts/compares_with.hpp"
 
 namespace OpenKalman
 {
@@ -25,7 +25,7 @@ namespace OpenKalman
     template<std::size_t I, typename T, typename...Ts>
     constexpr bool maybe_equivalent_descriptors_per_index()
     {
-      return (... and compares_with<vector_space_descriptor_of_t<T, I>, vector_space_descriptor_of_t<Ts, I>, equal_to<>, Applicability::permitted>);
+      return (... and compares_with<vector_space_descriptor_of_t<T, I>, vector_space_descriptor_of_t<Ts, I>, equal_to<>, applicability::permitted>);
     }
 
     template<typename...Ts, std::size_t...Is>
@@ -34,7 +34,7 @@ namespace OpenKalman
       if constexpr (sizeof...(Ts) < 2) return true;
       else return (... and maybe_equivalent_descriptors_per_index<Is, Ts...>());
     }
-  } // namespace detail
+  }
 
   /**
    * \brief Specifies that \ref indexible objects Ts may have equivalent dimensions and vector-space types.
@@ -52,6 +52,6 @@ namespace OpenKalman
     detail::vector_space_descriptors_may_match_with_impl<Ts...>(std::make_index_sequence<std::max({std::size_t{0}, index_count_v<Ts>...})>{});
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_MAY_MATCH_WITH_HPP
+#endif

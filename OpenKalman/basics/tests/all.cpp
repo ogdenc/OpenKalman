@@ -14,11 +14,8 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
+#include "basics/compatibility/ranges/range-concepts.hpp"
 #include "basics/compatibility/views/all.hpp"
-#endif
 
 using namespace OpenKalman;
 

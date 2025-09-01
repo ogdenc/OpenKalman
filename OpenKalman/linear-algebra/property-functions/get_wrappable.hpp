@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr bool get_wrappable_impl(const T& t, std::index_sequence<I...>)
     {
-      return (get_is_euclidean(get_vector_space_descriptor<I + 1>(t)) and ...);
+      return (get_is_euclidean(get_pattern_collection<I + 1>(t)) and ...);
     }
   }
 
@@ -50,12 +50,12 @@ namespace OpenKalman
     else
     {
       for (std::size_t i = 1; i < count_indices(t); ++i)
-        if (not get_is_euclidean(get_vector_space_descriptor(t, i))) return false;
+        if (not get_is_euclidean(get_pattern_collection(t, i))) return false;
       return true;
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_GET_WRAPPABLE_HPP
+#endif

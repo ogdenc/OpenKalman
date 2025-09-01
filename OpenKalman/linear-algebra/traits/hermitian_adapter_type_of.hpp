@@ -20,8 +20,8 @@
 namespace OpenKalman
 {
   /**
-   * \brief The TriangleType associated with the storage triangle of one or more matrices.
-   * \details If there is no common triangle type, the result is TriangleType::any.
+   * \brief The triangle_type associated with the storage triangle of one or more matrices.
+   * \details If there is no common triangle type, the result is triangle_type::any.
    * If the matrices have a dynamic shape, the result assumes the matrices are square.
    */
   template<typename T, typename...Ts>
@@ -32,7 +32,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief The TriangleType associated with the storage triangle of a \ref hermitian_matrix.
+   * \brief The triangle_type associated with the storage triangle of a \ref hermitian_matrix.
    * \details Possible values are \ref HermitianAdapterType::lower "lower", \ref HermitianAdapterType::upper "upper", or
    * \ref HermitianAdapterType::any "any".
    */
@@ -40,6 +40,6 @@ namespace OpenKalman
   constexpr auto hermitian_adapter_type_of_v = hermitian_adapter_type_of<T, Ts...>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_HERMITIAN_ADAPTER_TYPE_OF_HPP
+#endif

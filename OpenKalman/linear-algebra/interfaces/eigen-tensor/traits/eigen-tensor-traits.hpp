@@ -20,9 +20,6 @@
 #define OPENKALMAN_EIGEN_TENSOR_TRAITS_HPP
 
 
-#include "indexible_object_traits_tensor_base.hpp"
-#include "eigen-tensor-library-interface.hpp"
-
 #include "Tensor.hpp"
 #include "TensorFixedSize.hpp"
 #include "TensorMap.hpp"
@@ -98,4 +95,4 @@
 //#include "TensorVolumePatch.hpp"
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_TRAITS_HPP
+#endif

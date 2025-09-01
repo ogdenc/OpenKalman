@@ -32,7 +32,7 @@ namespace OpenKalman::Eigen3
     return EigenTensorWrapper<Arg> {std::forward<Arg>(arg)};
   }
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_MAKE_EIGEN_TENSOR_WRAPPER_HPP
+#endif

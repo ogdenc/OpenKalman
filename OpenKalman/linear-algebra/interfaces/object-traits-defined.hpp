@@ -54,7 +54,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
    template<typename T>
   concept count_indices_defined_for = requires (T t) {
-    {indexible_object_traits<std::decay_t<T>>::count_indices(t)} -> values::index;
+    { std::invoke(indexible_object_traits<std::decay_t<T>>::count_indices, t) } -> values::index;
   };
 #else
   namespace detail
@@ -64,7 +64,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct count_indices_defined_for_impl<T, std::enable_if_t<
-      values::index<decltype(indexible_object_traits<std::decay_t<T>>::count_indices(std::declval<T>()))>>>
+      values::index<typename std::invoke_result<decltype(indexible_object_traits<std::decay_t<T>>::count_indices), T>::type>>>
       : std::true_type {};
   }
 
@@ -74,30 +74,28 @@ namespace OpenKalman::interface
 
 
   // ----------------------------- //
-  //  get_vector_space_descriptor  //
+  //  get_pattern_collection  //
   // ----------------------------- //
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept get_vector_space_descriptor_defined_for = requires (T t) {
-    {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
-      t, std::integral_constant<std::size_t, 0>{})} -> coordinates::coordinates::pattern;
+  concept get_pattern_collection_defined_for = requires (T t) {
+    { std::invoke(indexible_object_traits<std::decay_t<T>>::get_pattern_collection, t) } -> coordinates::pattern_collection;
   };
 #else
   namespace detail
   {
     template<typename T, typename = void>
-    struct get_vector_space_descriptor_defined_for_impl : std::false_type {};
+    struct get_pattern_collection_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<coordinates::coordinates::pattern<
-      decltype(indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
-        std::declval<T>(), std::integral_constant<std::size_t, 0>{}))>>>
+    struct get_pattern_collection_defined_for_impl<T, std::enable_if_t<
+      coordinates::pattern_collection<typename std::invoke_result<decltype(indexible_object_traits<std::decay_t<T>>::count_indices), T>::type>>>
       : std::true_type {};
   }
 
   template<typename T>
-  constexpr bool get_vector_space_descriptor_defined_for = detail::get_vector_space_descriptor_defined_for_impl<T>::value;
+  constexpr bool get_pattern_collection_defined_for = detail::get_pattern_collection_defined_for_impl<T>::value;
 #endif
 
 
@@ -182,29 +180,29 @@ namespace OpenKalman::interface
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   concept one_dimensional_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Applicability b, typename = void>
+    template<typename T, applicability b, typename = void>
     struct one_dimensional_defined_for_impl : std::false_type {};
 
-    template<typename T, Applicability b>
+    template<typename T, applicability b>
     struct one_dimensional_defined_for_impl<T, b, std::enable_if_t<stdcompat::convertible_to<
           decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   constexpr bool one_dimensional_defined_for = detail::one_dimensional_defined_for_impl<T, b>::value;
 
 
-  template<typename T, Applicability b, typename = void>
+  template<typename T, applicability b, typename = void>
   struct is_explicitly_one_dimensional : std::false_type {};
 
-  template<typename T, Applicability b>
+  template<typename T, applicability b>
   struct is_explicitly_one_dimensional<T, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>>>
     : std::true_type {};
 #endif
@@ -215,22 +213,22 @@ namespace OpenKalman::interface
   // ----------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   concept is_square_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Applicability b, typename = void>
+    template<typename T, applicability b, typename = void>
     struct is_square_defined_for_impl : std::false_type {};
 
-    template<typename T, Applicability b>
+    template<typename T, applicability b>
     struct is_square_defined_for_impl<T, b, std::enable_if_t<stdcompat::convertible_to<
           decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Applicability b = Applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, b>::value;
 #endif
 
@@ -240,20 +238,20 @@ namespace OpenKalman::interface
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType t>
+  template<typename T, triangle_type t>
   concept is_triangular_defined_for = requires { indexible_object_traits<std::decay_t<T>>::template is_triangular<t>; };
 #else
   namespace detail
   {
-    template<typename T, TriangleType t, typename = void>
+    template<typename T, triangle_type t, typename = void>
     struct is_triangular_defined_for_impl : std::false_type {};
 
-    template<typename T, TriangleType t>
+    template<typename T, triangle_type t>
     struct is_triangular_defined_for_impl<T, t, std::void_t<decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<t>)>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType t>
+  template<typename T, triangle_type t>
   constexpr bool is_triangular_defined_for = detail::is_triangular_defined_for_impl<T, t>::value;
 #endif
 
@@ -404,7 +402,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<typename T>
   concept layout_defined_for = requires(T t) {
-    {indexible_object_traits<std::decay_t<T>>::layout} -> std::convertible_to<const Layout>;
+    {indexible_object_traits<std::decay_t<T>>::layout} -> std::convertible_to<const data_layout>;
   };
 #else
   namespace detail
@@ -414,7 +412,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct layout_defined_for_impl<T, std::enable_if_t<std::is_convertible_v<
-      std::decay_t<decltype(indexible_object_traits<std::decay_t<T>>::layout)>, const Layout>>>
+      std::decay_t<decltype(indexible_object_traits<std::decay_t<T>>::layout)>, const data_layout>>>
       : std::true_type {};
   }
 
@@ -446,7 +444,7 @@ namespace OpenKalman::interface
 #endif
 
 
-} // namespace OpenKalman::interface
+}
 
 
-#endif //OPENKALMAN_OBJECT_TRAITS_DEFINED_HPP
+#endif

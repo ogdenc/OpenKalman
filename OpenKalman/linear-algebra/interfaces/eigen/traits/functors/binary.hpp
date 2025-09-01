@@ -427,6 +427,6 @@ namespace OpenKalman::Eigen3
   };
 #endif
 
-} // namespace OpenKalman::Eigen3
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_FUNCTORS_BINARY_HPP
+#endif

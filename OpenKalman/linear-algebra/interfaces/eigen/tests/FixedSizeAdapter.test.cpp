@@ -24,12 +24,12 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, 0, 2>);
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, 1, 1>);
 
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, applicability::permitted>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, applicability::permitted>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, applicability::permitted>);
   static_assert(one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>);
 
-  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
+  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, applicability::permitted>);
 
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
@@ -41,9 +41,9 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(values::dynamic<constant_diagonal_coefficient<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
 
-  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 0>{}), 2);
-  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 1>{}), 3);
-  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 2>{}), 1);
+  EXPECT_EQ(get_pattern_collection(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 0>{}), 2);
+  EXPECT_EQ(get_pattern_collection(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 1>{}), 3);
+  EXPECT_EQ(get_pattern_collection(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 2>{}), 1);
 }
 
 

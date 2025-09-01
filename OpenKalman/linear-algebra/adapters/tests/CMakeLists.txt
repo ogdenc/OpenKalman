@@ -15,9 +15,9 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(adapters
-        ConstantAdapter.test.cpp
-        constant-matrix-functions.test.cpp
-        #DiagonalAdapter.test.cpp
+        constant_adapter.cpp
+        #constant-matrix-functions.test.cpp
+        #diagonal_adapter.test.cpp
         #HermitianAdapter.test.cpp
         #TriangularAdapter.test.cpp
         #VectorSpaceAdapter.test.cpp

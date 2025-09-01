@@ -18,19 +18,19 @@
 
 #include <type_traits>
 #include <utility>
-#include "basics/global-definitions.hpp"
+#include "linear-algebra/internal/forward-class-declarations.hpp"
 #include "default/library_interface.hpp"
 
 namespace OpenKalman::interface
 {
-  // ------------- //
-  //  LibraryBase  //
-  // ------------- //
+  // -------------------------- //
+  //  library_base_defined_for  //
+  // -------------------------- //
 
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
   template<typename Derived, typename LibraryObject>
-  concept LibraryBase_defined_for = requires {
-    typename library_interface<std::decay_t<LibraryObject>>::template LibraryBase<std::decay_t<Derived>>;
+  concept library_base_defined_for = requires {
+    typename library_interface<std::decay_t<LibraryObject>>::template library_base<std::decay_t<Derived>>;
   };
 #else
   namespace detail
@@ -40,12 +40,12 @@ namespace OpenKalman::interface
 
     template<typename Derived, typename LibraryObject>
     struct LibraryBase_defined_for_impl<Derived, LibraryObject,
-      std::void_t<typename library_interface<std::decay_t<LibraryObject>>::template LibraryBase<std::decay_t<Derived>>>>
+      std::void_t<typename library_interface<std::decay_t<LibraryObject>>::template library_base<std::decay_t<Derived>>>>
       : std::true_type {};
   }
 
   template<typename Derived, typename LibraryObject>
-  constexpr bool LibraryBase_defined_for = detail::LibraryBase_defined_for_impl<Derived, LibraryObject>::value;
+  constexpr bool library_base_defined_for = detail::LibraryBase_defined_for_impl<Derived, LibraryObject>::value;
 #endif
 
 
@@ -158,23 +158,23 @@ namespace OpenKalman::interface
   // -------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Layout layout, typename Scalar, typename D>
+  template<typename T, data_layout layout, typename Scalar, typename D>
   concept make_default_defined_for = requires(D d) {
     library_interface<std::decay_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d));
   };
 #else
   namespace detail
   {
-    template<typename T, Layout layout, typename Scalar, typename D, typename = void>
+    template<typename T, data_layout layout, typename Scalar, typename D, typename = void>
     struct make_default_defined_for_impl : std::false_type {};
 
-    template<typename T, Layout layout, typename Scalar, typename D>
+    template<typename T, data_layout layout, typename Scalar, typename D>
     struct make_default_defined_for_impl<T, layout, Scalar, D, std::void_t<decltype(
         library_interface<std::decay_t<T>>::template make_default<layout, Scalar>(std::declval<D>()...))>>
       : std::true_type {};
   }
 
-  template<typename T, Layout layout, typename Scalar, typename D>
+  template<typename T, data_layout layout, typename Scalar, typename D>
   constexpr bool make_default_defined_for = detail::make_default_defined_for_impl<T, layout, Scalar, D>::value;
 #endif
 
@@ -184,23 +184,23 @@ namespace OpenKalman::interface
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Layout layout, typename Arg, typename...Scalars>
+  template<typename T, data_layout layout, typename Arg, typename...Scalars>
   concept fill_components_defined_for = requires(Arg arg, Scalars...scalars) {
     library_interface<std::decay_t<T>>::template fill_components<layout>(std::forward<Arg>(arg), std::forward<Scalars>(scalars)...);
   };
 #else
   namespace detail
   {
-    template<typename T, Layout layout, typename Arg, typename = void, typename...Scalars>
+    template<typename T, data_layout layout, typename Arg, typename = void, typename...Scalars>
     struct fill_components_defined_for_impl : std::false_type {};
 
-    template<typename T, Layout layout, typename Arg, typename...Scalars>
+    template<typename T, data_layout layout, typename Arg, typename...Scalars>
     struct fill_components_defined_for_impl<T, layout, Arg, std::void_t<decltype(
         library_interface<std::decay_t<T>>::template fill_components<layout>(std::declval<Arg>(), std::declval<Scalars>()...))>, Scalars...>
       : std::true_type {};
   }
 
-  template<typename T, Layout layout, typename Arg, typename...Scalars>
+  template<typename T, data_layout layout, typename Arg, typename...Scalars>
   constexpr bool fill_components_defined_for = detail::fill_components_defined_for_impl<T, layout, Arg, void, Scalars...>::value;
 #endif
 
@@ -262,24 +262,24 @@ namespace OpenKalman::interface
   // ------------------------ //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType triangle_type, typename Arg>
+  template<typename T, triangle_type tri, typename Arg>
   concept make_triangular_matrix_defined_for = requires (Arg arg) {
-      library_interface<std::decay_t<T>>::template make_triangular_matrix<triangle_type>(std::forward<Arg>(arg));
+      library_interface<std::decay_t<T>>::template make_triangular_matrix<tri>(std::forward<Arg>(arg));
     };
 #else
   namespace detail
   {
-    template<typename T, TriangleType triangle_type, typename Arg, typename = void>
+    template<typename T, triangle_type tri, typename Arg, typename = void>
     struct make_triangular_matrix_defined_for_impl: std::false_type {};
 
-    template<typename T, TriangleType triangle_type, typename Arg>
-    struct make_triangular_matrix_defined_for_impl<T, triangle_type, Arg, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::template make_triangular_matrix<triangle_type>(std::declval<Arg>()))>>
+    template<typename T, triangle_type tri, typename Arg>
+    struct make_triangular_matrix_defined_for_impl<T, tri, Arg, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::template make_triangular_matrix<tri>(std::declval<Arg>()))>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType triangle_type, typename Arg>
-  constexpr bool make_triangular_matrix_defined_for = detail::make_triangular_matrix_defined_for_impl<T, triangle_type, Arg>::value;
+  template<typename T, triangle_type tri, typename Arg>
+  constexpr bool make_triangular_matrix_defined_for = detail::make_triangular_matrix_defined_for_impl<T, tri, Arg>::value;
 #endif
 
 
@@ -444,24 +444,24 @@ namespace OpenKalman::interface
   // -------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType triangle_type, typename A, typename B>
+  template<typename T, triangle_type tri, typename A, typename B>
   concept set_triangle_defined_for = requires(A a, B b) {
-    library_interface<std::decay_t<T>>::template set_triangle<triangle_type>(std::forward<A>(a), std::forward<B>(b));
+    library_interface<std::decay_t<T>>::template set_triangle<tri>(std::forward<A>(a), std::forward<B>(b));
   };
 #else
   namespace detail
   {
-    template<typename T, TriangleType triangle_type, typename A, typename B, typename = void>
+    template<typename T, triangle_type tri, typename A, typename B, typename = void>
     struct set_triangle_defined_for_impl : std::false_type {};
 
-    template<typename T, TriangleType triangle_type, typename A, typename B>
-    struct set_triangle_defined_for_impl<T, triangle_type, A, B, std::void_t<decltype(
-        library_interface<std::decay_t<T>>::template set_triangle<triangle_type>(std::declval<A>(), std::declval<B>()))>>
+    template<typename T, triangle_type tri, typename A, typename B>
+    struct set_triangle_defined_for_impl<T, tri, A, B, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::template set_triangle<tri>(std::declval<A>(), std::declval<B>()))>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType triangle_type, typename A, typename B>
-  constexpr bool set_triangle_defined_for = detail::set_triangle_defined_for_impl<T, triangle_type, A, B>::value;
+  template<typename T, triangle_type tri, typename A, typename B>
+  constexpr bool set_triangle_defined_for = detail::set_triangle_defined_for_impl<T, tri, A, B>::value;
 #endif
 
 
@@ -828,24 +828,24 @@ namespace OpenKalman::interface
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType triangle_type, typename Arg>
+  template<typename T, triangle_type tri, typename Arg>
   concept cholesky_factor_defined_for = requires (Arg arg) {
-      library_interface<std::decay_t<T>>::template cholesky_factor<triangle_type>(std::forward<Arg>(arg));
+      library_interface<std::decay_t<T>>::template cholesky_factor<tri>(std::forward<Arg>(arg));
     };
 #else
   namespace detail
   {
-    template<typename T, TriangleType triangle_type, typename Arg, typename = void>
+    template<typename T, triangle_type tri, typename Arg, typename = void>
     struct cholesky_factor_defined_for_impl: std::false_type {};
 
-    template<typename T, TriangleType triangle_type, typename Arg>
-    struct cholesky_factor_defined_for_impl<T, triangle_type, Arg, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::template cholesky_factor<triangle_type>(std::declval<Arg>()))>>
+    template<typename T, triangle_type tri, typename Arg>
+    struct cholesky_factor_defined_for_impl<T, tri, Arg, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::template cholesky_factor<tri>(std::declval<Arg>()))>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType triangle_type, typename Arg>
-  constexpr bool cholesky_factor_defined_for = detail::cholesky_factor_defined_for_impl<T, triangle_type, Arg>::value;
+  template<typename T, triangle_type tri, typename Arg>
+  constexpr bool cholesky_factor_defined_for = detail::cholesky_factor_defined_for_impl<T, tri, Arg>::value;
 #endif
 
 
@@ -881,25 +881,25 @@ namespace OpenKalman::interface
   // ------------------------ //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType triangle_type, typename A, typename U, typename Alpha>
+  template<typename T, triangle_type tri, typename A, typename U, typename Alpha>
   concept rank_update_triangular_defined_for = requires (A a, U u, Alpha alpha) {
-      library_interface<std::decay_t<T>>::template rank_update_triangular<triangle_type>(std::forward<A>(a), std::forward<U>(u), alpha);
+      library_interface<std::decay_t<T>>::template rank_update_triangular<tri>(std::forward<A>(a), std::forward<U>(u), alpha);
     };
 #else
   namespace detail
   {
-    template<typename T, TriangleType triangle_type, typename A, typename U, typename Alpha, typename = void>
+    template<typename T, triangle_type tri, typename A, typename U, typename Alpha, typename = void>
     struct rank_update_triangular_defined_for_impl: std::false_type {};
 
-    template<typename T, TriangleType triangle_type, typename A, typename U, typename Alpha>
-    struct rank_update_triangular_defined_for_impl<T, triangle_type, A, U, Alpha, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::template rank_update_triangular<triangle_type>(
+    template<typename T, triangle_type tri, typename A, typename U, typename Alpha>
+    struct rank_update_triangular_defined_for_impl<T, tri, A, U, Alpha, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::template rank_update_triangular<tri>(
         std::declval<A>(), std::declval<U>(), std::declval<Alpha>()))>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType triangle_type, typename A, typename U, typename Alpha>
-  constexpr bool rank_update_triangular_defined_for = detail::rank_update_triangular_defined_for_impl<T, triangle_type, A, U, Alpha>::value;
+  template<typename T, triangle_type tri, typename A, typename U, typename Alpha>
+  constexpr bool rank_update_triangular_defined_for = detail::rank_update_triangular_defined_for_impl<T, tri, A, U, Alpha>::value;
 #endif
 
 
@@ -981,7 +981,7 @@ namespace OpenKalman::interface
 #endif
 
 
-} // namespace OpenKalman::interface
+}
 
 
-#endif //OPENKALMAN_LIBRARY_INTERFACES_DEFINED_HPP
+#endif

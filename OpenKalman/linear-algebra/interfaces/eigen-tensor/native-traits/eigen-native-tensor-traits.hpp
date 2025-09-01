@@ -22,10 +22,10 @@
 #include "LibraryWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
 #include "VectorSpaceAdapter.hpp"
-#include "ConstantAdapter.hpp"
+#include "constant_adapter.hpp"
 #include "HermitianAdapter.hpp"
 #include "TriangularAdapter.hpp"
-#include "DiagonalAdapter.hpp"
+#include "diagonal_adapter.hpp"
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
 #include "Mean.hpp"
@@ -33,4 +33,4 @@
 #include "SquareRootCovariance.hpp"
 
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TENSOR_TRAITS_HPP
+#endif

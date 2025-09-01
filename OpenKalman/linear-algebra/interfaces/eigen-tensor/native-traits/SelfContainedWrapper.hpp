@@ -30,4 +30,4 @@ namespace OpenKalman::Eigen3::internal
 
 } // OpenKalman::Eigen3::internal
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
+#endif

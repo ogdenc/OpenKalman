@@ -13,12 +13,12 @@
  * \brief Definition for \ref values::index.
  */
 
-#ifndef OPENKALMAN_VALUE_INDEX_HPP
-#define OPENKALMAN_VALUE_INDEX_HPP
+#ifndef OPENKALMAN_VALUES_INDEX_HPP
+#define OPENKALMAN_VALUES_INDEX_HPP
 
 #include <type_traits>
-#include "values/traits/fixed_number_of.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/fixed_value_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "integral.hpp"
 
 namespace OpenKalman::values
@@ -30,7 +30,7 @@ namespace OpenKalman::values
     struct number_type_is_unsigned : std::false_type {};
 
     template<typename T>
-    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<number_type_of_t<T>>>>
+    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<value_type_of_t<T>>>>
       : std::true_type {};
 
 
@@ -38,14 +38,14 @@ namespace OpenKalman::values
     struct fixed_integral_gt_0 : std::false_type {};
 
     template<typename T>
-    struct fixed_integral_gt_0<T, std::enable_if_t<(fixed_number_of<T>::value >= 0)>> : std::true_type {};
+    struct fixed_integral_gt_0<T, std::enable_if_t<(fixed_value_of<T>::value >= 0)>> : std::true_type {};
 
 
     template<typename T, typename = void>
     struct is_bool : std::false_type {};
 
     template<typename T>
-    struct is_bool<T, std::enable_if_t<std::is_same_v<number_type_of_t<T>, bool>>> : std::true_type {};
+    struct is_bool<T, std::enable_if_t<std::is_same_v<value_type_of_t<T>, bool>>> : std::true_type {};
   }
 #endif
 
@@ -55,8 +55,8 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept index = integral<T> and (std::is_unsigned_v<number_type_of_t<T>> or fixed_number_of<T>::value >= 0) and
-    (not std::same_as<number_type_of_t<T>, bool>);
+  concept index = integral<T> and (std::is_unsigned_v<value_type_of_t<T>> or fixed_value_of<T>::value >= 0) and
+    (not std::same_as<value_type_of_t<T>, bool>);
 #else
   template<typename T>
   constexpr bool index = integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value) and

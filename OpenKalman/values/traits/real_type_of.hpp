@@ -16,16 +16,15 @@
 #ifndef OPENKALMAN_VALUES_REAL_TYPE_OF_HPP
 #define OPENKALMAN_VALUES_REAL_TYPE_OF_HPP
 
-#include <type_traits>
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/math/real.hpp"
 
 namespace OpenKalman::values
 {
   /**
-   * \brief Obtain the real type associated with a number (typically a \ref values::complex number.
-   * \details This will be the type of the result of <code>values::to_number(values::real(std::declval<T>()))</code>.
+   * \brief Obtain the real type associated with a \ref value (typically a \ref complex number).
+   * \details This will be the type of the result of <code>values::to_value_type(values::real(std::declval<T>()))</code>.
    * Because some compilers allow integral complex numbers, you can apply this trait twice to ensure that the
    * result is a floating type. In that case, the first application will be integral and the second application
    * will be <code>double</code>.
@@ -46,7 +45,7 @@ namespace OpenKalman::values
   template<typename T>
   struct real_type_of<T, std::enable_if_t<value<T>>>
 #endif
-    : number_type_of<decltype(values::real(std::declval<T>()))> {};
+    : value_type_of<decltype(values::real(std::declval<T>()))> {};
 
 
   /**

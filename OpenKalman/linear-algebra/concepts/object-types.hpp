@@ -255,6 +255,6 @@ namespace OpenKalman
     indexible<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_OBJECT_TYPES_HPP
+#endif

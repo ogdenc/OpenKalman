@@ -20,7 +20,7 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/complex.hpp"
-#include "values/functions/to_number.hpp"
+#include "values/functions/to_value_type.hpp"
 
 
 namespace OpenKalman::values::internal
@@ -37,7 +37,7 @@ namespace OpenKalman::values::internal
   {
     if constexpr (not values::number<Arg1> or not values::number<Arg2>)
     {
-      return near(values::to_number<epsilon_factor>(arg1), values::to_number(arg2));
+      return near(values::to_value_type<epsilon_factor>(arg1), values::to_value_type(arg2));
     }
     else if constexpr (values::complex<Arg1> or values::complex<Arg2>)
     {
@@ -69,7 +69,7 @@ namespace OpenKalman::values::internal
   {
     if constexpr (not values::number<Arg1> or not values::number<Arg2> or not values::number<Err>)
     {
-      return near(values::to_number(arg1), values::to_number(arg2), values::to_number(err));
+      return near(values::to_value_type(arg1), values::to_value_type(arg2), values::to_value_type(err));
     }
     else if constexpr (values::complex<Arg1> or values::complex<Arg2> or values::complex<Err>)
     {
@@ -91,6 +91,6 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
-#endif //OPENKALMAN_ARE_WITHIN_TOLERANCE_HPP
+#endif

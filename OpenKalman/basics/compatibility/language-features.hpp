@@ -193,6 +193,35 @@ namespace OpenKalman
 #endif
 
 
+#ifdef __cpp_lib_unwrap_ref
+    using std::unwrap_reference;
+    using std::unwrap_reference_t;
+    using std::unwrap_ref_decay;
+    using std::unwrap_ref_decay_t;
+#else
+    template<typename T>
+    struct unwrap_reference { using type = T; };
+
+    template<typename U>
+    struct unwrap_reference<std::reference_wrapper<U>> { using type = U&; };
+
+#if __cplusplus < 202002L
+    template<typename U>
+    struct unwrap_reference<stdcompat::reference_wrapper<U>> { using type = U&; };
+#endif
+
+    template<typename T>
+    using unwrap_reference_t = typename unwrap_reference<T>::type;
+
+
+    template<typename T>
+    struct unwrap_ref_decay : unwrap_reference<std::decay_t<T>> {};
+
+    template<typename T>
+    using unwrap_ref_decay_t = typename unwrap_ref_decay<T>::type;
+#endif
+
+
 #if __cplusplus >= 202002L
     using std::identity;
 #else
@@ -222,4 +251,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_LANGUAGE_FEATURES
+#endif

@@ -22,7 +22,7 @@
 #include "values/concepts/fixed.hpp"
 #include "collections/functions/get_size.hpp"
 #include "collections/functions/get.hpp"
-#include "collections/functions/comparison_operators.hpp"
+#include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "internal/movable_wrapper.hpp"
 
 namespace OpenKalman::collections
@@ -50,10 +50,8 @@ namespace OpenKalman::collections
     template<std::size_t i, typename T>
     struct tuple_element_impl<i, T, std::enable_if_t<gettable<i, T>>>
 #endif
-      : std::tuple_element<i, T>
+      : collection_element<i, T>
     {
-      using type = std::tuple_element_t<i, T>;
-
       template<typename R> constexpr decltype(auto) operator() (R&& r) const
        { return OpenKalman::internal::generalized_std_get<i>(std::forward<R>(r)); }
     };
@@ -117,7 +115,6 @@ namespace OpenKalman::collections
 
   /**
    * \brief A \ref collection_view created from a std::ranges::random_access_range that is a std::ranges::viewable_range.
-   * \details Presumably, V is not \ref viewable_tuple_like, but may have some tuple-like properties such as a defined std::tuple_size.
    */
 #ifdef __cpp_concepts
   template<stdcompat::ranges::random_access_range V> requires
@@ -324,7 +321,7 @@ namespace OpenKalman::collections
     operator[](this Self&& self, I i)
     {
       if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<V>, "Index out of range");
+        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
       return collections::get(std::forward<Self>(self), std::move(i));
     }
 #else
@@ -333,7 +330,7 @@ namespace OpenKalman::collections
     operator[](I i) &
     {
       if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<V>, "Index out of range");
+        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
       return collections::get(*this, std::move(i));
     }
 
@@ -342,7 +339,7 @@ namespace OpenKalman::collections
     operator[](I i) const &
     {
       if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<V>, "Index out of range");
+        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
       return collections::get(*this, std::move(i));
     }
 
@@ -351,7 +348,7 @@ namespace OpenKalman::collections
     operator[](I i) && noexcept
     {
       if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<V>, "Index out of range");
+        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
       return collections::get(std::move(*this), std::move(i));
     }
 
@@ -360,7 +357,7 @@ namespace OpenKalman::collections
     operator[](I i) const && noexcept
     {
       if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<V>, "Index out of range");
+        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
       return collections::get(std::move(*this), std::move(i));
     }
 #endif
@@ -434,7 +431,7 @@ namespace OpenKalman::collections
   }
 #endif
 
-} // namespace OpenKalman::collections
+}
 
 
 #ifdef __cpp_lib_ranges
@@ -466,4 +463,4 @@ namespace std
 }
 
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_TO_TUPLE_HPP
+#endif

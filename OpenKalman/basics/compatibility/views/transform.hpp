@@ -19,7 +19,7 @@
 
 #include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/invoke.hpp"
-#include "basics/compatibility/ranges.hpp"
+#include "basics/compatibility/internal/movable_box.hpp"
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 #include "all.hpp"
@@ -62,6 +62,7 @@ namespace OpenKalman::stdcompat::ranges
 
       using Parent = maybe_const<Const, transform_view>;
       using Base = maybe_const<Const, V>;
+      using MCF = maybe_const<Const, F>;
 
     public:
 
@@ -70,15 +71,15 @@ namespace OpenKalman::stdcompat::ranges
         std::conditional_t<stdcompat::ranges::bidirectional_range<Base>, std::bidirectional_iterator_tag,
         std::conditional_t<stdcompat::ranges::forward_range<Base>, std::forward_iterator_tag, std::input_iterator_tag>>>;
 
-      using reference = std::invoke_result_t<maybe_const<Const, F>&, stdcompat::ranges::range_reference_t<Base>>;
-      using value_type = stdcompat::remove_cvref_t<reference>;
+      using iterator_category = std::conditional_t<
+        not std::is_reference_v<std::invoke_result_t<MCF&, stdcompat::ranges::range_reference_t<Base>>>,
+        std::input_iterator_tag,
+        typename stdcompat::iterator_traits<stdcompat::ranges::iterator_t<Base>>::iterator_category>;
+
+      using reference = std::invoke_result_t<MCF&, stdcompat::ranges::range_reference_t<Base>>;
+      using value_type = stdcompat::remove_cvref_t<std::invoke_result_t<MCF&, stdcompat::ranges::range_reference_t<Base>>>;
       using difference_type = stdcompat::ranges::range_difference_t<Base>;
       using pointer = void;
-
-      using iterator_category = std::conditional_t<
-        not std::is_reference_v<reference>,
-        std::input_iterator_tag,
-        typename std::iterator_traits<stdcompat::ranges::iterator_t<Base>>::iterator_category>;
 
       template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<stdcompat::ranges::iterator_t<Base>>, int> = 0>
       constexpr iterator() {};

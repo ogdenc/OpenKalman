@@ -34,6 +34,6 @@ namespace OpenKalman
     interface::count_indices_defined_for<std::decay_t<T>>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_INDEXIBLE_HPP
+#endif

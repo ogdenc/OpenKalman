@@ -15,7 +15,6 @@
 
 #include <tuple>
 #include "tests.hpp"
-#include "basics/classes/equal_to.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection_view.hpp"
 #include "collections/views/replicate.hpp"
@@ -85,7 +84,13 @@ TEST(collections, replicate_view)
   EXPECT_EQ((t1 | views::replicate(std::integral_constant<std::size_t, 3>{}))[2u], 4);
   static_assert(get(std::tuple{7., 8.f, 9} | views::replicate(std::integral_constant<std::size_t, 3>{}), std::integral_constant<std::size_t, 4>{}) == 8.f);
 
-  static_assert(equal_to{}(views::replicate(std::tuple{4, 5., 6.f}, std::integral_constant<std::size_t, 2>{}), std::tuple{4, 5., 6.f, 4, 5., 6.f} | views::all));
-  EXPECT_TRUE(equal_to{}(std::vector{4, 5, 6, 4, 5, 6}, views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})));
+  static_assert(views::replicate(std::tuple{4, 5., 6.f}, std::integral_constant<std::size_t, 2>{})[0U] == 4);
+  static_assert(views::replicate(std::tuple{4, 5., 6.f}, std::integral_constant<std::size_t, 2>{})[3U] == 4);
+  static_assert(views::replicate(std::tuple{4, 5., 6.f}, std::integral_constant<std::size_t, 2>{})[4U] == 5.);
+  static_assert(views::replicate(std::tuple{4, 5., 6.f}, std::integral_constant<std::size_t, 2>{})[8U] == 6.f);
+  EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[0U] == 4);
+  EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[3U] == 4);
+  EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[4U] == 5);
+  EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[8U] == 6);
 }
 

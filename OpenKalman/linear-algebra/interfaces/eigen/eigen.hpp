@@ -53,21 +53,24 @@ static_assert(true, "Eigen 3.3.9 required for c++20 or higher standard.");
 namespace OpenKalman::Eigen3 {}
 
 
-#include "linear-algebra/interfaces/eigen/details/eigen-forward-declarations.hpp"
+#include "details/eigen-forward-declarations.hpp"
 
-#include "linear-algebra/interfaces/eigen/functions/make_eigen_matrix.hpp"
-#include "linear-algebra/interfaces/eigen/functions/eigen-wrapper.hpp"
+#include "functions/make_eigen_matrix.hpp"
+#include "functions/eigen-wrapper.hpp"
 
-#include "linear-algebra/interfaces/eigen/traits/eigen-traits.hpp"
+#include "traits/indexible_object_traits_base.hpp"
+#include "eigen-library-interface.hpp"
 
-#include "linear-algebra/interfaces/eigen/details/eigen-comma-initializers.hpp"
+#include "traits/eigen-traits.hpp"
 
-#include "linear-algebra/interfaces/eigen/native-traits/eigen-native-traits.hpp"
-#include "linear-algebra/interfaces/eigen/native-traits/eigen-general-native-traits.hpp"
+#include "details/eigen-comma-initializers.hpp"
 
-#include "linear-algebra/interfaces/eigen/native-evaluators/eigen-native-evaluators.hpp"
+#include "native-traits/eigen-native-traits.hpp"
+#include "native-traits/eigen-general-native-traits.hpp"
 
-#include "linear-algebra/interfaces/eigen/details/EigenAdapterBase.hpp"
+#include "native-evaluators/eigen-native-evaluators.hpp"
+
+#include "details/EigenAdapterBase.hpp"
 
 #if __cplusplus < 202002L and defined(__GNUC__)
 #pragma GCC diagnostic pop
@@ -81,4 +84,4 @@ namespace OpenKalman
 
 #include "default-overloads.hpp"
 
-#endif //OPENKALMAN_EIGEN_HPP
+#endif

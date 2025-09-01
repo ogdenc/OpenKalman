@@ -30,15 +30,15 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in hermitian form.
    */
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Applicability::permitted> A, indexible U> requires
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Applicability::permitted> and
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Applicability::permitted> and
+  template<hermitian_matrix<applicability::permitted> A, indexible U> requires
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, applicability::permitted> and
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, applicability::permitted> and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
   inline hermitian_matrix decltype(auto)
 #else
-  template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, Applicability::permitted> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Applicability::permitted> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Applicability::permitted> and
+  template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, applicability::permitted> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, applicability::permitted> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, applicability::permitted> and
     stdcompat::convertible_to<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
   inline decltype(auto)
 #endif
@@ -110,6 +110,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_RANK_UPDATE_HERMITIAN_HPP
+#endif

@@ -25,7 +25,7 @@ namespace OpenKalman
     constexpr bool is_one_dimensional_impl(std::index_sequence<I, Is...>, const T& t)
     {
       return get_index_dimension_of<I>(t) == 1_uz and
-        (... and (get_vector_space_descriptor<I>(t) == get_vector_space_descriptor<Is>(t)));
+        (... and (get_pattern_collection<I>(t) == get_pattern_collection<Is>(t)));
     }
   }
 
@@ -50,13 +50,13 @@ namespace OpenKalman
     }
     else
     {
-      auto d0 = get_vector_space_descriptor<0>(t);
+      auto d0 = get_pattern_collection<0>(t);
       if (get_dimension(d0) != 1_uz) return false;
-      else for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_vector_space_descriptor(t, i)) return false;
+      else for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_pattern_collection(t, i)) return false;
       return true;
     }
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP
+#endif

@@ -66,6 +66,6 @@ namespace OpenKalman
   static constexpr std::size_t dynamic_index_count_v = dynamic_index_count<T>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_DYNAMIC_INDEX_COUNT_HPP
+#endif

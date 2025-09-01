@@ -25,7 +25,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Derived>
-    using LibraryBase = internal::library_base_t<Derived, nested_object_of_t<T>>;
+    using library_base = internal::library_base_t<Derived, nested_object_of_t<T>>;
 
 
     template<typename Arg>
@@ -35,7 +35,7 @@ namespace OpenKalman::interface
     }
 
 
-    template<Layout layout, typename Scalar, typename...D>
+    template<data_layout layout, typename Scalar, typename...D>
     static auto make_default(D&&...d)
     {
       return library_interface<nested_object_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
@@ -75,7 +75,7 @@ namespace OpenKalman::interface
     };
 
 
-    template<TriangleType t, typename A, typename B>
+    template<triangle_type t, typename A, typename B>
     static decltype(auto) set_triangle(A&& a, B&& b)
     {
       /// \todo Properly wrap this
@@ -216,7 +216,7 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType triangle, typename A, typename U, typename Alpha>
+    template<triangle_type triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
       return OpenKalman::rank_update_triangular(
@@ -251,7 +251,7 @@ namespace OpenKalman::interface
 
   };
 
-} // namespace OpenKalman::interface
+}
 
 
 namespace OpenKalman
@@ -874,4 +874,4 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
 }
 
-#endif //OPENKALMAN_TYPED_MATRIX_OVERLOADS_H
+#endif

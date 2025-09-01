@@ -25,7 +25,7 @@ namespace OpenKalman::collections
    * \brief A \ref collection that can be modified on an element-by-element basis.
    */
   template<typename C, typename T>
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_concepts
   concept output_collection =
 #else
   constexpr bool output_collection =
@@ -33,6 +33,6 @@ namespace OpenKalman::collections
     collection<C> and (stdcompat::ranges::output_range<C, T> or uniformly_settable<C, T>);
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COLLECTIONS_COLLECTION_HPP
+#endif

@@ -32,7 +32,7 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(M22::Identity(), mx3_2), m23)); static_assert(dimension_size_of_index_is<decltype(contract(M22::Identity(), mx3_2)), 0, 2>);
   EXPECT_TRUE(is_near(contract(M22::Identity(), mxx_23), m23)); static_assert(dimension_size_of_index_is<decltype(contract(M22::Identity(), mxx_23)), 0, 2>);
 
-  // multiplication by zero matrix is tested elsewhere in the context of ConstantAdapter
+  // multiplication by zero matrix is tested elsewhere in the context of constant_adapter
 
   // one-dimensional
 
@@ -145,7 +145,7 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(c03_2_2, dm3a), m23_468));
   EXPECT_TRUE(is_near(contract(c00_23_2, dw3a), m23_468));
 
-  // diagonal * diagonal -- Must create OpenKalman::DiagonalAdapter, and is tested in that context.
+  // diagonal * diagonal -- Must create OpenKalman::diagonal_adapter, and is tested in that context.
 
   // regular matrices
 
@@ -208,13 +208,13 @@ TEST(eigen3, contract)
   // triangular * diagonal
 
   EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Upper>(), dm3b), make_dense_object_from<M33>(5, 12, 21, 0, 30, 42, 0, 0, 63)));
-  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(), dm3b)), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(), dm3b)), triangle_type::upper>);
 
   // triangular * constant diagonal
 
   auto c31_2 = Eigen::Replicate<decltype(c11_2), 3, 1>(c11_2);
   EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Upper>(), c31_2.asDiagonal()), make_dense_object_from<M33>(2, 4, 6, 0, 10, 12, 0, 0, 18)));
-  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(), c31_2.asDiagonal())), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(), c31_2.asDiagonal())), triangle_type::upper>);
 
   // diagonal * triangular
 
@@ -223,7 +223,7 @@ TEST(eigen3, contract)
   // constant diagonal * triangular
 
   EXPECT_TRUE(is_near(contract(c31_2.asDiagonal(), m33.template triangularView<Eigen::Upper>()), make_dense_object_from<M33>(2, 4, 6, 0, 10, 12, 0, 0, 18)));
-  static_assert(triangular_matrix<decltype(contract(c31_2.asDiagonal(), m33.template triangularView<Eigen::Upper>())), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(contract(c31_2.asDiagonal(), m33.template triangularView<Eigen::Upper>())), triangle_type::upper>);
 
   // triangular * triangular -- tested as part of adapters
 

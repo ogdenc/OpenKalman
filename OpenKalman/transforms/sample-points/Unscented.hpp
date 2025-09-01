@@ -154,7 +154,7 @@ namespace OpenKalman
       {
         // | 0 | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using M0 = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Axis>>;
+        using M0 = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Axis>>;
         const auto m0 = make_zero<M0>(Dimensions<dim_i>{}, Dimensions<1>{});
         auto ret {make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -163,10 +163,10 @@ namespace OpenKalman
       else if constexpr (pos == 0)
       {
         // | 0 | delta | -delta | 0 ... |
-        using M0 = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Axis>>;
+        using M0 = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Axis>>;
         const auto m0 = make_zero<M0>(Dimensions<dim_i>{}, Dimensions<1>{});
         constexpr auto width = points_count - (1 + frame_size);
-        using Mright = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
+        using Mright = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
         const auto mright = make_zero<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret {make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -175,10 +175,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 | 0 ... | delta | -delta | 0 ... |
-        using Mleft = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
+        using Mleft = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
         const auto mleft = make_zero<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         constexpr auto width = points_count - (pos + frame_size);
-        using Mright = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
+        using Mright = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
         const auto mright = make_zero<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret {make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -188,7 +188,7 @@ namespace OpenKalman
       {
         // | 0 | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using Mleft = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
+        using Mleft = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
         const auto mleft = make_zero<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         auto ret {make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -222,4 +222,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_UNSCENTED_HPP
+#endif

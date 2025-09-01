@@ -18,7 +18,6 @@
 #define OPENKALMAN_COMPATIBILITY_VIEWS_REVERSE_HPP
 
 #include <type_traits>
-#include "basics/compatibility/ranges.hpp"
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 #include "range_adaptor_closure.hpp"
@@ -42,11 +41,7 @@ namespace OpenKalman::stdcompat::ranges
     template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<V>, int> = 0>
     constexpr reverse_view() {}
 
-    //explicit constexpr reverse_view(V r) : base_ {std::move(r)} {} //- This is what it should be, but doesn't work here
-
-    explicit constexpr reverse_view(V&& r) : base_ {std::move(r)} {}
-
-    explicit constexpr reverse_view(V& r) : base_ {r} {}
+    constexpr reverse_view(V r) : base_ {std::move(r)} {}
 
 
     template<bool Enable = true, std::enable_if_t<Enable and stdcompat::copy_constructible<V>, int> = 0>

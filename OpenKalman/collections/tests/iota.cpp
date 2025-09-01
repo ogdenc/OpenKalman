@@ -15,6 +15,7 @@
 
 #include "tests.hpp"
 #include "collections/concepts/collection_view.hpp"
+#include "collections/concepts/tuple_like.hpp"
 #include "collections/functions/get.hpp"
 #include "collections/functions/get_size.hpp"
 #include "collections/views/iota.hpp"

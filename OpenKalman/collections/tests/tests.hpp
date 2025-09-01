@@ -21,14 +21,14 @@
 #include <string>
 #include "values/tests/tests.hpp"
 #include "collections/concepts/collection.hpp"
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/traits/size_of.hpp"
 
 namespace OpenKalman::test
 {
   /**
-   * \brief Compare two tuple-like objects
+   * \brief Compare two \ref collection objects
    * \tparam Arg1 The first \ref collections::sized "sized" \ref collections::collection "collection"
    * \tparam Arg2 The second \ref collections::sized "sized" \ref collections::collection "collection"
    * \tparam Err The margin of error for each element of the tuple-like object. This can, itself,
@@ -36,7 +36,7 @@ namespace OpenKalman::test
    */
 #ifdef __cpp_concepts
   template<collections::collection Arg1, collections::collection Arg2, typename Err> requires
-    (collections::tuple_like<Arg1> and collections::tuple_like<Arg2> and (collections::tuple_like<Err> or values::value<Err>)) or
+    (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and (collections::uniformly_gettable<Err> or values::value<Err>)) or
     (collections::sized_random_access_range<Arg1> and collections::sized_random_access_range<Arg2> and
       (collections::sized_random_access_range<Err> or values::value<Err>))
   struct TestComparison<Arg1, Arg2, Err>
@@ -44,7 +44,7 @@ namespace OpenKalman::test
   template<typename Arg1, typename Arg2, typename Err>
   struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
     collections::collection<Arg1> and collections::collection<Arg2> and
-    ((collections::tuple_like<Arg1> and collections::tuple_like<Arg2> and (collections::tuple_like<Err> or values::value<Err>)) or
+    ((collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and (collections::uniformly_gettable<Err> or values::value<Err>)) or
       (collections::sized_random_access_range<Arg1> and collections::sized_random_access_range<Arg2> and
         (collections::sized_random_access_range<Err> or values::value<Err>)))>>
 #endif
@@ -60,7 +60,7 @@ namespace OpenKalman::test
     static auto
     compare_tuple_like(const Arg1 arg1, const Arg2 arg2, const Err& err, std::index_sequence<Ix...>)
     {
-      if constexpr (collections::tuple_like<Err>)
+      if constexpr (collections::uniformly_gettable<Err>)
       {
         if ((... and OpenKalman::test::TestComparison {geti<Ix>(arg1), geti<Ix>(arg2), geti<Ix>(err)}))
         {
@@ -102,9 +102,9 @@ namespace OpenKalman::test
         if constexpr (collections::size_of_v<Err> != dynamic_size and collections::size_of_v<Arg1> != dynamic_size)
           static_assert(collections::size_of_v<Err> == collections::size_of_v<Arg1>, "size of error margins must match that of arguments");
 
-      if constexpr (collections::tuple_like<Arg1> and collections::tuple_like<Arg2>)
+      if constexpr (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2>)
       {
-        return compare_tuple_like(arg1, arg2, err, std::make_index_sequence<std::tuple_size_v<Arg1>>{});
+        return compare_tuple_like(arg1, arg2, err, std::make_index_sequence<collections::size_of_v<Arg1>>{});
       }
       else // if constexpr (collections::sized_random_access_range<Arg1> and collections::sized_random_access_range<Arg2>)
       {

@@ -44,6 +44,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_DYNAMIC_DIMENSION_HPP
+#endif

@@ -29,7 +29,7 @@ namespace OpenKalman
     {
       if constexpr ((dynamic_pattern<Ds> or ... or dynamic_dimension<Arg, index>))
       {
-        if (not ((get_dimension(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
+        if (not ((get_dimension(ds) + ... + std::size_t{0}) <= get_pattern_collection<index>(arg)))
           throw std::logic_error {"When concatenated, the vector space descriptors provided to split function are not a "
             "prefix of the argument's vector space descriptor along at least index " + std::to_string(index)};
       }
@@ -61,15 +61,15 @@ namespace OpenKalman
       return split_symmetric<indices...>(std::forward<Arg>(arg), begin + block_size, std::move(new_blocks_tup), std::forward<Ds>(ds)...);
     }
 
-  } // namespace detail
+  }
 
 
   /**
    * \brief Split a matrix or tensor into sub-parts, where the split is the same for every index.
    * \details This is an inverse of the \ref OpenKalman::concatenate "concatenate" operation.
    * In other words, for all <code>std::size_t i..., j...</code> and <code>indexible a...</code>, and given
-   * the function <code>template<std::size_t...i> auto f(auto a) { return get_vector_space_descriptor<i>(a)...}; }</code>
-   * <code>((split<i...>(concatenate<i...>(a...), get_vector_space_descriptor<j>(a)...) == std::tuple{a...}) and ...)</code>.
+   * the function <code>template<std::size_t...i> auto f(auto a) { return get_pattern_collection<i>(a)...}; }</code>
+   * <code>((split<i...>(concatenate<i...>(a...), get_pattern_collection<j>(a)...) == std::tuple{a...}) and ...)</code>.
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
@@ -122,7 +122,7 @@ namespace OpenKalman
       return split_impl<indices...>(std::forward<Arg>(arg), new_begin_tup, std::move(new_blocks_tup), seq, std::forward<Ds_tups>(ds_tups)...);
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -130,7 +130,7 @@ namespace OpenKalman
    * \brief Split a matrix or tensor into sub-parts of a size defined independently for each index.
    * \details This is an inverse of the \ref OpenKalman::concatenate "concatenate" operation.
    * In other words, for all <code>std::size_t i...</code> and <code>indexible a...</code>, and given
-   * the function <code>template<std::size_t...i> auto f(auto a) { return std::tuple{get_vector_space_descriptor<i>(a)...}; }</code>
+   * the function <code>template<std::size_t...i> auto f(auto a) { return std::tuple{get_pattern_collection<i>(a)...}; }</code>
    * <code>split<i...>(concatenate<i...>(a...), f<i...>(a)...) == std::tuple{a...}</code>.
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
@@ -140,11 +140,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, typename...Ds_tups> requires
     (sizeof...(indices) > 0) and (sizeof...(Ds_tups) > 0) and
-    ((sizeof...(indices) == std::tuple_size<Ds_tups>::value) and ...)
+    ((sizeof...(indices) == collections::size_of<Ds_tups>::value) and ...)
 #else
   template<std::size_t...indices, typename Arg, typename...Ds_tups, std::enable_if_t<indexible<Arg> and
     (sizeof...(indices) > 0) and (sizeof...(Ds_tups) > 0) and
-    ((sizeof...(indices) == std::tuple_size<Ds_tups>::value) and ...), int> = 0>
+    ((sizeof...(indices) == collections::size_of<Ds_tups>::value) and ...), int> = 0>
 #endif
   inline auto
   split(Arg&& arg, const Ds_tups&...ds_tups)
@@ -164,6 +164,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_SPLIT_HPP
+#endif

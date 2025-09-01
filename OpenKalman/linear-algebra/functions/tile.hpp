@@ -91,7 +91,7 @@ namespace OpenKalman
         }
       }
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -126,6 +126,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TILE_HPP
+#endif

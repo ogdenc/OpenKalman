@@ -33,18 +33,18 @@ namespace OpenKalman::interface
 
     template<typename Arg, typename N>
     static constexpr auto
-    get_vector_space_descriptor(const Arg& arg, N n)
+    get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (square_shaped<LhsType> or square_shaped<RhsType>)
         return internal::most_fixed_pattern(
-          OpenKalman::get_vector_space_descriptor<0>(arg.lhs()),
-          OpenKalman::get_vector_space_descriptor<0>(arg.rhs()),
-          OpenKalman::get_vector_space_descriptor<1>(arg.lhs()),
-          OpenKalman::get_vector_space_descriptor<1>(arg.rhs()));
+          OpenKalman::get_pattern_collection<0>(arg.lhs()),
+          OpenKalman::get_pattern_collection<0>(arg.rhs()),
+          OpenKalman::get_pattern_collection<1>(arg.lhs()),
+          OpenKalman::get_pattern_collection<1>(arg.rhs()));
       else
         return internal::most_fixed_pattern(
-          OpenKalman::get_vector_space_descriptor(arg.lhs(), n),
-          OpenKalman::get_vector_space_descriptor(arg.rhs(), n));
+          OpenKalman::get_pattern_collection(arg.lhs(), n),
+          OpenKalman::get_pattern_collection(arg.rhs(), n));
     }
 
 
@@ -168,21 +168,21 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsType, Applicability::permitted> and
-      OpenKalman::one_dimensional<RhsType, Applicability::permitted> and
-      (b != Applicability::guaranteed or
+      OpenKalman::one_dimensional<LhsType, applicability::permitted> and
+      OpenKalman::one_dimensional<RhsType, applicability::permitted> and
+      (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<LhsType, b> or
         OpenKalman::one_dimensional<RhsType, b>);
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsType, Applicability::permitted> and
-      square_shaped<RhsType, Applicability::permitted> and
-      (b != Applicability::guaranteed or
+      square_shaped<LhsType, applicability::permitted> and
+      square_shaped<RhsType, applicability::permitted> and
+      (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<LhsType, b> or
         square_shaped<RhsType, b>);
@@ -191,23 +191,23 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular =
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
         triangular_matrix<LhsType, t> and triangular_matrix<RhsType, t> and
-          (t != TriangleType::any or triangle_type_of_v<LhsType, RhsType> != TriangleType::any) :
+          (t != triangle_type::any or triangle_type_of_v<LhsType, RhsType> != triangle_type::any) :
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and
         (triangular_matrix<LhsType, t> or triangular_matrix<RhsType, t> or
-          (triangular_matrix<LhsType, TriangleType::lower> and triangular_matrix<RhsType, TriangleType::upper>) or
-          (triangular_matrix<LhsType, TriangleType::upper> and triangular_matrix<RhsType, TriangleType::lower>));
+          (triangular_matrix<LhsType, triangle_type::lower> and triangular_matrix<RhsType, triangle_type::upper>) or
+          (triangular_matrix<LhsType, triangle_type::upper> and triangular_matrix<RhsType, triangle_type::lower>));
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and
-      hermitian_matrix<LhsType, Applicability::permitted> and hermitian_matrix<RhsType, Applicability::permitted>;;
+      hermitian_matrix<LhsType, applicability::permitted> and hermitian_matrix<RhsType, applicability::permitted>;;
 
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_CWISEBINARYOP_HPP
+#endif

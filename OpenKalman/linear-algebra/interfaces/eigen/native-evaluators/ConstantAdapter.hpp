@@ -11,20 +11,20 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 evaluator for ConstantAdapter
+ * \brief Native Eigen3 evaluator for constant_adapter
  */
 
-#ifndef OPENKALMAN_EIGEN_NATIVE_EVALUATORS_CONSTANTADAPTER_HPP
-#define OPENKALMAN_EIGEN_NATIVE_EVALUATORS_CONSTANTADAPTER_HPP
+#ifndef OPENKALMAN_EIGEN_NATIVE_EVALUATORS_CONSTANT_ADAPTER_HPP
+#define OPENKALMAN_EIGEN_NATIVE_EVALUATORS_CONSTANT_ADAPTER_HPP
 
 
 namespace Eigen::internal
 {
   template<typename PatternMatrix, typename Scalar, auto...constant>
-  struct evaluator<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    : evaluator_base<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>>
+  struct evaluator<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>>
+    : evaluator_base<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>>
   {
-    using XprType = OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>;
+    using XprType = OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>;
     using M = OpenKalman::Eigen3::eigen_matrix_t<Scalar, OpenKalman::index_dimension_of_v<PatternMatrix, 0>,
       OpenKalman::index_dimension_of_v<PatternMatrix, 1>>;
 
@@ -39,24 +39,24 @@ namespace Eigen::internal
 
     constexpr Scalar coeff(Index row, Index col) const
     {
-      return m_xpr.get_scalar_constant();
+      return m_xpr.value();
     }
 
     constexpr Scalar coeff(Index row) const
     {
-      return m_xpr.get_scalar_constant();
+      return m_xpr.value();
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      return internal::pset1<PacketType>(m_xpr.get_scalar_constant());
+      return internal::pset1<PacketType>(m_xpr.value());
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row) const
     {
-      return internal::pset1<PacketType>(m_xpr.get_scalar_constant());
+      return internal::pset1<PacketType>(m_xpr.value());
     }
 
   protected:
@@ -64,6 +64,6 @@ namespace Eigen::internal
     const XprType& m_xpr;
   };
 
-} // namespace Eigen::internal
+}
 
-#endif //OPENKALMAN_EIGEN_NATIVE_EVALUATORS_CONSTANTADAPTER_HPP
+#endif

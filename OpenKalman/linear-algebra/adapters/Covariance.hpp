@@ -58,7 +58,7 @@ namespace OpenKalman
     static constexpr auto dim = index_dimension_of_v<NestedMatrix, 0>;
 
     // May be accessed externally through MatrixTraits:
-    static constexpr TriangleType storage_triangle =
+    static constexpr triangle_type storage_triangle =
       triangle_type_of_v<typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<>>;
 
     // A self-adjoint nested matrix type.
@@ -299,7 +299,7 @@ namespace OpenKalman
       {
         if (synchronization_direction() >= 0)
         {
-          if constexpr(triangular_matrix<NestedMatrix, TriangleType::upper>)
+          if constexpr(triangular_matrix<NestedMatrix, triangle_type::upper>)
           {
 
             nested_object() = QR_decomposition(concatenate_vertical(
@@ -355,7 +355,7 @@ namespace OpenKalman
       {
         if (synchronization_direction() >= 0)
         {
-          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<TriangleType::lower>;
+          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<triangle_type::lower>;
           const auto U = oin::to_covariance_nestable<TLowerType>(arg);
           OpenKalman::rank_update(nested_object(), U, Scalar(-1));
         }
@@ -404,7 +404,7 @@ namespace OpenKalman
       {
         if (synchronization_direction() >= 0)
         {
-          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<TriangleType::lower>;
+          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<triangle_type::lower>;
           const auto U = oin::to_covariance_nestable<TLowerType>(*this);
           nested_object() = make_zero(nested_object());
           OpenKalman::rank_update(nested_object(), U, s);
@@ -449,7 +449,7 @@ namespace OpenKalman
       {
         if (synchronization_direction() >= 0)
         {
-          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<TriangleType::lower>;
+          using TLowerType = typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<triangle_type::lower>;
           const auto u = oin::to_covariance_nestable<TLowerType>(*this);
           nested_object() = make_zero(nested_object());
           OpenKalman::rank_update(nested_object(), u, 1 / static_cast<const Scalar>(s));
@@ -741,22 +741,22 @@ namespace OpenKalman
   /**
    * \brief Make a Covariance from a \ref covariance_nestable, specifying the fixed_pattern.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower, diagonal).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower, diagonal).
    * \tparam Arg A \ref covariance_nestable with size matching StaticDescriptor.
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type, covariance_nestable Arg> requires
+  template<fixed_pattern StaticDescriptor, triangle_type tri, covariance_nestable Arg> requires
     (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and
-    (triangle_type != TriangleType::lower or triangular_matrix<Arg, TriangleType::lower>) and
-    (triangle_type != TriangleType::upper or triangular_matrix<Arg, TriangleType::upper>) and
-    (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>)
+    (tri != triangle_type::lower or triangular_matrix<Arg, triangle_type::lower>) and
+    (tri != triangle_type::upper or triangular_matrix<Arg, triangle_type::upper>) and
+    (tri != triangle_type::diagonal or diagonal_matrix<Arg>)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type, typename Arg, std::enable_if_t<
+  template<typename StaticDescriptor, triangle_type tri, typename Arg, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and covariance_nestable<Arg> and
     (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
-    (triangle_type != TriangleType::lower or triangular_matrix<Arg, TriangleType::lower>) and
-    (triangle_type != TriangleType::upper or triangular_matrix<Arg, TriangleType::upper>) and
-    (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>), int> = 0>
+    (tri != triangle_type::lower or triangular_matrix<Arg, triangle_type::lower>) and
+    (tri != triangle_type::upper or triangular_matrix<Arg, triangle_type::upper>) and
+    (tri != triangle_type::diagonal or diagonal_matrix<Arg>), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
@@ -788,25 +788,25 @@ namespace OpenKalman
    * \overload
    * \brief Make a Covariance (with nested triangular matrix) from a self-adjoint \ref typed_matrix_nestable.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable with size matching StaticDescriptor.
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type, typed_matrix_nestable Arg> requires
+  template<fixed_pattern StaticDescriptor, triangle_type tri, typed_matrix_nestable Arg> requires
     (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 1>)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type, typename Arg, std::enable_if_t<
+  template<typename StaticDescriptor, triangle_type tri, typename Arg, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
     (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
   {
-    using T = typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<triangle_type>;
+    using T = typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<tri>;
     return Covariance<StaticDescriptor, T> {std::forward<Arg>(arg)};
   }
 
@@ -837,22 +837,22 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a default Axis Covariance (with nested triangular matrix) from a self-adjoint \ref typed_matrix_nestable.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>
+  template<triangle_type tri, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and square_shaped<Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
+  template<triangle_type tri, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
     (not covariance_nestable<Arg>) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
+    (tri == triangle_type::lower or tri == triangle_type::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
-    return make_covariance<C, triangle_type>(std::forward<Arg>(arg));
+    return make_covariance<C, tri>(std::forward<Arg>(arg));
   }
 
 
@@ -889,12 +889,12 @@ namespace OpenKalman
   inline auto
   make_covariance()
   {
-    constexpr TriangleType triangle_type = triangle_type_of_v<typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<>>;
+    constexpr triangle_type tri = triangle_type_of_v<typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<>>;
     using B = std::conditional_t<diagonal_matrix<Arg>,
       typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>,
       std::conditional_t<triangular_matrix<Arg>,
-        typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<triangle_type>,
-        typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<triangle_type>>>;
+        typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<tri>,
+        typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<tri>>>;
     return Covariance<StaticDescriptor, B>();
   }
 
@@ -904,18 +904,18 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance with a nested triangular matrix, from a \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type, typed_matrix_nestable Arg> requires
+  template<fixed_pattern StaticDescriptor, triangle_type tri, typed_matrix_nestable Arg> requires
     square_shaped<Arg>
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type, typename Arg,
+  template<typename StaticDescriptor, triangle_type tri, typename Arg,
     std::enable_if_t<fixed_pattern<StaticDescriptor> and typed_matrix_nestable<Arg> and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance()
   {
-    using B = std::conditional_t<triangle_type == TriangleType::diagonal,
+    using B = std::conditional_t<tri == triangle_type::diagonal,
       typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>,
-      typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<triangle_type>>;
+      typename MatrixTraits<std::decay_t<Arg>>::template TriangularAdapterFrom<tri>>;
     return Covariance<StaticDescriptor, B>();
   }
 
@@ -944,16 +944,16 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance based on a nested triangle, with default Axis coefficients.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix_nestable Arg> requires square_shaped<Arg>
+  template<triangle_type tri, typed_matrix_nestable Arg> requires square_shaped<Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
+  template<triangle_type tri, typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
     square_shaped<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance()
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
-    return make_covariance<C, triangle_type, Arg>();
+    return make_covariance<C, tri, Arg>();
   }
 
 
@@ -1014,17 +1014,17 @@ namespace OpenKalman
    * \brief Make a Covariance, with a nested triangular matrix, from a \ref typed_matrix.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix Arg> requires
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>
+  template<triangle_type tri, typed_matrix Arg> requires
+    (tri == triangle_type::lower or tri == triangle_type::upper) and square_shaped<Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
+  template<triangle_type tri, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
-    return make_covariance<C, triangle_type>(nested_object(std::forward<Arg>(arg)));
+    return make_covariance<C, tri>(nested_object(std::forward<Arg>(arg)));
   }
 
 
@@ -1033,9 +1033,9 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance, with nested triangular type based on a \ref typed_matrix.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, typed_matrix Arg> requires square_shaped<Arg>
+  template<triangle_type tri, typed_matrix Arg> requires square_shaped<Arg>
 #else
-  template<TriangleType triangle_type, typename Arg, std::enable_if_t<typed_matrix<Arg> and
+  template<triangle_type tri, typename Arg, std::enable_if_t<typed_matrix<Arg> and
     square_shaped<Arg>, int> = 0>
 #endif
   inline auto
@@ -1043,7 +1043,7 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     using B = nested_object_of_t<Arg>;
-    return make_covariance<C, triangle_type, B>();
+    return make_covariance<C, tri, B>();
   }
 
 
@@ -1080,7 +1080,7 @@ namespace OpenKalman
       static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(Arg&& arg, N)
+      static constexpr auto get_pattern_collection(Arg&& arg, N)
       {
         return std::forward<Arg>(arg).my_dimension;
       }
@@ -1113,16 +1113,16 @@ namespace OpenKalman
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = true;
 
 
-      template<TriangleType t>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal>;
+      template<triangle_type t>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, triangle_type::diagonal>;
 
 
       static constexpr bool is_triangular_adapter = false;
@@ -1168,13 +1168,13 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 
-      static constexpr Layout layout = layout_of_v<NestedMatrix>;
+      static constexpr data_layout layout = layout_of_v<NestedMatrix>;
 
     };
 
-  } // namespace interface
+  }
 
 
 } // OpenKalman
 
-#endif //OPENKALMAN_COVARIANCE_HPP
+#endif

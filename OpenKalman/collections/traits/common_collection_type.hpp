@@ -18,7 +18,8 @@
 
 #include "basics/basics.hpp"
 #include "collections/concepts/collection.hpp"
-#include "collections/traits/common_tuple_type.hpp"
+#include "collections/traits/size_of.hpp"
+#include "collections/traits/collection_element.hpp"
 
 namespace OpenKalman::collections
 {
@@ -28,7 +29,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  template<typename T, typename = void, typename = void>
+  template<typename T, typename = void>
 #endif
   struct common_collection_type {};
 
@@ -46,19 +47,27 @@ namespace OpenKalman::collections
   };
 
 
+  namespace detail
+  {
+    template<typename T, typename = std::make_index_sequence<size_of<T>::value>>
+    struct common_tuple_type {};
+
+    template<typename T, std::size_t...i>
+    struct common_tuple_type<T, std::index_sequence<i...>>
+      : stdcompat::common_reference<collection_element_t<i, T>...> {};
+  }
+
+
   /// \overload
 #ifdef __cpp_concepts
-  template<uniformly_gettable T> requires
-    (not stdcompat::ranges::random_access_range<T>) and
-    requires { typename common_tuple_type<T>::type; }
+  template<uniformly_gettable T> requires (not stdcompat::ranges::random_access_range<T>)
   struct common_collection_type<T>
 #else
   template<typename T>
   struct common_collection_type<T,
-    std::enable_if_t<not stdcompat::ranges::random_access_range<T>>,
-    std::void_t<typename common_tuple_type<T>::type>>
+    std::enable_if_t<uniformly_gettable<T> and not stdcompat::ranges::random_access_range<T>>>
 #endif
-    : common_tuple_type<T> {};
+    : detail::common_tuple_type<T> {};
 
 
   /**

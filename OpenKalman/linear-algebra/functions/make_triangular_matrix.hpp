@@ -20,16 +20,16 @@ namespace OpenKalman
 {
   /**
    * \brief Create a \ref triangular_matrix from a general matrix.
-   * \tparam t The intended \ref TriangleType of the result.
+   * \tparam t The intended \ref triangle_type of the result.
    * \tparam Arg A general matrix to be made triangular.
    */
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, indexible Arg> requires
-    (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal)
+  template<triangle_type t = triangle_type::lower, indexible Arg> requires
+    (t == triangle_type::lower or t == triangle_type::upper or t == triangle_type::diagonal)
   constexpr triangular_matrix<t> decltype(auto)
 #else
-  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<indexible<Arg> and
-    (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal), int> = 0>
+  template<triangle_type t = triangle_type::lower, typename Arg, std::enable_if_t<indexible<Arg> and
+    (t == triangle_type::lower or t == triangle_type::upper or t == triangle_type::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
   make_triangular_matrix(Arg&& arg)
@@ -39,14 +39,14 @@ namespace OpenKalman
       // If Arg is already triangular of type t, pass through to the result
       return std::forward<Arg>(arg);
     }
-    else if constexpr (t == TriangleType::diagonal)
+    else if constexpr (t == triangle_type::diagonal)
     {
       return to_diagonal(diagonal_of(std::forward<Arg>(arg)));
     }
-    else if constexpr (triangular_matrix<Arg, TriangleType::any> and not triangular_matrix<Arg, t>)
+    else if constexpr (triangular_matrix<Arg, triangle_type::any> and not triangular_matrix<Arg, t>)
     {
       // Arg is the opposite triangle of t.
-      return make_triangular_matrix<TriangleType::diagonal>(std::forward<Arg>(arg));
+      return make_triangular_matrix<triangle_type::diagonal>(std::forward<Arg>(arg));
     }
     else if constexpr (hermitian_adapter<Arg>)
     {
@@ -66,6 +66,6 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAKE_TRIANGULAR_MATRIX_HPP
+#endif

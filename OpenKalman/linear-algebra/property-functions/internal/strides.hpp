@@ -23,19 +23,19 @@ namespace OpenKalman::internal
 {
   namespace detail
   {
-    template<Layout l, std::size_t count, typename T, typename CurrStride, std::size_t I, std::size_t...Is, typename...Strides>
+    template<data_layout l, std::size_t count, typename T, typename CurrStride, std::size_t I, std::size_t...Is, typename...Strides>
     constexpr auto strides_impl(const T& t, CurrStride curr_stride, std::index_sequence<I, Is...>, Strides...strides)
     {
       if constexpr (sizeof...(Is) == 0)
       {
-        if constexpr (l == Layout::right)
+        if constexpr (l == data_layout::right)
           return std::tuple {curr_stride, strides...};
         else
           return std::tuple {strides..., curr_stride};
       }
       else
       {
-        auto curr_dim = get_index_dimension_of<l == Layout::right ? count - 1 - I : I>(t);
+        auto curr_dim = get_index_dimension_of<l == data_layout::right ? count - 1 - I : I>(t);
         auto next_stride = [](CurrStride curr_stride, auto curr_dim)
         {
           if constexpr (values::fixed<CurrStride> and values::fixed<decltype(curr_dim)>)
@@ -44,7 +44,7 @@ namespace OpenKalman::internal
             return static_cast<std::ptrdiff_t>(curr_stride) * static_cast<std::ptrdiff_t>(curr_dim);
         }(curr_stride, curr_dim);
 
-        if constexpr (l == Layout::right)
+        if constexpr (l == data_layout::right)
           return strides_impl<l, count>(t, next_stride, std::index_sequence<Is...>{}, curr_stride, strides...);
         else
           return strides_impl<l, count>(t, next_stride, std::index_sequence<Is...>{}, strides..., curr_stride);
@@ -55,8 +55,8 @@ namespace OpenKalman::internal
     template<typename T, std::size_t...Is>
     constexpr bool strides_tuple_impl(std::index_sequence<Is...>)
     {
-      return (... and (stdcompat::convertible_to<std::tuple_element_t<Is, T>, std::ptrdiff_t> or
-        values::fixed<std::tuple_element_t<Is, T>>));
+      return (... and (stdcompat::convertible_to<collections::collection_element_t<Is, T>, std::ptrdiff_t> or
+        values::fixed<collections::collection_element_t<Is, T>>));
     }
 
     template<typename T>
@@ -65,9 +65,9 @@ namespace OpenKalman::internal
 #else
     constexpr bool strides_tuple =
 #endif
-      strides_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
+      strides_tuple_impl<T>(std::make_index_sequence<collections::size_of_v<T>>{});
 
-  } // namespace detail
+  }
 
 
   /**
@@ -79,25 +79,25 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<interface::count_indices_defined_for T> requires interface::layout_defined_for<T> and
-    (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::stride or interface::strides_defined_for<T>) and
-    (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::none)
+    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout != data_layout::stride or interface::strides_defined_for<T>) and
+    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout != data_layout::none)
   detail::strides_tuple auto
 #else
   template<typename T, std::enable_if_t<interface::count_indices_defined_for<T> and interface::layout_defined_for<T> and
-    (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::stride or interface::strides_defined_for<T>) and
-    (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::none), int> = 0>
+    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout != data_layout::stride or interface::strides_defined_for<T>) and
+    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout != data_layout::none), int> = 0>
   auto
 #endif
   strides(const T& t)
   {
-    constexpr Layout l = interface::indexible_object_traits<std::decay_t<T>>::layout;
+    constexpr data_layout l = interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout;
 
-    if constexpr (l == Layout::stride)
+    if constexpr (l == data_layout::stride)
     {
 #ifndef __cpp_concepts
-      static_assert(detail::strides_tuple<decltype(interface::indexible_object_traits<std::decay_t<T>>::strides(t))>);
+      static_assert(detail::strides_tuple<decltype(interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::strides(t))>);
 #endif
-      return interface::indexible_object_traits<std::decay_t<T>>::strides(t);
+      return interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::strides(t);
     }
     else if constexpr (values::fixed<decltype(count_indices(t))>)
     {
@@ -109,7 +109,7 @@ namespace OpenKalman::internal
     {
       std::size_t count = count_indices(t);
       std::vector<std::ptrdiff_t> vec(count);
-      if constexpr (l == Layout::left)
+      if constexpr (l == data_layout::left)
       {
         auto v = stdcompat::ranges::begin(vec);
         std::ptrdiff_t curr_stride = 1;
@@ -136,6 +136,6 @@ namespace OpenKalman::internal
   }
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_STRIDES_HPP
+#endif

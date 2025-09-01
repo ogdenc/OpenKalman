@@ -41,11 +41,11 @@ namespace OpenKalman
     }
     else
     {
-      return DiagonalAdapter {std::forward<Arg>(arg)};
+      return diagonal_adapter {std::forward<Arg>(arg)};
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TO_DIAGONAL_HPP
+#endif

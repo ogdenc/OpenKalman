@@ -63,10 +63,10 @@ TEST(eigen3, Eigen_Select)
   static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Salv22>(), std::declval<Sauv22>()))>);
   static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Sauv22>(), std::declval<Salv22>()))>);
 
-  static_assert(triangular_matrix<decltype(std::declval<B22_true>().select(std::declval<Tlv22>(), std::declval<M22>())), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Tlv22>())), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<B22_true>().select(std::declval<Tlv22>(), std::declval<M22>())), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Tlv22>())), triangle_type::lower>);
 
-  static_assert(triangular_matrix<decltype(std::declval<B22_true>().select(std::declval<Tuv22>(), std::declval<M22>())), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Tuv22>())), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<B22_true>().select(std::declval<Tuv22>(), std::declval<M22>())), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Tuv22>())), triangle_type::upper>);
 }
 

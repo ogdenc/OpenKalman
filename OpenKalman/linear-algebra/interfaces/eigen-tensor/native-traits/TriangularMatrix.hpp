@@ -20,17 +20,17 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<OpenKalman::Eigen3::eigen_tensor_general NestedMatrix, OpenKalman::TriangleType triangle_type>
-  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, triangle_type>>
+  template<OpenKalman::Eigen3::eigen_tensor_general NestedMatrix, OpenKalman::triangle_type tri>
+  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, tri>>
 #else
-  template<typename NestedMatrix, OpenKalman::TriangleType triangle_type>
-  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, triangle_type>, std::enable_if_t<
+  template<typename NestedMatrix, OpenKalman::triangle_type tri>
+  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, tri>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_tensor_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedMatrix>> {};
 
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_TRIANGULARMATRIX_HPP
+#endif

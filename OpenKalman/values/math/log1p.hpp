@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::log1p.
  */
 
-#ifndef OPENKALMAN_VALUE_LOG1P_HPP
-#define OPENKALMAN_VALUE_LOG1P_HPP
+#ifndef OPENKALMAN_VALUES_LOG1P_HPP
+#define OPENKALMAN_VALUES_LOG1P_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
@@ -53,16 +53,16 @@ namespace OpenKalman::values
    * \details Unlike the standard function, this one accepts complex arguments.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto log1p(const Arg& arg)
+  template<value Arg>
+  constexpr value auto log1p(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto log1p(const Arg& arg)
 #endif
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::log1p(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::log1p(a); } };
       return values::operation(Op{}, arg);
     }
     else if constexpr (values::complex<Arg>)
@@ -98,7 +98,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_LOG1P_HPP
+#endif

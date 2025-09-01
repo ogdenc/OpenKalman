@@ -18,7 +18,6 @@
 #define OPENKALMAN_COMPATIBILITY_VIEWS_REF_VIEW_HPP
 
 #include "basics/compatibility/language-features.hpp"
-#include "basics/compatibility/ranges.hpp"
 #include "view_interface.hpp"
 
 namespace OpenKalman::stdcompat::ranges
@@ -101,4 +100,4 @@ namespace OpenKalman::stdcompat::ranges
 #endif
 }
 
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_REF_VIEW_HPP
+#endif

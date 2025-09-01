@@ -33,6 +33,6 @@ namespace OpenKalman
     coordinates::euclidean_pattern<vector_space_descriptor_of_t<T, N>>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_HAS_UNTYPED_INDEX_HPP
+#endif

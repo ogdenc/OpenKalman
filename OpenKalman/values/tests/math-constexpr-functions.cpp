@@ -15,7 +15,7 @@
 
 #include <complex>
 #include "values/tests/tests.hpp"
-#include "values/classes/Fixed.hpp"
+#include "values/classes/fixed_value.hpp"
 #include "values/functions/internal/near.hpp"
 
 using namespace OpenKalman;
@@ -84,15 +84,15 @@ TEST(values, real_imag_conj)
   EXPECT_TRUE((values::conj(std::complex<double>{3, 4}) == std::complex<double>{3, -4}));
 
   static_assert(values::real(std::integral_constant<int, 9>{}) == 9);
-  static_assert(values::real(values::Fixed<std::complex<double>, 3, 4>{}) == 3);
+  static_assert(values::real(values::fixed_value<std::complex<double>, 3, 4>{}) == 3);
   static_assert(values::imag(std::integral_constant<int, 9>{}) == 0);
-  static_assert(values::imag(values::Fixed<std::complex<double>, 3, 4>{}) == 4);
+  static_assert(values::imag(values::fixed_value<std::complex<double>, 3, 4>{}) == 4);
   static_assert(values::real(values::conj(std::integral_constant<int, 9>{})) == 9);
   static_assert(values::imag(values::conj(std::integral_constant<int, 9>{})) == 0);
-  static_assert(values::real(values::conj(values::Fixed<std::complex<double>, 3, 4>{})) == 3);
-  static_assert(values::imag(values::conj(values::Fixed<std::complex<double>, 3, 4>{})) == -4);
-  static_assert(values::fixed_number_of_v<decltype(values::real(values::conj(values::Fixed<std::complex<double>, 3, 4>{})))> == 3);
-  static_assert(values::fixed_number_of_v<decltype(values::imag(values::conj(values::Fixed<std::complex<double>, 3, 4>{})))> == -4);
+  static_assert(values::real(values::conj(values::fixed_value<std::complex<double>, 3, 4>{})) == 3);
+  static_assert(values::imag(values::conj(values::fixed_value<std::complex<double>, 3, 4>{})) == -4);
+  static_assert(values::fixed_value_of_v<decltype(values::real(values::conj(values::fixed_value<std::complex<double>, 3, 4>{})))> == 3);
+  static_assert(values::fixed_value_of_v<decltype(values::imag(values::conj(values::fixed_value<std::complex<double>, 3, 4>{})))> == -4);
 }
 
 
@@ -125,11 +125,11 @@ TEST(values, signbit)
   EXPECT_EQ(values::signbit(-INFINITY), std::signbit(-INFINITY));
 
   struct Op { constexpr auto operator()(const int& a) const { return values::signbit(a); } };
-  static_assert(values::fixed_number_of_v<decltype(values::operation(Op{}, std::integral_constant<int, -3>{}))>);
+  static_assert(values::fixed_value_of_v<decltype(values::operation(Op{}, std::integral_constant<int, -3>{}))>);
 
-  static_assert(values::fixed_number_of_v<decltype(values::signbit(std::integral_constant<int, -3>{}))>);
-  static_assert(values::fixed_number_of_v<decltype(values::signbit(values::Fixed<double, -3>{}))>);
-  static_assert(not values::fixed_number_of_v<decltype(values::signbit(values::Fixed<double, 3>{}))>);
+  static_assert(values::fixed_value_of_v<decltype(values::signbit(std::integral_constant<int, -3>{}))>);
+  static_assert(values::fixed_value_of_v<decltype(values::signbit(values::fixed_value<double, -3>{}))>);
+  static_assert(not values::fixed_value_of_v<decltype(values::signbit(values::fixed_value<double, 3>{}))>);
 }
 
 
@@ -198,10 +198,10 @@ TEST(values, copysign)
   static_assert(values::copysign(5, 3U) == 5.);
   static_assert(values::copysign(-5, 3U) == 5.);
 
-  static_assert(values::fixed_number_of_v<decltype(values::copysign(values::Fixed<int, 5>{}, values::Fixed<int, -3>{}))> == -5);
-  static_assert(values::fixed_number_of_v<decltype(values::copysign(values::Fixed<int, -5>{}, values::Fixed<int, 3>{}))> == 5);
-  static_assert(values::fixed_number_of_v<decltype(values::copysign(values::Fixed<int, 5>{}, values::Fixed<int, -3>{}))> == -5);
-  static_assert(values::fixed_number_of_v<decltype(values::copysign(values::Fixed<int, -5>{}, values::Fixed<int, 3>{}))> == 5);
+  static_assert(values::fixed_value_of_v<decltype(values::copysign(values::fixed_value<int, 5>{}, values::fixed_value<int, -3>{}))> == -5);
+  static_assert(values::fixed_value_of_v<decltype(values::copysign(values::fixed_value<int, -5>{}, values::fixed_value<int, 3>{}))> == 5);
+  static_assert(values::fixed_value_of_v<decltype(values::copysign(values::fixed_value<int, 5>{}, values::fixed_value<int, -3>{}))> == -5);
+  static_assert(values::fixed_value_of_v<decltype(values::copysign(values::fixed_value<int, -5>{}, values::fixed_value<int, 3>{}))> == 5);
 }
 
 
@@ -238,7 +238,7 @@ TEST(values, fmod)
   EXPECT_ANY_THROW(values::fmod(1.e300, 7.));
 #endif
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::fmod(values::Fixed<double, -12>{}, values::Fixed<double, 5>{}))>, -2, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::fmod(values::fixed_value<double, -12>{}, values::fixed_value<double, 5>{}))>, -2, 1e-6));
 
 }
 
@@ -363,8 +363,8 @@ TEST(values, sqrt)
   COMPLEXINTEXISTS(static_assert(values::sqrt(std::complex<int>{10, 15}) == std::complex<int>{3, 2}));
 
   static_assert(values::sqrt(std::integral_constant<int, 9>{}) == 3);
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sqrt(values::Fixed<double, 9>{}))>, 3, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sqrt(values::Fixed<double, 2>{}))>, stdcompat::numbers::sqrt2, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sqrt(values::fixed_value<double, 9>{}))>, 3, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sqrt(values::fixed_value<double, 2>{}))>, stdcompat::numbers::sqrt2, 1e-6));
 }
 
 
@@ -393,8 +393,8 @@ TEST(values, hypot)
   constexpr auto b = std::complex<double>{5., 6.};
   static_assert(values::internal::near(values::hypot(a, b), values::sqrt(std::complex<double>{-18., 84.}), 1e-6));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::hypot(values::Fixed<double, 3>{}))>, 3, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::hypot(values::Fixed<double, 3>{}, values::Fixed<double, 4>{}))>, 5, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::hypot(values::fixed_value<double, 3>{}))>, 3, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::hypot(values::fixed_value<double, 3>{}, values::fixed_value<double, 4>{}))>, 5, 1e-6));
 }
 
 
@@ -445,9 +445,9 @@ TEST(values, abs)
   COMPLEXINTEXISTS(static_assert(values::abs(std::complex<int>{3, 4}) == 5));
   COMPLEXINTEXISTS(static_assert(values::abs(std::complex<int>{10, 15}) == 18));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::abs(std::integral_constant<int, -9>{}))>, 9, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::abs(values::Fixed<double, -9>{}))>, 9, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::abs(values::Fixed<std::complex<double>, 3, 4>{}))>, 5, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::abs(std::integral_constant<int, -9>{}))>, 9, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::abs(values::fixed_value<double, -9>{}))>, 9, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::abs(values::fixed_value<std::complex<double>, 3, 4>{}))>, 5, 1e-6));
 }
 
 
@@ -496,9 +496,9 @@ TEST(values, exp)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::exp(std::complex<int>{3, -4})));
   COMPLEXINTEXISTS(static_assert(values::exp(std::complex<int>{3, -4}) == std::complex<int>{-13, 15}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::exp(std::integral_constant<int, 2>{}))>, e*e, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::exp(values::Fixed<double, -2>{}))>, 1/(e*e), 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::exp(values::Fixed<std::complex<double>, 2, 0>{}))>, e*e, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::exp(std::integral_constant<int, 2>{}))>, e*e, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::exp(values::fixed_value<double, -2>{}))>, 1/(e*e), 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::exp(values::fixed_value<std::complex<double>, 2, 0>{}))>, e*e, 1e-6));
 }
 
 
@@ -544,9 +544,9 @@ TEST(values, expm1)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::expm1(std::complex<int>{3, -4})));
   COMPLEXINTEXISTS(static_assert(values::expm1(std::complex<int>{3, -4}) == std::complex<int>{-14, 15}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::expm1(std::integral_constant<int, 2>{}))>, e*e - 1, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::expm1(values::Fixed<double, -2>{}))>, 1/(e*e) - 1, 1e-6));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::expm1(values::Fixed<std::complex<double>, 2, 0>{}))>, e*e - 1, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::expm1(std::integral_constant<int, 2>{}))>, e*e - 1, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::expm1(values::fixed_value<double, -2>{}))>, 1/(e*e) - 1, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::expm1(values::fixed_value<std::complex<double>, 2, 0>{}))>, e*e - 1, 1e-6));
 }
 
 
@@ -583,11 +583,11 @@ TEST(values, sinh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::sinh(std::complex<int>{3, -4})));
   COMPLEXINTEXISTS(static_assert(values::sinh(std::complex<int>{3, -4}) == std::complex<int>{-6, 7}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sinh(std::integral_constant<int, 2>{}))>, (e*e - 1/e/e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sinh(values::Fixed<double, -2>{}))>, (1/e/e - e*e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::sinh(values::Fixed<std::complex<double>, 2, 0>{})))>, (e*e - 1/e/e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::sinh(values::Fixed<std::complex<double>, 3, -4>{})))>, -6.548120040911001647767, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::sinh(values::Fixed<std::complex<double>, 3, -4>{})))>, 7.619231720321410208487, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sinh(std::integral_constant<int, 2>{}))>, (e*e - 1/e/e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sinh(values::fixed_value<double, -2>{}))>, (1/e/e - e*e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::sinh(values::fixed_value<std::complex<double>, 2, 0>{})))>, (e*e - 1/e/e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::sinh(values::fixed_value<std::complex<double>, 3, -4>{})))>, -6.548120040911001647767, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::sinh(values::fixed_value<std::complex<double>, 3, -4>{})))>, 7.619231720321410208487, 1e-9));
 }
 
 
@@ -622,11 +622,11 @@ TEST(values, cosh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::cosh(std::complex<int>{3, -4})));
   COMPLEXINTEXISTS(static_assert(values::cosh(std::complex<int>{5, -6}) == std::complex<int>{71, 20}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::cosh(std::integral_constant<int, 2>{}))>, (e*e + 1/e/e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::cosh(values::Fixed<double, -2>{}))>, (1/e/e + e*e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::cosh(values::Fixed<std::complex<double>, 2, 0>{})))>, (e*e + 1/e/e)/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::cosh(values::Fixed<std::complex<double>, 3, -4>{})))>, -6.580663040551156432561, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::cosh(values::Fixed<std::complex<double>, 3, -4>{})))>, 7.581552742746544353716, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::cosh(std::integral_constant<int, 2>{}))>, (e*e + 1/e/e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::cosh(values::fixed_value<double, -2>{}))>, (1/e/e + e*e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::cosh(values::fixed_value<std::complex<double>, 2, 0>{})))>, (e*e + 1/e/e)/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::cosh(values::fixed_value<std::complex<double>, 3, -4>{})))>, -6.580663040551156432561, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::cosh(values::fixed_value<std::complex<double>, 3, -4>{})))>, 7.581552742746544353716, 1e-9));
 }
 
 
@@ -662,10 +662,10 @@ TEST(values, tanh)
   EXPECT_PRED3(tolerance, values::tanh(std::complex<double>{-30.6, 20.6}), std::tanh(std::complex<double>{-30.6, 20.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::tanh(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::tanh(std::integral_constant<int, 2>{}))>, (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::tanh(values::Fixed<double, -2>{}))>, (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::tanh(values::Fixed<std::complex<double>, 3, 4>{})))>, 1.00070953606723293933, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::tanh(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.004908258067496060259079, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::tanh(std::integral_constant<int, 2>{}))>, (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::tanh(values::fixed_value<double, -2>{}))>, (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::tanh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 1.00070953606723293933, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::tanh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.004908258067496060259079, 1e-9));
 }
 
 
@@ -723,9 +723,9 @@ TEST(values, sin)
   EXPECT_PRED3(tolerance, values::sin(std::complex<double>{-9.3, 10.3}), std::sin(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::sin(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sin(std::integral_constant<int, 2>{}))>, 0.909297426825681695396, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::sin(values::Fixed<double, 2>{}))>, 0.909297426825681695396, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::sin(values::Fixed<std::complex<double>, 2, 0>{})))>, 0.909297426825681695396, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sin(std::integral_constant<int, 2>{}))>, 0.909297426825681695396, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sin(values::fixed_value<double, 2>{}))>, 0.909297426825681695396, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::sin(values::fixed_value<std::complex<double>, 2, 0>{})))>, 0.909297426825681695396, 1e-9));
 }
 
 
@@ -780,9 +780,9 @@ TEST(values, cos)
   EXPECT_PRED3(tolerance, values::cos(std::complex<double>{-9.3, 10.3}), std::cos(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::cos(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::cos(std::integral_constant<int, 2>{}))>, -0.4161468365471423869976, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::cos(values::Fixed<double, 2>{}))>, -0.4161468365471423869976, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::cos(values::Fixed<std::complex<double>, 2, 0>{})))>, -0.4161468365471423869976, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::cos(std::integral_constant<int, 2>{}))>, -0.4161468365471423869976, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::cos(values::fixed_value<double, 2>{}))>, -0.4161468365471423869976, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::cos(values::fixed_value<std::complex<double>, 2, 0>{})))>, -0.4161468365471423869976, 1e-9));
 }
 
 
@@ -836,10 +836,10 @@ TEST(values, tan)
   EXPECT_PRED3(tolerance, values::tan(std::complex<double>{-30.3, 40.3}), std::tan(std::complex<double>{-30.3, 40.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::tan(std::complex<int>{30, -2})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::tan(std::integral_constant<int, 2>{}))>, -2.185039863261518991643, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::tan(values::Fixed<double, 2>{}))>, -2.185039863261518991643, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::tan(values::Fixed<std::complex<double>, 3, 4>{})))>, -1.873462046294784262243E-4, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::tan(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.9993559873814731413917, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::tan(std::integral_constant<int, 2>{}))>, -2.185039863261518991643, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::tan(values::fixed_value<double, 2>{}))>, -2.185039863261518991643, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::tan(values::fixed_value<std::complex<double>, 3, 4>{})))>, -1.873462046294784262243E-4, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::tan(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9993559873814731413917, 1e-9));
 }
 
 
@@ -894,10 +894,10 @@ TEST(values, log)
   COMPLEXINTEXISTS(static_assert(values::log(std::complex<int>{-100, 0}) == std::complex<int>{4, 3}));
   COMPLEXINTEXISTS(EXPECT_PRED3(tolerance, values::log(std::complex<int>{-3, 0}), std::log(std::complex<int>{-3, 0}), 1e-9));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::log(std::integral_constant<int, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::log(values::Fixed<double, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::log(values::Fixed<std::complex<double>, 3, 4>{})))>, 1.609437912434100374601, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::log(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.9272952180016122324285, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(std::integral_constant<int, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(values::fixed_value<double, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::log(values::fixed_value<std::complex<double>, 3, 4>{})))>, 1.609437912434100374601, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::log(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -956,10 +956,10 @@ TEST(values, log1p)
   COMPLEXINTEXISTS(static_assert(values::log1p(std::complex<int>{99, 0}) == std::complex<int>{4, 0}));
   COMPLEXINTEXISTS(static_assert(values::log1p(std::complex<int>{-101, 0}) == std::complex<int>{4, 3}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::log1p(std::integral_constant<int, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::log1p(values::Fixed<double, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::log1p(values::Fixed<std::complex<double>, 2, 4>{})))>, 1.609437912434100374601, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::log1p(values::Fixed<std::complex<double>, 2, 4>{})))>, 0.9272952180016122324285, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(std::integral_constant<int, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(values::fixed_value<double, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::log1p(values::fixed_value<std::complex<double>, 2, 4>{})))>, 1.609437912434100374601, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::log1p(values::fixed_value<std::complex<double>, 2, 4>{})))>, 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -995,10 +995,10 @@ TEST(values, asinh)
   EXPECT_PRED3(tolerance, values::asinh(std::complex<double>{-10.6, 10.6}), std::asinh(std::complex<double>{-10.6, 10.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::asinh(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::asinh(std::integral_constant<int, 2>{}))>, 1.443635475178810342493, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::asinh(values::Fixed<double, 2>{}))>, 1.443635475178810342493, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::asinh(values::Fixed<std::complex<double>, 3, 4>{})))>, 2.299914040879269649956, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::asinh(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.9176168533514786557599, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::asinh(std::integral_constant<int, 2>{}))>, 1.443635475178810342493, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::asinh(values::fixed_value<double, 2>{}))>, 1.443635475178810342493, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::asinh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 2.299914040879269649956, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::asinh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9176168533514786557599, 1e-9));
 }
 
 
@@ -1034,10 +1034,10 @@ TEST(values, acosh)
   EXPECT_PRED3(tolerance, values::acosh(std::complex<double>{-5.6, 5.6}), std::acosh(std::complex<double>{-5.6, 5.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::acosh(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::acosh(std::integral_constant<int, 2>{}))>, 1.316957896924816708625, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::acosh(values::Fixed<double, 2>{}))>, 1.316957896924816708625, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::acosh(values::Fixed<std::complex<double>, 3, 4>{})))>, 2.305509031243476942042, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::acosh(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.9368124611557199029125, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::acosh(std::integral_constant<int, 2>{}))>, 1.316957896924816708625, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::acosh(values::fixed_value<double, 2>{}))>, 1.316957896924816708625, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::acosh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 2.305509031243476942042, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::acosh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9368124611557199029125, 1e-9));
 }
 
 
@@ -1079,10 +1079,10 @@ TEST(values, atanh)
   COMPLEXINTEXISTS(static_assert(values::atanh(std::complex<int>{0, 3}) == std::complex<int>{0, 1}));
   COMPLEXINTEXISTS(static_assert(values::atanh(std::complex<int>{0, -7}) == std::complex<int>{0, -1}));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atanh(std::integral_constant<int, 0>{}))>, 0, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atanh(values::Fixed<double, 0>{}))>, 0, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::atanh(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.1175009073114338884127, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::atanh(values::Fixed<std::complex<double>, 3, 4>{})))>, 1.409921049596575522531, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atanh(std::integral_constant<int, 0>{}))>, 0, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atanh(values::fixed_value<double, 0>{}))>, 0, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::atanh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.1175009073114338884127, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::atanh(values::fixed_value<std::complex<double>, 3, 4>{})))>, 1.409921049596575522531, 1e-9));
 }
 
 
@@ -1129,10 +1129,10 @@ TEST(values, asin)
   EXPECT_PRED3(tolerance, values::asin(std::complex<double>{-9.3, 10.3}), std::asin(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::asin(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::asin(std::integral_constant<int, 1>{}))>, pi/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::asin(values::Fixed<double, 1>{}))>, pi/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::asin(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.6339838656391767163188, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::asin(values::Fixed<std::complex<double>, 3, 4>{})))>, 2.305509031243476942042, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::asin(std::integral_constant<int, 1>{}))>, pi/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::asin(values::fixed_value<double, 1>{}))>, pi/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::asin(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.6339838656391767163188, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::asin(values::fixed_value<std::complex<double>, 3, 4>{})))>, 2.305509031243476942042, 1e-9));
 }
 
 
@@ -1175,10 +1175,10 @@ TEST(values, acos)
   EXPECT_PRED3(tolerance, values::acos(std::complex<double>{-9.3, 10.3}), std::acos(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::acos(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::acos(std::integral_constant<int, -1>{}))>, pi, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::acos(values::Fixed<double, -1>{}))>, pi, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::acos(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.9368124611557199029125, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::acos(values::Fixed<std::complex<double>, 3, 4>{})))>, -2.305509031243476942042, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::acos(std::integral_constant<int, -1>{}))>, pi, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::acos(values::fixed_value<double, -1>{}))>, pi, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::acos(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9368124611557199029125, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::acos(values::fixed_value<std::complex<double>, 3, 4>{})))>, -2.305509031243476942042, 1e-9));
 }
 
 
@@ -1219,10 +1219,10 @@ TEST(values, atan)
   EXPECT_PRED3(tolerance, values::atan(std::complex<double>{-9.3, 10.3}), std::atan(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::atan(std::complex<int>{3, -4})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atan(std::integral_constant<int, 1>{}))>, pi/4, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atan(values::Fixed<double, 1>{}))>, pi/4, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::atan(values::Fixed<std::complex<double>, 3, 4>{})))>, 1.448306995231464542145, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::atan(values::Fixed<std::complex<double>, 3, 4>{})))>, 0.1589971916799991743648, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atan(std::integral_constant<int, 1>{}))>, pi/4, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atan(values::fixed_value<double, 1>{}))>, pi/4, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::atan(values::fixed_value<std::complex<double>, 3, 4>{})))>, 1.448306995231464542145, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::atan(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.1589971916799991743648, 1e-9));
 }
 
 
@@ -1298,10 +1298,10 @@ TEST(values, atan2)
   EXPECT_PRED3(tolerance, values::atan2(std::complex<double>{-4.1, 3.1}, std::complex<double>{0., 5.1}), std::atan(std::complex<double>{-4.1, 3.1} / std::complex<double>{0., 5.1}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::atan2(std::complex<int>{3, -4}, std::complex<int>{2, 5})));
 
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atan2(std::integral_constant<int, 1>{}, std::integral_constant<int, 0>{}))>, pi/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::atan2(values::Fixed<double, 1>{}, values::Fixed<double, 0>{}))>, pi/2, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::real(values::atan2(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 5, 2>{})))>, 0.7420289940594557537102, 1e-9));
-  static_assert(values::internal::near(values::fixed_number_of_v<decltype(values::imag(values::atan2(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 5, 2>{})))>, 0.2871556773106927669533, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atan2(std::integral_constant<int, 1>{}, std::integral_constant<int, 0>{}))>, pi/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::atan2(values::fixed_value<double, 1>{}, values::fixed_value<double, 0>{}))>, pi/2, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::atan2(values::fixed_value<std::complex<double>, 3, 4>{}, values::fixed_value<std::complex<double>, 5, 2>{})))>, 0.7420289940594557537102, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::atan2(values::fixed_value<std::complex<double>, 3, 4>{}, values::fixed_value<std::complex<double>, 5, 2>{})))>, 0.2871556773106927669533, 1e-9));
 }
 
 
@@ -1427,7 +1427,7 @@ TEST(values, pow)
   EXPECT_PRED3(tolerance, values::pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), std::pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(values::pow(std::complex<int>{-3, -4}, std::complex<int>{1, 2})));
 
-  static_assert(values::pow(values::Fixed<double, 2>{}, 3) == 8);
-  static_assert(values::internal::near(values::pow(2, values::Fixed<double, 3>{}), 8, 1e-6));
-  static_assert(values::fixed_number_of_v<decltype(values::pow(values::Fixed<double, 2>{}, std::integral_constant<int, 3>{}))> == 8);
+  static_assert(values::pow(values::fixed_value<double, 2>{}, 3) == 8);
+  static_assert(values::internal::near(values::pow(2, values::fixed_value<double, 3>{}), 8, 1e-6));
+  static_assert(values::fixed_value_of_v<decltype(values::pow(values::fixed_value<double, 2>{}, std::integral_constant<int, 3>{}))> == 8);
 }

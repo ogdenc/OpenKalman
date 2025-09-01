@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3::internal
     using StorageKind = Eigen::Dense;
     using Index = Eigen::Index;
     static const int NumDimensions = index_count_v<T>;
-    static const int Layout = OpenKalman::layout_of_v<T> == OpenKalman::Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
+    static const int data_layout = OpenKalman::layout_of_v<T> == OpenKalman::data_layout::right ? Eigen::RowMajor : Eigen::ColMajor;
 
   private:
 
@@ -55,7 +55,7 @@ namespace OpenKalman::Eigen3::internal
   public:
 
     enum {
-      Options = Layout,
+      Options = data_layout,
       Flags = Eigen::internal::compute_tensor_flags<Scalar, Options>::ret | lvalue_bit,
     };
 
@@ -65,4 +65,4 @@ namespace OpenKalman::Eigen3::internal
 } // OpenKalman::Eigen3::internal
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_LIBRARYWRAPPER_HPP
+#endif

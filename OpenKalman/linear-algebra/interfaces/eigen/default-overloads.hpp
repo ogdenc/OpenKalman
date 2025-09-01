@@ -225,26 +225,26 @@ namespace OpenKalman
    * \brief For Eigen3: Make a Covariance, with nested triangular type, from a list of coefficients.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
    * must equal coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type, values::number ... Args> requires
-  (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+  template<fixed_pattern StaticDescriptor, triangle_type tri, values::number ... Args> requires
+  (tri == triangle_type::lower or tri == triangle_type::upper) and
   (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type, typename ... Args, std::enable_if_t<
+  template<typename StaticDescriptor, triangle_type tri, typename ... Args, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and (values::number<Args> and ...) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, triangle_type>;
-    using SA = HermitianAdapter<Mat, triangle_type == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
+    using T = TriangularAdapter<Mat, tri>;
+    using SA = HermitianAdapter<Mat, tri == triangle_type::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
     return Covariance<StaticDescriptor, T>(SA {make_dense_object_from<Mat>(static_cast<const Scalar>(args)...)});
   }
 
@@ -279,25 +279,25 @@ namespace OpenKalman
    * \overload OpenKalman::make_covariance
    * \brief For Eigen3: Make a default Axis Covariance, with nested triangular type, from a list of coefficients.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
    * must be the square of an integer.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, values::number ... Args> requires
-    (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+  template<triangle_type tri, values::number ... Args> requires
+    (sizeof...(Args) > 0) and (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) == static_cast<std::size_t>(values::sqrt(sizeof...(Args))) * static_cast<std::size_t>(values::sqrt(sizeof...(Args))))
 #else
-  template<TriangleType triangle_type, typename ... Args, std::enable_if_t<
+  template<triangle_type tri, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (values::number<Args> and ...) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) == static_cast<std::size_t>(values::sqrt(sizeof...(Args))) * static_cast<std::size_t>(values::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
     constexpr auto dim = static_cast<std::size_t>(values::sqrt(sizeof...(Args)));
     using StaticDescriptor = OpenKalman::Dimensions<dim>;
-    return make_covariance<StaticDescriptor, triangle_type>(args...);
+    return make_covariance<StaticDescriptor, tri>(args...);
   }
 
 
@@ -328,22 +328,22 @@ namespace OpenKalman
    * \brief For Eigen3: Make a writable, uninitialized Covariance with nested triangular matrix.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Scalar The scalar type (integral or floating-point).
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type, values::number Scalar = double>
-  requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
+  template<fixed_pattern StaticDescriptor, triangle_type tri, values::number Scalar = double>
+  requires (tri == triangle_type::lower or tri == triangle_type::upper)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type, typename Scalar = double, std::enable_if_t<
+  template<typename StaticDescriptor, triangle_type tri, typename Scalar = double, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     values::number<Scalar>, int> = 0>
 #endif
   auto make_covariance()
   {
     using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, triangle_type>;
+    using T = TriangularAdapter<Mat, tri>;
     return Covariance<StaticDescriptor, T>();
   }
 
@@ -375,18 +375,18 @@ namespace OpenKalman
    * \details Only the coefficients in the associated upper or lower triangle are significant.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
    * must equal coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type = TriangleType::lower, values::number ... Args>
-  requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+  template<fixed_pattern StaticDescriptor, triangle_type tri = triangle_type::lower, values::number ... Args>
+  requires (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type = TriangleType::lower, typename ... Args,
+  template<typename StaticDescriptor, triangle_type tri = triangle_type::lower, typename ... Args,
     std::enable_if_t<fixed_pattern<StaticDescriptor> and (values::number<Args> and ...) and
-      (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+      (tri == triangle_type::lower or tri == triangle_type::upper) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   auto make_square_root_covariance(const Args ... args)
@@ -394,7 +394,7 @@ namespace OpenKalman
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
     auto mat = make_dense_object_from<Mat>(static_cast<const Scalar>(args)...);
-    using Tri = TriangularAdapter<Mat, triangle_type>;
+    using Tri = TriangularAdapter<Mat, tri>;
     auto tri = Tri {mat};
     return SquareRootCovariance<StaticDescriptor, Tri>(tri);
   }
@@ -404,18 +404,18 @@ namespace OpenKalman
    * \overload OpenKalman::make_square_root_covariance
    * \brief For Eigen3: Make a default Axis SquareRootCovariance from a list of coefficients.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
    * must be the square of an integer.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type = TriangleType::lower, values::number ... Args> requires
-  (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+  template<triangle_type tri = triangle_type::lower, values::number ... Args> requires
+  (sizeof...(Args) > 0) and (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) == static_cast<std::size_t>(values::sqrt(sizeof...(Args))) * static_cast<std::size_t>(values::sqrt(sizeof...(Args))))
 #else
-  template<TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t<
+  template<triangle_type tri = triangle_type::lower, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (values::number<Args> and ...) and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
+    (tri == triangle_type::lower or tri == triangle_type::upper) and
     (sizeof...(Args) == static_cast<std::size_t>(values::sqrt(sizeof...(Args))) *
       static_cast<std::size_t>(values::sqrt(sizeof...(Args)))), int> = 0>
 #endif
@@ -423,7 +423,7 @@ namespace OpenKalman
   {
     constexpr auto dim = static_cast<std::size_t>(values::sqrt(sizeof...(Args)));
     using StaticDescriptor = OpenKalman::Dimensions<dim>;
-    return make_square_root_covariance<StaticDescriptor, triangle_type>(args...);
+    return make_square_root_covariance<StaticDescriptor, tri>(args...);
   }
 
 
@@ -432,21 +432,21 @@ namespace OpenKalman
    * \brief For Eigen3: Make a writable, uninitialized SquareRootCovariance.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
-   * \tparam TriangleType The type of the nested triangular matrix (upper, lower).
+   * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Scalar The scalar type (integral or floating-point).
    */
 #ifdef __cpp_concepts
-  template<fixed_pattern StaticDescriptor, TriangleType triangle_type = TriangleType::lower, values::number Scalar = double>
-  requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
+  template<fixed_pattern StaticDescriptor, triangle_type tri = triangle_type::lower, values::number Scalar = double>
+  requires (tri == triangle_type::lower or tri == triangle_type::upper)
 #else
-  template<typename StaticDescriptor, TriangleType triangle_type = TriangleType::lower, typename Scalar = double,
+  template<typename StaticDescriptor, triangle_type tri = triangle_type::lower, typename Scalar = double,
     std::enable_if_t<fixed_pattern<StaticDescriptor> and
-    (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and values::number<Scalar>, int> = 0>
+    (tri == triangle_type::lower or tri == triangle_type::upper) and values::number<Scalar>, int> = 0>
 #endif
   auto make_square_root_covariance()
   {
     using Mat = Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, triangle_type>;
+    using T = TriangularAdapter<Mat, tri>;
     return SquareRootCovariance<StaticDescriptor, T>();
   }
 
@@ -618,8 +618,8 @@ namespace OpenKalman
     static_cast<std::size_t>(values::sqrt(sizeof...(Args))), static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>>>;
 
 
-} // namespace OpenKalman
+}
 
 #endif // OPENKALMAN_FIRST_INTERFACE
 
-#endif //OPENKALMAN_DEFAULT_OVERLOADS_HPP
+#endif

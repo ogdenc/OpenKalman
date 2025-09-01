@@ -50,6 +50,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_WRAPPABLE_HPP
+#endif

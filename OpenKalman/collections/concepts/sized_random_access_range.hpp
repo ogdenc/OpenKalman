@@ -35,4 +35,4 @@ namespace OpenKalman::collections
 
 } // OpenKalman::collections
 
-#endif //OPENKALMAN_COLLECTIONS_SIZED_RANDOM_ACCESS_RANGE_HPP
+#endif

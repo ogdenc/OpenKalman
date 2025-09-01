@@ -17,8 +17,7 @@
 #ifndef OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP
 #define OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP
 
-#include <type_traits>
-#include "basics/compatibility/ranges.hpp"
+#include "basics/compatibility/ranges/range-concepts.hpp"
 
 namespace OpenKalman::stdcompat::ranges
 {
@@ -120,4 +119,4 @@ namespace OpenKalman::stdcompat::ranges
 #endif
 }
 
-#endif //OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP
+#endif

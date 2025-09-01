@@ -32,8 +32,8 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   static_assert(constant_matrix<decltype(cxb.real())>);
   EXPECT_EQ(constant_coefficient{cxb.real()}(), 3);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().real())> == 2);
-  static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tlv22>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tuv22>, TriangleType::upper>);
+  static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tlv22>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tuv22>, triangle_type::upper>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<cdouble>, decltype(eigen_matrix_t<cdouble, 2, 2>::Identity())>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C11_m1>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Z22>>);
@@ -56,8 +56,8 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, Cd22_2>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().imag()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().imag()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().imag()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().imag()), triangle_type::upper>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<cdouble>, decltype(eigen_matrix_t<cdouble, 2, 2>::Identity().imag())>>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().imag())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().imag())>);

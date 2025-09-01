@@ -20,11 +20,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
-#if defined(__cpp_lib_ranges)
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
+#include "coordinates/coordinates.hpp"
 
 namespace OpenKalman::internal
 {
@@ -60,6 +56,6 @@ namespace OpenKalman::internal
     }
   }
 #endif
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_ELEMENT_FUNCTIONS_HPP
+#endif

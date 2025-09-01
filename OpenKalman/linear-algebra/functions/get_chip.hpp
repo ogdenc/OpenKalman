@@ -54,6 +54,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_GET_CHIP_HPP
+#endif

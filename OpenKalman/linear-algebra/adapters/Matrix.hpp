@@ -345,10 +345,10 @@ namespace OpenKalman
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
       template<typename Arg>
-      static constexpr auto count_indices(const Arg& arg) { return std::tuple_size_v<decltype(arg.my_dimensions)>; }
+      static constexpr auto count_indices(const Arg& arg) { return collections::size_of_v<decltype(arg.my_dimensions)>; }
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
+      static constexpr auto get_pattern_collection(Arg&& arg, N n)
       {
         if constexpr (values::fixed<N>)
           return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -385,15 +385,15 @@ namespace OpenKalman
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool is_triangular = compares_with<RowCoeffs, ColCoeffs>and triangular_matrix<NestedMatrix, t>;
 
 
@@ -437,13 +437,13 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 
-      static constexpr Layout layout = layout_of_v<NestedMatrix>;
+      static constexpr data_layout layout = layout_of_v<NestedMatrix>;
 
     };
 
-  } // namespace interface
+  }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_MATRIX_HPP
+#endif

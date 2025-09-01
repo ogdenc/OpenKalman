@@ -53,31 +53,31 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = diagonal_matrix<MatrixType> or
-      (t == TriangleType::lower and triangular_matrix<MatrixType, TriangleType::upper>) or
-      (t == TriangleType::upper and triangular_matrix<MatrixType, TriangleType::lower>);
+      (t == triangle_type::lower and triangular_matrix<MatrixType, triangle_type::upper>) or
+      (t == triangle_type::upper and triangular_matrix<MatrixType, triangle_type::lower>);
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Applicability::permitted>;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted>;
 
 
-    static constexpr Layout layout = layout_of_v<MatrixType>;
+    static constexpr data_layout layout = layout_of_v<MatrixType>;
 
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TRANSPOSE_HPP
+#endif

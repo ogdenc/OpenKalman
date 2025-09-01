@@ -38,7 +38,7 @@ namespace OpenKalman
 
     if constexpr (zero<Arg> or empty_object<Arg>)
     {
-      return values::Fixed<Scalar, 0>{};
+      return values::fixed_value<Scalar, 0>{};
     }
     else if constexpr (identity_matrix<Arg>)
     {
@@ -88,7 +88,7 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_TRACE_HPP
+#endif

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,10 +13,10 @@
  * \brief Definition for \ref values::floating.
  */
 
-#ifndef OPENKALMAN_VALUE_FLOATING_HPP
-#define OPENKALMAN_VALUE_FLOATING_HPP
+#ifndef OPENKALMAN_VALUES_FLOATING_HPP
+#define OPENKALMAN_VALUES_FLOATING_HPP
 
-#include <type_traits>
+#include "basics/basics.hpp"
 #include "value.hpp"
 #include "integral.hpp"
 #include "complex.hpp"
@@ -24,7 +24,7 @@
 namespace OpenKalman::values
 {
   /**
-   * \brief T is a floating-point values::value.
+   * \brief T is a floating-point \ref value.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -32,9 +32,8 @@ namespace OpenKalman::values
 #else
   constexpr bool floating =
 #endif
-    values::value<T> and (not integral<T>) and (not values::complex<T>);
+    value<T> and (not integral<T>) and (not complex<T>);
 
+}
 
-} // namespace OpenKalman::values
-
-#endif //OPENKALMAN_VALUE_FLOATING_HPP
+#endif

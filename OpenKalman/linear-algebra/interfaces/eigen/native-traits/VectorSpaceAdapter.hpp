@@ -28,7 +28,7 @@ namespace OpenKalman::Eigen3::internal
 #endif
     : Eigen::internal::traits<std::decay_t<NestedObject>> {};
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_VECTORSPACEADAPTER_HPP
+#endif

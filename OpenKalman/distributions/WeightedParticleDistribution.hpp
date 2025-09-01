@@ -46,4 +46,4 @@ namespace OpenKalman {
 
 }
 
-#endif //OPENKALMAN_WEIGHTEDPARTICLEDISTRIBUTION_HPP
+#endif

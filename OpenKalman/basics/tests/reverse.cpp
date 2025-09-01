@@ -22,10 +22,17 @@ using namespace OpenKalman;
 
 TEST(basics, reverse_view)
 {
-  constexpr int a1[5] = {1, 2, 3, 4, 5};
-  static_assert(stdcompat::ranges::range<stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<int(&)[5]>>>);
-  static_assert(stdcompat::ranges::range<stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<const int(&)[5]>>>);
+  using RA5 = stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<int(&)[5]>>;
+  using RCA5 = stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<const int(&)[5]>>;
+  static_assert(stdcompat::ranges::range<RA5>);
+  static_assert(stdcompat::ranges::range<RCA5>);
+  static_assert(stdcompat::ranges::input_range<stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<const int(&)[5]>>>);
+  static_assert(stdcompat::ranges::output_range<RA5, int>);
+  static_assert(stdcompat::ranges::forward_range<RA5>);
+  static_assert(stdcompat::ranges::bidirectional_range<RA5>);
+  static_assert(stdcompat::ranges::random_access_range<RA5>);
 
+  constexpr int a1[5] = {1, 2, 3, 4, 5};
   static_assert((stdcompat::ranges::views::reverse(a1)[0_uz]) == 5);
   static_assert((stdcompat::ranges::views::reverse(a1)[4u]) == 1);
   static_assert(*stdcompat::ranges::begin(stdcompat::ranges::views::reverse(a1)) == 5);
@@ -39,6 +46,7 @@ TEST(basics, reverse_view)
   static_assert(stdcompat::ranges::views::reverse(a1).back() == 1);
   static_assert(not stdcompat::ranges::views::reverse(a1).empty());
 
+  static_assert(stdcompat::ranges::random_access_range<stdcompat::ranges::reverse_view<stdcompat::ranges::ref_view<std::array<int, 5>>>>);
   auto a2 = std::array{3, 4, 5};
   EXPECT_EQ(*stdcompat::ranges::begin(stdcompat::ranges::views::reverse(a2)), 5);
   EXPECT_EQ(*--stdcompat::ranges::end(stdcompat::ranges::views::reverse(a2)), 3);
@@ -48,6 +56,7 @@ TEST(basics, reverse_view)
   EXPECT_EQ((stdcompat::ranges::reverse_view {a2}[1u]), 4);
   EXPECT_EQ((stdcompat::ranges::reverse_view {a2}[2u]), 3);
 
+  static_assert(stdcompat::ranges::random_access_range<stdcompat::ranges::reverse_view<stdcompat::ranges::ref_view<std::vector<int>>>>);
   auto v1 = std::vector{3, 4, 5};
   EXPECT_EQ((stdcompat::ranges::views::reverse(v1)[0u]), 5);
   EXPECT_EQ((stdcompat::ranges::views::reverse(v1)[1u]), 4);

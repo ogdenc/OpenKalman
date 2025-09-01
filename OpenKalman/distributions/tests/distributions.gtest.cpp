@@ -33,21 +33,21 @@ using Mean4 = Mean<C4, M4col>;
 using Mat2 = Matrix<C2, C2, M2>;
 using Mat3 = Matrix<C3, C3, M3>;
 using Mat4 = Matrix<C4, C4, M4>;
-using SA1l = HermitianAdapter<M1, TriangleType::lower>;
-using SA1u = HermitianAdapter<M1, TriangleType::upper>;
-using T1l = TriangularAdapter<M1, TriangleType::lower>;
-using T1u = TriangularAdapter<M1, TriangleType::upper>;
-using SA2l = HermitianAdapter<M2, TriangleType::lower>;
-using SA2u = HermitianAdapter<M2, TriangleType::upper>;
-using T2l = TriangularAdapter<M2, TriangleType::lower>;
-using T2u = TriangularAdapter<M2, TriangleType::upper>;
-using D2 = DiagonalAdapter<M2col>;
+using SA1l = HermitianAdapter<M1, triangle_type::lower>;
+using SA1u = HermitianAdapter<M1, triangle_type::upper>;
+using T1l = TriangularAdapter<M1, triangle_type::lower>;
+using T1u = TriangularAdapter<M1, triangle_type::upper>;
+using SA2l = HermitianAdapter<M2, triangle_type::lower>;
+using SA2u = HermitianAdapter<M2, triangle_type::upper>;
+using T2l = TriangularAdapter<M2, triangle_type::lower>;
+using T2u = TriangularAdapter<M2, triangle_type::upper>;
+using D2 = diagonal_adapter<M2col>;
 using I2 = Eigen3::IdentityMatrix<M2>;
-using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
-using SA4l = HermitianAdapter<M4, TriangleType::lower>;
-using SA4u = HermitianAdapter<M4, TriangleType::upper>;
-using T4l = TriangularAdapter<M4, TriangleType::lower>;
-using T4u = TriangularAdapter<M4, TriangleType::upper>;
+using Z2 = zero_adapter<eigen_matrix_t<double, 2, 2>>;
+using SA4l = HermitianAdapter<M4, triangle_type::lower>;
+using SA4u = HermitianAdapter<M4, triangle_type::upper>;
+using T4l = TriangularAdapter<M4, triangle_type::lower>;
+using T4u = TriangularAdapter<M4, triangle_type::upper>;
 using CovSA2l = Covariance<C2, SA2l>;
 using CovSA2u = Covariance<C2, SA2u>;
 using CovT2l = Covariance<C2, T2l>;
@@ -64,19 +64,19 @@ using DistSA2u = GaussianDistribution<C2, M2col, SA2u>;
 using DistT2l = GaussianDistribution<C2, M2col, T2l>;
 using DistT2u = GaussianDistribution<C2, M2col, T2u>;
 using DistD2 = GaussianDistribution<C2, M2col, D2>;
-using DistI2 = GaussianDistribution<C2, ZeroAdapter<eigen_matrix_t<double, 2, 1>>, I2>;
-using DistZ2 = GaussianDistribution<C2, ZeroAdapter<eigen_matrix_t<double, 2, 1>>, Z2>;
+using DistI2 = GaussianDistribution<C2, zero_adapter<eigen_matrix_t<double, 2, 1>>, I2>;
+using DistZ2 = GaussianDistribution<C2, zero_adapter<eigen_matrix_t<double, 2, 1>>, Z2>;
 using DistSA4l = GaussianDistribution<C4, M4col, SA4l>;
 using DistSA4u = GaussianDistribution<C4, M4col, SA4u>;
 using DistT4l = GaussianDistribution<C4, M4col, T4l>;
 using DistT4u = GaussianDistribution<C4, M4col, T4u>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>();
+inline Z2 z2 = zero_adapter<eigen_matrix_t<double, 2, 2>>();
 inline auto covi2 = CovI2 {i2};
 inline auto covz2 = CovZ2 {z2};
-inline auto disti2 = DistI2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covi2};
-inline auto distz2 = DistZ2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covz2};
+inline auto disti2 = DistI2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covi2};
+inline auto distz2 = DistZ2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covz2};
 
 TEST(matrices, GaussianDistribution_class)
 {
@@ -114,10 +114,10 @@ TEST(matrices, GaussianDistribution_class)
   DistSA2l distSA2ld_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_5), Mat2 {9, 0, 0, 10}));
-  DistSA2l distSA2ld_6(DistI2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covi2});
+  DistSA2l distSA2ld_6(DistI2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_6), Mat2 {1, 0, 0, 1}));
-  DistSA2l distSA2ld_7(DistZ2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covz2});
+  DistSA2l distSA2ld_7(DistZ2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distSA2ld_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ld_7), Mat2 {0, 0, 0, 0}));
   //
@@ -136,10 +136,10 @@ TEST(matrices, GaussianDistribution_class)
   DistSA2u distSA2ud_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_5), Mat2 {9, 0, 0, 10}));
-  DistSA2u distSA2ud_6(DistI2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covi2});
+  DistSA2u distSA2ud_6(DistI2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_6), Mat2 {1, 0, 0, 1}));
-  DistSA2u distSA2ud_7(DistZ2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covz2});
+  DistSA2u distSA2ud_7(DistZ2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distSA2ud_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distSA2ud_7), Mat2 {0, 0, 0, 0}));
   //
@@ -158,10 +158,10 @@ TEST(matrices, GaussianDistribution_class)
   DistT2l distT2ld_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distT2ld_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_5), Mat2 {9, 0, 0, 10}));
-  DistT2l distT2ld_6(DistI2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covi2});
+  DistT2l distT2ld_6(DistI2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distT2ld_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_6), Mat2 {1, 0, 0, 1}));
-  DistT2l distT2ld_7(DistZ2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covz2});
+  DistT2l distT2ld_7(DistZ2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distT2ld_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ld_7), Mat2 {0, 0, 0, 0}));
   //
@@ -180,10 +180,10 @@ TEST(matrices, GaussianDistribution_class)
   DistT2u distT2ud_5(DistD2 {Mean2 {1, 2}, CovD2 {9, 10}});
   EXPECT_TRUE(is_near(mean_of(distT2ud_5), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_5), Mat2 {9, 0, 0, 10}));
-  DistT2u distT2ud_6(DistI2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covi2});
+  DistT2u distT2ud_6(DistI2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covi2});
   EXPECT_TRUE(is_near(mean_of(distT2ud_6), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_6), Mat2 {1, 0, 0, 1}));
-  DistT2u distT2ud_7(DistZ2 {ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), covz2});
+  DistT2u distT2ud_7(DistZ2 {zero_adapter<eigen_matrix_t<double, 2, 1>>(), covz2});
   EXPECT_TRUE(is_near(mean_of(distT2ud_7), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distT2ud_7), Mat2 {0, 0, 0, 0}));
 
@@ -213,10 +213,10 @@ TEST(matrices, GaussianDistribution_class)
   DistD2 distD2e(Mean2 {1, 2}, D2 {9, 10});
   EXPECT_TRUE(is_near(mean_of(distD2e), Mean2 {1, 2}));
   EXPECT_TRUE(is_near(covariance_of(distD2e), Mat2 {9, 0, 0, 10}));
-  DistI2 distI2e(ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), i2);
+  DistI2 distI2e(zero_adapter<eigen_matrix_t<double, 2, 1>>(), i2);
   EXPECT_TRUE(is_near(mean_of(distI2e), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distI2e), Mat2 {1, 0, 0, 1}));
-  DistZ2 distZ2e(ZeroAdapter<eigen_matrix_t<double, 2, 1>>(), z2);
+  DistZ2 distZ2e(zero_adapter<eigen_matrix_t<double, 2, 1>>(), z2);
   EXPECT_TRUE(is_near(mean_of(distZ2e), Mean2 {0, 0}));
   EXPECT_TRUE(is_near(covariance_of(distZ2e), Mat2 {0, 0, 0, 0}));
 
@@ -459,7 +459,7 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random)
        0.1, 1.4, 0.45,
        0.3, 0.45, 1.1;
   const V true_x {pi * 99/100, 10, 5};
-  GaussianDistribution dist {true_x, make_covariance<C3, TriangleType::lower>(d)};
+  GaussianDistribution dist {true_x, make_covariance<C3, triangle_type::lower>(d)};
   const V x1 {dist()};
   const V x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -618,44 +618,44 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(hermitian_matrix<DistSA2l>);
   static_assert(not cholesky_form<DistSA2l>);
   static_assert(not triangular_matrix<DistSA2l>);
-  static_assert(not triangular_matrix<DistSA2l, TriangleType::lower>);
-  static_assert(not triangular_matrix<DistSA2l, TriangleType::upper>);
+  static_assert(not triangular_matrix<DistSA2l, triangle_type::lower>);
+  static_assert(not triangular_matrix<DistSA2l, triangle_type::upper>);
   static_assert(not zero<DistSA2l>);
 
   static_assert(not diagonal_matrix<DistT2l>);
   static_assert(hermitian_matrix<DistT2l>);
   static_assert(cholesky_form<DistT2l>);
   static_assert(not triangular_matrix<DistT2l>);
-  static_assert(not triangular_matrix<DistT2l, TriangleType::lower>);
-  static_assert(not triangular_matrix<DistT2l, TriangleType::upper>);
-  static_assert(not triangular_matrix<DistT2l, TriangleType::upper>);
+  static_assert(not triangular_matrix<DistT2l, triangle_type::lower>);
+  static_assert(not triangular_matrix<DistT2l, triangle_type::upper>);
+  static_assert(not triangular_matrix<DistT2l, triangle_type::upper>);
   static_assert(not zero<DistT2l>);
 
   static_assert(diagonal_matrix<DistD2>);
   static_assert(hermitian_matrix<DistD2>);
   static_assert(not cholesky_form<DistD2>);
   static_assert(triangular_matrix<DistD2>);
-  static_assert(triangular_matrix<DistD2, TriangleType::lower>);
-  static_assert(triangular_matrix<DistD2, TriangleType::upper>);
-  static_assert(triangular_matrix<DistD2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistD2, triangle_type::lower>);
+  static_assert(triangular_matrix<DistD2, triangle_type::upper>);
+  static_assert(triangular_matrix<DistD2, triangle_type::upper>);
   static_assert(not zero<DistD2>);
 
   static_assert(diagonal_matrix<DistI2>);
   static_assert(hermitian_matrix<DistI2>);
   static_assert(not cholesky_form<DistI2>);
   static_assert(triangular_matrix<DistI2>);
-  static_assert(triangular_matrix<DistI2, TriangleType::lower>);
-  static_assert(triangular_matrix<DistI2, TriangleType::upper>);
-  static_assert(triangular_matrix<DistI2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistI2, triangle_type::lower>);
+  static_assert(triangular_matrix<DistI2, triangle_type::upper>);
+  static_assert(triangular_matrix<DistI2, triangle_type::upper>);
   static_assert(not zero<DistI2>);
 
   static_assert(diagonal_matrix<DistZ2>);
   static_assert(hermitian_matrix<DistZ2>);
   static_assert(not cholesky_form<DistZ2>);
   static_assert(triangular_matrix<DistZ2>);
-  static_assert(triangular_matrix<DistZ2, TriangleType::lower>);
-  static_assert(triangular_matrix<DistZ2, TriangleType::upper>);
-  static_assert(triangular_matrix<DistZ2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistZ2, triangle_type::lower>);
+  static_assert(triangular_matrix<DistZ2, triangle_type::upper>);
+  static_assert(triangular_matrix<DistZ2, triangle_type::upper>);
   static_assert(zero<DistZ2>);
 
   // DistributionTraits
@@ -757,7 +757,7 @@ TEST(matrices, GaussianDistribution_addition_subtraction)
 TEST(matrices, GaussianDistribution_mult_div)
 {
   auto a = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2>(8., 2, 2, 6));
-  auto a_chol = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2, TriangleType::lower>(8., 2, 2, 6));
+  auto a_chol = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2, triangle_type::lower>(8., 2, 2, 6));
   auto f_matrix = make_vector_space_adapter<C3, C2>(1., 2, 3, 4, 5, 6);
   auto a_scaled3 = f_matrix * a;
   EXPECT_TRUE(is_near(mean_of(a_scaled3), make_mean<C3>(62., 126, 190)));

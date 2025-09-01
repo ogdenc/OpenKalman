@@ -147,18 +147,18 @@ namespace OpenKalman
 
       template<typename Arg, typename N>
       static constexpr auto
-      get_vector_space_descriptor(Arg&& arg, const N& n)
+      get_pattern_collection(Arg&& arg, const N& n)
       {
         if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return std::forward<Arg>(arg).vector_space_descriptor_index_0;
-          else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);
+          else return OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n);
         }
         else
         {
           using Desc = DynamicDescriptor<scalar_type_of<Arg>>;
           if (n == 0) return Desc {std::forward<Arg>(arg).vector_space_descriptor_index_0};
-          else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
+          else return Desc {OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
 
@@ -193,17 +193,17 @@ namespace OpenKalman
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool
       one_dimensional = coordinates::euclidean_pattern<V0> and OpenKalman::one_dimensional<NestedObject, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool
       is_square = coordinates::euclidean_pattern<V0> and square_shaped<NestedObject, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool
       is_triangular = coordinates::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
 
@@ -234,14 +234,14 @@ namespace OpenKalman
       }
 
 
-      static constexpr Layout
-      layout = coordinates::euclidean_pattern<V0> ? layout_of_v<NestedObject> : Layout::none;
+      static constexpr data_layout
+      layout = coordinates::euclidean_pattern<V0> ? layout_of_v<NestedObject> : data_layout::none;
 
 
 #ifdef __cpp_concepts
-      template<typename Arg> requires (layout != Layout::none)
+      template<typename Arg> requires (layout != data_layout::none)
 #else
-      template<Layout l = layout, typename Arg, std::enable_if_t<l != Layout::none, int> = 0>
+      template<data_layout l = layout, typename Arg, std::enable_if_t<l != data_layout::none, int> = 0>
 #endif
       static auto
       strides(Arg&& arg)
@@ -266,7 +266,7 @@ namespace OpenKalman
     public:
 
       template<typename Derived>
-      using LibraryBase = internal::library_base_t<Derived, pattern_matrix_of_t<T>>;
+      using library_base = internal::library_base_t<Derived, std::decay_t<NestedObject>>;
 
 
 #ifdef __cpp_lib_ranges
@@ -286,9 +286,9 @@ namespace OpenKalman
         {
           auto g {[&arg, is...](std::size_t ix) { return OpenKalman::get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return coordinates::wrap(get_vector_space_descriptor<0>(arg), g, i);
+            return coordinates::wrap(get_pattern_collection<0>(arg), g, i);
           else
-            return coordinates::from_stat_space(get_vector_space_descriptor<0>(arg), g, i);
+            return coordinates::from_stat_space(get_pattern_collection<0>(arg), g, i);
         }
       }
 
@@ -313,7 +313,7 @@ namespace OpenKalman
           auto g {[&arg, is...](std::size_t ix) {
             return OpenKalman::get_component(nested_object(nested_object(arg)), ix, is...);
           }};
-          coordinates::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i);
+          coordinates::set_wrapped_component(get_pattern_collection<0>(arg), s, g, s, i);
         }
         else
         {
@@ -329,7 +329,7 @@ namespace OpenKalman
       }
 
 
-      template<Layout layout, typename Scalar, typename D>
+      template<data_layout layout, typename Scalar, typename D>
       static auto make_default(D&& d)
       {
         return make_dense_object<NestedObject, layout, Scalar>(std::forward<D>(d));
@@ -500,7 +500,7 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType triangle, typename A, typename U, typename Alpha>
+      template<triangle_type triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
         return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
@@ -534,10 +534,10 @@ namespace OpenKalman
     };
 
 
-  } // namespace interface
+  }
 
 
 } // OpenKalman
 
 
-#endif //OPENKALMAN_FROMEUCLIDEANEXPR_HPP
+#endif

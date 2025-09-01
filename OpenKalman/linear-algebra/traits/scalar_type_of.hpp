@@ -43,7 +43,7 @@ namespace OpenKalman
   struct scalar_type_of<T, std::enable_if_t<interface::scalar_type_defined_for<T>>>
 #endif
   {
-    using type = typename interface::indexible_object_traits<std::decay_t<T>>::scalar_type;
+    using type = typename interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::scalar_type;
   };
 
 
@@ -54,6 +54,6 @@ namespace OpenKalman
   using scalar_type_of_t = typename scalar_type_of<T>::type;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_SCALAR_TYPE_OF_HPP
+#endif

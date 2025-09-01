@@ -43,7 +43,7 @@ namespace OpenKalman::collections::internal
     static_assert(viewable_tuple_like<T>);
 #endif
 
-    using Seq = std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>;
+    using Seq = std::make_index_sequence<size_of_v<T>>;
 
 
     template<typename U, std::size_t...i>
@@ -88,7 +88,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() & noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return OpenKalman::internal::generalized_std_get<i>(*t_).get();
     }
 
@@ -96,7 +96,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() const & noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return OpenKalman::internal::generalized_std_get<i>(*t_).get();
     }
 
@@ -104,7 +104,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() && noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return std::move(OpenKalman::internal::generalized_std_get<i>(*t_).get());
     }
 
@@ -112,7 +112,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() const && noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return std::move(OpenKalman::internal::generalized_std_get<i>(*t_).get());
     }
 
@@ -172,7 +172,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() & noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return  OpenKalman::internal::generalized_std_get<i>(t_.operator*());
     }
 
@@ -180,7 +180,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() const & noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return  OpenKalman::internal::generalized_std_get<i>(t_.operator*());
     }
 
@@ -188,7 +188,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() && noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return  OpenKalman::internal::generalized_std_get<i>(std::move(t_.operator*()));
     }
 
@@ -196,7 +196,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() const && noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return  OpenKalman::internal::generalized_std_get<i>(std::move(t_.operator*()));
     }
 
@@ -245,7 +245,7 @@ namespace OpenKalman::collections::internal
     template<std::size_t i>
     constexpr decltype(auto) get() const noexcept
     {
-      static_assert(i < std::tuple_size_v<std::decay_t<T>>, "Index out of range");
+      static_assert(i < size_of_v<T>, "Index out of range");
       return OpenKalman::internal::generalized_std_get<i>(t_.get());
     }
 
@@ -273,6 +273,6 @@ namespace std
 
   template<std::size_t i, typename Tup>
   struct tuple_element<i, OpenKalman::collections::internal::tuple_wrapper<Tup>> : tuple_element<i, std::decay_t<Tup>> {};
-} // namespace std
+}
 
 #endif

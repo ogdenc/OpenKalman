@@ -86,8 +86,8 @@ namespace OpenKalman::internal
       static_assert(hermitian_matrix<T> == hermitian_matrix<Arg>);
       static_assert(triangular_matrix<T> == triangular_matrix<Arg>);
       static_assert(diagonal_matrix<T> == diagonal_matrix<Arg>);
-      static_assert(triangular_matrix<Arg, TriangleType::lower> == triangular_matrix<Arg, TriangleType::lower>);
-      static_assert(triangular_matrix<Arg, TriangleType::upper> == triangular_matrix<Arg, TriangleType::upper>);
+      static_assert(triangular_matrix<Arg, triangle_type::lower> == triangular_matrix<Arg, triangle_type::lower>);
+      static_assert(triangular_matrix<Arg, triangle_type::upper> == triangular_matrix<Arg, triangle_type::upper>);
       return std::forward<Arg>(arg);
     }
   }
@@ -180,6 +180,6 @@ namespace OpenKalman::internal
   }
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_TOCOVARIANCENESTABLE_HPP
+#endif

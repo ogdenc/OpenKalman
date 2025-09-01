@@ -24,7 +24,7 @@ namespace OpenKalman
     static constexpr auto contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>)
     {
       return make_constant<A>(std::forward<C>(c),
-        get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...);
+        get_pattern_collection<0>(a), get_pattern_collection<1>(b), get_pattern_collection<Is + 2>(a)...);
     }
 
 
@@ -32,28 +32,28 @@ namespace OpenKalman
     template<typename A, typename B, std::size_t...Is>
     static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>)
     {
-      return std::tuple {get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...};
+      return std::tuple {get_pattern_collection<0>(a), get_pattern_collection<1>(b), get_pattern_collection<Is + 2>(a)...};
     }
     */
-  } // namespace detail
+  }
 
 
   /**
    * \brief Matrix multiplication of A * B.
    */
 #ifdef __cpp_concepts
-  template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, Applicability::permitted> and
+  template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, applicability::permitted> and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
   constexpr compatible_with_vector_space_descriptor_collection<std::tuple<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>> decltype(auto)
 #else
   template<typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
-    (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, Applicability::permitted>) and
+    (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, applicability::permitted>) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
   constexpr decltype(auto)
 #endif
   contract(A&& a, B&& b)
   {
-    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_vector_space_descriptor<1>(a) != get_vector_space_descriptor<0>(b))
+    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_pattern_collection<1>(a) != get_pattern_collection<0>(b))
       throw std::domain_error {"In contract, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
         ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
 
@@ -78,7 +78,7 @@ namespace OpenKalman
     }
     else if constexpr (zero<A> or zero<B>)
     {
-      return detail::contract_constant(values::Fixed<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(values::fixed_value<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
@@ -118,8 +118,8 @@ namespace OpenKalman
       auto x = interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
       auto ret = internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::move(x));
 
-      constexpr TriangleType tri = triangle_type_of_v<A, B>;
-      if constexpr (tri != TriangleType::any and not triangular_matrix<decltype(ret), tri>)
+      constexpr triangle_type tri = triangle_type_of_v<A, B>;
+      if constexpr (tri != triangle_type::any and not triangular_matrix<decltype(ret), tri>)
         return make_triangular_matrix<tri>(std::move(ret));
       else
         return ret;
@@ -139,7 +139,7 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_CONTRACT_HPP
+#endif

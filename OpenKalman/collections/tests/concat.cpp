@@ -15,13 +15,11 @@
 
 #include "tests.hpp"
 #include "basics/basics.hpp"
-#include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection_view.hpp"
-#include "collections/concepts/viewable_collection.hpp"
+#include "collections/concepts/tuple_like.hpp"
 #include "collections/views/all.hpp"
 #include "collections/views/concat.hpp"
 #include "collections/functions/internal/tuple_like_to_tuple.hpp"
-#include "collections/functions/comparison_operators.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
@@ -77,12 +75,13 @@ TEST(collections, concat)
   static_assert(std::is_same_v<std::tuple_element_t<6, decltype(views::concat(t1, t1) | views::all)>, double>);
   static_assert(std::is_same_v<std::tuple_element_t<7, decltype(views::concat(t1, t1) | views::all)>, float>);
 
-  static_assert(equal_to{}(views::concat(t1, t1), std::tuple{1, 2., 3.f, 4., 5, 1, 2., 3.f, 4., 5} | views::all));
-  EXPECT_TRUE(equal_to{}(views::concat(t1, a1), std::tuple{1, 2., 3.f, 4., 5, 1, 2, 3, 4, 5} | views::all));
-  EXPECT_TRUE(equal_to{}(views::concat(t1, v1), std::tuple{1, 2., 3.f, 4., 5, 4, 5, 6, 7, 8} | views::all));
-
-  static_assert(less{}(views::concat(t1, t1), std::tuple{1, 2., 3.f, 4., 5, 1, 2., 3.f, 4., 5, 6} | views::all));
-  EXPECT_TRUE(less{}(views::concat(a1, t1), std::tuple{1, 2, 3, 4, 5, 1, 2., 3.f, 4., 5, 6} | views::all));
-  EXPECT_TRUE(less{}(views::concat(v1, t1), std::tuple{4, 5, 6, 7, 8, 1, 2., 3.f, 4., 5, 6} | views::all));
+  static_assert(views::concat(t1, t1)[0U] == 1);
+  static_assert(views::concat(t1, t1)[5U] == 1);
+  static_assert(views::concat(t1, t1)[7U] == 3.f);
+  EXPECT_TRUE(views::concat(t1, a1)[5U] == 1);
+  EXPECT_TRUE(views::concat(t1, a1)[7U] == 3);
+  EXPECT_TRUE(views::concat(t1, v1)[2U] == 3);
+  EXPECT_TRUE(views::concat(t1, v1)[5U] == 4);
+  EXPECT_TRUE(views::concat(t1, v1)[7U] == 6);
 }
 

@@ -56,7 +56,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (values::fixed<N>)
       {
@@ -109,15 +109,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional =
-      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Applicability::permitted>) or
+      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, applicability::permitted>) or
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square =
-      (b != Applicability::guaranteed or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
+      (b != applicability::guaranteed or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and not has_dynamic_dimensions<XprType>)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (nested_components == dynamic_size or (
@@ -127,7 +127,7 @@ namespace OpenKalman::interface
       (Cols == Eigen::Dynamic or xprtypemax == dynamic_size or (Cols * Cols) % xprtypemax == 0);
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<XprType, t> and
       ((Rows != Eigen::Dynamic and Rows == XprType::RowsAtCompileTime) or (Cols != Eigen::Dynamic and Cols == XprType::ColsAtCompileTime));
 
@@ -135,12 +135,12 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Applicability::permitted> and
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, applicability::permitted> and
       ((XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic) or
         (Rows == Eigen::Dynamic or Rows == XprType::RowsAtCompileTime or Rows == XprType::ColsAtCompileTime) and
         (Cols == Eigen::Dynamic or Cols == XprType::ColsAtCompileTime or Cols == XprType::RowsAtCompileTime));
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_RESHAPED_HPP
+#endif

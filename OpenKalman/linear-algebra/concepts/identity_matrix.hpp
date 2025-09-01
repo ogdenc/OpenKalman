@@ -47,6 +47,6 @@ namespace OpenKalman
     empty_object<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_IDENTITY_MATRIX_HPP
+#endif

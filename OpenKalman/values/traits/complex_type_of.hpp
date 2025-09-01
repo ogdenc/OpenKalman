@@ -18,36 +18,37 @@
 
 #include <type_traits>
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
 
 namespace OpenKalman::values
 {
   /**
-   * \brief Obtain the \ref values::complex "complex" type associated with a \ref values::value "value", if it exists.
+   * \brief Obtain the \ref values::complex "complex" type associated with a \ref value, if it exists.
    * \details This type will be equivalent to
    * \code
-   * std::decay_t<decltype(values::internal::make_complex_number<number_type_of_t<T>>(std::declval<T>()))>
+   * std::decay_t<decltype(values::internal::make_complex_number<value_type_of_t<T>>(std::declval<T>()))>
    * /endcode.
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  template<typename T, typename = void>
+  template<typename T, typename = void, typename = void>
 #endif
   struct complex_type_of {};
 
 
   /// \overload
 #ifdef __cpp_concepts
-  template<value T> requires requires { values::internal::make_complex_number<number_type_of_t<T>>(std::declval<T>()); }
+  template<value T> requires requires { internal::make_complex_number<value_type_of_t<T>>(std::declval<T>()); }
   struct complex_type_of<T>
 #else
   template<typename T>
-  struct complex_type_of<T, std::void_t<decltype(values::internal::make_complex_number<number_type_of_t<T>>(std::declval<T>()))>>
+  struct complex_type_of<T, std::enable_if_t<value<T>>,
+    std::void_t<decltype(internal::make_complex_number<value_type_of_t<T>>(std::declval<T>()))>>
 #endif
   {
-    using type = std::decay_t<decltype(values::internal::make_complex_number<number_type_of_t<T>>(std::declval<T>()))>;
+    using type = std::decay_t<decltype(internal::make_complex_number<value_type_of_t<T>>(std::declval<T>()))>;
   };
 
 

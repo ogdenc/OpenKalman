@@ -17,7 +17,7 @@
 #define OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
 
 #include "values/values.hpp"
-#include "collections/functions/comparison_operators.hpp"
+#include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "internal/movable_wrapper.hpp"
 
 namespace OpenKalman::collections
@@ -203,7 +203,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get(this auto&& self) noexcept
     {
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
       return std::forward<decltype(self)>(self).f_box(std::integral_constant<std::size_t, i>{});
     }
 #else
@@ -212,7 +212,7 @@ namespace OpenKalman::collections
     get() &
     {
       using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -221,7 +221,7 @@ namespace OpenKalman::collections
     get() const &
     {
       using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -230,7 +230,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -239,7 +239,7 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 #endif
@@ -263,7 +263,7 @@ namespace OpenKalman::collections
   generate_view(F) -> generate_view<F>;
 
 
-} // namespace OpenKalman::values
+}
 
 
 #ifdef __cpp_lib_ranges
@@ -281,7 +281,7 @@ namespace OpenKalman::stdcompat::ranges
 namespace std
 {
   template<typename F, typename S>
-  struct tuple_size<OpenKalman::collections::generate_view<F, S>> : OpenKalman::values::fixed_number_of<S> {};
+  struct tuple_size<OpenKalman::collections::generate_view<F, S>> : OpenKalman::values::fixed_value_of<S> {};
 
 
   template<std::size_t i, typename F, typename S>
@@ -290,7 +290,7 @@ namespace std
     using type = std::invoke_result_t<F, std::integral_constant<std::size_t, i>>;
   };
 
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -346,4 +346,4 @@ namespace OpenKalman::collections::views
 
 }
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
+#endif

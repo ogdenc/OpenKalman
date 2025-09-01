@@ -19,4 +19,4 @@
 #include "matrices/tests/matrix.gtest.hpp"
 
 
-#endif //OPENKALMAN_COVARIANCES_GTEST_HPP
+#endif

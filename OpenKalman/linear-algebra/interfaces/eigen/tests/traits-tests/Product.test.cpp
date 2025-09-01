@@ -68,13 +68,13 @@ TEST(eigen3, Eigen_Product)
   static_assert(not hermitian_matrix<decltype((std::declval<Cd22_2>()*cdouble{1,1}).matrix() * std::declval<Sauv22>().matrix())>);
   static_assert(not hermitian_matrix<decltype(std::declval<Sauv22>().matrix() * (std::declval<Cd22_2>()*cdouble{1,1}).matrix())>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Tlv22>().matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().matrix() * std::declval<Cd22_2>().matrix()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Tlv22>().matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().matrix() * std::declval<Cd22_2>().matrix()), triangle_type::lower>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Tuv22>().matrix()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().matrix() * std::declval<Cd22_2>().matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Tuv22>().matrix()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().matrix() * std::declval<Cd22_2>().matrix()), triangle_type::upper>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().matrix() * std::declval<Tlv22>().matrix()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().matrix() * std::declval<Tuv22>().matrix()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().matrix() * std::declval<Tlv22>().matrix()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().matrix() * std::declval<Tuv22>().matrix()), triangle_type::upper>);
 }
 

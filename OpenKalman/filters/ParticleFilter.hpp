@@ -128,4 +128,4 @@ namespace OpenKalman {
 }
 
 
-#endif //OPENKALMAN_PARTICLEFILTER_HPP
+#endif

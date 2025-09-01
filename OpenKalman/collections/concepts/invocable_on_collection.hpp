@@ -16,12 +16,10 @@
 #ifndef OPENKALMAN_INVOCABLE_ON_COLLECTION_HPP
 #define OPENKALMAN_INVOCABLE_ON_COLLECTION_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
-#include "tuple_like.hpp"
+#include "collection.hpp"
+#include "uniformly_gettable.hpp"
+#include "collections/traits/size_of.hpp"
+#include "collections/traits/collection_element.hpp"
 
 namespace OpenKalman::collections
 {
@@ -40,8 +38,8 @@ namespace OpenKalman::collections
     struct is_invocable_on_tuple_sequence { using type = std::index_sequence<>; };
 
     template<typename Tup>
-    struct is_invocable_on_tuple_sequence<Tup, std::enable_if_t<tuple_like<Tup>>>
-    { using type = std::make_index_sequence<std::tuple_size_v<std::decay_t<Tup>>>; };
+    struct is_invocable_on_tuple_sequence<Tup, std::enable_if_t<uniformly_gettable<Tup>>>
+    { using type = std::make_index_sequence<size_of_v<Tup>>; };
 
 
     template<typename Tup, typename F, typename Seq, typename...Args>
@@ -49,10 +47,10 @@ namespace OpenKalman::collections
 
     template<typename Tup, typename F, std::size_t...Ix, typename...Args>
     struct is_invocable_on_tuple<Tup, F, std::index_sequence<Ix...>, Args...>
-      : std::bool_constant<(... and std::is_invocable_v<F&, std::tuple_element_t<Ix, Tup>, Args...>)> {};
+      : std::bool_constant<(... and std::is_invocable_v<F&, collection_element_t<Ix, Tup>, Args...>)> {};
 #endif
 
-  } // namespace detail
+  }
 
 
   /**
@@ -62,17 +60,18 @@ namespace OpenKalman::collections
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept invocable_on_collection = collection<C> and
     (not stdcompat::ranges::range<C> or std::regular_invocable<F, stdcompat::ranges::range_value_t<C>, Args&&...>) and
-    (not tuple_like<C> or
+    (not uniformly_gettable<C> or
       []<std::size_t...i>(std::index_sequence<i...>) {
-        return (... and std::regular_invocable<F&, std::tuple_element_t<i, C>, Args&&...>);
+        return (... and std::regular_invocable<F&, typename collection_element<i, C>::type, Args&&...>);
       } (std::make_index_sequence<size_of_v<C>>{}));
 #else
   constexpr bool invocable_on_collection =
     (not stdcompat::ranges::range<C> or detail::is_invocable_on_range<C, F, void, Args&&...>::value) and
-    (not tuple_like<C> or detail::is_invocable_on_tuple<C, F, typename detail::is_invocable_on_tuple_sequence<C>::type, Args&&...>::value);
+    (not uniformly_gettable<C> or
+      detail::is_invocable_on_tuple<C, F, typename detail::is_invocable_on_tuple_sequence<C>::type, Args&&...>::value);
 #endif
 
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_INVOCABLE_ON_COLLECTION_HPP
+#endif

@@ -19,11 +19,11 @@
 
 namespace Eigen::internal
 {
-  template<typename ArgType, OpenKalman::TriangleType triangle_type>
-  struct evaluator<OpenKalman::TriangularAdapter<ArgType, triangle_type>>
-    : evaluator_base<OpenKalman::TriangularAdapter<ArgType, triangle_type>>
+  template<typename ArgType, OpenKalman::triangle_type tri>
+  struct evaluator<OpenKalman::TriangularAdapter<ArgType, tri>>
+    : evaluator_base<OpenKalman::TriangularAdapter<ArgType, tri>>
   {
-    using XprType = OpenKalman::TriangularAdapter<ArgType, triangle_type>;
+    using XprType = OpenKalman::TriangularAdapter<ArgType, tri>;
     using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
@@ -43,9 +43,9 @@ namespace Eigen::internal
     auto& coeffRef(Index row, Index col)
     {
       static Scalar dummy;
-      if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) { dummy = 0; return dummy; }}
-      else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) { dummy = 0; return dummy; }}
-      else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) { dummy = 0; return dummy; }}
+      if constexpr(tri == OpenKalman::triangle_type::diagonal) {if (row != col) { dummy = 0; return dummy; }}
+      else if constexpr(tri == OpenKalman::triangle_type::upper) {if (row > col) { dummy = 0; return dummy; }}
+      else if constexpr(tri == OpenKalman::triangle_type::lower) {if (row < col) { dummy = 0; return dummy; }}
       return m_argImpl.coeffRef(row, col);
     }
 
@@ -64,15 +64,15 @@ namespace Eigen::internal
       if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
       {
         static std::remove_reference_t<CoeffReturnType> dummy = 0;
-        if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) return dummy;}
-        else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) return dummy;}
-        else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) return dummy;}
+        if constexpr(tri == OpenKalman::triangle_type::diagonal) {if (row != col) return dummy;}
+        else if constexpr(tri == OpenKalman::triangle_type::upper) {if (row > col) return dummy;}
+        else if constexpr(tri == OpenKalman::triangle_type::lower) {if (row < col) return dummy;}
       }
       else
       {
-        if constexpr(triangle_type == OpenKalman::TriangleType::diagonal) {if (row != col) return Scalar(0);}
-        else if constexpr(triangle_type == OpenKalman::TriangleType::upper) {if (row > col) return Scalar(0);}
-        else if constexpr(triangle_type == OpenKalman::TriangleType::lower) {if (row < col) return Scalar(0);}
+        if constexpr(tri == OpenKalman::triangle_type::diagonal) {if (row != col) return Scalar(0);}
+        else if constexpr(tri == OpenKalman::triangle_type::upper) {if (row > col) return Scalar(0);}
+        else if constexpr(tri == OpenKalman::triangle_type::lower) {if (row < col) return Scalar(0);}
       }
       return m_argImpl.coeff(row, col);
     }
@@ -113,6 +113,6 @@ namespace Eigen::internal
   };
 
 
-} // namespace Eigen::internal
+}
 
-#endif //OPENKALMAN_EIGEN_NATIVE_EVALUATORS_TRIANGULARADAPTER_HPP
+#endif

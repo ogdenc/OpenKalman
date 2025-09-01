@@ -34,7 +34,7 @@ namespace OpenKalman
 #endif
     typed_matrix<T> or covariance<T> or euclidean_expr<T>;
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_TYPED_ADAPTER_HPP
+#endif

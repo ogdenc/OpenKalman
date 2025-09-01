@@ -232,7 +232,7 @@ namespace OpenKalman
       compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[]{ make_zero<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
+      mu {[]{ make_zero<MeanNestedMatrix>(get_pattern_collection<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
 
@@ -244,7 +244,7 @@ namespace OpenKalman
       covariance_nestable<Cov> and (index_dimension_of<Cov, 0>::value == dim), int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[]{ make_zero<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
+      mu {[]{ make_zero<MeanNestedMatrix>(get_pattern_collection<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
     // ---------------------- //
@@ -327,7 +327,7 @@ namespace OpenKalman
       auto norm = randomize<Matrix<StaticDescriptor, Axis, MeanNestedMatrix>, random_number_engine>(
         std::normal_distribution {0.0, 1.0});
       auto s = square_root(sigma);
-      if constexpr(triangular_matrix<decltype(s), TriangleType::upper>)
+      if constexpr(triangular_matrix<decltype(s), triangle_type::upper>)
         return sum(Matrix {mu}, contract(transpose(std::move(s)), std::move(norm)));
       else
         return sum(Matrix {mu}, contract(std::move(s), std::move(norm)));
@@ -735,17 +735,17 @@ namespace OpenKalman
       static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 1>{}; }
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+      static constexpr auto get_pattern_collection(const Arg& arg, N n)
       {
         if constexpr (values::fixed<N>)
         {
           static_assert(n == 0_uz);
-          if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_vector_space_descriptor<0>(mean_of(arg));
-          else return OpenKalman::get_vector_space_descriptor<0>(covariance_of(arg));
+          if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_pattern_collection<0>(mean_of(arg));
+          else return OpenKalman::get_pattern_collection<0>(covariance_of(arg));
         }
         else
         {
-          return OpenKalman::get_vector_space_descriptor(mean_of(arg), n);
+          return OpenKalman::get_pattern_collection(mean_of(arg), n);
         }
       }
 
@@ -766,11 +766,11 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(arg.mu()); }
 
 
-      static constexpr Layout layout = layout_of_v<NestedMean>;
+      static constexpr data_layout layout = layout_of_v<NestedMean>;
 
     };
 
-  } // namespace interface
+  }
 
 
   template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
@@ -1055,4 +1055,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
+#endif

@@ -20,9 +20,6 @@
 #define OPENKALMAN_EIGEN_TRAITS_HPP
 
 
-#include "indexible_object_traits_base.hpp"
-#include "eigen-library-interface.hpp"
-
 #include "linear-algebra/interfaces/eigen/traits/functors/nullary.hpp"
 #include "linear-algebra/interfaces/eigen/traits/functors/unary.hpp"
 #include "linear-algebra/interfaces/eigen/traits/functors/binary.hpp"
@@ -74,4 +71,4 @@
 #include "PartialReduxExpr.hpp"
 
 
-#endif //OPENKALMAN_EIGEN_TRAITS_HPP
+#endif

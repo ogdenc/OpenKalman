@@ -526,7 +526,7 @@ namespace OpenKalman::Eigen3
   template<typename S> static auto native_operation(const std::logical_not<S>& op) { return Eigen::internal::scalar_boolean_not_op<S> {}; };
 
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_EIGEN_FORWARD_DECLARATIONS_HPP
+#endif

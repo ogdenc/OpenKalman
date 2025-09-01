@@ -59,7 +59,7 @@
 #include "triangular_matrix.hpp"
 #include "triangular_adapter.hpp"
 #include "diagonal_matrix.hpp"
-#include "diagonal_adapter.hpp"
+#include "internal/has_nested_vector.hpp"
 #include "hermitian_matrix.hpp"
 #include "hermitian_adapter.hpp"
 
@@ -68,7 +68,7 @@
 #include "writable.hpp"
 
 #include "element_gettable.hpp" // deprecated
-#include "index_range_for.hpp"
+#include "index_collection_for.hpp"
 #include "writable_by_component.hpp"
 
 #include "directly_accessible.hpp"
@@ -76,4 +76,4 @@
 #include "object-types.hpp"
 
 
-#endif //OPENKALMAN_LINEAR_ALGEBRA_CONCEPTS_HPP
+#endif

@@ -85,6 +85,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAKE_VECTOR_SPACE_ADAPTER_HPP
+#endif

@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3::internal
   };
 
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFADJOINTMATRIX_HPP
+#endif

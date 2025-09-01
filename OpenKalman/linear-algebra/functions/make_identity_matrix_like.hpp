@@ -49,7 +49,7 @@ namespace OpenKalman
     }
     else
     {
-      return internal::make_constant_diagonal_from_descriptors<T>(values::Fixed<Scalar, 1>{}, std::forward<D>(d));
+      return internal::make_constant_diagonal_from_descriptors<T>(values::fixed_value<Scalar, 1>{}, std::forward<D>(d));
     }
   }
 
@@ -112,6 +112,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAKE_IDENTITY_MATRIX_LIKE_HPP
+#endif

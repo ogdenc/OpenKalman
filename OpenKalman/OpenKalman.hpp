@@ -32,4 +32,4 @@ namespace OpenKalman {}
 #include "filters/filters.hpp"
 
 
-#endif //OPENKALMAN_OPENKALMAN_HPP
+#endif

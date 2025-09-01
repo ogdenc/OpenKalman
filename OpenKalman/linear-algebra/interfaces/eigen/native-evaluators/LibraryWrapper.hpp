@@ -69,7 +69,7 @@ namespace OpenKalman::detail
       : Eigen::internal::evaluator<std::decay_t<Nested>> {t.nested_object()} {}
   };
 
-} // namespace OpenKalman::detail
+}
 
 
 namespace Eigen::internal
@@ -87,4 +87,4 @@ namespace Eigen::internal
 
 } // Eigen::internal
 
-#endif //OPENKALMAN_EIGEN_NATIVE_EVALUATORS_LIBRARYWRAPPER_HPP
+#endif

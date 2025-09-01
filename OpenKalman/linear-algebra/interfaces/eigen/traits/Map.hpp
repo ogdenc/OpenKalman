@@ -44,10 +44,10 @@ namespace OpenKalman::interface
     // get_constant_diagonal() not defined
 
 
-    static constexpr Layout layout = std::is_same_v<StrideType, Eigen::Stride<0, 0>> ? layout_of_v<PlainObjectType> : Layout::stride;
+    static constexpr data_layout layout = std::is_same_v<StrideType, Eigen::Stride<0, 0>> ? layout_of_v<PlainObjectType> : data_layout::stride;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_MAP_HPP
+#endif

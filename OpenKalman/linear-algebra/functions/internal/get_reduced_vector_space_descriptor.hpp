@@ -38,9 +38,9 @@ namespace OpenKalman::internal
     if constexpr ((... or (I == indices)))
       return uniform_pattern_component_of_t<vector_space_descriptor_of_t<Arg, I>>{};
     else
-      return get_vector_space_descriptor<I>(arg);
+      return get_pattern_collection<I>(arg);
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_GET_REDUCED_VECTOR_SPACE_DESCRIPTOR_HPP
+#endif

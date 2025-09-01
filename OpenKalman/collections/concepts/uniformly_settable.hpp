@@ -56,7 +56,7 @@ namespace OpenKalman::collections
         (std::make_index_sequence<size_of_v<C>>{}));
 #else
   constexpr bool uniformly_settable =
-    ((sized<C> and not values::fixed_number_compares_with<size_of<C>, dynamic_size>) or settable<0_uz, C, T>) and
+    ((sized<C> and not values::fixed_value_compares_with<size_of<C>, dynamic_size>) or settable<0_uz, C, T>) and
     (not sized<C> or size_of_v<C> == dynamic_size or
       detail::uniformly_settable_sized<C, T>::value);
 #endif

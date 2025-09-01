@@ -25,7 +25,7 @@ inline namespace
           3, 4};
   LinearTransformation g {a};
   GaussianDistribution input {M2(1, 2), Mat2 {1, 0.1, 0.1, 1}};
-  GaussianDistribution input_chol {M2(1, 2), make_covariance<TriangleType::lower>(Mat2 {1, 0.1, 0.1, 1})};
+  GaussianDistribution input_chol {M2(1, 2), make_covariance<triangle_type::lower>(Mat2 {1, 0.1, 0.1, 1})};
   Covariance<C2> P_output = {5.4, 12,
                              12, 27.4};
   Mat2 cross_output {1.2, 3.4,

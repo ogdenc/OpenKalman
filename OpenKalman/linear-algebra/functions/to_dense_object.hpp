@@ -21,17 +21,17 @@ namespace OpenKalman
   /**
    * \brief Convert the argument to a dense, writable matrix of a particular scalar type.
    * \tparam T A dummy matrix or array from the relevant library (size, shape, and layout are ignored)
-   * \tparam layout The \ref Layout of the resulting object. If this is Layout::none, the interface will decide the layout.
+   * \tparam layout The \ref data_layout of the resulting object. If this is data_layout::none, the interface will decide the layout.
    * \tparam Scalar The Scalar type of the new matrix, if different than that of Arg
    * \param arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
-  template<indexible T, Layout layout = Layout::none, values::number Scalar = scalar_type_of_t<T>, indexible Arg> requires
-    (layout != Layout::stride)
+  template<indexible T, data_layout layout = data_layout::none, values::number Scalar = scalar_type_of_t<T>, indexible Arg> requires
+    (layout != data_layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename Arg, std::enable_if_t<
-    indexible<T> and (layout != Layout::stride) and values::number<Scalar> and indexible<Arg>, int> = 0>
+  template<typename T, data_layout layout = data_layout::none, typename Scalar = scalar_type_of_t<T>, typename Arg, std::enable_if_t<
+    indexible<T> and (layout != data_layout::stride) and values::number<Scalar> and indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   to_dense_object(Arg&& arg)
@@ -55,16 +55,16 @@ namespace OpenKalman
 
 /**
  * \brief Convert the argument to a dense, writable matrix of a particular scalar type.
- * \tparam layout The \ref Layout of the resulting object. If this is Layout::none, the interface will decide the layout.
+ * \tparam layout The \ref data_layout of the resulting object. If this is data_layout::none, the interface will decide the layout.
  * \tparam Scalar The Scalar type of the new matrix, if different than that of Arg
  * \param arg The object from which the new matrix is based
  */
 #ifdef __cpp_concepts
-  template<Layout layout, values::number Scalar, indexible Arg> requires (layout != Layout::stride)
+  template<data_layout layout, values::number Scalar, indexible Arg> requires (layout != data_layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<Layout layout, typename Scalar, typename Arg, std::enable_if_t<values::number<Scalar> and indexible<Arg> and
-    (layout != Layout::stride), int> = 0>
+  template<data_layout layout, typename Scalar, typename Arg, std::enable_if_t<values::number<Scalar> and indexible<Arg> and
+    (layout != data_layout::stride), int> = 0>
   constexpr decltype(auto)
 #endif
   to_dense_object(Arg&& arg)
@@ -79,15 +79,15 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Convert the argument to a dense, writable matrix with the same scalar type as the argument.
-   * \tparam layout The \ref Layout of the resulting object (optional). If this is omitted or Layout::none,
+   * \tparam layout The \ref data_layout of the resulting object (optional). If this is omitted or data_layout::none,
    * the interface will decide the layout.
    * \param arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
-  template<Layout layout = Layout::none, indexible Arg> requires (layout != Layout::stride)
+  template<data_layout layout = data_layout::none, indexible Arg> requires (layout != data_layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<Layout layout = Layout::none, typename Arg, std::enable_if_t<indexible<Arg> and (layout != Layout::stride), int> = 0>
+  template<data_layout layout = data_layout::none, typename Arg, std::enable_if_t<indexible<Arg> and (layout != data_layout::stride), int> = 0>
   constexpr decltype(auto)
 #endif
   to_dense_object(Arg&& arg)
@@ -99,6 +99,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TO_DENSE_OBJECT_HPP
+#endif

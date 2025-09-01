@@ -22,17 +22,17 @@ namespace OpenKalman
   /**
    * \brief Take the Cholesky factor of a matrix.
    * \tparam A A hermitian matrix.
-   * \tparam triangle_type Either TriangleType::upper, TriangleType::lower, or TriangleType::diagonal
+   * \tparam tri Either triangle_type::upper, triangle_type::lower, or triangle_type::diagonal
    * (only if A is a \ref diagonal_matrix).
    * \return T, where the argument is in the form A = TT<sup>T</sup>.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, hermitian_matrix<Applicability::permitted> A> requires
-    (triangle_type != TriangleType::diagonal or diagonal_matrix<A>)
-  constexpr triangular_matrix<triangle_type> decltype(auto)
+  template<triangle_type tri, hermitian_matrix<applicability::permitted> A> requires
+    (tri != triangle_type::diagonal or diagonal_matrix<A>)
+  constexpr triangular_matrix<tri> decltype(auto)
 #else
-  template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A, Applicability::permitted> and
-    (triangle_type != TriangleType::diagonal or diagonal_matrix<A>), int> = 0>
+  template<triangle_type tri, typename A, std::enable_if_t<hermitian_matrix<A, applicability::permitted> and
+    (tri != triangle_type::diagonal or diagonal_matrix<A>), int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_factor(A&& a)
@@ -47,7 +47,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<A>)
     {
       auto sq = values::sqrt(constant_diagonal_coefficient{a});
-      return to_diagonal(make_constant<A>(sq, get_vector_space_descriptor<0>(a)));
+      return to_diagonal(make_constant<A>(sq, get_pattern_collection<0>(a)));
     }
     else if constexpr (constant_matrix<A>)
     {
@@ -56,20 +56,20 @@ namespace OpenKalman
         auto v = *is_square_shaped(a);
         auto dim = get_dimension(v);
 
-        if constexpr (triangle_type == TriangleType::lower)
+        if constexpr (tri == triangle_type::lower)
         {
           auto col0 = make_constant<A>(sq, dim, coordinates::Axis{});
           return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - coordinates::Axis{})), v, v);
         }
         else
         {
-          static_assert(triangle_type == TriangleType::upper);
+          static_assert(tri == triangle_type::upper);
           auto row0 = make_constant<A>(sq, coordinates::Axis{}, dim);
           return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - coordinates::Axis{}, dim)), v, v);
         }
       }(a);
 
-      auto ret {make_triangular_matrix<triangle_type>(std::move(m))};
+      auto ret {make_triangular_matrix<tri>(std::move(m))};
       using C0 = vector_space_descriptor_of_t<A, 0>;
       using C1 = vector_space_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_pattern<C0>, C1, C0>;
@@ -85,33 +85,33 @@ namespace OpenKalman
     }
     else
     {
-     return interface::library_interface<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
+     return interface::library_interface<std::decay_t<A>>::template cholesky_factor<tri>(std::forward<A>(a));
     }
   }
 
 
  /**
   * \overload
-  * \details This overload does not require specifying the TriangleType, which is either
-  * # TriangleType::diagonal if A is diagonal;
+  * \details This overload does not require specifying the triangle_type, which is either
+  * # triangle_type::diagonal if A is diagonal;
   * # the hermitian adapter triangle type of A, if it exists; or
-  * # TriangleType::lower, by default.
+  * # triangle_type::lower, by default.
   */
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Applicability::permitted> A>
+  template<hermitian_matrix<applicability::permitted> A>
   constexpr triangular_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<hermitian_matrix<A, Applicability::permitted>, int> = 0>
+  template<typename A, std::enable_if_t<hermitian_matrix<A, applicability::permitted>, int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_factor(A&& a)
   {
-    constexpr auto u = diagonal_matrix<A> ? TriangleType::diagonal :
-      hermitian_adapter<A, HermitianAdapterType::upper> ? TriangleType::upper : TriangleType::lower;
+    constexpr auto u = diagonal_matrix<A> ? triangle_type::diagonal :
+      hermitian_adapter<A, HermitianAdapterType::upper> ? triangle_type::upper : triangle_type::lower;
     return cholesky_factor<u>(std::forward<A>(a));
   }
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_CHOLESKY_FACTOR_HPP
+#endif

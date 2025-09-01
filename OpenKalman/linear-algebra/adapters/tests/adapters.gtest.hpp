@@ -20,4 +20,4 @@
 #include "linear-algebra/adapters/adapters.hpp"
 
 
-#endif //OPENKALMAN_ADAPTERS_GTEST_HPP
+#endif

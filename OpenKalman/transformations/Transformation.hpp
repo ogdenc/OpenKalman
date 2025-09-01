@@ -45,7 +45,7 @@ namespace OpenKalman
       (order <= sizeof...(TaylorDerivatives))>> : std::true_type {};
 #endif
 
-  } // namespace internal
+  }
 
 
   // ------------------------------  //
@@ -253,4 +253,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_TRANSFORMATION_HPP
+#endif

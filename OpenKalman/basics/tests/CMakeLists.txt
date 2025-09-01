@@ -17,7 +17,6 @@ include(GoogleTest)
 add_executable(basics
         language-features.cpp
         global-definitions.cpp
-        classes.cpp
         all.cpp
         empty.cpp
         single.cpp

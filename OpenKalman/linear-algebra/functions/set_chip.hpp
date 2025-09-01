@@ -36,7 +36,7 @@ namespace OpenKalman
     {
       return set_slice(std::forward<Arg>(arg), std::forward<Chip>(chip), chip_index_match<all_indices, indices...>(is...)...);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -68,13 +68,13 @@ namespace OpenKalman
         static_assert(std::decay_t<Ixs>::value < index_dimension_of_v<Arg, indices>, "set_chip: indices must be in range");
     }());
 
-    static_assert((... and dimension_size_of_index_is<Chip, indices, 1, Applicability::permitted>),
+    static_assert((... and dimension_size_of_index_is<Chip, indices, 1, applicability::permitted>),
       "Argument chip to set_chip must be 1D in all the specified indices.");
 
     return detail::set_chip_impl<indices...>(std::forward<Arg>(arg), std::forward<Chip>(chip),
       std::make_index_sequence<index_count_v<Arg>> {}, ixs...);
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_SET_CHIP_HPP
+#endif

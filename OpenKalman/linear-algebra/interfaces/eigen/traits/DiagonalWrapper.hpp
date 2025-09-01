@@ -44,7 +44,7 @@ namespace OpenKalman::interface
 
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
+    static constexpr auto get_pattern_collection(const Arg& arg, N)
     {
       if constexpr (has_dynamic_dimensions<DiagVectorType>) return static_cast<std::size_t>(arg.rows());
       else return Dimensions<index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>>{};
@@ -70,15 +70,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<DiagVectorType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = true;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = true;
 
 
@@ -90,6 +90,6 @@ namespace OpenKalman::interface
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_DIAGONALWRAPPER_HPP
+#endif

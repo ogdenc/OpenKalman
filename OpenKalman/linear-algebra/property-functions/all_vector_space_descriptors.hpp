@@ -16,8 +16,8 @@
 #ifndef OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 #define OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 
-#include "linear-algebra/coordinates/concepts/pattern_collection.hpp"
-#include "linear-algebra/coordinates/concepts/pattern_tuple.hpp"
+#include "coordinates/concepts/pattern_collection.hpp"
+#include "coordinates/concepts/pattern_tuple.hpp"
 #include "linear-algebra/interfaces/object-traits-defined.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/property-functions/internal/VectorSpaceDescriptorRange.hpp"
@@ -32,9 +32,9 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr auto all_vector_space_descriptors_impl(const T& t, std::index_sequence<I...>)
     {
-      return std::tuple {get_vector_space_descriptor<I>(t)...};
+      return std::tuple {get_pattern_collection<I>(t)...};
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -42,11 +42,11 @@ namespace OpenKalman
      \details This will be a \ref pattern_collection in the form of a std::tuple or a std::vector.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires interface::get_vector_space_descriptor_defined_for<T> 
+  template<indexible T> requires interface::get_pattern_collection_defined_for<T>
   constexpr pattern_collection decltype(auto)
 #else
   template<typename T, std::enable_if_t<
-    indexible<T> and interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
+    indexible<T> and interface::get_pattern_collection_defined_for<T>, int> = 0>
   constexpr decltype(auto) 
 #endif
   all_vector_space_descriptors(const T& t)
@@ -63,10 +63,10 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr auto all_vector_space_descriptors_impl(std::index_sequence<I...>)
     {
-      return std::tuple {std::decay_t<decltype(get_vector_space_descriptor<I>(std::declval<T>()))>{}...};
+      return std::tuple {std::decay_t<decltype(get_pattern_collection<I>(std::declval<T>()))>{}...};
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -89,6 +89,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
+#endif

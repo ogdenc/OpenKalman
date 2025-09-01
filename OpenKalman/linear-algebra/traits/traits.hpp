@@ -44,4 +44,4 @@
 #include "layout_of.hpp"
 
 
-#endif //OPENKALMAN_LINEAR_ALGEBRA_TRAITS_HPP
+#endif

@@ -30,7 +30,7 @@ namespace OpenKalman
     {
       return ([](auto I_const, const T& t, const Ts&...ts){
         constexpr std::size_t I = decltype(I_const)::value;
-        return ((get_vector_space_descriptor<I>(t) == get_vector_space_descriptor<I>(ts)) and ...);
+        return ((get_pattern_collection<I>(t) == get_pattern_collection<I>(ts)) and ...);
       }(std::integral_constant<std::size_t, Is>{}, t, ts...) and ...);
     }
 
@@ -42,7 +42,7 @@ namespace OpenKalman
     {
       auto count = std::max({static_cast<std::size_t>(count_indices(t)), static_cast<std::size_t>(count_indices(ts))...});
       for (std::size_t i = 0; i < count; ++i)
-        if (((get_vector_space_descriptor(t, i) != get_vector_space_descriptor(ts, i)) or ...)) return false;
+        if (((get_pattern_collection(t, i) != get_pattern_collection(ts, i)) or ...)) return false;
       return true;
     }
   }
@@ -75,6 +75,6 @@ namespace OpenKalman
 
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_MATCH_HPP
+#endif

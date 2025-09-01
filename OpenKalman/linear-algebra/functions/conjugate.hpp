@@ -61,6 +61,6 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_CONJUGATE_HPP
+#endif

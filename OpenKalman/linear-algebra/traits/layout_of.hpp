@@ -27,7 +27,7 @@ namespace OpenKalman
 
     template<typename T>
       struct has_layout<T, std::void_t<decltype(interface::indexible_object_traits<T>::layout)>> : std::true_type {};
-  } // namespace detail
+  }
 #endif
 
 
@@ -41,17 +41,17 @@ namespace OpenKalman
 #else
   template<typename T, typename = void>
 #endif
-  struct layout_of : std::integral_constant<Layout, Layout::none> {};
+  struct layout_of : std::integral_constant<data_layout, data_layout::none> {};
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires requires { interface::indexible_object_traits<std::decay_t<T>>::layout; }
+  template<typename T> requires requires { interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout; }
   struct layout_of<T>
 #else
   template<typename T>
   struct layout_of<T, std::enable_if_t<detail::has_layout<std::decay_t<T>>::value>>
 #endif
-    : std::integral_constant<Layout, interface::indexible_object_traits<std::decay_t<T>>::layout> {};
+    : std::integral_constant<data_layout, interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::layout> {};
 
 
   /**
@@ -61,6 +61,6 @@ namespace OpenKalman
   static constexpr auto layout_of_v = layout_of<T>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_LAYOUT_OF_HPP
+#endif

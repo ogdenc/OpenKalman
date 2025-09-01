@@ -10,12 +10,13 @@
 
 /**
  * \file
- * \brief Definition of \ref count_indices function.
+ * \brief Definition of \ref count_indices.
  */
 
 #ifndef OPENKALMAN_COUNT_INDICES_HPP
 #define OPENKALMAN_COUNT_INDICES_HPP
 
+#include "linear-algebra/interfaces/object-traits-defined.hpp"
 
 namespace OpenKalman
 {
@@ -32,10 +33,10 @@ namespace OpenKalman
 #endif
   count_indices(const T& t)
   {
-    return interface::indexible_object_traits<T>::count_indices(t);
+    return stdcompat::invoke(interface::indexible_object_traits<T>::count_indices, t);
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COUNT_INDICES_HPP
+#endif

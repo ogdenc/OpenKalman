@@ -59,7 +59,7 @@ namespace Eigen
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
     static constexpr auto layout = OpenKalman::layout_of_v<XprType>;
     static constexpr auto dim = OpenKalman::index_dimension_of_v<XprType, 0>;
-    using NestedMatrix = OpenKalman::dense_writable_matrix_t<OpenKalman::pattern_matrix_of_t<XprType>, layout,
+    using NestedMatrix = OpenKalman::dense_writable_matrix_t<OpenKalman::nested_object_of_t<XprType>, layout,
       Scalar, std::tuple<OpenKalman::Dimensions<dim>, OpenKalman::Axis>>;
     using Nested = CommaInitializer<NestedMatrix>;
 
@@ -106,12 +106,12 @@ namespace Eigen
 
     ~DiagonalCommaInitializer()
     {
-      diag = OpenKalman::DiagonalAdapter<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::diagonal_adapter<NestedMatrix>(comma_initializer.finished());
     }
 
     auto& finished()
     {
-      diag = OpenKalman::DiagonalAdapter<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::diagonal_adapter<NestedMatrix>(comma_initializer.finished());
       return diag;
     }
   };
@@ -210,7 +210,7 @@ namespace Eigen
     }
   };
 
-} // namespace Eigen
+}
 
 
-#endif //OPENKALMAN_EIGEN_COMMA_INITIALIZERS_HPP
+#endif

@@ -62,7 +62,7 @@ namespace OpenKalman::values
   {
     template<typename T>
     constexpr auto const_diag_value =
-      std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>::value;
+      std::decay_t<decltype(interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::get_constant_diagonal(std::declval<T>()))>::value;
 
 
 #ifdef __cpp_concepts
@@ -83,7 +83,7 @@ namespace OpenKalman::values
     constexpr bool has_static_constant = values::fixed<typename interface::get_constant_return_type<T>::type> or
       has_static_constant_impl<T>::value;
 #endif
-  } // namespace detail
+  }
 
 
   /**
@@ -100,7 +100,7 @@ namespace OpenKalman::values
   {
   private:
 
-    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>;
 
   public:
 
@@ -143,15 +143,15 @@ namespace OpenKalman::values
   {
   private:
 
-    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>;
 
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : m_value {[](const auto& t){
         if constexpr (values::dynamic<typename interface::get_constant_return_type<T>::type>)
-          return values::to_number(Trait::get_constant(t));
+          return values::to_value_type(Trait::get_constant(t));
         else if constexpr (values::dynamic<typename interface::get_constant_diagonal_return_type<T>::type>)
-          return values::to_number(Trait::get_constant_diagonal(t));
+          return values::to_value_type(Trait::get_constant_diagonal(t));
         else
           return internal::get_singular_component(t);
       }(t)} {};
@@ -170,7 +170,7 @@ namespace OpenKalman::values
   };
 
 
-} // namespace OpenKalman::values
+}
 
 
 namespace OpenKalman
@@ -179,4 +179,4 @@ namespace OpenKalman
   using values::constant_coefficient_v;
 }
 
-#endif //OPENKALMAN_CONSTANT_COEFFICIENT_HPP
+#endif

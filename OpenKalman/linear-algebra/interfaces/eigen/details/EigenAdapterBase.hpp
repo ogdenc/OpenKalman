@@ -117,7 +117,7 @@ namespace OpenKalman::Eigen3
     constexpr Index
     outerStride() const
     {
-      if constexpr (layout_of_v<Derived> == Layout::stride)
+      if constexpr (layout_of_v<Derived> == data_layout::stride)
         return std::get<Base::IsRowMajor ? 0 : 1>(strides(static_cast<const Derived&>(*this)));
       else if constexpr (Base::IsRowMajor)
         return cols();
@@ -129,7 +129,7 @@ namespace OpenKalman::Eigen3
     constexpr Index
     innerStride() const
     {
-      if constexpr (layout_of_v<Derived> == Layout::stride)
+      if constexpr (layout_of_v<Derived> == data_layout::stride)
         return std::get<Base::IsRowMajor ? 1 : 0>(strides(static_cast<const Derived&>(*this)));
       else
         return 1;
@@ -217,12 +217,12 @@ namespace OpenKalman::Eigen3
     {
       if constexpr(OpenKalman::internal::hermitian_expr<Arg>)
       {
-        if constexpr (hermitian_adapter_type_of_v<Arg> == TriangleType::diagonal) return arg;
+        if constexpr (hermitian_adapter_type_of_v<Arg> == triangle_type::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
       else if constexpr(OpenKalman::internal::triangular_expr<Arg>)
       {
-        if constexpr(triangular_matrix<Arg, TriangleType::diagonal>) return arg;
+        if constexpr(triangular_matrix<Arg, triangle_type::diagonal>) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
       else
@@ -301,7 +301,7 @@ namespace OpenKalman::Eigen3
 
   };
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_EIGENADAPTERBASE_HPP
+#endif

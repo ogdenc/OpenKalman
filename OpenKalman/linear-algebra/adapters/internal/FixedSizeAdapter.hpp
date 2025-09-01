@@ -184,7 +184,7 @@ namespace OpenKalman::internal
       FixedSizeAdapter<internal::remove_rvalue_reference_t<nested_object_of_t<Arg&&>>, std::tuple<Vs...>>;
 
 
-} // namespace OpenKalman::internal
+}
 
 
-#endif //OPENKALMAN_FIXEDSIZEADAPTER_HPP
+#endif

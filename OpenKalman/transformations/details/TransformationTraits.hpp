@@ -113,7 +113,7 @@ namespace OpenKalman
     }
 
 
-  } // namespace internal
+  }
 
 
   namespace internal
@@ -144,7 +144,7 @@ namespace OpenKalman
       : MatrixTraits<std::decay_t<T>> {};
 #endif
 
-  } // namespace internal
+  }
 
 
   /**
@@ -217,7 +217,7 @@ namespace OpenKalman
     inline auto zero_hessian_impl()
     {
       using InputCoefficients = vector_space_descriptor_of_t<In, 0>;
-      using HessianMatrixInBase = dense_writable_matrix_t<In, Layout::none, scalar_type_of_t<In>,
+      using HessianMatrixInBase = dense_writable_matrix_t<In, data_layout::none, scalar_type_of_t<In>,
         std::tuple<coordinates::dimension_of<InputCoefficients>, coordinates::dimension_of<InputCoefficients>>>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, coordinates::dimension_of_v<OutputCoefficients>>;
@@ -250,4 +250,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_TRANSFORMATIONTRAITS_HPP
+#endif

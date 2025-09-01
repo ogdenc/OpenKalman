@@ -69,7 +69,7 @@ namespace OpenKalman
     template<typename G, typename D>
     RandomizeOp(G&, D&&) -> RandomizeOp<G, D>;
 
-  } // namespace detail
+  }
 
 
   /**
@@ -120,15 +120,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, std::uniform_random_bit_generator random_number_generator,
     coordinates::pattern...Ds, typename...Dists>
-  requires ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
+  requires ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or
       requires { typename std::decay_t<Dists>::result_type; typename std::decay_t<Dists>::param_type; }) and ...)
 #else
   template<typename PatternMatrix, std::size_t...indices, typename random_number_generator, typename...Ds,
     typename...Dists, std::enable_if_t<indexible<PatternMatrix> and (coordinates::pattern<Ds> and ...) and
-    ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
+    ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of<collections::collection_element_t<indices, std::tuple<Ds...>>>::value)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or detail::is_std_dist<std::decay_t<Dists>>::value) and ...), int> = 0>
 #endif
   constexpr auto
@@ -146,15 +146,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, coordinates::pattern...Ds, typename...Dists>
-  requires ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
+  requires ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or
       requires { typename std::decay_t<Dists>::result_type; typename std::decay_t<Dists>::param_type; }) and ...)
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Dists,
     std::enable_if_t<indexible<PatternMatrix> and (coordinates::pattern<Ds> and ...) and
-    ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
+    ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Dists) == (1 * ... * coordinates::dimension_of<collections::collection_element_t<indices, std::tuple<Ds...>>>::value)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or detail::is_std_dist<std::decay_t<Dists>>::value) and ...), int> = 0>
 #endif
   constexpr auto
@@ -242,6 +242,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_RANDOMIZE_HPP
+#endif

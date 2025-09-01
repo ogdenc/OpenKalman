@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,16 +36,19 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "linear-algebra/interfaces/eigen-tensor/details/eigen-tensor-forward-declarations.hpp"
+#include "details/eigen-tensor-forward-declarations.hpp"
 
-#include "linear-algebra/interfaces/eigen-tensor/functions/make_eigen_tensor_wrapper.hpp"
+#include "functions/make_eigen_tensor_wrapper.hpp"
 
-#include "linear-algebra/interfaces/eigen-tensor/traits/eigen-tensor-traits.hpp"
+#include "traits/indexible_object_traits_tensor_base.hpp"
+#include "eigen-tensor-library-interface.hpp"
 
-#include "linear-algebra/interfaces/eigen-tensor/native-traits/eigen-native-tensor-traits.hpp"
-#include "linear-algebra/interfaces/eigen-tensor/native-evaluators/LibraryWrapper.hpp"
+#include "traits/eigen-tensor-traits.hpp"
 
-#include "linear-algebra/interfaces/eigen-tensor/details/EigenTensorAdapterBase.hpp"
+#include "native-traits/eigen-native-tensor-traits.hpp"
+#include "native-evaluators/LibraryWrapper.hpp"
+
+#include "details/EigenTensorAdapterBase.hpp"
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_HPP
+#endif

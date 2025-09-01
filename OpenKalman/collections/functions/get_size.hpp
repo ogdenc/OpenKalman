@@ -59,7 +59,7 @@ namespace OpenKalman::collections
     struct range_extent_impl<T, std::enable_if_t<values::fixed<decltype(stdcompat::ranges::size(std::declval<T>()))> and
       not has_tuple_size<T>::value>>
 #endif
-      : values::fixed_number_of<decltype(stdcompat::ranges::size(std::declval<T>()))> {};
+      : values::fixed_value_of<decltype(stdcompat::ranges::size(std::declval<T>()))> {};
 
 
     // If T has a static size() member function (e.g., ranges::empty_view and ranges::single_view)

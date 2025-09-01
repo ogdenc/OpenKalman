@@ -41,9 +41,9 @@ namespace OpenKalman
 
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+      static constexpr auto get_pattern_collection(const Arg& arg, N n)
       {
-        return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+        return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
       }
 
 
@@ -76,15 +76,15 @@ namespace OpenKalman
       }
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<Applicability b>
+      template<applicability b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t>
+      template<triangle_type t>
       static constexpr bool is_triangular = diagonal_matrix<MatrixType>;
 
 
@@ -102,7 +102,7 @@ namespace OpenKalman
 
     };
 
-  } // namespace interface
+  }
 
 
   /**
@@ -115,6 +115,6 @@ namespace OpenKalman
 #endif
   HermitianAdapter(M&&) -> HermitianAdapter<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_EIGEN_SELFADJOINTVIEW_HPP
+#endif

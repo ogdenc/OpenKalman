@@ -22,16 +22,30 @@
 
 namespace OpenKalman::collections
 {
-#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
+#if not defined(__cpp_concepts) and __cpp_generic_lambdas < 201707L
   namespace detail
   {
+    template<std::size_t i, typename T, typename = void>
+    struct has_tuple_element_impl : std::false_type {};
+
+    template<std::size_t i, typename T>
+    struct has_tuple_element_impl<i, T, std::void_t<typename std::tuple_element<i, T>::type>> : std::true_type {};
+
+
+    template<typename T, typename = std::make_index_sequence<collections::size_of_v<T>>>
+    struct is_tuple_like_impl : std::false_type {};
+
+    template<typename T, std::size_t...i>
+    struct is_tuple_like_impl<T, std::index_sequence<i...>>
+      : std::bool_constant<(... and (gettable<i, T> and has_tuple_element_impl<i, T>::value))> {};
+
+
     template<typename T, typename = void>
     struct is_tuple_like : std::false_type {};
 
     template<typename T>
-    struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<T>::value)>> : std::true_type {};
-
-  } // namespace detail
+    struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<T>::value)>> : is_tuple_like_impl<T> {};
+  }
 #endif
 
 
@@ -42,16 +56,17 @@ namespace OpenKalman::collections
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
-  concept tuple_like = uniformly_gettable<T> and requires
-  {
-    typename std::tuple_size<std::decay_t<T>>;
-    std::tuple_size<std::decay_t<T>>::value;
-  };
+  concept tuple_like = requires {
+      std::tuple_size<std::decay_t<T>>::value;
+      requires []<std::size_t...i>(std::index_sequence<i...>) {
+        return (... and (gettable<i, T> and requires { typename std::tuple_element<i, std::decay_t<T>>::type; }));
+      } (std::make_index_sequence<size_of_v<T>>{});
+    };
 #else
-  constexpr bool tuple_like = uniformly_gettable<T> and detail::is_tuple_like<std::decay_t<T>>::value;
+  constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
 #endif
 
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_COLLECTIONS_TUPLE_LIKE_HPP
+#endif

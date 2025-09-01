@@ -17,6 +17,7 @@
 #define OPENKALMAN_COMPATIBILITY_OBJECT_CONCEPTS_HPP
 
 #include "core-concepts.hpp"
+#include "comparison.hpp"
 #include "common.hpp"
 
 namespace OpenKalman::stdcompat
@@ -32,14 +33,14 @@ namespace OpenKalman::stdcompat
   movable =
     std::is_object_v<T> and
     std::is_move_constructible_v<T> and
-    std::is_assignable_v<T&, T> /*and
-    std::swappable<T>*/;
+    std::is_assignable_v<T&, T> and
+    swappable<T>;
 
 
   template<typename T>
   inline constexpr bool
   copyable =
-    stdcompat::copy_constructible<T> and
+    copy_constructible<T> and
     movable<T> and
     std::is_assignable_v<T&, T&> and
     std::is_assignable_v<T&, const T&> and

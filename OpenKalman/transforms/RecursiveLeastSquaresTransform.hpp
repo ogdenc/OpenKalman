@@ -101,4 +101,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_RLSTRANSFORM_HPP
+#endif

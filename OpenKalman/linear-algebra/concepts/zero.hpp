@@ -44,6 +44,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ZERO_HPP
+#endif

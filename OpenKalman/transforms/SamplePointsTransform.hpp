@@ -18,7 +18,7 @@
 
 #include <functional>
 #include <tuple>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
 
 namespace OpenKalman
 {
@@ -53,7 +53,7 @@ namespace OpenKalman
     template<typename T, std::size_t...ints>
     static constexpr auto count_dim_impl(std::index_sequence<ints...>)
     {
-      return (0 + ... + index_dimension_of_v<std::tuple_element_t<1 + ints, T>, 0>);
+      return (0 + ... + index_dimension_of_v<collections::collection_element_t<1 + ints, T>, 0>);
     }
 
 
@@ -62,7 +62,7 @@ namespace OpenKalman
     static constexpr auto count_dim()
     {
       return (index_dimension_of_v<In, 0> + ... +
-        count_dim_impl<Ts>(std::make_index_sequence<std::tuple_size_v<Ts> - 1> {}));
+        count_dim_impl<Ts>(std::make_index_sequence<collections::size_of_v<Ts> - 1> {}));
     }
 
 
@@ -70,7 +70,7 @@ namespace OpenKalman
     template<std::size_t pos = 0, typename T, typename...Ts, typename FlattenedPs>
     static auto construct_ps(FlattenedPs&& flattened_ps)
     {
-      constexpr auto group_size = std::tuple_size_v<std::decay_t<T>> - 1; // The size of the noise terms only
+      constexpr auto group_size = collections::size_of_v<T> - 1; // The size of the noise terms only
       return std::tuple_cat(
         oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps)),
         construct_ps<pos + group_size, Ts...>(std::forward<FlattenedPs>(flattened_ps)));
@@ -81,7 +81,7 @@ namespace OpenKalman
     template<std::size_t pos = 0, typename FlattenedPs>
     static auto construct_ps(FlattenedPs&& flattened_ps)
     {
-      static_assert(pos == std::tuple_size_v<FlattenedPs>);
+      static_assert(pos == collections::size_of_v<FlattenedPs>);
       return std::tuple {};
     }
 
@@ -115,13 +115,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross, std::size_t i = 0,
       typename Gs, typename D, typename Ds, typename P, typename Ps> requires
-        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ds>>) and
-        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ps>>)
+        (collections::size_of_v<Gs> == collections::size_of_v<Ds>) and
+        (collections::size_of_v<Gs> == collections::size_of_v<Ps>)
 #else
     template<std::size_t dim, typename InputDist, bool return_cross, std::size_t i = 0,
       typename Gs, typename D, typename Ds, typename P, typename Ps, std::enable_if_t<
-        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ds>>) and
-        (std::tuple_size_v<std::decay_t<Gs>> == std::tuple_size_v<std::decay_t<Ps>>), int> = 0>
+        (collections::size_of_v<Gs> == collections::size_of_v<Ds>) and
+        (collections::size_of_v<Gs> == collections::size_of_v<Ps>), int> = 0>
 #endif
     static auto transform_impl(Gs&& gs, D&& d, Ds&& ds, P&& p, Ps&& ps)
     {
@@ -131,8 +131,8 @@ namespace OpenKalman
 
       auto xpoints_tup = std::tuple_cat(std::forward_as_tuple(p), std::get<i>(std::forward<Ps>(ps)));
 
-      constexpr std::size_t N = std::tuple_size_v<decltype(xpoints_tup)>;
-      static_assert(N == std::tuple_size_v<decltype(xdists_tup)>);
+      constexpr std::size_t N = collections::size_of_v<decltype(xpoints_tup)>;
+      static_assert(N == collections::size_of_v<decltype(xdists_tup)>);
 
       auto y_means = Mean { y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N> {})};
 
@@ -142,7 +142,7 @@ namespace OpenKalman
       auto ypoints = apply_columnwise(
         [&](const auto& col) { return make_self_contained(col - y_mean);}, std::move(y_means));
 
-      if constexpr (i + 1 < std::tuple_size_v<std::decay_t<Gs>>)
+      if constexpr (i + 1 < collections::size_of_v<Gs>)
       {
         auto y_covariance = SamplePointsType::template covariance<dim, InputDist, false>(std::forward<P>(p), ypoints);
         auto y = GaussianDistribution {make_self_contained(std::move(y_mean)), std::move(y_covariance)};
@@ -184,7 +184,7 @@ namespace OpenKalman
       static_assert(sizeof...(Ts) > 0);
 
       // Extract a flattened 1D tuple of noise terms.
-      auto flattened_ds = std::tuple_cat(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(ts)...);
+      auto flattened_ds = std::tuple_cat(oin::tuple_slice<1, collections::size_of_v<Ts>>(ts)...);
 
       // Create a tuple comprising the augmented sample points (based on input x and each noise term in flattened ds):
       auto points_tuple = std::apply([](const auto&...args) {
@@ -195,7 +195,7 @@ namespace OpenKalman
       auto p = std::get<0>(std::move(points_tuple));
 
       // The augmented sample points corresponding to each noise term in flattened_ds.
-      auto flattened_ps = oin::tuple_slice<1, std::tuple_size_v<decltype(points_tuple)>>(std::move(points_tuple));
+      auto flattened_ps = oin::tuple_slice<1, collections::size_of_v<decltype(points_tuple)>>(std::move(points_tuple));
 
       // The augmented sample points, reconstructed into the same tuple-of-tuples structure as ds.
       auto ps = construct_ps<0, Ts...>(std::move(flattened_ps));
@@ -204,7 +204,7 @@ namespace OpenKalman
       auto gs = std::forward_as_tuple(std::get<0>(std::forward<Ts>(ts))...);
 
       // Extract the noise terms.
-      auto ds = std::tuple {oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...};
+      auto ds = std::tuple {oin::tuple_slice<1, collections::size_of_v<Ts>>(std::forward<Ts>(ts))...};
 
       // Number of augmented input dimensions.
       constexpr auto dim = count_dim<InputDist, Ts...>();
@@ -223,10 +223,10 @@ namespace OpenKalman
      * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, typename...Ts> requires (... and collections::tuple_like<std::decay_t<Ts>>)
+    template<gaussian_distribution InputDist, typename...Ts> requires (... and collections::uniformly_gettable<Ts>)
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (collections::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::uniformly_gettable<Ts> and ...), int> = 0>
 #endif
     auto operator()(InputDist&& x, Ts&&...ts) const
     {
@@ -265,10 +265,10 @@ namespace OpenKalman
      * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, collections::tuple_like...Ts> requires (... and collections::tuple_like<std::decay_t<Ts>>)
+    template<gaussian_distribution InputDist, collections::uniformly_gettable...Ts>
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (collections::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::uniformly_gettable<Ts> and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(InputDist&& x, Ts&&...ts) const
     {
@@ -303,4 +303,4 @@ namespace OpenKalman
 }
 
 
-#endif //OPENKALMAN_SAMPLEPOINTSTRANSFORM_HPP
+#endif

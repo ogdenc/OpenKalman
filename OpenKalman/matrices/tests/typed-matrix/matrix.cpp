@@ -24,7 +24,7 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using Z22 = zero_adapter<eigen_matrix_t<double, 2, 2>>;
 using C2 = std::tuple<Axis, angle::Radians>;
 using C3 = std::tuple<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
@@ -34,10 +34,10 @@ using Mat23 = Matrix<C2, C3, M23>;
 using Mat32 = Matrix<C3, C2, M32>;
 using Mat33 = Matrix<C3, C3, M33>;
 
-using SA2l = HermitianAdapter<M22, TriangleType::lower>;
-using SA2u = HermitianAdapter<M22, TriangleType::upper>;
-using T2l = TriangularAdapter<M22, TriangleType::lower>;
-using T2u = TriangularAdapter<M22, TriangleType::upper>;
+using SA2l = HermitianAdapter<M22, triangle_type::lower>;
+using SA2u = HermitianAdapter<M22, triangle_type::upper>;
+using T2l = TriangularAdapter<M22, triangle_type::lower>;
+using T2u = TriangularAdapter<M22, triangle_type::upper>;
 
 inline I22 i22 = M22::Identity();
 inline Z22 z22 = Z22();
@@ -79,15 +79,15 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
-  Mat22 mat22a_1(Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_1(Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_1, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_2(Covariance<C2, HermitianAdapter<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_2(Covariance<C2, HermitianAdapter<M22, triangle_type::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_2, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_3(Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_3(Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_3, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_4(Covariance<C2, TriangularAdapter<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_4(Covariance<C2, TriangularAdapter<M22, triangle_type::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_4, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_5(Covariance<C2, DiagonalAdapter<M21>> {9, 10});
+  Mat22 mat22a_5(Covariance<C2, diagonal_adapter<M21>> {9, 10});
   EXPECT_TRUE(is_near(mat22a_5, Mat22 {9, 0, 0, 10}));
   Mat22 mat22a_6(covi22);
   EXPECT_TRUE(is_near(mat22a_6, Mat22 {1, 0, 0, 1}));
@@ -95,15 +95,15 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat22a_7, Mat22 {0, 0, 0, 0}));
 
   // Convert from a compatible square root covariance
-  Mat22 mat22b_1(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_1(SquareRootCovariance<C2, HermitianAdapter<M22, triangle_type::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_1, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_2(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_2(SquareRootCovariance<C2, HermitianAdapter<M22, triangle_type::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_2, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_3(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_3(SquareRootCovariance<C2, HermitianAdapter<M22, triangle_type::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_3, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_4(SquareRootCovariance<C2, TriangularAdapter<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_4(SquareRootCovariance<C2, TriangularAdapter<M22, triangle_type::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_4, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_5(SquareRootCovariance<C2, DiagonalAdapter<M21>> {3, 4});
+  Mat22 mat22b_5(SquareRootCovariance<C2, diagonal_adapter<M21>> {3, 4});
   EXPECT_TRUE(is_near(mat22b_5, Mat22 {3, 0, 0, 4}));
   Mat22 mat22b_6(sqcovi22);
   EXPECT_TRUE(is_near(mat22b_6, Mat22 {1, 0, 0, 1}));
@@ -259,7 +259,7 @@ TEST(matrices, TypedMatrix_deduction_guides)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
@@ -281,7 +281,7 @@ TEST(matrices, TypedMatrix_make_functions)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
@@ -311,7 +311,7 @@ TEST(matrices, TypedMatrix_traits)
   static_assert(not identity_matrix<Matrix<C2, Dimensions<2>, I22>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<Matrix<C2, C2, Z22>>);
-  static_assert(zero<Matrix<C2, C3, ZeroAdapter<eigen_matrix_t<double, 2, 3>>>>);
+  static_assert(zero<Matrix<C2, C3, zero_adapter<eigen_matrix_t<double, 2, 3>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));

@@ -58,6 +58,6 @@ namespace OpenKalman::interface
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_VECTORBLOCK_HPP
+#endif

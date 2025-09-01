@@ -23,4 +23,4 @@
 
 #include "KalmanFilter.hpp"
 
-#endif //OPENKALMAN_FILTERS_HPP
+#endif

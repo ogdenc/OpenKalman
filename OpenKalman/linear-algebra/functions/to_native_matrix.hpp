@@ -41,6 +41,6 @@ namespace OpenKalman
       return internal::LibraryWrapper<Arg, LibraryObject> {std::forward<Arg>(arg)};
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TO_NATIVE_MATRIX_HPP
+#endif

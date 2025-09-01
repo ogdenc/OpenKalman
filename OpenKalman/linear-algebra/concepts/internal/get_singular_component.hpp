@@ -37,7 +37,7 @@ namespace OpenKalman::internal
       auto indices = std::array<std::size_t, sizeof...(Ix)>{static_cast<decltype(Ix)>(0)...};
       return detail::get_singular_component_impl(std::forward<Arg>(arg), indices);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -56,6 +56,6 @@ namespace OpenKalman::internal
   }
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_GET_SINGULAR_COMPONENT_HPP
+#endif

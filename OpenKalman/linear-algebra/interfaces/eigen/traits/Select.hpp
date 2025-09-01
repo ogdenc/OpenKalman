@@ -33,21 +33,21 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
       if constexpr (square_shaped<ConditionMatrixType> or square_shaped<ThenMatrixType> or square_shaped<ElseMatrixType>)
         return internal::most_fixed_pattern(
-          OpenKalman::get_vector_space_descriptor<0>(arg.conditionMatrix()),
-          OpenKalman::get_vector_space_descriptor<0>(arg.thenMatrix()),
-          OpenKalman::get_vector_space_descriptor<0>(arg.elseMatrix()),
-          OpenKalman::get_vector_space_descriptor<1>(arg.conditionMatrix()),
-          OpenKalman::get_vector_space_descriptor<1>(arg.thenMatrix()),
-          OpenKalman::get_vector_space_descriptor<1>(arg.elseMatrix()));
+          OpenKalman::get_pattern_collection<0>(arg.conditionMatrix()),
+          OpenKalman::get_pattern_collection<0>(arg.thenMatrix()),
+          OpenKalman::get_pattern_collection<0>(arg.elseMatrix()),
+          OpenKalman::get_pattern_collection<1>(arg.conditionMatrix()),
+          OpenKalman::get_pattern_collection<1>(arg.thenMatrix()),
+          OpenKalman::get_pattern_collection<1>(arg.elseMatrix()));
       else
         return internal::most_fixed_pattern(
-          OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n),
-          OpenKalman::get_vector_space_descriptor(arg.thenMatrix(), n),
-          OpenKalman::get_vector_space_descriptor(arg.elseMatrix(), n));
+          OpenKalman::get_pattern_collection(arg.conditionMatrix(), n),
+          OpenKalman::get_pattern_collection(arg.thenMatrix(), n),
+          OpenKalman::get_pattern_collection(arg.elseMatrix(), n));
     }
 
 
@@ -94,31 +94,31 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<ConditionMatrixType, Applicability::permitted> and
-      OpenKalman::one_dimensional<ThenMatrixType, Applicability::permitted> and
-      OpenKalman::one_dimensional<ElseMatrixType, Applicability::permitted> and
-      (b != Applicability::guaranteed or
+      OpenKalman::one_dimensional<ConditionMatrixType, applicability::permitted> and
+      OpenKalman::one_dimensional<ThenMatrixType, applicability::permitted> and
+      OpenKalman::one_dimensional<ElseMatrixType, applicability::permitted> and
+      (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<ConditionMatrixType> or
         OpenKalman::one_dimensional<ThenMatrixType> or
         OpenKalman::one_dimensional<ElseMatrixType>);
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square =
-      square_shaped<ConditionMatrixType, Applicability::permitted> and
-      square_shaped<ThenMatrixType, Applicability::permitted> and
-      square_shaped<ElseMatrixType, Applicability::permitted> and
-      (b != Applicability::guaranteed or
+      square_shaped<ConditionMatrixType, applicability::permitted> and
+      square_shaped<ThenMatrixType, applicability::permitted> and
+      square_shaped<ElseMatrixType, applicability::permitted> and
+      (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<ConditionMatrixType, b> or
         square_shaped<ThenMatrixType, b> or
         square_shaped<ElseMatrixType, b>);
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular =
       [](){
         if constexpr (constant_matrix<ConditionMatrixType>)
@@ -136,15 +136,15 @@ namespace OpenKalman::interface
         [](){
           if constexpr (constant_matrix<ConditionMatrixType>)
             return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
-              ThenMatrixType, ElseMatrixType>, Applicability::permitted>;
+              ThenMatrixType, ElseMatrixType>, applicability::permitted>;
           else return false;
         }()) or
-      (hermitian_matrix<ConditionMatrixType, Applicability::permitted> and hermitian_matrix<ThenMatrixType, Applicability::permitted> and
-        hermitian_matrix<ElseMatrixType, Applicability::permitted> and
+      (hermitian_matrix<ConditionMatrixType, applicability::permitted> and hermitian_matrix<ThenMatrixType, applicability::permitted> and
+        hermitian_matrix<ElseMatrixType, applicability::permitted> and
         (not values::fixed<constant_coefficient<ConditionMatrixType>>));
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_SELECT_HPP
+#endif

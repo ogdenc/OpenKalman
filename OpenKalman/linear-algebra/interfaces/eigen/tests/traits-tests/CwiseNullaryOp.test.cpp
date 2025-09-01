@@ -110,22 +110,22 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(hermitian_matrix<Z22>);
   static_assert(hermitian_matrix<C11_2>);
 
-  static_assert(triangular_matrix<Z22, TriangleType::lower>);
+  static_assert(triangular_matrix<Z22, triangle_type::lower>);
 
-  static_assert(triangular_matrix<Z22, TriangleType::upper>);
+  static_assert(triangular_matrix<Z22, triangle_type::upper>);
 
   static_assert(square_shaped<Z11>);
   static_assert(square_shaped<C11_1>);
 
-  static_assert(square_shaped<Z11, Applicability::permitted>);
-  static_assert(square_shaped<Z2x, Applicability::permitted>);
-  static_assert(not square_shaped<Z21, Applicability::permitted>);
-  static_assert(square_shaped<C22_1, Applicability::permitted>);
-  static_assert(not square_shaped<C21_1, Applicability::permitted>);
+  static_assert(square_shaped<Z11, applicability::permitted>);
+  static_assert(square_shaped<Z2x, applicability::permitted>);
+  static_assert(not square_shaped<Z21, applicability::permitted>);
+  static_assert(square_shaped<C22_1, applicability::permitted>);
+  static_assert(not square_shaped<C21_1, applicability::permitted>);
 
   static_assert(one_dimensional<Z11>);
-  static_assert(one_dimensional<Z1x, Applicability::permitted>);
-  static_assert(one_dimensional<Zx1, Applicability::permitted>);
+  static_assert(one_dimensional<Z1x, applicability::permitted>);
+  static_assert(one_dimensional<Zx1, applicability::permitted>);
   static_assert(one_dimensional<C11_1>);
 
   static_assert(not writable<Mx2::ConstantReturnType>);

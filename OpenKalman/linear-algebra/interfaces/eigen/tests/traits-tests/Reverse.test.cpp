@@ -23,14 +23,14 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(index_dimension_of_v<Eigen::Reverse<Mx2, Eigen::BothDirections>, 1> == 2);
 
   static_assert(one_dimensional<Eigen::Reverse<M11, Eigen::Vertical>>);
-  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, Applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, Applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reverse<M22, Eigen::BothDirections>>);
-  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, Applicability::permitted>);
-  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, Applicability::permitted>);
-  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, applicability::permitted>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().reverse())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().reverse())> == 2);
@@ -82,18 +82,18 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().reverse())>);
   static_assert(hermitian_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().reverse()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv2x>().reverse()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuvx2>().reverse()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().reverse()), TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().reverse()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv2x>().reverse()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuvx2>().reverse()), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().reverse()), triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, triangle_type::lower>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().reverse()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv2x>().reverse()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlvx2>().reverse()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().reverse()), TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().reverse()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv2x>().reverse()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlvx2>().reverse()), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().reverse()), triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, triangle_type::upper>);
 }
 

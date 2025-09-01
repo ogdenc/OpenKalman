@@ -41,4 +41,4 @@
 #include "adapters/details/covariance-overloads.hpp"
 #include "adapters/details/covariance-arithmetic.hpp"
 
-#endif //OPENKALMAN_MATRICES_HPP
+#endif

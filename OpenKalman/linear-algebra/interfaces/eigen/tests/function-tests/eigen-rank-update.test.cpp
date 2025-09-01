@@ -56,7 +56,7 @@ TEST(eigen3, rank_update_hermitian)
   m11 = M11(9);
   rank_update_hermitian(m11, m14_1, 4); EXPECT_TRUE(is_near(m11, m11_25));
 
-  // Other tests require creation of DiagonalAdapter. See special_matrix tests.
+  // Other tests require creation of diagonal_adapter. See special_matrix tests.
 }
 
 
@@ -104,5 +104,5 @@ TEST(eigen3, rank_update_triangular)
   m11 = M11(3);
   rank_update_triangular(m11, m14_1, 4); EXPECT_TRUE(is_near(m11, m11_5));
 
-  // Other tests require creation of DiagonalAdapter. See special_matrix tests.
+  // Other tests require creation of diagonal_adapter. See special_matrix tests.
 }

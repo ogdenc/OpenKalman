@@ -15,7 +15,7 @@
 
 #include <complex>
 #include "values/tests/tests.hpp"
-#include "values/classes/Fixed.hpp"
+#include "values/classes/fixed_value.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::test;
@@ -40,12 +40,12 @@ TEST(values, tests_complex)
 
 TEST(values, tests_fixed)
 {
-  EXPECT_TRUE(test::is_near(values::Fixed<double, 4>{}, values::Fixed<double, 5>{}, 2));
+  EXPECT_TRUE(test::is_near(values::fixed_value<double, 4>{}, values::fixed_value<double, 5>{}, 2));
   EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}, 2));
   EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, 5, 2));
   EXPECT_FALSE(test::is_near(std::integral_constant<int, 4>{}, 6, 1));
-  EXPECT_TRUE(test::is_near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, 2));
-  EXPECT_TRUE(test::is_near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, values::Fixed<std::complex<double>, 2, 2>{}));
-  EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, values::Fixed<std::complex<double>, 4, 1>{}, 2));
+  EXPECT_TRUE(test::is_near(values::fixed_value<std::complex<double>, 3, 4>{}, values::fixed_value<std::complex<double>, 4, 5>{}, 2));
+  EXPECT_TRUE(test::is_near(values::fixed_value<std::complex<double>, 3, 4>{}, values::fixed_value<std::complex<double>, 4, 5>{}, values::fixed_value<std::complex<double>, 2, 2>{}));
+  EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, values::fixed_value<std::complex<double>, 4, 1>{}, 2));
 }
 

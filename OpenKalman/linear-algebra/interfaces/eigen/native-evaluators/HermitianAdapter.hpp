@@ -129,6 +129,6 @@ namespace Eigen::internal
   };
 
 
-} // namespace Eigen::internal
+}
 
-#endif //OPENKALMAN_EIGEN_NATIVE_EVALUATORS_HERMITIANADAPTER_HPP
+#endif

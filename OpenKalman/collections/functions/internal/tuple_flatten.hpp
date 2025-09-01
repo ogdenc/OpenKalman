@@ -19,7 +19,8 @@
 
 #include <type_traits>
 #include <tuple>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
+#include "collections/traits/collection_element.hpp"
 
 namespace OpenKalman::collections
 {
@@ -33,7 +34,7 @@ namespace OpenKalman::collections
     constexpr auto
     tuple_flatten_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      if constexpr ((... or tuple_like<std::tuple_element_t<Ix, std::decay_t<Arg>>>))
+      if constexpr ((... or uniformly_gettable<collection_element_t<Ix, std::decay_t<Arg>>>))
         return std::tuple_cat(tuple_flatten_impl(std::get<Ix>(std::forward<Arg>(arg)))...);
       else
         return std::forward<Arg>(arg);
@@ -44,14 +45,14 @@ namespace OpenKalman::collections
     constexpr auto
     tuple_flatten_impl(Arg&& arg)
     {
-      if constexpr (tuple_like<Arg>)
+      if constexpr (uniformly_gettable<Arg>)
       {
-        constexpr auto seq = std::make_index_sequence<std::tuple_size_v<std::decay_t<Arg>>>{};
+        constexpr auto seq = std::make_index_sequence<size_of_v<Arg>>{};
         return tuple_flatten_impl(std::forward<Arg>(arg), seq);
       }
       else return std::tuple {std::forward<Arg>(arg)};
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -59,10 +60,10 @@ namespace OpenKalman::collections
    * \brief Flatten a tuple-like object.
    */
 #ifdef __cpp_concepts
-  template<tuple_like Arg>
+  template<uniformly_gettable Arg>
   constexpr tuple_like auto
 #else
-  template<typename Arg, std::enable_if_t<tuple_like<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<uniformly_gettable<Arg>, int> = 0>
   constexpr auto
 #endif
   tuple_flatten(Arg&& arg)
@@ -70,6 +71,6 @@ namespace OpenKalman::collections
     return detail::tuple_flatten_impl(std::forward<Arg>(arg));
   }
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_TUPLE_FLATTEN_HPP
+#endif

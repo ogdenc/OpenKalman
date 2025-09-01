@@ -59,12 +59,12 @@ namespace OpenKalman
 #include "concepts/uniformly_settable.hpp"
 #include "concepts/output_collection.hpp"
 
-#include "traits/common_tuple_type.hpp"
-#include "concepts/viewable_tuple_like.hpp"
+#include "traits/collection_element.hpp"
 #include "traits/common_collection_type.hpp"
+#include "concepts/viewable_tuple_like.hpp"
 #include "functions/get.hpp"
 
-#include "functions/comparison_operators.hpp"
+#include "functions/lexicographical_compare_three_way.hpp"
 
 #include "concepts/viewable_collection.hpp"
 #include "concepts/collection_view.hpp"
@@ -86,4 +86,4 @@ namespace OpenKalman
 #include "views/concat.hpp"
 
 
-#endif //OPENKALMAN_COLLECTIONS_HPP
+#endif

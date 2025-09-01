@@ -17,7 +17,7 @@
 #define OPENKALMAN_GET_COMPONENT_HPP
 
 #include "values/concepts/index.hpp"
-#include "linear-algebra/concepts/index_range_for.hpp"
+#include "linear-algebra/concepts/index_collection_for.hpp"
 #include "linear-algebra/interfaces/default/library_interface.hpp"
 #include "linear-algebra/concepts/empty_object.hpp"
 
@@ -34,7 +34,7 @@ namespace OpenKalman
       using Trait = interface::library_interface<std::decay_t<Arg>>;
       return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices(indices, count_indices(arg)));
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -44,11 +44,11 @@ namespace OpenKalman
    * \return a \ref values::scalar
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, index_range_for<Arg> Indices> requires (not empty_object<Arg>)
+  template<indexible Arg, index_collection_for<Arg> Indices> requires (not empty_object<Arg>)
   constexpr values::scalar decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    index_range_for<Indices, Arg> and (not empty_object<Arg>), int> = 0>
+    index_collection_for<Indices, Arg> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   get_component(Arg&& arg, const Indices& indices)
@@ -88,14 +88,14 @@ namespace OpenKalman
             return true;
         }() and ...);
       }
-    } // namespace detail
+    }
 
 
     template<typename Arg, typename...I>
     struct static_indices_within_bounds
       : std::bool_constant<(detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
 
-  } // namespace internal
+  }
 
 
   /**
@@ -125,6 +125,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_GET_COMPONENT_HPP
+#endif

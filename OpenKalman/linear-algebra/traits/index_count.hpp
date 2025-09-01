@@ -93,6 +93,6 @@ namespace OpenKalman
   static constexpr std::size_t index_count_v = index_count<T>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_INDEX_COUNT_HPP
+#endif

@@ -26,18 +26,18 @@ namespace OpenKalman
    * \note One-dimensional matrices or vectors are considered to be triangular, and a vector is triangular if
    * every component other than its first component is zero.
    * \tparam T A matrix or tensor.
-   * \tparam t The \ref TriangleType
+   * \tparam t The \ref triangle_type
    * triangular if it is \ref one-dimensional, and that is not necessarily known at compile time.
    */
-  template<typename T, TriangleType t = TriangleType::any>
+  template<typename T, triangle_type t = triangle_type::any>
 #ifdef __cpp_concepts
   concept triangular_matrix = indexible<T> and
-    (interface::indexible_object_traits<std::decay_t<T>>::template is_triangular<t> or constant_diagonal_matrix<T>);
+    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::template is_triangular<t> or constant_diagonal_matrix<T>);
 #else
   constexpr bool triangular_matrix = internal::is_explicitly_triangular<T, t>::value or constant_diagonal_matrix<T>;
 #endif
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TRIANGULAR_MATRIX_HPP
+#endif

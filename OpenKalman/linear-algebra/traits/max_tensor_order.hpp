@@ -29,7 +29,7 @@ namespace OpenKalman
       else if constexpr (dimension_size_of_index_is<T, i - 1, 0>) return 0;
       else return max_tensor_order_impl<i - 1, T>(result + 1);
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -65,6 +65,6 @@ namespace OpenKalman
   static constexpr std::size_t max_tensor_order_v = max_tensor_order<T>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_MAX_TENSOR_ORDER_HPP
+#endif

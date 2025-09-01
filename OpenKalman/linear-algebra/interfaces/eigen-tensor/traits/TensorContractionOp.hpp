@@ -31,7 +31,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr std::size_t get_pattern_collection(const Arg& arg, N n)
     {
       using IndexType = typename Xpr::Index;
       return Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions()[static_cast<IndexType>(n)];
@@ -56,7 +56,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (constant_diagonal_matrix<LhsXprType> and constant_matrix<RhsXprType>)
       {
-        if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
+        if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
         {
           return constant_diagonal_coefficient{arg.lhsExpression()} * constant_coefficient{arg.rhsExpression()};
         }
@@ -71,7 +71,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (constant_matrix<LhsXprType> and constant_diagonal_matrix<RhsXprType>)
       {
-        if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
+        if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
         {
           return constant_coefficient{arg.lhsExpression()} * constant_diagonal_coefficient{arg.rhsExpression()};
         }
@@ -98,7 +98,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
+      if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
       {
         return values::operation(std::multiplies{},
           constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()});
@@ -119,17 +119,17 @@ namespace OpenKalman::interface
 
     // is_square not defined
 
-    //template<TriangleType t>
-    //static constexpr bool is_triangular = std::tuple_size_v<decltype(std::declval<T>().indices())> == 1 and
+    //template<triangle_type t>
+    //static constexpr bool is_triangular = collections::size_of_v<decltype(std::declval<T>().indices())> == 1 and
     //  triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = std::tuple_size_v<decltype(std::declval<Xpr>().indices())> == 1 and
-      ((constant_diagonal_matrix<LhsXprType> and hermitian_matrix<RhsXprType, Applicability::permitted>) or
-      (constant_diagonal_matrix<RhsXprType> and hermitian_matrix<LhsXprType, Applicability::permitted>));
+    static constexpr bool is_hermitian = collections::size_of_v<decltype(std::declval<Xpr>().indices())> == 1 and
+      ((constant_diagonal_matrix<LhsXprType> and hermitian_matrix<RhsXprType, applicability::permitted>) or
+      (constant_diagonal_matrix<RhsXprType> and hermitian_matrix<LhsXprType, applicability::permitted>));
 
 
     static constexpr bool is_writable = false;
@@ -142,6 +142,6 @@ namespace OpenKalman::interface
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORCONTRACTIONOP_HPP
+#endif

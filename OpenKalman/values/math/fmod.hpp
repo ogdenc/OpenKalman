@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::fmod.
  */
 
-#ifndef OPENKALMAN_VALUE_FMOD_HPP
-#define OPENKALMAN_VALUE_FMOD_HPP
+#ifndef OPENKALMAN_VALUES_FMOD_HPP
+#define OPENKALMAN_VALUES_FMOD_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 #include "values/math/internal/NaN.hpp"
@@ -35,18 +35,18 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<value X, value Y> requires
-    (not complex<number_type_of_t<X>>) and (not complex<number_type_of_t<Y>>) and
-    (std::common_with<number_type_of_t<X>, number_type_of_t<Y>>)
+    (not complex<value_type_of_t<X>>) and (not complex<value_type_of_t<Y>>) and
+    (std::common_with<value_type_of_t<X>, value_type_of_t<Y>>)
   constexpr value auto fmod(const X& x, const Y& y)
 #else
   template <typename X, typename Y, std::enable_if_t<value<X> and value<Y> and
-    (not complex<number_type_of_t<X>>) and (not complex<number_type_of_t<Y>>), int> = 0>
+    (not complex<value_type_of_t<X>>) and (not complex<value_type_of_t<Y>>), int> = 0>
   constexpr auto fmod(const X& x, const Y& y)
 #endif
   {
     if constexpr (fixed<X> or fixed<Y>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<X>& x_, const number_type_of_t<Y>& y_) const { return values::fmod(x_, y_); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<X>& x_, const value_type_of_t<Y>& y_) const { return values::fmod(x_, y_); } };
       return values::operation(Op{}, x, y);
     }
     else

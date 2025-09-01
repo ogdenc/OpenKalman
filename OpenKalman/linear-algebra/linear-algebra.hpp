@@ -20,9 +20,9 @@
 #ifndef OPENKALMAN_LINEAR_ALGEBRA_HPP
 #define OPENKALMAN_LINEAR_ALGEBRA_HPP
 
-#include "basics/basics.hpp"
-#include "values/values.hpp"
 #include "coordinates/coordinates.hpp"
+
+#include "enumerations.hpp"
 
 // objects, properties, and interfaces
 
@@ -37,26 +37,12 @@
 
 #include "concepts/concepts.hpp"
 #include "traits/traits.hpp"
-#include "adapters/internal/forward-class-declarations.hpp"
 
-// object functions
+#include "adapters/internal/forward-class-declarations.hpp"
 
 #include "functions/functions.hpp"
 
-// internal objects
-
-#include "adapters/internal/ElementAccessor.hpp"
-
-#include "adapters/internal/AdapterBase.hpp"
-
-#include "adapters/internal/LibraryWrapper.hpp"
-#include "adapters/interfaces/LibraryWrapper.hpp"
-
-#include "adapters/internal/FixedSizeAdapter.hpp"
-#include "adapters/interfaces/FixedSizeAdapter.hpp"
-
-#include "adapters/VectorSpaceAdapter.hpp"
-#include "adapters/interfaces/VectorSpaceAdapter.hpp"
+#include "adapters/adapters.hpp"
 
 
-#endif //OPENKALMAN_LINEAR_ALGEBRA_HPP
+#endif

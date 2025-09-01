@@ -37,10 +37,10 @@ namespace OpenKalman::interface
 
     // get_constant_diagonal() not defined
 
-    static constexpr Layout layout = Base::row_major ? Layout::right : Layout::left;
+    static constexpr data_layout layout = Base::row_major ? data_layout::right : data_layout::left;
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_MATRIX_HPP
+#endif

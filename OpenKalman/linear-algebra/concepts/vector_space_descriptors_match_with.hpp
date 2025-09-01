@@ -34,6 +34,6 @@ namespace OpenKalman
     vector_space_descriptors_may_match_with<Ts...> and ((not has_dynamic_dimensions<Ts>) and ...);
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_MATCH_WITH_HPP
+#endif

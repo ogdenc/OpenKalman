@@ -33,9 +33,9 @@ namespace OpenKalman
         constexpr auto ix = ixs;
         return ([](const DTup& d_tup, const auto& arg){
           using Arg = decltype(arg);
-          if constexpr (dynamic_dimension<Arg, ix> or dynamic_pattern<std::tuple_element_t<ix, DTup>>)
+          if constexpr (dynamic_dimension<Arg, ix> or dynamic_pattern<collections::collection_element_t<ix, DTup>>)
           {
-            auto arg_d = get_vector_space_descriptor<ix>(arg);
+            auto arg_d = get_pattern_collection<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
             auto dim_arg_d = get_dimension(arg_d);
             auto dim_tup_d = get_dimension(tup_d);
@@ -48,7 +48,7 @@ namespace OpenKalman
           else
           {
             using D_Arg = vector_space_descriptor_of_t<Arg, ix>;
-            using D = std::tuple_element_t<ix, DTup>;
+            using D = collections::collection_element_t<ix, DTup>;
             static_assert(compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
               (ix >= index_count_v<Arg> and uniform_pattern<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
@@ -147,15 +147,15 @@ namespace OpenKalman
     template<typename Op, typename ArgsTup, std::size_t...ArgI, typename...J>
     inline auto n_ary_operation_get_component(const Op& op, ArgsTup&& args_tup, std::index_sequence<ArgI...>, J...j)
     {
-      if constexpr (std::is_invocable_v<const Op&, scalar_type_of_t<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>..., J...>)
+      if constexpr (std::is_invocable_v<const Op&, scalar_type_of_t<collections::collection_element_t<ArgI, ArgsTup>>..., J...>)
         return op(n_ary_operation_get_component_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
-          std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          std::make_index_sequence<index_count_v<collections::collection_element_t<ArgI, ArgsTup>>> {},
           j...)..., j...);
       else
         return op(n_ary_operation_get_component_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
-          std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          std::make_index_sequence<index_count_v<collections::collection_element_t<ArgI, ArgsTup>>> {},
           j...)...);
     }
 
@@ -163,7 +163,7 @@ namespace OpenKalman
     template<typename M, typename Op, typename ArgsTup, typename...J>
     inline void n_ary_operation_iterate(M& m, const Op& op, ArgsTup&& args_tup, std::index_sequence<>, J...j)
     {
-      std::make_index_sequence<std::tuple_size_v<ArgsTup>> seq;
+      std::make_index_sequence<collections::size_of_v<ArgsTup>> seq;
       set_component(m, n_ary_operation_get_component(op, std::forward<ArgsTup>(args_tup), seq, j...), j...);
     }
 
@@ -222,12 +222,12 @@ namespace OpenKalman
         {
           // one-by-one matrix
           auto e = op(get_component(std::forward<Args>(args))...);
-          return make_dense_object_from<PatternMatrix, Layout::none, Scalar>(d_tup, e);
+          return make_dense_object_from<PatternMatrix, data_layout::none, Scalar>(d_tup, e);
         }
         else
         {
           auto m = std::apply([](auto&&...ds){
-            return make_dense_object<PatternMatrix, Layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
+            return make_dense_object<PatternMatrix, data_layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
           }, d_tup);
           n_ary_operation_iterate(m, op, std::forward_as_tuple(std::forward<Args>(args)...), seq);
           return m;
@@ -235,7 +235,7 @@ namespace OpenKalman
       }
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -319,7 +319,7 @@ namespace OpenKalman
   n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation, Args&&...args)
   {
     detail::check_n_ary_dims(std::index_sequence_for<Ds...> {}, d_tup, args...);
-    using Arg0 = std::decay_t<std::tuple_element_t<0, std::tuple<Args...>>>; // \todo Pick the first appropriate pattern matrix, even if not the first one.
+    using Arg0 = std::decay_t<collections::collection_element_t<0, std::tuple<Args...>>>; // \todo Pick the first appropriate pattern matrix, even if not the first one.
     return detail::n_ary_operation_impl<Arg0>(d_tup, std::forward<Operation>(operation), std::forward<Args>(args)...);
   }
 
@@ -331,7 +331,7 @@ namespace OpenKalman
     {
       if constexpr (sizeof...(Args) == 0)
       {
-        auto ret = get_vector_space_descriptor<ix>(arg);
+        auto ret = get_pattern_collection<ix>(arg);
         if constexpr (dynamic_pattern<decltype(ret)>)
         {
           if (get_dimension(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
@@ -358,7 +358,7 @@ namespace OpenKalman
             constexpr auto dim_max_d = coordinates::dimension_of_v<Max_D>;
             static_assert(dim_max_d != 1 or not equivalent_to_uniform_pattern_component_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
-            return get_vector_space_descriptor<ix>(arg);
+            return get_pattern_collection<ix>(arg);
           }
         }
         else if constexpr (coordinates::euclidean_pattern<Arg_D> and coordinates::euclidean_pattern<Max_D>)
@@ -371,11 +371,11 @@ namespace OpenKalman
                 "are not compatible with each other for at least index " + std::to_string(ix) + "."};
 
             if constexpr (a == 1) return max_d;
-            else return get_vector_space_descriptor<ix>(arg);
+            else return get_pattern_collection<ix>(arg);
           }
           else if constexpr (fixed_pattern<Max_D>)
           {
-            auto arg_d = get_vector_space_descriptor<ix>(arg);
+            auto arg_d = get_pattern_collection<ix>(arg);
             std::size_t a = get_dimension(arg_d);
             constexpr std::size_t m = coordinates::dimension_of_v<Max_D>;
             if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
@@ -396,7 +396,7 @@ namespace OpenKalman
         }
         else
         {
-          auto arg_d = get_vector_space_descriptor<ix>(arg);
+          auto arg_d = get_pattern_collection<ix>(arg);
           //using Scalar = scalar_type_of_t<Arg>;
           if (coordinates::is_uniform_pattern_component_of(arg_d, max_d))
           {
@@ -423,7 +423,7 @@ namespace OpenKalman
       return std::tuple {find_max_dim<ixs>(args...)...};
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -485,7 +485,7 @@ namespace OpenKalman
   n_ary_operation(Operation&& operation, Args&&...args)
   {
     auto d_tup = detail::find_max_dims(std::make_index_sequence<std::max({index_count_v<Args>...})> {}, args...);
-    using Arg0 = std::decay_t<std::tuple_element_t<0, std::tuple<Args...>>>;
+    using Arg0 = std::decay_t<collections::collection_element_t<0, std::tuple<Args...>>>;
     return detail::n_ary_operation_impl<Arg0>(std::move(d_tup), std::forward<Operation>(operation), std::forward<Args>(args)...);
   }
 
@@ -540,13 +540,13 @@ namespace OpenKalman
       UniqueIndicesSeq unique_indices_seq, AllDsSeq all_ds_seq, std::index_sequence<Ks...>, std::index_sequence<Js...>,
       J_seqs...j_seqs)
     {
-      constexpr std::size_t new_factor = factor / coordinates::dimension_of_v<std::tuple_element_t<index, Vs_tuple>>;
+      constexpr std::size_t new_factor = factor / coordinates::dimension_of_v<collections::collection_element_t<index, Vs_tuple>>;
 
       (nullary_iterate<CurrentOpIndex + new_factor * Js, new_factor, indices...>(
         m, op_tup, ds_tup, unique_indices_seq, all_ds_seq, std::index_sequence<Ks..., Js>{}, j_seqs...),...);
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -625,14 +625,14 @@ namespace OpenKalman
    */
   #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, coordinates::pattern...Ds, typename...Operations>
-  requires ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
+  requires ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...)
   #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (coordinates::pattern<Ds> and ...) and
-    ((fixed_pattern<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
+    ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of<collections::collection_element_t<indices, std::tuple<Ds...>>>::value)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...), int> = 0>
   #endif
   constexpr auto
@@ -650,12 +650,12 @@ namespace OpenKalman
       sizeof...(operations) == (coordinates::dimension_of_v<Ds> * ...) and
       not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<sizeof...(Ds)> {}) or ...))
     {
-      return make_dense_object_from<PatternMatrix, Layout::none, Scalar>(d_tup, operations()...);
+      return make_dense_object_from<PatternMatrix, data_layout::none, Scalar>(d_tup, operations()...);
     }
     // All other cases:
     else
     {
-      auto m = make_dense_object<PatternMatrix, Layout::none, Scalar>(d_tup);
+      auto m = make_dense_object<PatternMatrix, data_layout::none, Scalar>(d_tup);
       detail::nullary_iterate<0, sizeof...(Operations), indices...>(
         m,
         std::forward_as_tuple(operations...),
@@ -663,7 +663,7 @@ namespace OpenKalman
         std::index_sequence<indices...> {},
         std::index_sequence_for<Ds...> {},
         std::index_sequence<> {},
-        std::make_index_sequence<coordinates::dimension_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>> {}...);
+        std::make_index_sequence<coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>> {}...);
       return m;
     }
   }
@@ -786,7 +786,7 @@ namespace OpenKalman
       }
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -839,6 +839,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_N_ARY_OPERATION_HPP
+#endif

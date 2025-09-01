@@ -10,20 +10,17 @@
 
 /**
  * \file
- * \brief Definition of \ref collections::replicate_view and \ref views::replicate.
+ * \brief Definition of \ref collections::replicate_view and \ref collections::views::replicate.
  */
 
 #ifndef OPENKALMAN_COLLECTIONS_VIEWS_REPLICATE_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWS_REPLICATE_HPP
 
-#include <type_traits>
-#include "basics/basics.hpp"
-#include "values/concepts/index.hpp"
-#include "values/concepts/fixed.hpp"
+#include "values/values.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/functions/get_size.hpp"
 #include "collections/functions/get.hpp"
-#include "collections/functions/comparison_operators.hpp"
+#include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "all.hpp"
 
 namespace OpenKalman::collections
@@ -33,8 +30,8 @@ namespace OpenKalman::collections
    * \details
    * The following should compile:
    * \code
-   * static_assert(std::tuple_size_v<replicate_view<std::tuple<int, double>, std::integral_constant<std::size_t, 3>>> == 6);
-   * static_assert(std::is_same_v<std::tuple_element_t<5, replicate_view<std::tuple<double, int, float>, std::integral_constant<std::size_t, 2>>>, float>);
+   * static_assert(collections::size_of_v<replicate_view<std::tuple<int, double>, std::integral_constant<std::size_t, 3>>> == 6);
+   * static_assert(std::is_same_v<collection_element_t<5, replicate_view<std::tuple<double, int, float>, std::integral_constant<std::size_t, 2>>>, float>);
    * static_assert(get<3>(replicate_view {std::tuple{4, 5.}, std::integral_constant<std::size_t, 2>{}}) == 5);
    * static_assert((replicate_view {std::vector{3, 4, 5}, 2u}[4]), 4);
    * static_assert((replicate_view {std::vector{3, 4, 5}, 2u}[std::integral_constant<std::size_t, 5>{}]), 5);
@@ -162,8 +159,15 @@ namespace OpenKalman::collections
     /**
      * \returns An iterator at the beginning, if the base object is a range.
      */
+#ifdef __cpp_concepts
     constexpr auto
-    begin() { return iterator<false> {*this, 0_uz}; }
+    begin() requires stdcompat::ranges::range<const V>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto begin()
+#endif
+    { return iterator<false> {*this, 0_uz}; }
+
 
 #ifdef __cpp_concepts
     constexpr auto
@@ -178,8 +182,17 @@ namespace OpenKalman::collections
     /**
      * \returns An iterator at the end, if the base object is a range.
      */
+#ifdef __cpp_concepts
     constexpr auto
-    end() { return iterator<false> {*this, static_cast<std::ptrdiff_t>(values::to_number(size()))}; }
+    end() requires stdcompat::ranges::range<const V>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    constexpr auto
+    end()
+#endif
+    {
+      return iterator<false> {*this, static_cast<std::ptrdiff_t>(values::to_value_type(size()))};
+    }
 
 
     /// \overload
@@ -189,10 +202,10 @@ namespace OpenKalman::collections
 #else
     template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
     constexpr auto
-    end() const noexcept
+    end() const
 #endif
     {
-      return iterator<true> {*this, static_cast<std::ptrdiff_t>(values::to_number(size()))};
+      return iterator<true> {*this, static_cast<std::ptrdiff_t>(values::to_value_type(size()))};
     }
 
 
@@ -218,7 +231,7 @@ namespace OpenKalman::collections
     get(this auto&& self) noexcept
     {
       if constexpr (size_of_v<V> != dynamic_size and values::fixed<Factor>)
-        static_assert(i < size_of_v<V> * values::fixed_number_of_v<Factor>, "Index out of range");
+        static_assert(i < size_of_v<V> * values::fixed_value_of_v<Factor>, "Index out of range");
       return collections::get(std::forward<decltype(self)>(self).v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(self.v_)));
     }
@@ -228,7 +241,7 @@ namespace OpenKalman::collections
     get() &
     {
       if constexpr (size_of_v<V> != dynamic_size and values::fixed<Factor>)
-        static_assert(i < size_of_v<V> * values::fixed_number_of_v<Factor>, "Index out of range");
+        static_assert(i < size_of_v<V> * values::fixed_value_of_v<Factor>, "Index out of range");
       return collections::get(v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(v_)));
     }
@@ -238,7 +251,7 @@ namespace OpenKalman::collections
     get() const &
     {
       if constexpr (size_of_v<V> != dynamic_size and values::fixed<Factor>)
-        static_assert(i < size_of_v<V> * values::fixed_number_of_v<Factor>, "Index out of range");
+        static_assert(i < size_of_v<V> * values::fixed_value_of_v<Factor>, "Index out of range");
       return collections::get(v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(v_)));
     }
@@ -248,7 +261,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       if constexpr (size_of_v<V> != dynamic_size and values::fixed<Factor>)
-        static_assert(i < size_of_v<V> * values::fixed_number_of_v<Factor>, "Index out of range");
+        static_assert(i < size_of_v<V> * values::fixed_value_of_v<Factor>, "Index out of range");
       return collections::get(std::move(*this).v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).v_)));
     }
@@ -258,7 +271,7 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       if constexpr (size_of_v<V> != dynamic_size and values::fixed<Factor>)
-        static_assert(i < size_of_v<V> * values::fixed_number_of_v<Factor>, "Index out of range");
+        static_assert(i < size_of_v<V> * values::fixed_value_of_v<Factor>, "Index out of range");
       return collections::get(std::move(*this).v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).v_)));
     }
@@ -278,7 +291,7 @@ namespace OpenKalman::collections
   replicate_view(const V&, const F&) -> replicate_view<V, F>;
 
 
-} // namespace OpenKalman::collections
+}
 
 
 #ifdef __cpp_lib_ranges
@@ -300,7 +313,7 @@ namespace OpenKalman::collections::detail
 
   template<typename V, typename F>
   struct replicate_tuple_size<V, F, std::enable_if_t<values::fixed<F> and (size_of<V>::value != dynamic_size)>>
-    : std::integral_constant<std::size_t, size_of_v<V> * values::fixed_number_of_v<F>> {};
+    : std::integral_constant<std::size_t, size_of_v<V> * values::fixed_value_of_v<F>> {};
 
 
   template<std::size_t i, typename V, typename = void>
@@ -311,7 +324,7 @@ namespace OpenKalman::collections::detail
 
   template<std::size_t i, typename V>
   struct replicate_tuple_element<i, V, std::enable_if_t<size_of<V>::value != dynamic_size>>
-    : std::tuple_element<i % size_of_v<V>, std::decay_t<V>> {};
+    : collection_element<i % size_of_v<V>, std::decay_t<V>> {};
 
 }
 #endif
@@ -322,7 +335,7 @@ namespace std
 #ifdef __cpp_lib_ranges
   template<typename V, OpenKalman::values::fixed F> requires (OpenKalman::collections::size_of_v<V> != OpenKalman::dynamic_size)
   struct tuple_size<OpenKalman::collections::replicate_view<V, F>>
-    : integral_constant<std::size_t, std::tuple_size_v<std::decay_t<V>> * OpenKalman::values::fixed_number_of_v<F>> {};
+    : integral_constant<std::size_t, OpenKalman::collections::size_of_v<V> * OpenKalman::values::fixed_value_of_v<F>> {};
 #else
   template<typename V, typename F>
   struct tuple_size<OpenKalman::collections::replicate_view<V, F>>
@@ -346,7 +359,7 @@ namespace std
     : OpenKalman::collections::detail::replicate_tuple_element<i, V> {};
 #endif
 
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -415,4 +428,4 @@ namespace OpenKalman::collections::views
 }
 
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_REPLICATE_HPP
+#endif

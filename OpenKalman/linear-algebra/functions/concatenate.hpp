@@ -25,7 +25,7 @@ namespace OpenKalman
     constexpr bool concatenate_dimensions_match_impl(std::index_sequence<I...>)
     {
       return (([](std::size_t i){ return ((i != indices) and ...); }(I) or
-        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Applicability::permitted>) and ...);
+        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, applicability::permitted>) and ...);
     }
 
 
@@ -44,14 +44,14 @@ namespace OpenKalman
       if constexpr (((I == indices) or ...))
       {
         auto f = [](auto&& dtup){
-          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return coordinates::Axis {};
+          if constexpr (I >= collections::size_of_v<decltype(dtup)>) return coordinates::Axis {};
           else return std::get<I>(std::forward<decltype(dtup)>(dtup));
         };
         return (f(std::forward<DTup>(d_tup)) + ... + f(std::forward<DTups>(d_tups)));
       }
       else
       {
-        if constexpr (not (compares_with<std::tuple_element_t<I, DTup>, std::tuple_element_t<I, DTups>>and ...))
+        if constexpr (not (compares_with<collections::collection_element_t<I, DTup>, collections::collection_element_t<I, DTups>>and ...))
         {
           if (((std::get<I>(std::forward<DTup>(d_tup)) != std::get<I>(std::forward<DTups>(d_tups))) or ...))
             throw std::invalid_argument {"Arguments to concatenate do not match in at least index " + std::to_string(I)};
@@ -97,8 +97,8 @@ namespace OpenKalman
       }
       else
       {
-        using Pattern = std::tuple_element_t<0, Args_tup>;
-        return make_zero<Pattern>(get_vector_space_descriptor<all_indices>(std::get<pos>(args_tup))...);
+        using Pattern = collections::collection_element_t<0, Args_tup>;
+        return make_zero<Pattern>(get_pattern_collection<all_indices>(std::get<pos>(args_tup))...);
       }
     }
 
@@ -173,7 +173,7 @@ namespace OpenKalman
       }
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -221,7 +221,7 @@ namespace OpenKalman
       return to_diagonal(concatenate<0>(diagonal_of(std::forward<Arg>(arg), std::forward<Args>(args)...)));
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
-      (triangle_type_of_v<Arg, Args...> != TriangleType::any) and (square_shaped<Arg> and ... and square_shaped<Args>))
+      (triangle_type_of_v<Arg, Args...> != triangle_type::any) and (square_shaped<Arg> and ... and square_shaped<Args>))
     {
       return make_triangular_matrix<triangle_type_of_v<Arg>>(
         concatenate<0, 1>(nested_object(std::forward<Arg>(arg)), nested_object(std::forward<Args>(args))...));
@@ -255,6 +255,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_CONCATENATE_HPP
+#endif

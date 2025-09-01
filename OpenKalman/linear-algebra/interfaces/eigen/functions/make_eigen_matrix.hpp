@@ -95,7 +95,7 @@ namespace OpenKalman::Eigen3
   }
 
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_MAKE_EIGEN_MATRIX_HPP
+#endif

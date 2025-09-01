@@ -17,6 +17,7 @@
 #ifndef OPENKALMAN_LIBRARY_BASE_HPP
 #define OPENKALMAN_LIBRARY_BASE_HPP
 
+#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
 
 namespace OpenKalman::internal
 {
@@ -43,15 +44,15 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename LibraryObject> requires
-    interface::LibraryBase_defined_for<Derived, std::decay_t<LibraryObject>>
+    interface::library_base_defined_for<Derived, std::decay_t<LibraryObject>>
   struct library_base<Derived, LibraryObject>
 #else
   template<typename Derived, typename LibraryObject>
   struct library_base<Derived, LibraryObject, std::enable_if_t<
-    interface::LibraryBase_defined_for<Derived, std::decay_t<LibraryObject>>>>
+    interface::library_base_defined_for<Derived, std::decay_t<LibraryObject>>>>
 #endif
   {
-    using type = typename interface::library_interface<std::decay_t<LibraryObject>>::template LibraryBase<std::decay_t<Derived>>;
+    using type = typename interface::library_interface<std::decay_t<LibraryObject>>::template library_base<std::decay_t<Derived>>;
   };
 
 
@@ -61,7 +62,7 @@ namespace OpenKalman::internal
   template<typename Derived, typename LibraryObject>
   using library_base_t = typename library_base<Derived, LibraryObject>::type;
 
-} // namespace OpenKalman::internal
+}
 
 
-#endif //OPENKALMAN_LIBRARY_BASE_HPP
+#endif

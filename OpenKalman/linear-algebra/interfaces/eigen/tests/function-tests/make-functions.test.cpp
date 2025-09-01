@@ -17,73 +17,73 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, make_dense_object)
 {
-  auto m23c = make_dense_object<M11, Layout::left>(Dimensions<2>{}, Dimensions<3>{});
+  auto m23c = make_dense_object<M11, data_layout::left>(Dimensions<2>{}, Dimensions<3>{});
   static_assert(dimension_size_of_index_is<decltype(m23c), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23c), 1, 3>);
-  static_assert(layout_of_v<decltype(m23c)> == Layout::left);
+  static_assert(layout_of_v<decltype(m23c)> == data_layout::left);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23c)), 1);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23c)), 2);
 
-  auto m2xc_3 = make_dense_object<M11, Layout::left>(Dimensions<2>{}, 3);
+  auto m2xc_3 = make_dense_object<M11, data_layout::left>(Dimensions<2>{}, 3);
   static_assert(dimension_size_of_index_is<decltype(m2xc_3), 0, 2>);
   static_assert(dynamic_dimension<decltype(m2xc_3), 1>);
-  static_assert(layout_of_v<decltype(m2xc_3)> == Layout::left);
+  static_assert(layout_of_v<decltype(m2xc_3)> == data_layout::left);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m2xc_3)), 1);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m2xc_3)), 2);
 
-  auto mx3c_2 = make_dense_object<M11, Layout::left>(2, Dimensions<3>{});
+  auto mx3c_2 = make_dense_object<M11, data_layout::left>(2, Dimensions<3>{});
   static_assert(dynamic_dimension<decltype(mx3c_2), 0>);
   static_assert(dimension_size_of_index_is<decltype(mx3c_2), 1, 3>);
-  static_assert(layout_of_v<decltype(mx3c_2)> == Layout::left);
+  static_assert(layout_of_v<decltype(mx3c_2)> == data_layout::left);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mx3c_2)), 1);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mx3c_2)), 2);
 
-  auto mxxc_23 = make_dense_object<M11, Layout::left>(2, 3);
+  auto mxxc_23 = make_dense_object<M11, data_layout::left>(2, 3);
   static_assert(dynamic_dimension<decltype(mxxc_23), 0>);
   static_assert(dynamic_dimension<decltype(mxxc_23), 1>);
-  static_assert(layout_of_v<decltype(mxxc_23)> == Layout::left);
+  static_assert(layout_of_v<decltype(mxxc_23)> == data_layout::left);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mxxc_23)), 1);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mxxc_23)), 2);
 
-  auto m23r = make_dense_object<M11, Layout::right>(Dimensions<2>{}, Dimensions<3>{});
+  auto m23r = make_dense_object<M11, data_layout::right>(Dimensions<2>{}, Dimensions<3>{});
   static_assert(dimension_size_of_index_is<decltype(m23r), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23r), 1, 3>);
-  static_assert(layout_of_v<decltype(m23r)> == Layout::right);
+  static_assert(layout_of_v<decltype(m23r)> == data_layout::right);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23r)), 3);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23r)), 1);
 
-  auto m2xr_3 = make_dense_object<M11, Layout::right>(Dimensions<2>{}, 3);
+  auto m2xr_3 = make_dense_object<M11, data_layout::right>(Dimensions<2>{}, 3);
   static_assert(dimension_size_of_index_is<decltype(m2xr_3), 0, 2>);
   static_assert(dynamic_dimension<decltype(m2xr_3), 1>);
-  static_assert(layout_of_v<decltype(m2xr_3)> == Layout::right);
+  static_assert(layout_of_v<decltype(m2xr_3)> == data_layout::right);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m2xr_3)), 3);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m2xr_3)), 1);
 
-  auto mx3r_2 = make_dense_object<M11, Layout::right>(2, Dimensions<3>{});
+  auto mx3r_2 = make_dense_object<M11, data_layout::right>(2, Dimensions<3>{});
   static_assert(dynamic_dimension<decltype(mx3r_2), 0>);
   static_assert(dimension_size_of_index_is<decltype(mx3r_2), 1, 3>);
-  static_assert(layout_of_v<decltype(mx3r_2)> == Layout::right);
+  static_assert(layout_of_v<decltype(mx3r_2)> == data_layout::right);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mx3r_2)), 3);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mx3r_2)), 1);
 
-  auto mxxr_23 = make_dense_object<M11, Layout::right>(2, 3);
+  auto mxxr_23 = make_dense_object<M11, data_layout::right>(2, 3);
   static_assert(dynamic_dimension<decltype(mxxr_23), 0>);
   static_assert(dynamic_dimension<decltype(mxxr_23), 1>);
-  static_assert(layout_of_v<decltype(mxxr_23)> == Layout::right);
+  static_assert(layout_of_v<decltype(mxxr_23)> == data_layout::right);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mxxr_23)), 3);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mxxr_23)), 1);
 
-  auto m11c = make_dense_object<M11, Layout::left>(Dimensions<1>{}, Dimensions<1>{});
-  static_assert(layout_of_v<decltype(m11c)> == Layout::left);
-  auto mx1c_3 = make_dense_object<M11, Layout::left>(3, Dimensions<1>{});
-  static_assert(layout_of_v<decltype(mx1c_3)> == Layout::left);
-  auto m1xc_3 = make_dense_object<M11, Layout::right>(Dimensions<1>{}, 3);
-  static_assert(layout_of_v<decltype(m1xc_3)> == Layout::right);
+  auto m11c = make_dense_object<M11, data_layout::left>(Dimensions<1>{}, Dimensions<1>{});
+  static_assert(layout_of_v<decltype(m11c)> == data_layout::left);
+  auto mx1c_3 = make_dense_object<M11, data_layout::left>(3, Dimensions<1>{});
+  static_assert(layout_of_v<decltype(mx1c_3)> == data_layout::left);
+  auto m1xc_3 = make_dense_object<M11, data_layout::right>(Dimensions<1>{}, 3);
+  static_assert(layout_of_v<decltype(m1xc_3)> == data_layout::right);
 
-  auto m23y = to_dense_object<M11, Layout::left>(m23c);
+  auto m23y = to_dense_object<M11, data_layout::left>(m23c);
   static_assert(dimension_size_of_index_is<decltype(m23y), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23y), 1, 3>);
-  static_assert(layout_of_v<decltype(m23y)> == Layout::left);
+  static_assert(layout_of_v<decltype(m23y)> == data_layout::left);
   EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23y)), 1);
   EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23y)), 2);
 }
@@ -191,8 +191,8 @@ TEST(eigen3, make_dense_object_from)
   EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mx2> {mx2_2}), m44_1324));
   EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mxx> {mxx_22}), m44_1324));
 
-  static_assert(layout_of_v<decltype(make_dense_object_from<M22, Layout::left, double>(1, 2, 3, 4))> == Layout::left);
-  static_assert(layout_of_v<decltype(make_dense_object_from<M22, Layout::right, double>(1, 2, 3, 4))> == Layout::right);
+  static_assert(layout_of_v<decltype(make_dense_object_from<M22, data_layout::left, double>(1, 2, 3, 4))> == data_layout::left);
+  static_assert(layout_of_v<decltype(make_dense_object_from<M22, data_layout::right, double>(1, 2, 3, 4))> == data_layout::right);
 }
 
 
@@ -206,24 +206,24 @@ TEST(eigen3, make_special)
   auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22u};
   auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22l};
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22h), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22h))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22h), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22h))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22h), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22h))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22h), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22h))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_uppert), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_uppert))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowert), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_uppert), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_lowert), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_lowert))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_upperh), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_upperh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_upperh), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_upperh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowerh), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowerh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowerh), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_upperh), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_upperh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_upperh), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_upperh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_lowerh), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_lowerh), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_lowerh))>);
 
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22u), m22h));
   static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22l))>);

@@ -30,9 +30,9 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto get_pattern_collection(const Arg& arg, N n)
     {
-      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_pattern_collection(arg.nestedExpression(), n);
     }
 
 #ifdef __cpp_concepts
@@ -60,15 +60,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<Applicability b>
+    template<applicability b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template is_triangular<t>;
 
 
@@ -79,6 +79,6 @@ namespace OpenKalman::interface
 
   };
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORCWISENULLARYOP_HPP
+#endif

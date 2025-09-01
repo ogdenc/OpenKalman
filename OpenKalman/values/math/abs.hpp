@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::abs.
  */
 
-#ifndef OPENKALMAN_VALUE_ABS_HPP
-#define OPENKALMAN_VALUE_ABS_HPP
+#ifndef OPENKALMAN_VALUES_ABS_HPP
+#define OPENKALMAN_VALUES_ABS_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
@@ -40,7 +40,7 @@ namespace OpenKalman::values
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::abs(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::abs(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -57,7 +57,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_ABS_HPP
+#endif

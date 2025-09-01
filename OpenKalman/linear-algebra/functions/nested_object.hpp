@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_NESTED_OBJECT_HPP
 #define OPENKALMAN_NESTED_OBJECT_HPP
 
+#include "linear-algebra/concepts/has_nested_object.hpp"
 
 namespace OpenKalman
 {
@@ -33,10 +34,10 @@ namespace OpenKalman
   constexpr decltype(auto)
   nested_object(Arg&& arg)
   {
-    return interface::indexible_object_traits<std::decay_t<Arg>>::template nested_object(std::forward<Arg>(arg));
+    return interface::indexible_object_traits<stdcompat::remove_cvref_t<Arg>>::template nested_object(std::forward<Arg>(arg));
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_NESTED_OBJECT_HPP
+#endif

@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::atan.
  */
 
-#ifndef OPENKALMAN_VALUE_ATAN_HPP
-#define OPENKALMAN_VALUE_ATAN_HPP
+#ifndef OPENKALMAN_VALUES_ATAN_HPP
+#define OPENKALMAN_VALUES_ATAN_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -44,7 +44,7 @@ namespace OpenKalman::values
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::atan(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::atan(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -70,7 +70,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_ATAN_HPP
+#endif

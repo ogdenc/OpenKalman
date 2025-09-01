@@ -41,6 +41,6 @@ namespace OpenKalman
     indexible<T> and (detail::all_fixed_indices_are_euclidean_impl<T>(std::make_index_sequence<index_count_v<T>> {}));
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_ALL_FIXED_INDICES_ARE_EUCLIDEAN_HPP
+#endif

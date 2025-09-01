@@ -65,10 +65,10 @@ namespace OpenKalman
    * \tparam T A matrix or array
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T> requires interface::get_vector_space_descriptor_defined_for<T>
+  template<interface::count_indices_defined_for T> requires interface::get_pattern_collection_defined_for<T>
   constexpr values::index auto
 #else
-  template<typename T, std::enable_if_t<interface::count_indices_defined_for<T> and interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
+  template<typename T, std::enable_if_t<interface::count_indices_defined_for<T> and interface::get_pattern_collection_defined_for<T>, int> = 0>
   constexpr auto
 #endif
   tensor_order(const T& t)
@@ -92,6 +92,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TENSOR_ORDER_HPP
+#endif

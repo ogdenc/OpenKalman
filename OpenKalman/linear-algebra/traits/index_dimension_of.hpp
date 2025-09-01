@@ -51,6 +51,6 @@ namespace OpenKalman
   static constexpr auto index_dimension_of_v = index_dimension_of<T, N>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_INDEX_DIMENSION_OF_HPP
+#endif

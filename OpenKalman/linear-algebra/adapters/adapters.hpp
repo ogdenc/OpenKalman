@@ -12,13 +12,18 @@
  * \dir
  * \brief Files relating to adapters.
  *
- * \dir adapters/details
+ * \dir details
+ * \internal
+ * \brief Support files for adapters.
+*
+ * \dir internal
+ * \internal
  * \brief Support files for adapters.
  *
- * \dir adapters/interfaces
+ * \dir interfaces
  * \brief Interfaces for adapters.
  *
- * \dir adapters/tests
+ * \dir tests
  * \brief Tests for adapters.
  *
  * \file
@@ -28,16 +33,27 @@
 #ifndef OPENKALMAN_ADAPTERS_HPP
 #define OPENKALMAN_ADAPTERS_HPP
 
-#include "ConstantAdapter.hpp"
-#include "DiagonalAdapter.hpp"
+#include "constant_adapter.hpp"
+
+#include "internal/ElementAccessor.hpp"
+#include "internal/AdapterBase.hpp"
+
+#include "VectorSpaceAdapter.hpp"
+#include "interfaces/VectorSpaceAdapter.hpp"
+
+#include "diagonal_adapter.hpp"
 #include "HermitianAdapter.hpp"
 #include "TriangularAdapter.hpp"
+#include "interfaces/adapters-interface.hpp"
+
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
-#include "VectorSpaceAdapter.hpp"
 
-#include "linear-algebra/adapters/interfaces/adapters-interface.hpp"
+#include "internal/LibraryWrapper.hpp"
+#include "interfaces/LibraryWrapper.hpp"
 
-#include "linear-algebra/adapters/details/adapters-arithmetic.hpp"
+#include "internal/FixedSizeAdapter.hpp"
+#include "interfaces/FixedSizeAdapter.hpp"
 
-#endif OPENKALMAN_ADAPTERS_HPP
+
+#endif

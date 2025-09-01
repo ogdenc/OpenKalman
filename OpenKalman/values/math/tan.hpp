@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::tan.
  */
 
-#ifndef OPENKALMAN_VALUE_TAN_HPP
-#define OPENKALMAN_VALUE_TAN_HPP
+#ifndef OPENKALMAN_VALUES_TAN_HPP
+#define OPENKALMAN_VALUES_TAN_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
@@ -33,17 +33,17 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::tan function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto
+  template<value Arg>
+  constexpr value auto
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto
 #endif
   tan(const Arg& arg)
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::tan(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::tan(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -74,7 +74,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_TAN_HPP
+#endif

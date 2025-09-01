@@ -48,4 +48,4 @@ namespace OpenKalman::collections
 
 } // OpenKalman::collections
 
-#endif //OPENKALMAN_COLLECTIONS_SIZED_HPP
+#endif

@@ -150,4 +150,4 @@ namespace OpenKalman::stdcompat::ranges
 #endif
 }
 
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_RANGE_ADAPTOR_CLOSURE_HPP
+#endif

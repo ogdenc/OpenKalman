@@ -33,21 +33,21 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in triangular (or diagonal) form.
    */
 # ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any> A, indexible U> requires
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Applicability::permitted> and
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Applicability::permitted> and
+  template<triangular_matrix<triangle_type::any> A, indexible U> requires
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, applicability::permitted> and
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, applicability::permitted> and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
-  inline triangular_matrix<triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower> decltype(auto)
+  inline triangular_matrix<triangle_type_of_v<A> == triangle_type::upper ? triangle_type::upper : triangle_type::lower> decltype(auto)
 # else
-  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, TriangleType::any> and indexible<U> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Applicability::permitted> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Applicability::permitted> and
+  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, triangle_type::any> and indexible<U> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, applicability::permitted> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, applicability::permitted> and
     stdcompat::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
   inline decltype(auto)
 # endif
   rank_update_triangular(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)
   {
-    constexpr auto t = triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower;
+    constexpr auto t = triangle_type_of_v<A> == triangle_type::upper ? triangle_type::upper : triangle_type::lower;
 
     if constexpr (zero<U>)
     {
@@ -90,7 +90,7 @@ namespace OpenKalman
     {
       if constexpr (diagonal_matrix<U>)
         return to_diagonal(sqrt(alpha) * diagonal_of(std::forward<U>(u)));
-      else if constexpr (t == TriangleType::upper)
+      else if constexpr (t == triangle_type::upper)
         return QR_decomposition(sqrt(alpha) * adjoint(std::forward<U>(u)));
       else
         return LQ_decomposition(sqrt(alpha) * std::forward<U>(u));
@@ -116,6 +116,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_RANK_UPDATE_TRIANGULAR_HPP
+#endif

@@ -71,7 +71,7 @@ namespace OpenKalman
       {
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
-        using Mright = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
+        using Mright = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
         const auto mright = make_zero<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret {concatenate_horizontal(delta, -delta, std::move(mright))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -81,10 +81,10 @@ namespace OpenKalman
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 ... | delta | -delta | 0 ... |
-        using Mleft = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
+        using Mleft = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
         const auto mleft = make_zero<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         constexpr auto width = points_count - (pos + frame_size);
-        using Mright = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
+        using Mright = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<width>>>;
         const auto mright = make_zero<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret {concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -95,7 +95,7 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using Mleft = dense_writable_matrix_t<M, Layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
+        using Mleft = dense_writable_matrix_t<M, data_layout::none, Scalar, std::tuple<Coeffs, Dimensions<pos>>>;
         const auto mleft = make_zero<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         auto ret {concatenate_horizontal(std::move(mleft), delta, -delta)};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
@@ -212,4 +212,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_CUBATUREPOINTS_HPP
+#endif

@@ -20,27 +20,27 @@
 namespace OpenKalman
 {
   /**
-   * \brief The common \ref TriangleType associated with a set of \ref triangular_matrix "triangular matrices".
-   * \details If there is no common triangle type, the result is TriangleType::any.
+   * \brief The common \ref triangle_type associated with a set of \ref triangular_matrix "triangular matrices".
+   * \details If there is no common triangle type, the result is triangle_type::any.
    * The result here does not guarantee that any of the parameters are guaranteed triangular, which must be checked
    * with \ref triangular_matrix.
    */
   template<typename T, typename...Ts>
   struct triangle_type_of
-    : std::integral_constant<TriangleType,
-      (triangular_matrix<T, TriangleType::diagonal> and ... and triangular_matrix<Ts, TriangleType::diagonal>) ? TriangleType::diagonal :
-      (triangular_matrix<T, TriangleType::lower> and ... and triangular_matrix<Ts, TriangleType::lower>) ? TriangleType::lower :
-      (triangular_matrix<T, TriangleType::upper> and ... and triangular_matrix<Ts, TriangleType::upper>) ? TriangleType::upper :
-      TriangleType::any> {};
+    : std::integral_constant<triangle_type,
+      (triangular_matrix<T, triangle_type::diagonal> and ... and triangular_matrix<Ts, triangle_type::diagonal>) ? triangle_type::diagonal :
+      (triangular_matrix<T, triangle_type::lower> and ... and triangular_matrix<Ts, triangle_type::lower>) ? triangle_type::lower :
+      (triangular_matrix<T, triangle_type::upper> and ... and triangular_matrix<Ts, triangle_type::upper>) ? triangle_type::upper :
+      triangle_type::any> {};
 
 
   /**
-   * \brief The TriangleType associated with a \ref triangular_matrix.
+   * \brief The triangle_type associated with a \ref triangular_matrix.
    */
   template<typename T, typename...Ts>
   constexpr auto triangle_type_of_v = triangle_type_of<T, Ts...>::value;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_TRIANGLE_TYPE_OF_HPP
+#endif

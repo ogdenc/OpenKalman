@@ -17,6 +17,7 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_SINGLE_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_SINGLE_HPP
 
+#include "basics/compatibility/internal/movable_box.hpp"
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
@@ -40,6 +41,9 @@ namespace OpenKalman::stdcompat::ranges
 #endif
   struct single_view : view_interface<single_view<T>>
   {
+    static_assert(stdcompat::move_constructible<T> and std::is_object_v<T>);
+
+
     /**
      * \brief Default constructor
      */
@@ -198,9 +202,9 @@ namespace OpenKalman::stdcompat::ranges
     {
       struct single_impl
       {
-        template<typename R>
+        template<typename T>
         constexpr auto
-        operator() [[nodiscard]] (R&& r) const { return single_view<R> {std::forward<R>(r)}; }
+        operator() [[nodiscard]] (T&& t) const { return single_view<std::decay_t<T>> {std::forward<T>(t)}; }
       };
     }
 

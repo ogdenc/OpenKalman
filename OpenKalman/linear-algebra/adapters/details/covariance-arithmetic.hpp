@@ -34,7 +34,7 @@ namespace OpenKalman
         return nested_object(std::forward<Arg>(arg));
       }
     }
-  } // namespace detail
+  }
   namespace okd = OpenKalman::detail;
 
 
@@ -69,15 +69,15 @@ namespace OpenKalman
     {
       auto&& e1 = nested_object(std::forward<Arg1>(arg1)); using E1 = decltype(e1);
       auto&& e2 = nested_object(std::forward<Arg2>(arg2)); using E2 = decltype(e2);
-      if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::upper>)
+      if constexpr (triangular_matrix<E1, triangle_type::upper> and triangular_matrix<E2, triangle_type::upper>)
       {
         return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2))));
       }
-      else if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::lower>)
+      else if constexpr (triangular_matrix<E1, triangle_type::upper> and triangular_matrix<E2, triangle_type::lower>)
       {
         return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
       }
-      else if constexpr (triangular_matrix<E1, TriangleType::lower> and triangular_matrix<E2, TriangleType::upper>)
+      else if constexpr (triangular_matrix<E1, triangle_type::lower> and triangular_matrix<E2, triangle_type::upper>)
       {
         return make_covariance<C>(LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
       }
@@ -139,7 +139,7 @@ namespace OpenKalman
 
       auto a = nested_object(std::forward<Arg1>(arg1));
 
-      if constexpr (triangular_matrix<B, TriangleType::upper>)
+      if constexpr (triangular_matrix<B, triangle_type::upper>)
       {
         auto b = to_dense_object(adjoint(nested_object(std::forward<Arg2>(arg2))));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
@@ -326,7 +326,7 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M>)
       {
         auto prod = nested_object(std::forward<M>(m)) * static_cast<Scalar>(s);
-        TriangleType t = triangle_type_of_v<nested_object_of_t<M>>;
+        triangle_type t = triangle_type_of_v<nested_object_of_t<M>>;
         return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(prod))));
       }
       else
@@ -398,7 +398,7 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M>)
       {
         auto ret {nested_object(std::forward<M>(m)) / static_cast<Scalar>(s)};
-        TriangleType t = triangle_type_of_v<nested_object_of_t<M>>;
+        triangle_type t = triangle_type_of_v<nested_object_of_t<M>>;
         return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(ret))));
       }
       else
@@ -584,7 +584,7 @@ namespace OpenKalman
     {
       using SABaseType = std::conditional_t<
         diagonal_matrix<NestedMatrix>,
-        typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<TriangleType::lower>,
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<triangle_type::lower>,
         typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<>>;
 
       if constexpr(triangular_covariance<M>)
@@ -598,14 +598,14 @@ namespace OpenKalman
         return make_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
     }
-    else if constexpr (triangular_matrix<NestedMatrix, TriangleType::upper>)
+    else if constexpr (triangular_matrix<NestedMatrix, triangle_type::upper>)
     {
       auto b = QR_decomposition(nested_object(std::forward<M>(m)) * adjoint(nested_object(std::forward<A>(a))));
       return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
     else
     {
-      static_assert(triangular_matrix<NestedMatrix, TriangleType::lower>);
+      static_assert(triangular_matrix<NestedMatrix, triangle_type::lower>);
       auto b = LQ_decomposition(nested_object(std::forward<A>(a)) * nested_object(std::forward<M>(m)));
       return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
@@ -614,4 +614,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_COVARIANCEARITHMETIC_HPP
+#endif

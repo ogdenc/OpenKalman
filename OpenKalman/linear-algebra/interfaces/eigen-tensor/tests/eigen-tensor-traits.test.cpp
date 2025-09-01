@@ -58,8 +58,8 @@ TEST(eigen_tensor, Tensor)
   set_component(t1234, 19.5, 0, 1, 1, 2);
   EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19.5);
 
-  static_assert(layout_of_v<T4> == Layout::left);
-  static_assert(layout_of_v<Eigen::Tensor<double, 4, Eigen::RowMajor>> == Layout::right);
+  static_assert(layout_of_v<T4> == data_layout::left);
+  static_assert(layout_of_v<Eigen::Tensor<double, 4, Eigen::RowMajor>> == data_layout::right);
   static_assert(directly_accessible<T4>);
   EXPECT_EQ(*internal::raw_data(t2222), 1);
   EXPECT_EQ(internal::raw_data(t2222)[1], 9);
@@ -106,8 +106,8 @@ TEST(eigen_tensor, TensorFixedSize)
   set_component(t1234, 19.5, 0, 1, 1, 2);
   EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19.5);
 
-  static_assert(layout_of_v<T2222> == Layout::left);
-  static_assert(layout_of_v<Eigen::TensorFixedSize<double, Eigen::Sizes<2,2,2,2>, Eigen::RowMajor>> == Layout::right);
+  static_assert(layout_of_v<T2222> == data_layout::left);
+  static_assert(layout_of_v<Eigen::TensorFixedSize<double, Eigen::Sizes<2,2,2,2>, Eigen::RowMajor>> == data_layout::right);
   static_assert(directly_accessible<T2222>);
   EXPECT_EQ(*internal::raw_data(t2222), 1);
   EXPECT_EQ(internal::raw_data(t2222)[1], 9);
@@ -132,7 +132,7 @@ TEST(eigen_tensor, TensorMap)
   static_assert(dynamic_dimension<S64_4d, 1>);
   static_assert(dynamic_dimension<S64_4d, 2>);
   static_assert(dynamic_dimension<S64_4d, 3>);
-  static_assert(layout_of_v<S64_4d> == Layout::left);
+  static_assert(layout_of_v<S64_4d> == data_layout::left);
   static_assert(directly_accessible<S64_4d>);
 
   EXPECT_EQ(get_component(s64_4d, 0, 0, 0, 0), 0);
@@ -152,7 +152,7 @@ TEST(eigen_tensor, TensorMap)
   static_assert(not writable<S64_2d>);
   static_assert(dynamic_dimension<S64_2d, 0>);
   static_assert(dynamic_dimension<S64_2d, 1>);
-  static_assert(layout_of_v<S64_2d> == Layout::right);
+  static_assert(layout_of_v<S64_2d> == data_layout::right);
   static_assert(directly_accessible<S64_2d>);
 
   EXPECT_EQ(get_component(s64_2d, 0, 0), 0.5);
@@ -170,7 +170,7 @@ TEST(eigen_tensor, tensor_to_matrix)
   const auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
 
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
-  static_assert(layout_of_v<T23> == Layout::left);
+  static_assert(layout_of_v<T23> == data_layout::left);
   static_assert(Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<T23>, false>);
   static_assert(not Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<T23>, true>);
   static_assert(Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, false>);
@@ -189,7 +189,7 @@ TEST(eigen_tensor, tensor_to_matrix)
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23) * m23.transpose(), make_dense_object_from<M22>(14, 32, 32, 77)));
 
   using T23r = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>, Eigen::RowMajor>;
-  static_assert(layout_of_v<T23r> == Layout::right);
+  static_assert(layout_of_v<T23r> == data_layout::right);
   T23r t23r;
   t23r.setValues({{1, 2, 3}, {4, 5, 6}});
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23r), m23));

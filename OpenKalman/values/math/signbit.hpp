@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::signbit.
  */
 
-#ifndef OPENKALMAN_VALUE_SIGNBIT_HPP
-#define OPENKALMAN_VALUE_SIGNBIT_HPP
+#ifndef OPENKALMAN_VALUES_SIGNBIT_HPP
+#define OPENKALMAN_VALUES_SIGNBIT_HPP
 
 #include "values/concepts/value.hpp"
 #include "values/concepts/complex.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 
@@ -32,17 +32,17 @@ namespace OpenKalman::values
    * at compile time, the sign of either ±NaN or ±0.0.
    */
 #ifdef __cpp_concepts
-  template<value Arg> requires (not complex<number_type_of_t<Arg>>)
+  template<value Arg> requires (not complex<value_type_of_t<Arg>>)
   constexpr std::convertible_to<bool> auto
 #else
-  template <typename Arg, std::enable_if_t<value<Arg> and not complex<number_type_of_t<Arg>>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg> and not complex<value_type_of_t<Arg>>, int> = 0>
   constexpr auto
 #endif
   signbit(const Arg& arg)
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::signbit(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::signbit(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -57,7 +57,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_SIGNBIT_HPP
+#endif

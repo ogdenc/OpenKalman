@@ -23,4 +23,4 @@
 #include "basics/basics.hpp"
 
 
-#endif //OPENKALMAN_INTERFACES_HPP
+#endif

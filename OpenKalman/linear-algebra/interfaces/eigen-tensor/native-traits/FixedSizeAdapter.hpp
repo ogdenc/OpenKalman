@@ -30,7 +30,7 @@ namespace OpenKalman::Eigen3::internal
     : Eigen::internal::traits<std::decay_t<NestedObject>> {};
 
 
-} // namespace OpenKalman::Eigen3::internal
+}
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_FIXEDSIZEADAPTER_HPP
+#endif

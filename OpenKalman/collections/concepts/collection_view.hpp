@@ -21,19 +21,37 @@
 
 namespace OpenKalman::collections
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_fixed_size : std::false_type {};
+
+    template<typename T>
+    struct has_fixed_size<T, std::enable_if_t<sized<T>>> : std::bool_constant<size_of_v<T> != dynamic_size> {};
+
+  }
+#endif
+
+
   /**
    * \brief A view to a \ref collection which is also a std::ranges:view.
-   * \details It may or may not be \ref sized.
+   * \details If T is \ref sized and that size is not dynamic, T must be \ref uniformly_gettable.
    */
   template<typename T>
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_concepts
   concept collection_view =
+    stdcompat::ranges::view<T> and
+    stdcompat::ranges::random_access_range<T> and
+    (not sized<T> or size_of_v<T> == dynamic_size or uniformly_gettable<T>);
 #else
   constexpr bool collection_view =
+    stdcompat::ranges::view<T> and
+    stdcompat::ranges::random_access_range<T> and
+    (not detail::has_fixed_size<T>::value or uniformly_gettable<T>);
 #endif
-    stdcompat::ranges::view<T> and uniformly_gettable<T> and stdcompat::ranges::random_access_range<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COLLECTIONS_COLLECTION_VIEW_HPP
+#endif

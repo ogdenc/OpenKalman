@@ -30,38 +30,38 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(index_count_v<Zxx> == 2);
   static_assert(index_dimension_of_v<Zxx, 0> == dynamic_size);
   static_assert(index_dimension_of_v<Zxx, 1> == dynamic_size);
-  EXPECT_EQ(get_vector_space_descriptor<0>(zxx_21), 2);
-  EXPECT_EQ(get_vector_space_descriptor<1>(zxx_21), 1);
-  static_assert(std::is_same_v<typename interface::indexible_object_traits<std::decay_t<Zxx>>::scalar_type, double>);
+  EXPECT_EQ(get_pattern_collection<0>(zxx_21), 2);
+  EXPECT_EQ(get_pattern_collection<1>(zxx_21), 1);
+  static_assert(std::is_same_v<typename interface::indexible_object_traits<stdcompat::remove_cvref_t<Zxx>>::scalar_type, double>);
 
   static_assert(one_dimensional<Eigen::Replicate<M11, 1, 1>>);
-  static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, Applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Replicate<M1x, 1, 1>, Applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Replicate<Mx1, 1, 1>, Applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Replicate<M2x, Eigen::Dynamic, Eigen::Dynamic>, Applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Replicate<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Replicate<M1x, 1, 1>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Replicate<Mx1, 1, 1>, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Replicate<M2x, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Replicate<Mx2, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Replicate<Mxx, 1, 1>>);
-  static_assert(one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>>);
 
   static_assert(square_shaped<Eigen::Replicate<M22, 3, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Replicate<M32, 2, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>>);
-  static_assert(not square_shaped<Eigen::Replicate<M32, 5, Eigen::Dynamic>, Applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 2>, Applicability::permitted>);
-  static_assert(square_shaped<Eigen::Replicate<M3x, 2, 3>, Applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Replicate<M32, 5, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 2>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<M3x, 2, 3>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<M3x, 2, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<Mx2, 2, 3>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Replicate<Mx2, 2, 3>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<Mx2, 2, 3>>);
-  static_assert(not square_shaped<Eigen::Replicate<M2x, 2, 3>, Applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Replicate<Mx3, 2, 3>, Applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Replicate<M2x, 2, 3>, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Replicate<Mx3, 2, 3>, applicability::permitted>);
 
   static_assert(constant_coefficient_v<Eigen::Replicate<Z11, 1, 2>> == 0);
   static_assert(constant_coefficient_v<decltype(z2x_1)> == 0);
@@ -88,9 +88,9 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(diagonal_matrix<decltype(z11.replicate<Eigen::Dynamic, 2>())>);
   static_assert(diagonal_matrix<decltype(z11.replicate<Eigen::Dynamic, Eigen::Dynamic>())>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().replicate<1, 1>()), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv22>().replicate<1, 1>()), triangle_type::lower>);
 
-  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().replicate<1, 1>()), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv22>().replicate<1, 1>()), triangle_type::upper>);
 
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().replicate<1, 1>())>);
 

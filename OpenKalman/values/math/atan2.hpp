@@ -12,12 +12,12 @@
  * \brief Definition for \ref values::atan2.
  */
 
-#ifndef OPENKALMAN_VALUE_ATAN2_HPP
-#define OPENKALMAN_VALUE_ATAN2_HPP
+#ifndef OPENKALMAN_VALUES_ATAN2_HPP
+#define OPENKALMAN_VALUES_ATAN2_HPP
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
@@ -37,7 +37,7 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template <value Y, value X> requires
-    std::common_with<number_type_of_t<Y>, number_type_of_t<X>>
+    std::common_with<value_type_of_t<Y>, value_type_of_t<X>>
   constexpr value auto
 #else
   template <typename Y, typename X, std::enable_if_t<value<Y> and value<X>, int> = 0>
@@ -47,7 +47,7 @@ namespace OpenKalman::values
   {
     if constexpr (fixed<Y> or fixed<X>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Y>& y, const number_type_of_t<X>& x) const { return values::atan2(y, x); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Y>& y, const value_type_of_t<X>& x) const { return values::atan2(y, x); } };
       return values::operation(Op{}, y_arg, x_arg);
     }
     else
@@ -98,7 +98,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_ATAN2_HPP
+#endif

@@ -51,10 +51,10 @@ namespace OpenKalman
 #endif
     {
       template<typename Derived>
-      using LibraryBase = internal::library_base_t<Derived, nested_object_of_t<T>>;
+      using library_base = internal::library_base_t<Derived, nested_object_of_t<T>>;
 
 
-      template<Layout layout, typename Scalar, typename...D>
+      template<data_layout layout, typename Scalar, typename...D>
       static auto
       make_default(D&&...d)
       {
@@ -107,7 +107,7 @@ namespace OpenKalman
       };
 
 
-      template<TriangleType t, typename A, typename B>
+      template<triangle_type t, typename A, typename B>
       static decltype(auto)
       set_triangle(A&& a, B&& b)
       {
@@ -173,7 +173,7 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType triangle, typename A, typename U, typename Alpha>
+      template<triangle_type triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
         if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
@@ -215,7 +215,7 @@ namespace OpenKalman
 
     };
 
-  } // namespace interface
+  }
 
 
   /// Concatenate one or more Covariance or SquareRootCovariance objects diagonally.
@@ -253,7 +253,7 @@ namespace OpenKalman
       }
       else if constexpr(one_dimensional<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return MatrixTraits<std::decay_t<Expr>>::template make<C>(cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(cholesky_factor<triangle_type::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -273,7 +273,7 @@ namespace OpenKalman
       }
       else if constexpr(one_dimensional<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return f(cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
+        return f(cholesky_factor<triangle_type::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -449,6 +449,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COVARIANCEOVERLOADS_HPP
+#endif

@@ -195,4 +195,4 @@ namespace OpenKalman
 
 }
 
-#endif //OPENKALMAN_TYPED_MATRIX_ARITHMETIC_H
+#endif

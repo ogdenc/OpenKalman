@@ -173,7 +173,7 @@ namespace OpenKalman
       -> VectorSpaceAdapter<internal::remove_rvalue_reference_t<nested_object_of_t<Arg&&>>, std::decay_t<Descriptors>>;
 
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_VECTORSPACEADAPTER_HPP
+#endif

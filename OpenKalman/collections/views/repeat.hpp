@@ -13,8 +13,8 @@
  * \brief Definition of \ref collections::repeat_tuple_view and \ref collections::views::repeat.
  */
 
-#ifndef OPENKALMAN_VIEWS_REPEAT_HPP
-#define OPENKALMAN_VIEWS_REPEAT_HPP
+#ifndef OPENKALMAN_COLLECTIONS_VIEWS_REPEAT_HPP
+#define OPENKALMAN_COLLECTIONS_VIEWS_REPEAT_HPP
 
 #include "values/values.hpp"
 #include "all.hpp"
@@ -22,7 +22,7 @@
 namespace OpenKalman::collections
 {
   /**
-   * \brief A \ref tuple_like view that replicates a particular value N number of times
+   * \brief A \ref uniformly_gettable view that replicates a particular value N number of times
    * \tparam N The number of copies
    * \tparam T The type of the object to be replicated
    */
@@ -100,7 +100,7 @@ namespace std
     static_assert(i < N);
     using type = T;
   };
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -111,8 +111,8 @@ namespace OpenKalman::collections::views
     {
 #ifdef __cpp_lib_ranges
       template<std::move_constructible W, values::size Bound = stdcompat::unreachable_sentinel_t> requires
-        (OpenKalman::internal::is_signed_integer_like<values::number_type_of_t<Bound>> or
-        (OpenKalman::internal::is_integer_like<values::number_type_of_t<Bound>> and stdcompat::weakly_incrementable<values::number_type_of_t<Bound>> or
+        (OpenKalman::internal::is_signed_integer_like<values::value_type_of_t<Bound>> or
+        (OpenKalman::internal::is_integer_like<values::value_type_of_t<Bound>> and stdcompat::weakly_incrementable<values::value_type_of_t<Bound>> or
         std::same_as<Bound, std::unreachable_sentinel_t>))
 #else
       template<typename W, typename Bound = stdcompat::unreachable_sentinel_t, typename = void>
@@ -124,13 +124,13 @@ namespace OpenKalman::collections::views
           return stdcompat::ranges::views::repeat(std::forward<W>(value)) | all;
         else if constexpr (values::fixed<Bound>)
         {
-          if constexpr (values::fixed_number_of_v<Bound> == 1)
+          if constexpr (values::fixed_value_of_v<Bound> == 1)
             return stdcompat::ranges::views::single(std::forward<W>(value)) | all;
           else
-            return repeat_tuple_view<values::fixed_number_of_v<Bound>, W> {std::forward<W>(value)} | all;
+            return repeat_tuple_view<values::fixed_value_of_v<Bound>, W> {std::forward<W>(value)} | all;
         }
         else
-          return stdcompat::ranges::views::repeat(std::forward<W>(value), values::to_number(std::forward<Bound>(bound))) | all;
+          return stdcompat::ranges::views::repeat(std::forward<W>(value), values::to_value_type(std::forward<Bound>(bound))) | all;
       }
     };
 

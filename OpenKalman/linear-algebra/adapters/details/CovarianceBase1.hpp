@@ -286,4 +286,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_COVARIANCEBASE1_HPP
+#endif

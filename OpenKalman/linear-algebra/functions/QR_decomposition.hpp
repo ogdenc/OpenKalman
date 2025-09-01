@@ -25,14 +25,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible A>
-  constexpr triangular_matrix<TriangleType::upper> decltype(auto)
+  constexpr triangular_matrix<triangle_type::upper> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A>, int> = 0>
   constexpr decltype(auto)
 #endif
   QR_decomposition(A&& a)
   {
-    if constexpr (triangular_matrix<A, TriangleType::upper>)
+    if constexpr (triangular_matrix<A, triangle_type::upper>)
     {
       return internal::clip_square_shaped(std::forward<A>(a));
     }
@@ -52,15 +52,15 @@ namespace OpenKalman
         if (get_dimension(dim) == 1) m = std::move(row1);
         else m = concatenate<0>(std::move(row1), make_zero<A>(dim - coordinates::Axis{}, dim));
 
-        auto ret {make_triangular_matrix<TriangleType::upper>(std::move(m))};
+        auto ret {make_triangular_matrix<triangle_type::upper>(std::move(m))};
 
         // \todo Fix this:
         if constexpr (has_untyped_index<A, 1>) return ret;
-        else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<1>(a)};
+        else return SquareRootCovariance {std::move(ret), get_pattern_collection<1>(a)};
       }
       else
       {
-        auto ret = make_triangular_matrix<TriangleType::upper>([](Scalar elem){
+        auto ret = make_triangular_matrix<triangle_type::upper>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 1>;
           auto row1 = make_constant<A>(elem, coordinates::Axis{}, coordinates::Dimensions<dim>{});
           if constexpr (dim == 1) return row1;
@@ -89,16 +89,16 @@ namespace OpenKalman
       }(std::forward<A>(a));
       using Ret = decltype(ret);
 
-      static_assert(triangular_matrix<Ret, TriangleType::upper>,
+      static_assert(triangular_matrix<Ret, triangle_type::upper>,
         "Interface implementation error: interface::library_interface<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (has_untyped_index<A, 1>) return ret;
-      else return SquareRootCovariance {std::forward<Ret>(ret), get_vector_space_descriptor<1>(a)};
+      else return SquareRootCovariance {std::forward<Ret>(ret), get_pattern_collection<1>(a)};
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_QR_DECOMPOSITION_HPP
+#endif

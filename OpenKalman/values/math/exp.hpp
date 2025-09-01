@@ -12,13 +12,13 @@
  * \brief Definition for \ref values::exp.
  */
 
-#ifndef OPENKALMAN_VALUE_EXP_HPP
-#define OPENKALMAN_VALUE_EXP_HPP
+#ifndef OPENKALMAN_VALUES_EXP_HPP
+#define OPENKALMAN_VALUES_EXP_HPP
 
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of.hpp"
+#include "values/traits/value_type_of.hpp"
 #include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/functions/operation.hpp"
@@ -40,16 +40,16 @@ namespace OpenKalman::values
    * \details Thus uses a Maclaurin series expansion For floating-point values, or multiplication for integral values.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto exp(const Arg& arg)
+  template<value Arg>
+  constexpr value auto exp(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto exp(const Arg& arg)
 #endif
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::exp(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::exp(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -97,7 +97,7 @@ namespace OpenKalman::values
     }
   }
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_EXP_HPP
+#endif

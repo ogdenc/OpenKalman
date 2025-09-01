@@ -27,7 +27,7 @@ namespace OpenKalman
       if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -35,10 +35,10 @@ namespace OpenKalman
    * \tparam Arg A square matrix
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Applicability::permitted> Arg> requires (max_tensor_order_v<Arg> <= 2)
+  template<square_shaped<applicability::permitted> Arg> requires (max_tensor_order_v<Arg> <= 2)
   constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and (max_tensor_order_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, applicability::permitted> and (max_tensor_order_v<Arg> <= 2), int> = 0>
   constexpr auto
 #endif
   determinant(Arg&& arg)
@@ -49,7 +49,7 @@ namespace OpenKalman
     if constexpr (identity_matrix<Arg> or empty_object<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return values::Fixed<Scalar, 1>{};
+      return values::fixed_value<Scalar, 1>{};
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
     {
@@ -60,7 +60,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return values::Fixed<Scalar, 0>{};
+      return values::fixed_value<Scalar, 0>{};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
@@ -86,6 +86,6 @@ namespace OpenKalman
     }
   }
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_DETERMINANT_HPP
+#endif

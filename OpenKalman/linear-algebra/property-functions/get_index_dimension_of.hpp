@@ -24,16 +24,16 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T, values::index N = std::integral_constant<std::size_t, 0>> requires
-    requires(T t, N n) { {get_vector_space_descriptor(t, n)} -> coordinates::pattern; }
+    requires(T t, N n) { {get_pattern_collection(t, n)} -> coordinates::pattern; }
   constexpr values::index auto
 #else
   template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<
-    coordinates::pattern<decltype(get_vector_space_descriptor(std::declval<T>(), std::declval<N>()))>, int> = 0>
+    coordinates::pattern<decltype(get_pattern_collection(std::declval<T>(), std::declval<N>()))>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t, N n = N{})
   {
-    return get_dimension(get_vector_space_descriptor(t, n));
+    return get_dimension(get_pattern_collection(t, n));
   }
 
 
@@ -41,19 +41,19 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<std::size_t N, typename T> requires requires(T t) { {get_vector_space_descriptor<N>(t)} -> coordinates::pattern; }
+  template<std::size_t N, typename T> requires requires(T t) { {get_pattern_collection<N>(t)} -> coordinates::pattern; }
   constexpr values::index auto
 #else
   template<std::size_t N, typename T, std::enable_if_t<
-    coordinates::pattern<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>, int> = 0>
+    coordinates::pattern<decltype(get_pattern_collection<N>(std::declval<T>()))>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t)
   {
-    return get_dimension(get_vector_space_descriptor<N>(t));
+    return get_dimension(get_pattern_collection<N>(t));
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_GET_INDEX_DIMENSION_OF_HPP
+#endif

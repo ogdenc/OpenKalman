@@ -43,8 +43,8 @@ TEST(eigen3, to_diagonal)
 
   EXPECT_TRUE(is_near(to_diagonal(M11 {m11}), m11)); static_assert(std::is_same_v<decltype(to_diagonal(M11 {m11})), M11&&>);
   EXPECT_TRUE(is_near(to_diagonal(M1x {m11}), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(M1x {m11}))>);
-  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalAdapter. See adapters/tests/DiagonalAdapter.test.cpp
-  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalAdapter. See adapters/tests/DiagonalAdapter.test.cpp
+  // to_diagonal(M1x {m11}) must create OpenKalman::diagonal_adapter. See adapters/tests/diagonal_adapter.test.cpp
+  // to_diagonal(Mxx {m11}) must create OpenKalman::diagonal_adapter. See adapters/tests/diagonal_adapter.test.cpp
 }
 
 
@@ -59,7 +59,7 @@ TEST(eigen3, diagonal_of_1x1)
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M11::Identity()))>);
   static_assert(constant_coefficient_v<decltype(diagonal_of(M11::Identity()))> == 1);
 
-  // Note: dynamic one-by-one, known at compile time requires creation of ConstantAdapter and is tested elsewhere.
+  // Note: dynamic one-by-one, known at compile time requires creation of constant_adapter and is tested elsewhere.
 
   // dynamic one-by-one, unknown at compile time:
 
@@ -202,14 +202,14 @@ TEST(eigen3, diagonal_of_dense_nonsquare)
 
 TEST(eigen3, diagonal_of_DiagonalMatrix)
 {
-  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, 2>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>);
+  static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 2>> and internal::has_nested_vector<Eigen::DiagonalMatrix<double, 2>>);
+  static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, Eigen::Dynamic>> and internal::has_nested_vector<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>);
 
   auto m21 = M21 {1, 4};
   auto mx1_2 = Mx1 {m21};
 
-  auto dm2 = Eigen::DiagonalMatrix<double, 2> {m21}; static_assert(diagonal_adapter<decltype(dm2)>);
-  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2}; static_assert(diagonal_adapter<decltype(dm0_2)>);
+  auto dm2 = Eigen::DiagonalMatrix<double, 2> {m21}; static_assert(diagonal_matrix<decltype(dm2)> and internal::has_nested_vector<decltype(dm2)>);
+  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2}; static_assert(diagonal_matrix<decltype(dm0_2)> and internal::has_nested_vector<decltype(dm0_2)>);
 
   EXPECT_TRUE(is_near(diagonal_of(dm2), m21));
   EXPECT_TRUE(is_near(diagonal_of(dm0_2), mx1_2));
@@ -224,20 +224,20 @@ TEST(eigen3, diagonal_of_DiagonalMatrix)
 
 TEST(eigen3, diagonal_of_DiagonalWrapper)
 {
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M21>, 1>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M12>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M12>, 1>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mx1>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx1>, 1>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M1x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, 1>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>, 1>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx2>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx2>, 1>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, 1>);
+  static_assert(diagonal_matrix<Eigen::DiagonalWrapper<M21>> and internal::has_nested_vector<Eigen::DiagonalWrapper<M21>>);
+  static_assert(not diagonal_matrix<Eigen::DiagonalWrapper<M21>> and internal::has_nested_vector<Eigen::DiagonalWrapper<M21>, 1>);
+  static_assert(not internal::has_nested_vector<Eigen::DiagonalWrapper<M12>>);
+  static_assert(diagonal_matrix<Eigen::DiagonalWrapper<M12>> and internal::has_nested_vector<Eigen::DiagonalWrapper<M12>, 1>);
+  static_assert(diagonal_matrix<Eigen::DiagonalWrapper<Mx1>> and internal::has_nested_vector<Eigen::DiagonalWrapper<Mx1>>);
+  static_assert(not diagonal_matrix<Eigen::DiagonalWrapper<Mx1>> and internal::has_nested_vector<Eigen::DiagonalWrapper<Mx1>, 1>);
+  static_assert(not internal::has_nested_vector<Eigen::DiagonalWrapper<M1x>>);
+  static_assert(diagonal_matrix<Eigen::DiagonalWrapper<M1x>> and internal::has_nested_vector<Eigen::DiagonalWrapper<M1x>, 1>);
+  static_assert(not internal::has_nested_vector<Eigen::DiagonalWrapper<M2x>>);
+  static_assert(not diagonal_matrix<Eigen::DiagonalWrapper<M2x>> and internal::has_nested_vector<Eigen::DiagonalWrapper<M2x>, 1>);
+  static_assert(not internal::has_nested_vector<Eigen::DiagonalWrapper<Mx2>>);
+  static_assert(not diagonal_matrix<Eigen::DiagonalWrapper<Mx2>> and internal::has_nested_vector<Eigen::DiagonalWrapper<Mx2>, 1>);
+  static_assert(not internal::has_nested_vector<Eigen::DiagonalWrapper<Mxx>>);
+  static_assert(not diagonal_matrix<Eigen::DiagonalWrapper<Mxx>> and internal::has_nested_vector<Eigen::DiagonalWrapper<Mxx>, 1>);
 
   auto m21 = M21 {1, 4};
   auto m2x_1 = M2x {m21};

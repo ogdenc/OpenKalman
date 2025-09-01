@@ -19,7 +19,7 @@
 
 #include <type_traits>
 #include <tuple>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
 
 namespace OpenKalman::collections::internal
 {
@@ -49,20 +49,20 @@ namespace OpenKalman::collections::internal
     {
       return std::tuple {get(std::forward<Arg>(arg), std::integral_constant<std::size_t, Ix>{})...};
     }
-  } // namespace detail
+  }
 
 
   /**
    * \deprecated
-   * \brief Convert a \ref tuple_like object to a std::tuple or equivalent
+   * \brief Convert a \ref uniformly_gettable object to a std::tuple or equivalent
    * \details This is a temporary measure until the expositional "tuple-like" concept in the stl library
    * encompasses \ref tuple_like as defined in this library.
    */
 #ifdef __cpp_concepts
-  template<tuple_like Arg>
+  template<uniformly_gettable Arg>
   constexpr detail::stl_tuple_like decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<tuple_like<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<uniformly_gettable<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   tuple_like_to_tuple(Arg&& arg)
@@ -70,9 +70,9 @@ namespace OpenKalman::collections::internal
     if constexpr (detail::stl_tuple_like<Arg>)
       return std::forward<Arg>(arg);
     else
-      return detail::tuple_like_to_tuple_impl(std::forward<Arg>(arg), std::make_index_sequence<std::tuple_size_v<std::decay_t<Arg>>>{});
+      return detail::tuple_like_to_tuple_impl(std::forward<Arg>(arg), std::make_index_sequence<size_of_v<Arg>>{});
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_TUPLE_LIKE_TO_TUPLE_HPP
+#endif

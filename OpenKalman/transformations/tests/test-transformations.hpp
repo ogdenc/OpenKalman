@@ -75,7 +75,7 @@ namespace OpenKalman::test
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         return std::make_tuple(scalar_quotient(adjoint(x), std::sqrt(trace(adjoint(x) * x))),
-          Matrix<Axis, Axis, dense_writable_matrix_t<decltype(ps), Layout::none, scalar_type_of_t<decltype(ps)>, std::tuple<Axis, Axis>>> {1.}...);
+          Matrix<Axis, Axis, dense_writable_matrix_t<decltype(ps), data_layout::none, scalar_type_of_t<decltype(ps)>, std::tuple<Axis, Axis>>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
@@ -240,6 +240,6 @@ namespace OpenKalman::test
       }
     };
 
-} // namespace OpenKalman::test
+}
 
-#endif //OPENKALMAN_TESTS_TRANSFORMATIONS_HPP
+#endif

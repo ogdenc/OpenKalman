@@ -26,7 +26,7 @@ namespace OpenKalman::Eigen3
 
     template<typename N, typename L>
     struct is_eigen_wrapper<internal::LibraryWrapper<N, L>> : std::bool_constant<eigen_general<L, true>> {};
-  } // namespace detail
+  }
 
 
   /**
@@ -59,12 +59,12 @@ namespace OpenKalman::Eigen3
         scalar_type_of_t<NestedObject>,
         dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
         dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
-        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>,
+        layout_of_v<NestedObject> == data_layout::right ? Eigen::RowMajor : Eigen::ColMajor>,
       Eigen::Matrix<
         scalar_type_of_t<NestedObject>,
         dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
         dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
-        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>>>;
+        layout_of_v<NestedObject> == data_layout::right ? Eigen::RowMajor : Eigen::ColMajor>>>;
 
 
   /**
@@ -81,7 +81,7 @@ namespace OpenKalman::Eigen3
     return EigenWrapper<Arg> {std::forward<Arg>(arg)};
   }
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_EIGEN_WRAPPER_HPP
+#endif

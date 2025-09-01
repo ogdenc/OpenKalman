@@ -24,13 +24,13 @@ namespace OpenKalman::internal
     template<typename Strides, std::size_t...ix>
     constexpr bool has_static_strides_i(std::index_sequence<ix...>)
     {
-      return (values::fixed<std::tuple_element_t<ix, Strides>> and ...);
+      return (values::fixed<collections::collection_element_t<ix, Strides>> and ...);
     };
 
     template<typename Strides>
     constexpr bool has_static_strides_impl()
     {
-      return has_static_strides_i<Strides>(std::make_index_sequence<std::tuple_size_v<Strides>>{});
+      return has_static_strides_i<Strides>(std::make_index_sequence<collections::size_of_v<Strides>>{});
     };
   }
 
@@ -47,6 +47,6 @@ namespace OpenKalman::internal
     detail::has_static_strides_impl<decltype(internal::strides(std::declval<T>()))>();
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_HAS_STATIC_STRIDES_HPP
+#endif

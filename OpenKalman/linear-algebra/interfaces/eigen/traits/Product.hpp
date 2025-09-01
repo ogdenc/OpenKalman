@@ -99,7 +99,7 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType t>
+    template<triangle_type t>
     static constexpr bool is_triangular = triangular_matrix<LhsType, t> and triangular_matrix<RhsType, t>;
 
 
@@ -110,14 +110,14 @@ namespace OpenKalman::interface
     static constexpr bool is_hermitian =
       (constant_diagonal_matrix<LhsType> and
         (not values::complex<scalar_type_of_t<LhsType>> or values::not_complex<constant_diagonal_coefficient<LhsType>>) and
-        hermitian_matrix<RhsType, Applicability::permitted>) or
+        hermitian_matrix<RhsType, applicability::permitted>) or
       (constant_diagonal_matrix<RhsType> and
         (not values::complex<scalar_type_of_t<RhsType>> or values::not_complex<constant_diagonal_coefficient<RhsType>>) and
-        hermitian_matrix<LhsType, Applicability::permitted>);
+        hermitian_matrix<LhsType, applicability::permitted>);
 
   };
 
 
-} // namespace OpenKalman::interface
+}
 
-#endif //OPENKALMAN_EIGEN_TRAITS_PRODUCT_HPP
+#endif

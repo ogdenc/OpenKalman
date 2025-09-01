@@ -28,7 +28,7 @@ namespace OpenKalman
     template<std::size_t ix, typename Best_d, typename Arg, typename...Args>
     decltype(auto) chipwise_vector_space_descriptor_for(const Best_d& best_d, const Arg& arg, const Args&...args)
     {
-      auto d = get_vector_space_descriptor<ix>(arg);
+      auto d = get_pattern_collection<ix>(arg);
       using D = decltype(d);
       if constexpr (fixed_pattern<Best_d>)
       {
@@ -54,7 +54,7 @@ namespace OpenKalman
     template<std::size_t...ix, typename Arg, typename...Args>
     auto make_chipwise_default(std::index_sequence<ix...>, const Arg& arg, const Args&...args)
     {
-      return make_dense_object<Arg>(chipwise_vector_space_descriptor_for<ix>(get_vector_space_descriptor<ix>(arg), args...)...);
+      return make_dense_object<Arg>(chipwise_vector_space_descriptor_for<ix>(get_pattern_collection<ix>(arg), args...)...);
     }
 
     //-- chipwise_op_chip --//
@@ -84,7 +84,7 @@ namespace OpenKalman
     chipwise_op(Indices indices, const Ix_tup& ix_tup, M& m, const Op& op, Args&&...args)
     {
       constexpr auto num_indices = Indices::size();
-      static_assert(std::tuple_size_v<Ix_tup> == num_indices);
+      static_assert(collections::size_of_v<Ix_tup> == num_indices);
       std::make_index_sequence<num_indices> indices_seq;
       chipwise_op_chip<uses_indices>(indices, indices_seq, ix_tup, m, op, std::forward<Args>(args)...);
     }
@@ -98,7 +98,7 @@ namespace OpenKalman
         chipwise_op<uses_indices, indices...>(indices_seq, std::tuple_cat(ix_tup, std::tuple{i}), m, op, args...);
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -150,13 +150,13 @@ namespace OpenKalman
     template<std::size_t op_ix, typename OpResult>
     auto nullary_chipwise_vector_space_descriptor(const OpResult& op_result)
     {
-      return get_vector_space_descriptor<op_ix>(op_result);
+      return get_pattern_collection<op_ix>(op_result);
     }
 
     template<std::size_t op_ix, std::size_t index, std::size_t...indices, typename OpResult, typename I, typename...Is>
     auto nullary_chipwise_vector_space_descriptor(const OpResult& op_result, I i, Is...is)
     {
-      if constexpr (op_ix == index) return get_vector_space_descriptor<op_ix>(op_result) * i;
+      if constexpr (op_ix == index) return get_pattern_collection<op_ix>(op_result) * i;
       else return nullary_chipwise_vector_space_descriptor<op_ix, indices...>(op_result, is...);
     }
 
@@ -187,7 +187,7 @@ namespace OpenKalman
     {
       if constexpr (not first)
       {
-        std::make_index_sequence<std::tuple_size_v<Ix_tup>> index_ix_seq;
+        std::make_index_sequence<collections::size_of_v<Ix_tup>> index_ix_seq;
         nullary_chipwise_op_chip<uses_indices>(all_index_seq, index_ix_seq, ix_tup, m, op);
       }
     }
@@ -210,7 +210,7 @@ namespace OpenKalman
         nullary_chipwise_op<uses_indices, false, indices...>(all_index_seq, new_ix_tup, m, op, is...);
       }
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -239,7 +239,7 @@ namespace OpenKalman
       }(operation);
     using OpResult = decltype(op_result);
 
-    static_assert((dimension_size_of_index_is<OpResult, indices, 1, Applicability::permitted> and ...),
+    static_assert((dimension_size_of_index_is<OpResult, indices, 1, applicability::permitted> and ...),
       "Operator must return a chip, meaning that the dimension is 1 for each of the specified indices.");
     // Note: set_chip also includes a runtime check that operation() is a chip.
 
@@ -252,6 +252,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_CHIPWISE_OPERATION_HPP
+#endif

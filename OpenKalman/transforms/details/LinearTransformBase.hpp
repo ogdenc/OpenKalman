@@ -18,7 +18,7 @@
 
 #include <functional>
 #include <tuple>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/concepts/uniformly_gettable.hpp"
 
 namespace OpenKalman::internal
 {
@@ -52,7 +52,7 @@ namespace OpenKalman::internal
     template<std::size_t return_cross, typename J, typename D, std::size_t...ints>
     static auto sum_noise_terms(const J& j, D&& d, std::index_sequence<ints...>)
     {
-      using InputDist = std::tuple_element_t<0, D>;
+      using InputDist = collections::collection_element_t<0, D>;
       if constexpr(cholesky_form<InputDist>)
       {
         if constexpr (return_cross)
@@ -115,7 +115,7 @@ namespace OpenKalman::internal
       if constexpr (return_cross)
       {
         auto [cov_out, cross_covariance] = sum_noise_terms<true>(jacobians, std::forward_as_tuple(in, n...),
-          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)> {});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), collections::size_of_v<decltype(jacobians)> - 1)> {});
 
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
@@ -127,7 +127,7 @@ namespace OpenKalman::internal
       else
       {
         auto cov_out = sum_noise_terms<false>(jacobians, std::forward_as_tuple(in, n...),
-          std::make_index_sequence<std::min(sizeof...(NoiseDists), std::tuple_size_v<decltype(jacobians)> - 1)> {});
+          std::make_index_sequence<std::min(sizeof...(NoiseDists), collections::size_of_v<decltype(jacobians)> - 1)> {});
 
         auto out = make_GaussianDistribution<re>(std::move(mean_output), std::move(cov_out));
 
@@ -152,10 +152,10 @@ namespace OpenKalman::internal
      * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, tuple_like...Ts>
+    template<gaussian_distribution InputDist, collections::uniformly_gettable...Ts>
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (tuple_like<Ts> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::uniformly_gettable<Ts> and ...), int> = 0>
 #endif
     auto operator()(const InputDist& x, const Ts&...ts) const
     {
@@ -194,10 +194,10 @@ namespace OpenKalman::internal
      * \return A tuple containing the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, tuple_like...Ts>
+    template<gaussian_distribution InputDist, collections::uniformly_gettable...Ts>
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (tuple_like<Ts> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::uniformly_gettable<Ts> and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(const InputDist& x, const Ts&...ts) const
     {
@@ -232,4 +232,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_LINEARTRANSFORMBASE_HPP
+#endif

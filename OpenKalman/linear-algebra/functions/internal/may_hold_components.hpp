@@ -30,7 +30,7 @@ namespace OpenKalman::internal
       else if constexpr (dims == 0) return false;
       else return N % dims == 0;
     }
-  } // namespace detail
+  }
 
 
   template<typename T, typename...Components>
@@ -42,6 +42,6 @@ namespace OpenKalman::internal
     detail::may_hold_components_impl<T, sizeof...(Components)>(std::make_index_sequence<index_count_v<T>> {});
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_MAY_HOLD_COMPONENTS_HPP
+#endif

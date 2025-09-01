@@ -31,6 +31,6 @@ namespace OpenKalman
     (dynamic_index_count_v<T> == dynamic_size) or (dynamic_index_count_v<T> > 0);
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_HAS_DYNAMIC_DIMENSIONS_HPP
+#endif

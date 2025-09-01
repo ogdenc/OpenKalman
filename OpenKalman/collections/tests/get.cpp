@@ -89,13 +89,13 @@ TEST(collections, get)
   EXPECT_EQ(get(l1, std::integral_constant<std::size_t, 3>{}), 4);
 
 
-  static_assert(tuple_like<decltype(tup1)>);
+  static_assert(uniformly_gettable<decltype(tup1)>);
   static_assert(not sized_random_access_range<decltype(tup1)>);
   static_assert(get(tup1, std::integral_constant<std::size_t, 0>{}) == 0);
   static_assert(get(tup1, std::integral_constant<std::size_t, 3>{}) == 3);
 
   auto range1 = std::vector<std::size_t> {3, 4, 5, 6, 7, 8};
-  static_assert(not tuple_like<decltype(range1)>);
+  static_assert(not uniformly_gettable<decltype(range1)>);
   static_assert(sized_random_access_range<decltype(range1)>);
   EXPECT_EQ(get(range1, std::integral_constant<std::size_t, 0>{}), 3);
   EXPECT_EQ(get(range1, 0u), 3);

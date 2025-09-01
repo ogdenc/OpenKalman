@@ -19,13 +19,14 @@
 
 #include "values/interface/number_traits.hpp"
 #include "values/concepts/number.hpp"
+#include "values/concepts/value.hpp"
 #include "values/concepts/complex.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
-#include "values/traits/fixed_number_of.hpp"
+#include "values/traits/fixed_value_of.hpp"
 #include "values/traits/real_type_of.hpp"
-#include "values/functions/to_number.hpp"
-#include "values/classes/Fixed.hpp"
+#include "values/functions/to_value_type.hpp"
+#include "values/classes/fixed_value.hpp"
 
 namespace OpenKalman::values::internal
 {
@@ -64,7 +65,7 @@ namespace OpenKalman::values::internal
       struct FixedComplex
       {
         using value_type = C;
-        static constexpr value_type value {interface::number_traits<C>::make_complex(fixed_number_of_v<Re>, fixed_number_of_v<Im>)};
+        static constexpr value_type value {interface::number_traits<C>::make_complex(fixed_value_of_v<Re>, fixed_value_of_v<Im>)};
         using type = FixedComplex;
         constexpr operator value_type() const { return value; }
         constexpr value_type operator()() const { return value; }
@@ -82,12 +83,12 @@ namespace OpenKalman::values::internal
        * \return A \ref complex \ref value
        */
 #ifdef __cpp_concepts
-      template<value Re, value Im = Fixed<real_type_of_t<T>, 0>> requires (not values::complex<Re>) and (not values::complex<Im>) and
+      template<value Re, value Im = fixed_value<real_type_of_t<T>, 0>> requires (not values::complex<Re>) and (not values::complex<Im>) and
         std::convertible_to<Re, real_type_of_t<T>> and std::convertible_to<Im, real_type_of_t<T>> and
-        requires { interface::number_traits<std::decay_t<T>>::make_complex(to_number(std::declval<Re>()), to_number(std::declval<Im>())); }
+        requires { interface::number_traits<std::decay_t<T>>::make_complex(to_value_type(std::declval<Re>()), to_value_type(std::declval<Im>())); }
       constexpr complex decltype(auto)
 #else
-      template<typename Re, typename Im = Fixed<real_type_of_t<T>, 0>, std::enable_if_t<values::value<Re> and values::value<Im> and
+      template<typename Re, typename Im = fixed_value<real_type_of_t<T>, 0>, std::enable_if_t<value<Re> and value<Im> and
         (not values::complex<Re>) and (not values::complex<Im>) and
         stdcompat::convertible_to<Re, real_type_of_t<T>> and stdcompat::convertible_to<Im, real_type_of_t<T>>, int> = 0>
       constexpr decltype(auto)
@@ -96,21 +97,21 @@ namespace OpenKalman::values::internal
       {
         if constexpr (fixed<Re> and fixed<Im>)
         {
-          constexpr auto r = fixed_number_of_v<Re>;
-          constexpr auto i = fixed_number_of_v<Im>;
+          constexpr auto r = fixed_value_of_v<Re>;
+          constexpr auto i = fixed_value_of_v<Im>;
           using C = std::decay_t<decltype(interface::number_traits<std::decay_t<T>>::make_complex(r, i))>;
 #if __cpp_nontype_template_args >= 201911L
-          return Fixed<C, r, i>{};
+          return fixed_value<C, r, i>{};
 #else
           if constexpr (r == static_cast<std::intmax_t>(r) and i == static_cast<std::intmax_t>(i))
-            return Fixed<C, static_cast<std::intmax_t>(r), static_cast<std::intmax_t>(i)>{};
+            return fixed_value<C, static_cast<std::intmax_t>(r), static_cast<std::intmax_t>(i)>{};
           else
             return FixedComplex<C, std::decay_t<Re>, std::decay_t<Im>>{};
 #endif
         }
         else
         {
-          return interface::number_traits<std::decay_t<T>>::make_complex(to_number(std::forward<Re>(re)), to_number(std::forward<Im>(im)));
+          return interface::number_traits<std::decay_t<T>>::make_complex(to_value_type(std::forward<Re>(re)), to_value_type(std::forward<Im>(im)));
         }
       }
 
@@ -156,17 +157,17 @@ namespace OpenKalman::values::internal
        * \param im The imaginary part.
        */
 #ifdef __cpp_concepts
-      template<number Re, number Im = Fixed<real_type_of_t<Re>, 0>> requires
-        (not complex<Re>) and (not complex<Im>) and std::common_with<number_type_of_t<Re>, number_type_of_t<Im>>
+      template<number Re, number Im = fixed_value<real_type_of_t<Re>, 0>> requires
+        (not complex<Re>) and (not complex<Im>) and std::common_with<value_type_of_t<Re>, value_type_of_t<Im>>
       constexpr complex decltype(auto)
 #else
-      template<typename Re, typename Im = Fixed<real_type_of_t<Re>, 0>, std::enable_if_t<
+      template<typename Re, typename Im = fixed_value<real_type_of_t<Re>, 0>, std::enable_if_t<
         number<Re> and number<Im> and (not complex<Re>) and (not complex<Im>), int> = 0>
       constexpr decltype(auto)
 #endif
       operator()(Re&& re, Im&& im) const
       {
-        using T = std::decay_t<std::common_type_t<number_type_of_t<Re>, number_type_of_t<Im>>>;
+        using T = std::decay_t<std::common_type_t<value_type_of_t<Re>, value_type_of_t<Im>>>;
         return make_complex_number<T>{}(std::forward<Re>(re), std::forward<Im>(im));
       }
     };

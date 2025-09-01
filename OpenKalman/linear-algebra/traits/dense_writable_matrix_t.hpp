@@ -23,15 +23,15 @@ namespace OpenKalman
    * \brief An alias for a dense, writable matrix, patterned on parameter T.
    * \tparam T A matrix or array from the relevant matrix library.
    * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
-   * \tparam layout The /ref Layout of the result.
+   * \tparam layout The /ref data_layout of the result.
    * \tparam D A \ref pattern_collection defining the new object. This will be derived from T if omitted.
    */
 #ifdef __cpp_concepts
-  template<indexible T, Layout layout = Layout::none, values::number S = scalar_type_of_t<T>,
+  template<indexible T, data_layout layout = data_layout::none, values::number S = scalar_type_of_t<T>,
     pattern_collection D = decltype(all_vector_space_descriptors(std::declval<T>()))>
-      requires (layout != Layout::stride)
+      requires (layout != data_layout::stride)
 #else
-  template<typename T, Layout layout = Layout::none, typename S = scalar_type_of_t<T>,
+  template<typename T, data_layout layout = data_layout::none, typename S = scalar_type_of_t<T>,
     typename D = decltype(all_vector_space_descriptors(std::declval<T>())), std::enable_if_t<
       indexible<T> and values::number<S> and pattern_collection<D>, int> = 0>
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman
 
 
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_DENSE_WRITABLE_MATRIX_T_HPP
+#endif

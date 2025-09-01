@@ -36,7 +36,7 @@ namespace OpenKalman
       }
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -98,7 +98,7 @@ namespace OpenKalman
       return values::operation(
         std::divides<scalar_type_of_t<Arg>>{},
         constant_diagonal_coefficient{arg},
-        internal::largest_pattern<scalar_type_of_t<Arg>>(get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<1>(arg)));
+        internal::largest_pattern<scalar_type_of_t<Arg>>(get_pattern_collection<0>(arg), get_pattern_collection<1>(arg)));
     }
     else
     {
@@ -119,6 +119,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_AVERAGE_REDUCE_HPP
+#endif

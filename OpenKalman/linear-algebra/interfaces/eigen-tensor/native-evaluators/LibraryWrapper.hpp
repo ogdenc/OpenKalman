@@ -72,7 +72,7 @@ namespace Eigen
         PacketAccess       = false,
         BlockAccess        = false,
         PreferBlockAccess  = false,
-        Layout             = OpenKalman::layout_of_v<NestedObject> == OpenKalman::Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+        data_layout             = OpenKalman::layout_of_v<NestedObject> == OpenKalman::data_layout::right ? Eigen::RowMajor : Eigen::ColMajor,
         CoordAccess        = OpenKalman::index_count_v<NestedObject> > 0 and OpenKalman::index_count_v<NestedObject> != OpenKalman::dynamic_size,
         RawAccess          = false,
       };
@@ -129,7 +129,7 @@ namespace Eigen
       EigenTensorWrapperEvaluator(const NestedObject& t, const Device& device) : Base {t, device} {}
     };
 
-  } // namespace detail
+  }
 
 
   template<typename NestedObject, typename LibraryObject, typename Device>
@@ -153,4 +153,4 @@ namespace Eigen
 
 } // Eigen::internal
 
-#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_EVALUATORS_LIBRARYWRAPPER_HPP
+#endif

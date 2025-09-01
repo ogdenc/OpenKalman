@@ -17,22 +17,25 @@
 #ifndef OPENKALMAN_UPDATE_REAL_PART_HPP
 #define OPENKALMAN_UPDATE_REAL_PART_HPP
 
+#include "basics/basics.hpp"
 #include "values/concepts/value.hpp"
 #include "values/concepts/complex.hpp"
+#include "values/traits/value_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
 
 namespace OpenKalman::values::internal
 {
   /**
    * \internal
-   * \brief Update only the real part of a (potentially) complex \ref values::number, leaving the imaginary part unchanged.
-   * \param t A potentially complex \ref values::value to update.
-   * \param re A real \ref values::value.
-   * \returns A new \ref values::value, which will be \ref complex only if t is complex.
+   * \brief Update only the real part of a (potentially) \ref complex \ref number, leaving the imaginary part unchanged.
+   * \param t A potentially complex \ref value to update.
+   * \param re A real \ref value.
+   * \returns A new \ref value, which will be \ref complex only if t is complex.
    */
 #ifdef __cpp_concepts
-  template<value T, value Re> requires (not complex<Re>) and std::common_with<real_type_of_t<T>, number_type_of_t<Re>>
-  constexpr values::value decltype(auto)
+  template<value T, value Re> requires (not complex<Re>) and std::common_with<real_type_of_t<T>, value_type_of_t<Re>>
+  constexpr value decltype(auto)
 #else
   template<typename T, typename Re, std::enable_if_t<value<T> and value<Re> and not complex<Re>, int> = 0>
   constexpr decltype(auto)
@@ -51,6 +54,6 @@ namespace OpenKalman::values::internal
   }
 
 
-} // namespace OpenKalman::values::internal
+}
 
-#endif //OPENKALMAN_UPDATE_REAL_PART_HPP
+#endif

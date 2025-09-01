@@ -59,7 +59,7 @@ namespace OpenKalman::test
 
   };
 
-} // namespace OpenKalman::test
+}
 
 
-#endif //OPENKALMAN_DISTRIBUTIONS_GTEST_HPP
+#endif

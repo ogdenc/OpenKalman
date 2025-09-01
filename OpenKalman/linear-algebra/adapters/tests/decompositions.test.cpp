@@ -45,8 +45,8 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalAdapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
   using L22 = HermitianAdapter<M22, HermitianAdapterType::lower>;
   using L20 = HermitianAdapter<M2x, HermitianAdapterType::lower>;
@@ -70,9 +70,9 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = DiagonalAdapter<T>;
-  template<typename T> using Tl = TriangularAdapter<T, TriangleType::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, TriangleType::upper>;
+  template<typename T> using D = diagonal_adapter<T>;
+  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
+  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
   template<typename T> using SAl = HermitianAdapter<T, HermitianAdapterType::lower>;
   template<typename T> using SAu = HermitianAdapter<T, HermitianAdapterType::upper>;
 }
@@ -81,16 +81,16 @@ namespace
 TEST(special_matrices, cholesky_diagonal)
 {
   // constant diagonal
-  static_assert(constant_diagonal_coefficient{cholesky_factor<TriangleType::lower>(to_diagonal(make_constant<M41>(std::integral_constant<int, 4>{})))} == 2);
+  static_assert(constant_diagonal_coefficient{cholesky_factor<triangle_type::lower>(to_diagonal(make_constant<M41>(std::integral_constant<int, 4>{})))} == 2);
 
   // constant
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(make_constant<M22>(std::integral_constant<int, 4>{})), M22{2, 2, 0, 0}));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::lower>(make_constant<M22>(std::integral_constant<int, 4>{})), M22{2, 2, 0, 0}));
 
   auto d22 = Eigen::DiagonalMatrix<double, 2> {9, 16};
   const auto d22_sqrt = Eigen::DiagonalMatrix<double, 2> {3, 4};
 
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(d22), d22_sqrt));
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(d22), d22_sqrt));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::lower>(d22), d22_sqrt));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::upper>(d22), d22_sqrt));
 
   EXPECT_TRUE(is_near(cholesky_square(d22_sqrt), d22));
   EXPECT_TRUE(is_near(cholesky_square(d22_sqrt), d22));
@@ -107,10 +107,10 @@ TEST(special_matrices, cholesky_hermitian)
   auto tl22 = Eigen::TriangularView<M22, Eigen::Lower> {m22_3013};
   auto tu22 = Eigen::TriangularView<M22, Eigen::Upper> {m22_3103};
 
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(hl22), tl22));
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(hl22), tu22));
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(hu22), tl22));
-  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(hu22), tu22));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::lower>(hl22), tl22));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::upper>(hl22), tu22));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::lower>(hu22), tl22));
+  EXPECT_TRUE(is_near(cholesky_factor<triangle_type::upper>(hu22), tu22));
 }
 
 

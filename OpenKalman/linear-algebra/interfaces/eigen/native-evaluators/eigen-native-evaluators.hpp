@@ -21,10 +21,10 @@
 #include "FixedSizeAdapter.hpp"
 #include "VectorSpaceAdapter.hpp"
 
-#include "ConstantAdapter.hpp"
+#include "constant_adapter.hpp"
 #include "HermitianAdapter.hpp"
 #include "TriangularAdapter.hpp"
-#include "DiagonalAdapter.hpp"
+#include "diagonal_adapter.hpp"
 
 namespace Eigen::internal
 {
@@ -71,7 +71,7 @@ namespace Eigen::internal
       explicit Evaluator_EuclideanExpr_Base(const Nested& t) : NestedEvaluator {t} {}
     };
 
-  } // namespace detail
+  }
 
 
   // ----------------- //
@@ -106,7 +106,7 @@ namespace Eigen::internal
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_pattern_collection<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -167,7 +167,7 @@ namespace Eigen::internal
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_pattern_collection<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -225,7 +225,7 @@ namespace Eigen::internal
     };
 
     template<typename Arg>
-    explicit evaluator(const Arg& t) : Base {t.nested_object().nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const Arg& t) : Base {t.nested_object().nested_object()}, i_vector_space_descriptor {OpenKalman::get_pattern_collection<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -369,6 +369,6 @@ namespace Eigen::internal
   };
 
 
-} // namespace Eigen::internal
+}
 
-#endif //OPENKALMAN_EIGEN_NATIVE_EVALUATORS_HPP
+#endif

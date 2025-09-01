@@ -74,4 +74,4 @@ namespace OpenKalman::stdcompat::ranges::views
 #endif
 }
 
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_ALL_HPP
+#endif

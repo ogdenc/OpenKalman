@@ -104,7 +104,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_lpNorm1)
 {
   static_assert(values::fixed<constant_coefficient<decltype(c22_m2)>>);
   static_assert(not zero<decltype(c22_m2)>);
-  static_assert(not one_dimensional<decltype(c22_m2), Applicability::permitted>);
+  static_assert(not one_dimensional<decltype(c22_m2), applicability::permitted>);
   static_assert(not constant_diagonal_matrix<decltype(c22_m2)>);
 
   //constant
@@ -519,8 +519,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_sum)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   static_assert(values::dynamic<constant_coefficient<decltype(cd22_m2.colwise().mean())>>);
 
-  EXPECT_EQ(values::to_number(constant_coefficient{(M22::Identity() - M22::Identity()).colwise().mean()}), 0.);
-  EXPECT_EQ(values::to_number(constant_coefficient{M22::Zero().colwise().mean()}), 0.);
+  EXPECT_EQ(values::to_value_type(constant_coefficient{(M22::Identity() - M22::Identity()).colwise().mean()}), 0.);
+  EXPECT_EQ(values::to_value_type(constant_coefficient{M22::Zero().colwise().mean()}), 0.);
 #else
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().mean())> == 2);
 

@@ -30,11 +30,8 @@ namespace OpenKalman::collections
 
     template<std::size_t i, typename T>
     struct gettable_impl<i, T,
-      std::enable_if_t<not sized<T> or values::fixed_number_compares_with<size_of<T>, i, std::greater<>>>,
-      std::void_t<
-        typename std::tuple_element<i, std::decay_t<T>>::type,
-        decltype(OpenKalman::internal::generalized_std_get<i>(std::declval<T&>()))
-      >> : std::true_type {};
+      std::enable_if_t<not sized<T> or values::fixed_value_compares_with<size_of<T>, i, std::greater<>>>,
+      std::void_t<decltype(OpenKalman::internal::generalized_std_get<i>(std::declval<T&>()))>> : std::true_type {};
   }
 #endif
 
@@ -48,13 +45,12 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
   concept gettable =
     (not sized<T> or i < size_of_v<T>) and
-    requires { typename std::tuple_element<i, std::decay_t<T>>::type;
-               OpenKalman::internal::generalized_std_get<i>(std::declval<T&>()); };
+    requires { OpenKalman::internal::generalized_std_get<i>(std::declval<T&>()); };
 #else
   constexpr bool gettable = detail::gettable_impl<i, T>::value;
 #endif
 
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_COLLECTIONS_GETTABLE_HPP
+#endif

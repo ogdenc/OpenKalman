@@ -25,10 +25,10 @@ namespace OpenKalman::internal
     template<std::size_t limit_ix, std::size_t index, typename Arg, typename...Limits>
     constexpr void check_block_limit(const Arg& arg, const Limits&...)
     {
-      if constexpr (((limit_ix >= std::tuple_size_v<Limits>) or ...)) return;
-      else if constexpr (((values::fixed<std::tuple_element_t<limit_ix, Limits>>) and ...) and not dynamic_dimension<Arg, index>)
+      if constexpr (((limit_ix >= collections::size_of_v<Limits>) or ...)) return;
+      else if constexpr (((values::fixed<collections::collection_element_t<limit_ix, Limits>>) and ...) and not dynamic_dimension<Arg, index>)
       {
-        constexpr std::size_t block_limit = (static_cast<std::size_t>(std::decay_t<std::tuple_element_t<limit_ix, Limits>>::value) + ... + 0_uz);
+        constexpr std::size_t block_limit = (static_cast<std::size_t>(std::decay_t<collections::collection_element_t<limit_ix, Limits>>::value) + ... + 0_uz);
         static_assert(block_limit <= index_dimension_of_v<Arg, index>, "Block limits must be in range");
       }
       /*else // Not necessary: the matrix/tensor library should check runtime limits.
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
       }*/
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -53,6 +53,6 @@ namespace OpenKalman::internal
     (detail::check_block_limit<limit_ix, indices>(arg, limits...), ...);
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_CHECK_BLOCK_LIMITS_HPP
+#endif

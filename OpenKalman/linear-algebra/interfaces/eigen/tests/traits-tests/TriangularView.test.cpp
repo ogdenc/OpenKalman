@@ -69,22 +69,22 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::StrictlyUpper>>);
   static_assert(identity_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitUpper>>);
 
-  static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Lower>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Lower>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Lower>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Lower>, TriangleType::lower>);
-  static_assert(triangular_matrix<Tlvx2, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M43, Eigen::Lower>, TriangleType::lower>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Lower>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Lower>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Lower>, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Lower>, triangle_type::lower>);
+  static_assert(triangular_matrix<Tlvx2, triangle_type::lower>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M43, Eigen::Lower>, triangle_type::lower>);
 
-  static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Upper>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Upper>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Upper>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Upper>, TriangleType::upper>);
-  static_assert(triangular_matrix<Tuv2x, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M34, Eigen::Upper>, TriangleType::upper>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Upper>, triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Upper>, triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Upper>, triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Upper>, triangle_type::upper>);
+  static_assert(triangular_matrix<Tuv2x, triangle_type::upper>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M34, Eigen::Upper>, triangle_type::upper>);
 
-  static_assert(triangular_matrix<Eigen::TriangularView<Tlv22, Eigen::Upper>, TriangleType::diagonal>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Tuv22, Eigen::Lower>, TriangleType::diagonal>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Tlv22, Eigen::Upper>, triangle_type::diagonal>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Tuv22, Eigen::Lower>, triangle_type::diagonal>);
 
   static_assert(diagonal_matrix<Eigen::TriangularView<Tlv22, Eigen::Upper>>);
   static_assert(diagonal_matrix<Eigen::TriangularView<Tlv2x, Eigen::Upper>>);

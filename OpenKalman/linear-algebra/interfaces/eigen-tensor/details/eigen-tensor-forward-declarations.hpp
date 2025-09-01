@@ -51,7 +51,7 @@ namespace OpenKalman::Eigen3
 
     template<typename N, typename L>
     struct is_eigen_tensor_wrapper<OpenKalman::internal::LibraryWrapper<N, L>> : std::bool_constant<eigen_tensor_general<L, true>> {};
-  } // namespace detail
+  }
 
 
   /**
@@ -75,7 +75,7 @@ namespace OpenKalman::Eigen3
     template<typename...Ds>
     struct eigen_sizes<std::tuple<Ds...>> { using type = Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<Ds>)...>; };
 
-  } // namespace detail
+  }
 
 
   /**
@@ -94,12 +94,12 @@ namespace OpenKalman::Eigen3
     Eigen::Tensor<
       scalar_type_of_t<NestedObject>,
       static_cast<int>(index_count_v<NestedObject>),
-      layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+      layout_of_v<NestedObject> == data_layout::right ? Eigen::RowMajor : Eigen::ColMajor,
       Eigen::DenseIndex>,
     Eigen::TensorFixedSize<
       scalar_type_of_t<NestedObject>,
       typename detail::eigen_sizes<std::decay_t<decltype(all_vector_space_descriptors(std::declval<NestedObject>()))>>::type,
-      layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+      layout_of_v<NestedObject> == data_layout::right ? Eigen::RowMajor : Eigen::ColMajor,
       Eigen::DenseIndex>>>;
 
 
@@ -115,7 +115,7 @@ namespace OpenKalman::Eigen3
 #endif
 
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_EIGEN_TENSOR_FORWARD_DECLARATIONS_HPP
+#endif

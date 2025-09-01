@@ -50,7 +50,7 @@ namespace OpenKalman::collections
   template<typename T>
   struct size_of<T, std::enable_if_t<sized<T> and values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
-    : values::fixed_number_of<decltype(collections::get_size(std::declval<T>()))> {};
+    : values::fixed_value_of<decltype(collections::get_size(std::declval<T>()))> {};
 
 
   /**
@@ -59,7 +59,6 @@ namespace OpenKalman::collections
   template<typename T>
   inline constexpr std::size_t size_of_v = size_of<T>::value;
 
+}
 
-} // namespace OpenKalman::collections
-
-#endif //OPENKALMAN_COLLECTIONS_SIZE_OF_HPP
+#endif

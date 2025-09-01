@@ -28,4 +28,4 @@
 #include "LinearTransformation.hpp"
 #include "IdentityTransformation.hpp"
 
-#endif //OPENKALMAN_TRANSFORMATIONS_HPP
+#endif

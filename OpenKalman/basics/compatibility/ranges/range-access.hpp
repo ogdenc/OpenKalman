@@ -17,6 +17,9 @@
 #ifndef OPENKALMAN_COMPATIBILITY_RANGES_RANGE_ACCESS_HPP
 #define OPENKALMAN_COMPATIBILITY_RANGES_RANGE_ACCESS_HPP
 
+#ifdef __cpp_lib_ranges
+#include <ranges>
+#endif
 #include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/internal/exposition.hpp"
 #include "basics/compatibility/iterator.hpp"

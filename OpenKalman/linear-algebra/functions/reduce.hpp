@@ -47,8 +47,8 @@ namespace OpenKalman
       {
         if constexpr (values::dynamic<Dim>)
         {
-          if (values::to_number(dim) <= 1) return values::to_number(c);
-          else return op(constant_reduce_operation(op, c, values::to_number(dim) - 1), values::to_number(c));
+          if (values::to_value_type(dim) <= 1) return values::to_value_type(c);
+          else return op(constant_reduce_operation(op, c, values::to_value_type(dim) - 1), values::to_value_type(c));
         }
         else if constexpr (Dim::value <= 1) return c;
         else
@@ -114,7 +114,7 @@ namespace OpenKalman
       }
     }
 
-  } // namespace detail
+  }
 
 
   /**
@@ -199,7 +199,7 @@ namespace OpenKalman
       decltype(auto) red = detail::reduce_impl(b, arg, seq, seq);
       using Red = decltype(red);
 
-      static_assert(values::number<Red> or one_dimensional<Red, Applicability::permitted>,
+      static_assert(values::number<Red> or one_dimensional<Red, applicability::permitted>,
         "Incorrect library interface for total 'reduce' on all indices: must return a scalar or one-by-one matrix.");
 
       if constexpr (values::number<Red>)
@@ -210,6 +210,6 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_REDUCE_HPP
+#endif

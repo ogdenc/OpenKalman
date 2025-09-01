@@ -46,8 +46,8 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalAdapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
   using L22 = HermitianAdapter<M22, HermitianAdapterType::lower>;
   using L20 = HermitianAdapter<M2x, HermitianAdapterType::lower>;
@@ -71,9 +71,9 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = DiagonalAdapter<T>;
-  template<typename T> using Tl = TriangularAdapter<T, TriangleType::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, TriangleType::upper>;
+  template<typename T> using D = diagonal_adapter<T>;
+  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
+  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
   template<typename T> using SAl = HermitianAdapter<T, HermitianAdapterType::lower>;
   template<typename T> using SAu = HermitianAdapter<T, HermitianAdapterType::upper>;
 }

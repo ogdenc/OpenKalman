@@ -28,7 +28,7 @@ namespace OpenKalman
     constexpr auto get_best_square_index()
     {
       if constexpr (i + 1 >= count) return i;
-      else if constexpr (fixed_pattern<decltype(get_vector_space_descriptor<i>(std::declval<T>()))>) return i;
+      else if constexpr (fixed_pattern<decltype(get_pattern_collection<i>(std::declval<T>()))>) return i;
       else return get_best_square_index<count, T, i + 1>();
     }
 
@@ -37,13 +37,13 @@ namespace OpenKalman
     constexpr auto is_square_shaped_impl(std::index_sequence<Is...>, const T& t)
     {
       constexpr std::size_t bestI = get_best_square_index<sizeof...(Is), T>();
-      auto dim_bestI = get_vector_space_descriptor<bestI>(t);
-      if ((... and (Is == bestI or get_vector_space_descriptor<Is>(t) == dim_bestI)))
+      auto dim_bestI = get_pattern_collection<bestI>(t);
+      if ((... and (Is == bestI or get_pattern_collection<Is>(t) == dim_bestI)))
         return std::optional {dim_bestI};
       else
         return std::optional<decltype(dim_bestI)> {};
     }
-  } // namespace detail
+  }
 
 
   /**
@@ -69,14 +69,14 @@ namespace OpenKalman
     }
     else
     {
-      auto d0 = get_vector_space_descriptor<0>(t);
+      auto d0 = get_pattern_collection<0>(t);
       using Ret = std::optional<std::decay_t<decltype(d0)>>;
-      for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_vector_space_descriptor(t, i)) return Ret{};
+      for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_pattern_collection(t, i)) return Ret{};
       return Ret {d0};
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_IS_SQUARE_SHAPED_HPP
+#endif

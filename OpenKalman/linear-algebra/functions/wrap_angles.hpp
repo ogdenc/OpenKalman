@@ -33,15 +33,15 @@ namespace OpenKalman
     }
     else if constexpr (interface::wrap_angles_defined_for<Arg, Arg&&>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::wrap_angles(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::wrap_angles(std::forward<Arg>(arg), get_pattern_collection<0>(arg));
     }
     else
     {
-      return from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_vector_space_descriptor<0>(arg));
+      return from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_pattern_collection<0>(arg));
     }
   }
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_WRAP_ANGLES_HPP
+#endif

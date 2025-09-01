@@ -43,7 +43,7 @@ namespace OpenKalman::Eigen3
   };
 
 
-} // namespace OpenKalman::Eigen3
+}
 
 
-#endif //OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_TENSOR_BASE_HPP
+#endif

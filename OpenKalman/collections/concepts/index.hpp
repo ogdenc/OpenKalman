@@ -18,54 +18,64 @@
 
 #include "values/values.hpp"
 #include "collection.hpp"
+#include "collections/traits/size_of.hpp"
+#include "collections/traits/collection_element.hpp"
 
 namespace OpenKalman::collections
 {
 #if not defined(__cpp_lib_ranges) or __cpp_generic_lambdas < 201707L
-  namespace detail_index
+  namespace detail
   {
-    template<typename T, std::size_t...Ix>
-    constexpr bool is_index_tuple_impl(std::index_sequence<Ix...>) { return (... and values::index<typename std::tuple_element<Ix, T>::type>); }
+    template<typename T, typename = void>
+    struct is_index_range : std::false_type {};
+
+    template<typename T>
+    struct is_index_range<T, std::enable_if_t<values::index<stdcompat::ranges::range_value_t<T>>>> : std::true_type {};
+
+
+    template<std::size_t i, typename T, typename = void>
+    struct has_index_element : std::false_type {};
+
+    template<std::size_t i, typename T>
+    struct has_index_element<i, T, std::enable_if_t<values::index<typename collection_element<i, T>::type>>>
+      : std::true_type {};
+
+
+    template<typename T, typename = std::make_index_sequence<size_of_v<T>>>
+    struct is_index_tuple_impl : std::false_type {};
+
+    template<typename T, std::size_t...i>
+    struct is_index_tuple_impl<T, std::index_sequence<i...>>
+      : std::bool_constant<(... and has_index_element<i, T>::value)> {};
+
 
     template<typename T, typename = void>
     struct is_index_tuple : std::false_type {};
 
     template<typename T>
-    struct is_index_tuple<T, std::enable_if_t<tuple_like<T>>>
-      : std::bool_constant<is_index_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
-
-
-#ifdef __cpp_lib_ranges
-    namespace ranges = std::ranges;
-#endif
-
-
-    template<typename T, typename = void>
-    struct is_index_range : std::false_type {};
-
-    template<typename T>
-    struct is_index_range<T, std::enable_if_t<values::index<stdcompat::ranges::range_value_t<stdcompat::remove_cvref_t<T>>>>> : std::true_type {};
-
+    struct is_index_tuple<T, std::enable_if_t<size_of<T>::value != dynamic_size>> : is_index_tuple_impl<T> {};
   }
 #endif
 
 
   /**
    * \brief An object describing a collection of /ref values::index objects.
-   * \details This will be a tuple-like object or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
 #if defined(__cpp_lib_ranges) and __cpp_generic_lambdas >= 201707L
-  concept index = collection<T> and
-    ([]<std::size_t...Ix>(std::index_sequence<Ix...>)
-      { return (... and values::index<std::tuple_element_t<Ix, stdcompat::remove_cvref_t<T>>>); }
-        (std::make_index_sequence<std::tuple_size<stdcompat::remove_cvref_t<T>>::value>{}) or
-    values::index<std::ranges::range_value_t<stdcompat::remove_cvref_t<T>>>);
+  concept index =
+    collection<T> and
+    (values::index<std::ranges::range_value_t<T>> or (
+      size_of_v<T> != dynamic_size and
+      []<std::size_t...Ix>(std::index_sequence<Ix...>) {
+          return (... and values::index<typename collection_element<Ix, T>::type>);
+        }(std::make_index_sequence<size_of<T>::value>{}))
+    );
 #else
-  constexpr bool index = collection<T> and
-    (detail_index::is_index_tuple<std::decay_t<T>>::value or detail_index::is_index_range<std::decay_t<T>>::value);
+  constexpr bool index =
+    collection<T> and (detail::is_index_range<T>::value or detail::is_index_tuple<T>::value);
 #endif
 
-} // namespace OpenKalman::collections
+}
 
-#endif //OPENKALMAN_COLLECTIONS_INDEX_HPP
+#endif

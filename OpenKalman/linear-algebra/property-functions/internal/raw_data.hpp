@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,7 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename T>
-    concept raw_data_result = requires(T t) { {*t} -> values::scalar; };
+    concept raw_data_result = requires(T t) { {*t} -> values::number; };
   }
 #endif
 
@@ -40,10 +40,10 @@ namespace OpenKalman::internal
   constexpr decltype(auto) raw_data(Arg&& arg)
 #endif
   {
-    return interface::indexible_object_traits<std::decay_t<Arg>>::raw_data(std::forward<Arg>(arg));
+    return interface::indexible_object_traits<stdcompat::remove_cvref_t<Arg>>::raw_data(std::forward<Arg>(arg));
   }
 
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_RAW_DATA_HPP
+#endif

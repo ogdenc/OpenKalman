@@ -19,9 +19,7 @@
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 
-#include "linear-algebra/interfaces/eigen/eigen.hpp"
-#include "basics/tests/tests.hpp"
-#include <complex>
+#include "linear-algebra/tests/tests.hpp"
 
 namespace OpenKalman::test
 {
@@ -321,6 +319,6 @@ namespace OpenKalman::test
   using Tuvx2 = Eigen3::EigenWrapper<Eigen::TriangularView<Mx2, Eigen::Upper>>;
   using Tuvxx = Eigen3::EigenWrapper<Eigen::TriangularView<Mxx, Eigen::Upper>>;
 
-} // namespace OpenKalman::test
+}
 
 #endif //EIGEN3_GTEST_HPP

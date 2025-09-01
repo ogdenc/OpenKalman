@@ -13,8 +13,8 @@
  * \brief Definition for values::real.
  */
 
-#ifndef OPENKALMAN_VALUE_REAL_HPP
-#define OPENKALMAN_VALUE_REAL_HPP
+#ifndef OPENKALMAN_VALUES_REAL_HPP
+#define OPENKALMAN_VALUES_REAL_HPP
 
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/value.hpp"
@@ -25,7 +25,7 @@ namespace OpenKalman::values
   /**
    * \brief A constexpr function to obtain the real part of a (complex) number.
    * \details If arg is \ref values::complex "complex", arg must either match
-   * <code>std::real(values::to_number(arg))</code> or some defined function <code>real(values::to_number(arg))</code>.
+   * <code>std::real(values::to_value_type(arg))</code> or some defined function <code>real(values::to_value_type(arg))</code>.
    * If arg is not \ref values::complex "complex" and no <code>real</code> function is defined, the result will be
    * - <code>static_cast<double>(std::forward<Arg>(arg))</code> if Arg is \ref values::integral "integral" or
    * - <code>static_cast<std::decay_t<Arg>>(std::forward<Arg>(arg))</code> otherwise.
@@ -41,7 +41,7 @@ namespace OpenKalman::values
   {
     if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::real(a); } };
+      struct Op { constexpr auto operator()(const value_type_of_t<Arg>& a) const { return values::real(a); } };
       return values::operation(Op{}, arg);
     }
     else
@@ -51,7 +51,7 @@ namespace OpenKalman::values
   }
 
 
-} // namespace OpenKalman::values
+}
 
 
-#endif //OPENKALMAN_VALUE_REAL_HPP
+#endif

@@ -31,6 +31,6 @@ namespace OpenKalman
     indexible<T> and interface::raw_data_defined_for<std::decay_t<T>&>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_DIRECTLY_ACCESSIBLE_HPP
+#endif

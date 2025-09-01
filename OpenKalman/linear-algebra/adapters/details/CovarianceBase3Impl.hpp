@@ -359,4 +359,4 @@ namespace OpenKalman::internal
 
 }
 
-#endif //OPENKALMAN_COVARIANCEBASE3IMPL_HPP
+#endif

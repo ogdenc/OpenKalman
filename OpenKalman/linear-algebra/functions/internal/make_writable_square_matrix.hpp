@@ -47,6 +47,6 @@ namespace OpenKalman::internal
     }
   }
 
-} // namespace OpenKalman::internal
+}
 
-#endif //OPENKALMAN_MAKE_WRITABLE_SQUARE_MATRIX_HPP
+#endif

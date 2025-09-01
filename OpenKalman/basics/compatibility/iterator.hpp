@@ -20,6 +20,7 @@
 #include <iterator>
 #include "language-features.hpp"
 #include "core-concepts.hpp"
+#include "object-concepts.hpp"
 #include "internal/exposition.hpp"
 #include "common.hpp"
 
@@ -28,6 +29,8 @@ namespace OpenKalman::stdcompat
 #ifdef __cpp_lib_ranges
   using std::indirectly_readable_traits;
   using std::incrementable_traits;
+  using std::contiguous_iterator_tag;
+  using std::iterator_traits;
   using std::iter_value_t;
   using std::iter_reference_t;
   using std::iter_difference_t;
@@ -139,7 +142,7 @@ namespace OpenKalman::stdcompat
   struct incrementable_traits {};
 
   template<typename T>
-  struct incrementable_traits<T*, std::enable_if_t<std::is_object_v<T>>>
+  struct incrementable_traits<T, std::enable_if_t<std::is_pointer_v<T> and std::is_object_v<std::remove_pointer_t<T>>>>
   {
     using difference_type = std::ptrdiff_t;
   };
@@ -148,16 +151,163 @@ namespace OpenKalman::stdcompat
   struct incrementable_traits<const T> : incrementable_traits<T> {};
 
   template<typename T>
-  struct incrementable_traits<T, std::enable_if_t<detail::has_member_difference_type<T>::value>>
+  struct incrementable_traits<T, std::enable_if_t<not std::is_pointer_v<T> and detail::has_member_difference_type<T>::value>>
   {
     using difference_type = typename T::difference_type;
   };
 
   template<typename T>
-  struct incrementable_traits<T, std::enable_if_t<not detail::has_member_difference_type<T>::value and
+  struct incrementable_traits<T, std::enable_if_t<not std::is_pointer_v<T> and not detail::has_member_difference_type<T>::value and
     std::is_integral_v<decltype(std::declval<const T&>() - std::declval<const T&>())>>>
   {
     using difference_type = std::make_signed_t<decltype(std::declval<T>() - std::declval<T>())>;
+  };
+
+
+  struct contiguous_iterator_tag;
+
+  // ---
+  // iterator_traits
+  // ---
+
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct iterator_traits_defined : std::false_type {};
+
+    template<typename It>
+    struct iterator_traits_defined<It, std::void_t<
+      typename It::iterator_category,
+      typename It::value_type,
+      typename It::difference_type,
+      typename It::reference>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct iterator_traits_pointer_defined : std::false_type {};
+
+    template<typename It>
+    struct iterator_traits_pointer_defined<It, std::void_t<typename It::pointer>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct iterator_traits_reference_defined : std::false_type {};
+
+    template<typename It>
+    struct iterator_traits_reference_defined<It, std::void_t<typename It::reference>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct iterator_traits_arrow_valid : std::false_type {};
+
+    template<typename It>
+    struct iterator_traits_arrow_valid<It, std::void_t<decltype(std::declval<It&>().operator->())>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void, typename = void>
+    struct legacy_iterator : std::false_type {};
+
+    template<typename T>
+    struct legacy_iterator<T,
+      std::enable_if_t<
+        stdcompat::copyable<T> and
+        stdcompat::same_as<decltype(++std::declval<T>()), T&>>,
+      std::void_t<
+        decltype(*std::declval<T>())&,
+        decltype(*std::declval<T>()++)&>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void, typename = void>
+    struct legacy_input_iterator : std::false_type {};
+
+    template<typename T>
+    struct legacy_input_iterator<T,
+      std::enable_if_t<stdcompat::signed_integral<typename stdcompat::incrementable_traits<T>::difference_type>>,
+      std::void_t<
+        typename stdcompat::incrementable_traits<T>::difference_type,
+        typename stdcompat::indirectly_readable_traits<T>::value_type,
+        typename stdcompat::common_reference<decltype(*std::declval<T&>())&&, typename stdcompat::indirectly_readable_traits<T>::value_type&>::type,
+        decltype(*std::declval<T>()++),
+        typename stdcompat::common_reference<decltype(*std::declval<T>()++)&&, typename stdcompat::indirectly_readable_traits<T>::value_type&>::type>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct inherit_incrementable_traits_difference_if_exists {};
+
+    template<typename T>
+    struct inherit_incrementable_traits_difference_if_exists<T,
+      std::void_t<typename stdcompat::incrementable_traits<T>::difference_type>>
+    {
+      using type = typename stdcompat::incrementable_traits<T>::difference_type;
+    };
+  }
+
+
+  template<typename Iter, typename = void>
+  struct iterator_traits {};
+
+  template<typename It>
+  struct iterator_traits<It, std::enable_if_t<detail::iterator_traits_defined<It>::value>>
+  {
+    using difference_type = typename It::difference_type;
+    using value_type = typename It::value_type;
+    using pointer = std::conditional_t<detail::iterator_traits_pointer_defined<It>::value, typename It::pointer, void>;
+    using reference = typename It::reference;
+    using iterator_category = typename It::iterator_category;
+  };
+
+  template<typename Iter>
+  struct iterator_traits<Iter, std::enable_if_t<
+    not detail::iterator_traits_defined<Iter>::value and
+    not detail::legacy_iterator<Iter>::value and
+    detail::legacy_input_iterator<Iter>::value>>
+    : detail::inherit_incrementable_traits_difference_if_exists<Iter>
+  {
+    using difference_type   = typename stdcompat::incrementable_traits<Iter>::difference_type;
+    using value_type        = typename stdcompat::indirectly_readable_traits<Iter>::value_type;
+    using pointer           = std::conditional_t<
+                                detail::iterator_traits_pointer_defined<Iter>::value,
+                                typename Iter::pointer,
+                                std::conditional_t<
+                                  detail::iterator_traits_arrow_valid<Iter>::value,
+                                  decltype(std::declval<Iter&>().operator->()),
+                                  void>>;
+    using reference         = std::conditional_t<
+                                detail::iterator_traits_reference_defined<Iter>::value,
+                                typename Iter::reference,
+                                decltype(*std::declval<Iter&>())>;
+    using iterator_category = std::random_access_iterator_tag; // \todo This is incorrect
+  };
+
+  template<typename Iter>
+  struct iterator_traits<Iter, std::enable_if_t<
+    not detail::iterator_traits_defined<Iter>::value and
+    detail::legacy_iterator<Iter>::value and
+    not detail::legacy_input_iterator<Iter>::value>>
+    : detail::inherit_incrementable_traits_difference_if_exists<Iter>
+  {
+    using value_type        = void;
+    using pointer           = void;
+    using reference         = void;
+    using iterator_category = std::output_iterator_tag;
+    using iterator_concept  = stdcompat::contiguous_iterator_tag;
+  };
+
+  template<typename T>
+  struct iterator_traits<T*>
+  {
+    using difference_type   = std::ptrdiff_t;
+    using value_type        = std::remove_cv_t<T>;
+    using pointer           = T*;
+    using reference         = T&;
+    using iterator_category = std::random_access_iterator_tag;
+    using iterator_concept  = stdcompat::contiguous_iterator_tag;
   };
 
 
@@ -171,14 +321,14 @@ namespace OpenKalman::stdcompat
     struct iter_value_impl : indirectly_readable_traits<T> {};
 
     template<typename T>
-    struct iter_value_impl<T, std::void_t<typename std::iterator_traits<T>::value_type>> : std::iterator_traits<T> {};
+    struct iter_value_impl<T, std::void_t<typename stdcompat::iterator_traits<T>::value_type>> : stdcompat::iterator_traits<T> {};
 
 
     template<typename T, typename = void>
     struct iter_difference_impl : incrementable_traits<T> {};
 
     template<typename T>
-    struct iter_difference_impl<T, std::void_t<typename std::iterator_traits<T>::difference_type>> : std::iterator_traits<T> {};
+    struct iter_difference_impl<T, std::void_t<typename stdcompat::iterator_traits<T>::difference_type>> : stdcompat::iterator_traits<T> {};
   }
 
 
@@ -193,6 +343,7 @@ namespace OpenKalman::stdcompat
 
   template<typename I>
   using iter_rvalue_reference_t = decltype(std::move(*std::declval<I&>()));
+
 
   // ---
   // indirectly_readable
@@ -370,8 +521,8 @@ namespace OpenKalman::stdcompat
 
     template<typename I>
     struct is_bidirectional_iterator<I, std::enable_if_t<
-      std::is_same<decltype(--std::declval<I&>()), I&>::value and
-      std::is_same<decltype(std::declval<I&>()--), I>::value>> : std::true_type {};
+      stdcompat::same_as<decltype(--std::declval<I&>()), I&> and
+      stdcompat::same_as<decltype(std::declval<I&>()--), I>>> : std::true_type {};
   }
 
 
@@ -379,33 +530,6 @@ namespace OpenKalman::stdcompat
   inline constexpr bool bidirectional_iterator =
     forward_iterator<I> and
     detail::is_bidirectional_iterator<I>::value;
-
-
-  // ---
-  // random_access_iterator
-  // ---
-
-  namespace detail
-  {
-    template<typename I, typename = void>
-    struct is_random_access_iterator : std::false_type {};
-
-    template<typename I>
-    struct is_random_access_iterator<I, std::enable_if_t<
-      std::is_same_v<decltype(std::declval<I&>() += std::declval<iter_difference_t<I>>()), I&> and
-      std::is_same_v<decltype(std::declval<const I&>() + std::declval<iter_difference_t<I>>()), I> and
-      std::is_same_v<decltype(std::declval<iter_difference_t<I>>() + std::declval<const I&>()), I> and
-      std::is_same_v<decltype(std::declval<I&>() -= std::declval<iter_difference_t<I>>()), I&> and
-      std::is_same_v<decltype(std::declval<const I&>() - std::declval<iter_difference_t<I>>()), I> and
-      std::is_same_v<decltype(std::declval<const I&>()[std::declval<iter_difference_t<I>>()]), iter_reference_t<I>>
-    >> : std::true_type {};
-  }
-
-
-  template<typename I>
-  inline constexpr bool random_access_iterator =
-    bidirectional_iterator<I> and
-    detail::is_random_access_iterator<I>::value;
 
 
   // ---
@@ -419,8 +543,8 @@ namespace OpenKalman::stdcompat
 
     template<typename I, typename S>
     struct subtractable<I, S, std::enable_if_t<
-      std::is_same_v<decltype(std::declval<const S&>() - std::declval<const I&>()), iter_difference_t<I>> and
-      std::is_same_v<decltype(std::declval<const I&>() - std::declval<const S&>()), iter_difference_t<I>>
+      stdcompat::same_as<decltype(std::declval<const S&>() - std::declval<const I&>()), iter_difference_t<I>> and
+      stdcompat::same_as<decltype(std::declval<const I&>() - std::declval<const S&>()), iter_difference_t<I>>
     >> : std::true_type {};
 
   }
@@ -435,6 +559,35 @@ namespace OpenKalman::stdcompat
   inline constexpr bool sized_sentinel_for = sentinel_for<S, I> and
     /*not std::disable_sized_sentinel_for<std::remove_cv_t<S>, std::remove_cv_t<I>> and */
     detail::subtractable<I, S>::value;
+
+
+  // ---
+  // random_access_iterator
+  // ---
+
+  namespace detail
+  {
+    template<typename I, typename = void>
+    struct is_random_access_iterator : std::false_type {};
+
+    template<typename I>
+    struct is_random_access_iterator<I, std::enable_if_t<
+      stdcompat::same_as<decltype(std::declval<I&>() += std::declval<iter_difference_t<I>>()), I&> and
+      stdcompat::same_as<decltype(std::declval<const I&>() + std::declval<iter_difference_t<I>>()), I> and
+      stdcompat::same_as<decltype(std::declval<iter_difference_t<I>>() + std::declval<const I&>()), I> and
+      stdcompat::same_as<decltype(std::declval<I&>() -= std::declval<iter_difference_t<I>>()), I&> and
+      stdcompat::same_as<decltype(std::declval<const I&>() - std::declval<iter_difference_t<I>>()), I> and
+      stdcompat::same_as<decltype(std::declval<const I&>()[std::declval<iter_difference_t<I>>()]), iter_reference_t<I>>
+    >> : std::true_type {};
+  }
+
+
+  template<typename I>
+  inline constexpr bool random_access_iterator =
+    bidirectional_iterator<I> and
+    stdcompat::totally_ordered<I> and
+    stdcompat::sized_sentinel_for<I, I> and
+    detail::is_random_access_iterator<I>::value;
 
 
   // ---
