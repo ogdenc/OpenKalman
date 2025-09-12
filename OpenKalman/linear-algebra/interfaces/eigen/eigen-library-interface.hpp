@@ -330,7 +330,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     extract_descriptors(Descriptors&& descriptors)
     {
-      if constexpr (pattern_tuple<Descriptors>)
+      if constexpr (pattern_collection<Descriptors>)
       {
         constexpr auto dim = collections::size_of_v<Descriptors>;
         static_assert(dim <= 2);
@@ -363,11 +363,11 @@ namespace OpenKalman::interface
     {
       using IndexType = typename Eigen::Index;
 
-      if constexpr (pattern_tuple<Ds> and collections::size_of_v<Ds> > 2)
+      if constexpr (pattern_collection<Ds> and collections::size_of_v<Ds> > 2)
       {
         constexpr auto options = layout == data_layout::right ? Eigen::RowMajor : Eigen::ColMajor;
 
-        if constexpr (fixed_pattern_tuple<Ds>)
+        if constexpr (fixed_pattern_collection<Ds>)
         {
           auto sizes = std::apply([](auto&&...d){
             return Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<decltype(d)>)...> {};

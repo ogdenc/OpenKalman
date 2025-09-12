@@ -112,52 +112,42 @@ TEST(coordinates, dynamic_concatenation)
     std::vector {Any{Axis{}}, Any{angle::Radians{}}, Any{angle::Degrees{}}, Any{Axis{}}}));
 }
 
-/*#include "coordinates/views/repeat.hpp"
+
 #include "coordinates/views/replicate.hpp"
 
-TEST(coordinates, fixed_replication)
+TEST(coordinates, replicate)
 {
-  static_assert(Dimensions<3>{} * std::integral_constant<std::size_t, 4>{} == Dimensions<12>{});
-  static_assert(std::integral_constant<std::size_t, 4>{} * Dimensions<3>{} == Dimensions<12>{});
-  static_assert(Dimensions<3>{} * std::integral_constant<std::size_t, 4>{} * std::integral_constant<std::size_t, 2>{} == Dimensions<24>{});
-  static_assert(collections::views::all(std::tuple{}) * std::integral_constant<std::size_t, 4>{} == Dimensions<0>{});
-  static_assert(std::integral_constant<std::size_t, 4>{} * collections::views::all(std::tuple{}) == Dimensions<0>{});
-  static_assert(Dimensions<3>{} * std::integral_constant<std::size_t, 0>{} == Dimensions<0>{});
-  static_assert(std::integral_constant<std::size_t, 0>{} * Dimensions<3>{} == Dimensions<0>{});
+  using coordinates::views::replicate;
+  static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 4>{}), Dimensions<12>{}));
+  static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 8>{}), Dimensions<24>{}));
+  static_assert(compare(replicate(collections::views::all(std::tuple{}), std::integral_constant<std::size_t, 4>{}), Dimensions<0>{}));
+  static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 0>{}), Dimensions<0>{}));
 
-  static_assert(compare(Distance{} * std::integral_constant<std::size_t, 1>{}, Distance{}));
-  static_assert(compare(std::integral_constant<std::size_t, 1>{} * Distance{}, Distance{}));
-  static_assert(compare(Distance{} * std::integral_constant<std::size_t, 2>{}, std::array<Distance, 2>{}));
-  static_assert(compare(std::integral_constant<std::size_t, 2>{} * Distance{}, std::array<Distance, 2>{}));
-  static_assert(compare(std::tuple<Distance, angle::Radians>{} * std::integral_constant<std::size_t, 2>{}, std::tuple<Distance, angle::Radians, Distance, angle::Radians>{}));
+  static_assert(compare(replicate(Distance{}, std::integral_constant<std::size_t, 1>{}), Distance{}));
+  static_assert(compare(replicate(Distance{}, std::integral_constant<std::size_t, 2>{}), std::array<Distance, 2>{}));
+  static_assert(compare(replicate(std::tuple<Distance, angle::Radians>{}, std::integral_constant<std::size_t, 2>{}), std::tuple<Distance, angle::Radians, Distance, angle::Radians>{}));
 
-  static_assert(compare(std::tuple<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 1>{}, std::tuple<Axis, Distance, Axis>{}));
-  static_assert(compare(std::tuple<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 2>{}, std::tuple<Axis, Distance, Dimensions<2>, Distance, Axis>{}));
-  static_assert(compare(std::tuple<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 3>{}, std::tuple<Axis, Distance, Dimensions<2>, Distance, Dimensions<2>, Distance, Axis>{}));
-  static_assert(compare(std::tuple<Axis, Distance, Dimensions<2>>{} * std::integral_constant<std::size_t, 4>{}, std::tuple<Axis, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<2>>{}));
+  static_assert(compare(replicate(std::tuple<Axis, Distance, Axis>{}, std::integral_constant<std::size_t, 1>{}), std::tuple<Axis, Distance, Axis>{}));
+  static_assert(compare(replicate(std::tuple<Axis, Distance, Axis>{}, std::integral_constant<std::size_t, 2>{}), std::tuple<Axis, Distance, Dimensions<2>, Distance, Axis>{}));
+  static_assert(compare(replicate(std::tuple<Axis, Distance, Axis>{}, std::integral_constant<std::size_t, 3>{}), std::tuple<Axis, Distance, Dimensions<2>, Distance, Dimensions<2>, Distance, Axis>{}));
+  static_assert(compare(replicate(std::tuple<Axis, Distance, Dimensions<2>>{}, std::integral_constant<std::size_t, 4>{}), std::tuple<Axis, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<2>>{}));
 }
 
 
 TEST(coordinates, dynamic_replication)
 {
-  static_assert(Dimensions<3>{} * 4u == Dimensions{12});
-  static_assert(4u * Dimensions<3>{} == Dimensions{12});
-  static_assert(Dimensions<3>{} * 4u * std::integral_constant<std::size_t, 2>{} == Dimensions{24});
-  static_assert(collections::views::all(std::tuple<>{}) * 4u == Dimensions{0});
-  static_assert(4u * collections::views::all(std::tuple<>{}) == Dimensions{0});
-  static_assert(Dimensions<3>{} * 0u == Dimensions{0});
-  static_assert(0u * Dimensions<3>{} == Dimensions{0});
+  using coordinates::views::replicate;
+  static_assert(compare(replicate(Dimensions<3>{}, 4u), Dimensions{12}));
+  static_assert(compare(replicate(Dimensions<3>{}, 8u), Dimensions{24}));
+  static_assert(compare(replicate(collections::views::all(std::tuple<>{}), 4u), Dimensions{0}));
+  static_assert(compare(replicate(Dimensions<3>{}, 0u), Dimensions{0}));
 
-  static_assert(Dimensions{3} * 4u == Dimensions{12});
-  static_assert(4u * Dimensions{3} == Dimensions{12});
-  static_assert(Dimensions{3} * 4u * std::integral_constant<std::size_t, 2>{} == Dimensions{24});
-  static_assert(Dimensions{0} * 4u == Dimensions{0});
-  static_assert(4u * Dimensions{0} == Dimensions{0});
-  static_assert(Dimensions{3} * 0u == Dimensions{0});
-  static_assert(0u * Dimensions{3} == Dimensions{0});
+  EXPECT_TRUE(compare(replicate(Dimensions{3}, 4u), Dimensions{12}));
+  EXPECT_TRUE(compare(replicate(Dimensions{3}, 8u), Dimensions{24}));
+  EXPECT_TRUE(compare(replicate(Dimensions{0}, 4u), Dimensions{0}));
+  EXPECT_TRUE(compare(replicate(Dimensions{3}, 0u), Dimensions{0}));
 
-  EXPECT_TRUE(compare(std::vector {Any{Axis{}}, Any{Distance{}}} * std::integral_constant<std::size_t, 2>{}, std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
-  EXPECT_TRUE(compare(std::vector {Any{Axis{}}, Any{Distance{}}} * 2u, std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
-  EXPECT_TRUE(compare(std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}} * 2u, std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Dimensions<2>{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}}));
+  EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}}, std::integral_constant<std::size_t, 2>{}), std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
+  EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}}, 2u), std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
+  EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}}, 2u), std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Dimensions<2>{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}}));
 }
-*/

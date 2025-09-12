@@ -497,11 +497,11 @@ namespace OpenKalman
      * \internal
      * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
      * \tparam NestedMatrix The underlying native matrix or matrix expression.
-     * \tparam Descriptors A \ref pattern_tuple (preferably but not necessarily a \ref fixed_pattern_tuple).
+     * \tparam Descriptors A \ref pattern_collection.
      * If this set is empty, the object is treated as a \ref one_dimensional.
      */
   #ifdef __cpp_concepts
-    template<indexible NestedObject, pattern_tuple Descriptors> requires
+    template<indexible NestedObject, pattern_collection Descriptors> requires
       compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors> and
       internal::not_more_fixed_than<NestedObject, Descriptors> and internal::less_fixed_than<NestedObject, Descriptors>
   #else

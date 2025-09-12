@@ -58,8 +58,8 @@ namespace OpenKalman::collections
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::fixed_value_compares_with<size_of<T>, dynamic_size, std::not_equal_to<>> and
-    values::fixed_value_compares_with<size_of<T>, i, std::greater<>> and
+    values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq> and
+    values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt> and
     detail::has_tuple_element<i, T>::value>>
 #endif
     : std::tuple_element<i, std::decay_t<T>> {};
@@ -79,8 +79,8 @@ namespace OpenKalman::collections
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::fixed_value_compares_with<size_of<T>, dynamic_size, std::not_equal_to<>> and
-    values::fixed_value_compares_with<size_of<T>, i, std::greater<>> and
+    values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq> and
+    values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt> and
     (not detail::has_tuple_element<i, T>::value) and
     gettable<i, T>>>
 #endif
@@ -104,7 +104,7 @@ namespace OpenKalman::collections
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
     (values::fixed_value_compares_with<size_of<T>, dynamic_size> or
-      values::fixed_value_compares_with<size_of<T>, i, std::greater<>>) and
+      values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt>) and
     stdcompat::ranges::random_access_range<T> and
     not detail::has_tuple_element<i, T>::value and
     not gettable<i, T>>>

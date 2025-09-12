@@ -39,14 +39,14 @@ namespace OpenKalman::internal
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept not_more_fixed_than =
     indexible<T> and pattern_collection<Descriptors> and
-      (not pattern_tuple<Descriptors> or
+      (not pattern_collection<Descriptors> or
         []<std::size_t...Ix>(std::index_sequence<Ix...>)
           { return (... and (dynamic_dimension<T, Ix> or fixed_pattern<collections::collection_element_t<Ix, Descriptors>>)); }
           (std::make_index_sequence<collections::size_of_v<Descriptors>>{}));
 #else
   constexpr bool not_more_fixed_than =
     indexible<T> and pattern_collection<Descriptors> and
-    (not pattern_tuple<Descriptors> or
+    (not pattern_collection<Descriptors> or
       detail::not_more_fixed_than_impl<T, Descriptors>(std::make_index_sequence<collections::size_of_v<Descriptors>>{}));
 #endif
 

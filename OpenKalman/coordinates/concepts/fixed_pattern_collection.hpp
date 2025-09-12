@@ -17,41 +17,57 @@
 #define OPENKALMAN_COORDINATE_FIXED_PATTERN_COLLECTION_HPP
 
 #include "collections/collections.hpp"
-#include "pattern_collection.hpp"
 #include "fixed_pattern.hpp"
-#include "fixed_pattern_tuple.hpp"
-
 
 namespace OpenKalman::coordinates
 {
-#ifndef __cpp_lib_ranges
+#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
   {
+    template<typename T, std::size_t...Ix>
+    constexpr bool is_fixed_pattern_iter_impl(std::index_sequence<Ix...>)
+    {
+      return (... and fixed_pattern<collections::collection_element_t<Ix, T>>);
+    }
+
+    template<typename T, typename = void>
+    struct is_fixed_pattern_iter : std::false_type {};
+
+    template<typename T>
+    struct is_fixed_pattern_iter<T, std::enable_if_t<
+      collections::uniformly_gettable<T> and stdcompat::default_initializable<std::decay_t<T>>>>
+      : std::bool_constant<is_fixed_pattern_iter_impl<T>(std::make_index_sequence<collections::size_of_v<T>>{})> {};
+
+
     template<typename T, typename = void>
     struct is_fixed_descriptor_range : std::false_type {};
  
     template<typename T>
-    struct is_fixed_descriptor_range<T, std::enable_if_t<
-      collections::size_of<T>::value != dynamic_size and
-      fixed_pattern<stdcompat::ranges::range_value_t<T>>>>
+    struct is_fixed_descriptor_range<T, std::enable_if_t<fixed_pattern<stdcompat::ranges::range_value_t<T>>>>
       : std::true_type {};
   }
 #endif 
 	
 	
   /**
-   * \brief An object describing a collection of /ref coordinates::pattern objects.
-   * \details This will be a \ref pattern_tuple or a dynamic range over a collection such as std::vector.
+   * \brief An object describing a fixed-size collection of /ref fixed_pattern objects.
    */
   template<typename T>
-#ifdef __cpp_lib_ranges
+#if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept fixed_pattern_collection =
-    pattern_collection<T> and
-    (fixed_pattern_tuple<T> or
-      (collections::size_of_v<T> != dynamic_size and fixed_pattern<stdcompat::ranges::range_value_t<T>>));
+    collections::collection<T> and
+    (collections::size_of_v<T> != dynamic_size) and
+    ( fixed_pattern<stdcompat::ranges::range_value_t<T>> or
+      []<std::size_t...Ix>(std::index_sequence<Ix...>)
+        { return (... and fixed_pattern<collections::collection_element_t<Ix, T>>); }
+        (std::make_index_sequence<collections::size_of_v<T>>{})
+    );
 #else
-  constexpr bool fixed_pattern_collection = collections::collection<T> and
-    (fixed_pattern_tuple<T> or detail::is_fixed_descriptor_range<T>::value);
+  constexpr bool fixed_pattern_collection =
+    collections::collection<T> and
+    values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, &stdcompat::is_neq> and
+    ( detail::is_fixed_pattern_iter<T>::value or
+      detail::is_fixed_descriptor_range<T>::value);
 #endif
 
 

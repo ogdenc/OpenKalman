@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -78,7 +78,7 @@ namespace OpenKalman::interface
      * \brief Whether T is a writable, self-contained matrix or array.
      */
     static constexpr bool
-    is_writable = false;
+    is_writable = not std::is_const_v<T>;
 
 
     /**

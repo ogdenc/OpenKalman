@@ -109,8 +109,8 @@ TEST(values, fixed_value_compares_with)
 {
   static_assert(values::fixed_value_compares_with<std::integral_constant<int, 7>, 7>);
   static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 7>, 6>);
-  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, std::less<>>);
-  static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, std::greater<>>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdcompat::is_lt>);
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdcompat::is_gt>);
 }
 
 #include "values/concepts/value.hpp"

@@ -94,7 +94,6 @@ namespace OpenKalman::coordinates::views {}
 // views
 
 #include "views/concat.hpp"
-#include "views/repeat.hpp"
 #include "views/replicate.hpp"
 
 // comparisons
@@ -114,12 +113,8 @@ namespace OpenKalman::coordinates::views {}
 
 // pattern_collections:
 
-#include "concepts/pattern_tuple.hpp"
-#include "concepts/pattern_range.hpp"
 #include "concepts/pattern_collection.hpp"
-#include "concepts/fixed_pattern_tuple.hpp"
 #include "concepts/fixed_pattern_collection.hpp"
-#include "concepts/euclidean_pattern_tuple.hpp"
 #include "concepts/euclidean_pattern_collection.hpp"
 
 #include "functions/compare_pattern_collections.hpp"

@@ -21,7 +21,7 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<indexible NestedObject, pattern_tuple Descriptors> requires
+  template<indexible NestedObject, pattern_collection Descriptors> requires
     compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors> and
     internal::not_more_fixed_than<NestedObject, Descriptors> and internal::less_fixed_than<NestedObject, Descriptors>
 #else
@@ -33,7 +33,7 @@ namespace OpenKalman::internal
 
 #ifndef __cpp_concepts
     static_assert(indexible<NestedObject>);
-    static_assert(pattern_tuple<Descriptors>);
+    static_assert(pattern_collection<Descriptors>);
     static_assert(compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors>);
     static_assert(internal::not_more_fixed_than<NestedObject, Descriptors>);
     static_assert(internal::less_fixed_than<NestedObject, Descriptors>);

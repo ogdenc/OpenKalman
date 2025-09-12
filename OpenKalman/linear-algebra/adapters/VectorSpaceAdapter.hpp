@@ -41,10 +41,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     constexpr VectorSpaceAdapter() requires std::default_initializable<Base> and
-      fixed_pattern_tuple<Descriptors>
+      fixed_pattern_collection<Descriptors>
 #else
     template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>
-      and fixed_pattern_tuple<Descriptors>, int> = 0>
+      and fixed_pattern_collection<Descriptors>, int> = 0>
     constexpr VectorSpaceAdapter()
 #endif
       : Base {}, my_descriptors{} {}

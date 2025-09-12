@@ -39,10 +39,11 @@ namespace OpenKalman::collections
    * \details This function takes a fixed-size \ref collection and applies its elements as arguments of a function.
    */
 #ifdef __cpp_concepts
-  template<typename F, collection T> requires values::fixed_value_compares_with<size_of<T>, dynamic_size, std::not_equal_to<>>
+  template<typename F, collection T>
+  requires values::fixed_value_compares_with<size_of<T>, dynamic_size, &std::is_neq>
 #else
   template<typename F, typename T, std::enable_if_t<
-    collection<T> and values::fixed_value_compares_with<size_of<T>, dynamic_size, std::not_equal_to<>>, int> = 0>
+    collection<T> and values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq>, int> = 0>
 #endif
   constexpr decltype(auto)
   apply(F&& f, T&& t)

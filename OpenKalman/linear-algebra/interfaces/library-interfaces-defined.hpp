@@ -18,7 +18,6 @@
 
 #include <type_traits>
 #include <utility>
-#include "linear-algebra/internal/forward-class-declarations.hpp"
 #include "default/library_interface.hpp"
 
 namespace OpenKalman::interface

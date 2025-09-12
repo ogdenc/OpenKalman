@@ -29,80 +29,80 @@ using namespace OpenKalman::coordinates;
 
 TEST(coordinates, compare_descriptors)
 {
-  static_assert(compare(std::integral_constant<std::size_t, 2>{}, 2u, stdcompat::is_eq));
-  static_assert(compare(std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 2>{}, stdcompat::is_eq));
-  static_assert(compare(std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 3>{}, stdcompat::is_neq));
-  static_assert(compare(std::integral_constant<std::size_t, 2>{}, Dimensions<2>{}, stdcompat::is_eq));
-  static_assert(compare(std::integral_constant<std::size_t, 2>{}, Dimensions{2}, stdcompat::is_eq));
+  static_assert(compare<stdcompat::is_eq>(std::integral_constant<std::size_t, 2>{}, 2u));
+  static_assert(compare<stdcompat::is_eq>(std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 2>{}));
+  static_assert(compare<stdcompat::is_neq>(std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 3>{}));
+  static_assert(compare<stdcompat::is_eq>(std::integral_constant<std::size_t, 2>{}, Dimensions<2>{}));
+  static_assert(compare<stdcompat::is_eq>(std::integral_constant<std::size_t, 2>{}, Dimensions{2}));
 
-  static_assert(compare(Dimensions<3>{}, Dimensions<3>{}, stdcompat::is_eq));
-  static_assert(compare(Dimensions<3>{}, Dimensions<3>{}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions<3>{}, Dimensions<3>{}, stdcompat::is_gteq));
-  static_assert(compare(Dimensions<3>{}, Dimensions<4>{}, stdcompat::is_neq));
-  static_assert(compare(Dimensions<3>{}, Dimensions<4>{}, stdcompat::is_lt));
-  static_assert(compare(Dimensions<3>{}, Dimensions<4>{}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions<4>{}, Dimensions<3>{}, stdcompat::is_gt));
-  static_assert(compare(Dimensions<4>{}, Dimensions<3>{}, stdcompat::is_gteq));
+  static_assert(compare<stdcompat::is_eq>(Dimensions<3>{}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions<3>{}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions<3>{}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_neq>(Dimensions<3>{}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_lt>(Dimensions<3>{}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions<3>{}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_gt>(Dimensions<4>{}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions<4>{}, Dimensions<3>{}));
 
-  static_assert(compare(angle::Degrees{}, angle::Degrees{}, stdcompat::is_eq));
-  static_assert(compare(angle::Radians{}, angle::Degrees{}, stdcompat::is_neq));
-  static_assert(compare(coordinates::internal::get_descriptor_hash_code(angle::Degrees{}), coordinates::internal::get_descriptor_hash_code(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}), stdcompat::is_eq));
-  static_assert(compare(angle::Degrees{}, Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}, stdcompat::is_eq));
-  static_assert(compare(angle::Degrees{}, Angle<std::integral_constant<int, -180>, std::integral_constant<std::size_t, 180>>{}, stdcompat::is_eq));
-  static_assert(compare(angle::Degrees{}, Angle<values::fixed_value<long double, -180>, values::fixed_value<double, 180>>{}, stdcompat::is_eq));
-  static_assert(compare(angle::PositiveDegrees{}, Angle<std::integral_constant<std::size_t, 0>, std::integral_constant<int, 360>>{}, stdcompat::is_eq));
-  static_assert(compare(angle::Degrees{}, angle::PositiveDegrees{}, stdcompat::is_neq));
-  static_assert(compare(angle::Radians{}, Angle<values::fixed_minus_pi<double>, values::fixed_pi<float>>{}, stdcompat::is_eq));
-  static_assert(compare(angle::Radians{}, angle::Radians{}, stdcompat::is_eq));
-  static_assert(compare(angle::Radians{}, inclination::Radians{}, stdcompat::is_neq));
+  static_assert(compare<stdcompat::is_eq>(angle::Degrees{}, angle::Degrees{}));
+  static_assert(compare<stdcompat::is_neq>(angle::Radians{}, angle::Degrees{}));
+  static_assert(compare<stdcompat::is_eq>(coordinates::internal::get_descriptor_hash_code(angle::Degrees{}), coordinates::internal::get_descriptor_hash_code(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{})));
+  static_assert(compare<stdcompat::is_eq>(angle::Degrees{}, Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}));
+  static_assert(compare<stdcompat::is_eq>(angle::Degrees{}, Angle<std::integral_constant<int, -180>, std::integral_constant<std::size_t, 180>>{}));
+  static_assert(compare<stdcompat::is_eq>(angle::Degrees{}, Angle<values::fixed_value<long double, -180>, values::fixed_value<double, 180>>{}));
+  static_assert(compare<stdcompat::is_eq>(angle::PositiveDegrees{}, Angle<std::integral_constant<std::size_t, 0>, std::integral_constant<int, 360>>{}));
+  static_assert(compare<stdcompat::is_neq>(angle::Degrees{}, angle::PositiveDegrees{}));
+  static_assert(compare<stdcompat::is_eq>(angle::Radians{}, Angle<values::fixed_minus_pi<double>, values::fixed_pi<float>>{}));
+  static_assert(compare<stdcompat::is_eq>(angle::Radians{}, angle::Radians{}));
+  static_assert(compare<stdcompat::is_neq>(angle::Radians{}, inclination::Radians{}));
 
-  static_assert(compare(inclination::Degrees{}, inclination::Degrees{}, stdcompat::is_eq));
-  static_assert(compare(inclination::Radians{}, inclination::Radians{}, stdcompat::is_eq));
-  static_assert(compare(inclination::Radians{}, inclination::Degrees{}, stdcompat::is_neq));
-  static_assert(compare(inclination::Degrees{}, Inclination<std::integral_constant<int, 180>>{}, stdcompat::is_eq));
-  static_assert(compare(inclination::Degrees{}, Inclination<values::fixed_value<double, 180>>{}, stdcompat::is_eq));
-  static_assert(compare(inclination::Radians{}, Inclination<values::fixed_pi<double>>{}, stdcompat::is_eq));
-  static_assert(compare(inclination::Radians{}, Inclination<values::fixed_pi<float>>{}, stdcompat::is_eq));
+  static_assert(compare<stdcompat::is_eq>(inclination::Degrees{}, inclination::Degrees{}));
+  static_assert(compare<stdcompat::is_eq>(inclination::Radians{}, inclination::Radians{}));
+  static_assert(compare<stdcompat::is_neq>(inclination::Radians{}, inclination::Degrees{}));
+  static_assert(compare<stdcompat::is_eq>(inclination::Degrees{}, Inclination<std::integral_constant<int, 180>>{}));
+  static_assert(compare<stdcompat::is_eq>(inclination::Degrees{}, Inclination<values::fixed_value<double, 180>>{}));
+  static_assert(compare<stdcompat::is_eq>(inclination::Radians{}, Inclination<values::fixed_pi<double>>{}));
+  static_assert(compare<stdcompat::is_eq>(inclination::Radians{}, Inclination<values::fixed_pi<float>>{}));
 
-  static_assert(compare(Polar<Distance, angle::Degrees>{}, Polar<Distance, angle::PositiveDegrees>{}, stdcompat::is_neq));
-  static_assert(compare(Polar<angle::Radians, Distance>{}, Polar<angle::PositiveRadians, Distance>{}, stdcompat::is_neq));
-  static_assert(compare(Polar<Distance, angle::Radians>{}, Dimensions<5>{}, stdcompat::is_neq));
-  static_assert(not compare(Polar<Distance, angle::Radians>{}, Dimensions<5>{}, stdcompat::is_lt));
+  static_assert(compare<stdcompat::is_neq>(Polar<Distance, angle::Degrees>{}, Polar<Distance, angle::PositiveDegrees>{}));
+  static_assert(compare<stdcompat::is_neq>(Polar<angle::Radians, Distance>{}, Polar<angle::PositiveRadians, Distance>{}));
+  static_assert(compare<stdcompat::is_neq>(Polar<Distance, angle::Radians>{}, Dimensions<5>{}));
+  static_assert(not compare<stdcompat::is_lt>(Polar<Distance, angle::Radians>{}, Dimensions<5>{}));
 
-  static_assert(compare(Spherical<Distance, inclination::Radians, angle::Degrees>{}, Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}, stdcompat::is_neq));
-  static_assert(compare(Spherical<Distance, inclination::Degrees, angle::Degrees>{}, Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}, stdcompat::is_neq));
-  static_assert(compare(Spherical<Distance, inclination::Radians, angle::Radians>{}, Dimensions<5>{}, stdcompat::is_neq));
-  static_assert(not compare(Spherical<Distance, inclination::Radians, angle::Radians>{}, Dimensions<5>{}, stdcompat::is_lt));
+  static_assert(compare<stdcompat::is_neq>(Spherical<Distance, inclination::Radians, angle::Degrees>{}, Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}));
+  static_assert(compare<stdcompat::is_neq>(Spherical<Distance, inclination::Degrees, angle::Degrees>{}, Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}));
+  static_assert(compare<stdcompat::is_neq>(Spherical<Distance, inclination::Radians, angle::Radians>{}, Dimensions<5>{}));
+  static_assert(not compare<stdcompat::is_lt>(Spherical<Distance, inclination::Radians, angle::Radians>{}, Dimensions<5>{}));
 
-  static_assert(compare(Dimensions{0}, Dimensions{0}, stdcompat::is_eq));
-  static_assert(compare(Dimensions{3}, Dimensions{3}, stdcompat::is_eq));
-  static_assert(compare(Dimensions{3}, Dimensions{3}, stdcompat::is_eq));
-  static_assert(compare(Dimensions{3}, Dimensions{3}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions{3}, Dimensions{3}, stdcompat::is_gteq));
-  static_assert(compare(Dimensions{3}, Dimensions{4}, stdcompat::is_neq));
-  static_assert(compare(Dimensions{3}, Dimensions{4}, stdcompat::is_lt));
-  static_assert(compare(Dimensions{3}, Dimensions{4}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions{4}, Dimensions{3}, stdcompat::is_gt));
-  static_assert(compare(Dimensions{4}, Dimensions{3}, stdcompat::is_gteq));
+  static_assert(compare<stdcompat::is_eq>(Dimensions{0}, Dimensions{0}));
+  static_assert(compare<stdcompat::is_eq>(Dimensions{3}, Dimensions{3}));
+  static_assert(compare<stdcompat::is_eq>(Dimensions{3}, Dimensions{3}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions{3}, Dimensions{3}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions{3}, Dimensions{3}));
+  static_assert(compare<stdcompat::is_neq>(Dimensions{3}, Dimensions{4}));
+  static_assert(compare<stdcompat::is_lt>(Dimensions{3}, Dimensions{4}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions{3}, Dimensions{4}));
+  static_assert(compare<stdcompat::is_gt>(Dimensions{4}, Dimensions{3}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions{4}, Dimensions{3}));
 
-  static_assert(compare(Dimensions{3}, Dimensions<3>{}, stdcompat::is_eq));
-  static_assert(compare(Dimensions{3}, Dimensions<3>{}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions{3}, Dimensions<3>{}, stdcompat::is_gteq));
-  static_assert(compare(Dimensions{3}, Dimensions<4>{}, stdcompat::is_neq));
-  static_assert(compare(Dimensions{3}, Dimensions<4>{}, stdcompat::is_lt));
-  static_assert(compare(Dimensions{3}, Dimensions<4>{}, stdcompat::is_lteq));
-  static_assert(compare(Dimensions{4}, Dimensions<3>{}, stdcompat::is_gt));
-  static_assert(compare(Dimensions{4}, Dimensions<3>{}, stdcompat::is_gteq));
+  static_assert(compare<stdcompat::is_eq>(Dimensions{3}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions{3}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions{3}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_neq>(Dimensions{3}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_lt>(Dimensions{3}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_lteq>(Dimensions{3}, Dimensions<4>{}));
+  static_assert(compare<stdcompat::is_gt>(Dimensions{4}, Dimensions<3>{}));
+  static_assert(compare<stdcompat::is_gteq>(Dimensions{4}, Dimensions<3>{}));
 
-  static_assert(compare(Polar<>{}, Dimensions{5}, stdcompat::is_neq));
-  static_assert(compare(Dimensions{5}, Polar<>{}, stdcompat::is_neq));
-  static_assert(not compare(Polar<>{}, Dimensions{5}, stdcompat::is_lt));
-  static_assert(compare(Spherical<>{}, Dimensions{5}, stdcompat::is_neq));
+  static_assert(compare<stdcompat::is_neq>(Polar<>{}, Dimensions{5}));
+  static_assert(compare<stdcompat::is_neq>(Dimensions{5}, Polar<>{}));
+  static_assert(not compare<stdcompat::is_lt>(Polar<>{}, Dimensions{5}));
+  static_assert(compare<stdcompat::is_neq>(Spherical<>{}, Dimensions{5}));
 
   EXPECT_TRUE(compare(Any{angle::Radians{}}, Any{angle::Radians{}}));
-  EXPECT_TRUE(compare(Any{angle::Radians{}}, Any{angle::Degrees{}}, stdcompat::is_neq));
+  EXPECT_TRUE(compare<stdcompat::is_neq>(Any{angle::Radians{}}, Any{angle::Degrees{}}));
   EXPECT_TRUE(compare(Any{inclination::Radians{}}, Any{inclination::Radians{}}));
-  EXPECT_TRUE(compare(Any{inclination::Radians{}}, Any{inclination::Degrees{}}, stdcompat::is_neq));
-  EXPECT_TRUE(compare(Any{angle::Radians{}}, Any{inclination::Radians{}}, stdcompat::is_neq));
+  EXPECT_TRUE(compare<stdcompat::is_neq>(Any{inclination::Radians{}}, Any{inclination::Degrees{}}));
+  EXPECT_TRUE(compare<stdcompat::is_neq>(Any{angle::Radians{}}, Any{inclination::Radians{}}));
 }
 

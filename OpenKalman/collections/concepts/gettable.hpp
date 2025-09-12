@@ -30,7 +30,7 @@ namespace OpenKalman::collections
 
     template<std::size_t i, typename T>
     struct gettable_impl<i, T,
-      std::enable_if_t<not sized<T> or values::fixed_value_compares_with<size_of<T>, i, std::greater<>>>,
+      std::enable_if_t<not sized<T> or values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt>>,
       std::void_t<decltype(OpenKalman::internal::generalized_std_get<i>(std::declval<T&>()))>> : std::true_type {};
   }
 #endif

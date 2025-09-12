@@ -48,7 +48,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       auto ds = all_vector_space_descriptors(std::forward<Arg>(arg));
-      if constexpr (pattern_tuple<decltype(ds)>)
+      if constexpr (pattern_collection<decltype(ds)>)
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_coefficient {std::forward<Arg>(arg)},
@@ -62,7 +62,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       auto ds = all_vector_space_descriptors(std::forward<Arg>(arg));
-      if constexpr (pattern_tuple<decltype(ds)>)
+      if constexpr (pattern_collection<decltype(ds)>)
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_diagonal_coefficient {std::forward<Arg>(arg)},

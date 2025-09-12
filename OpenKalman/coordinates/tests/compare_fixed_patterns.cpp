@@ -68,10 +68,10 @@ TEST(coordinates, compare_three_way_fixed_pattern)
   static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdcompat::partial_ordering::greater);
   static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}) == stdcompat::partial_ordering::less);
 
-  static_assert(compare(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}, stdcompat::is_eq));
-  static_assert(compare(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}, stdcompat::is_gteq));
-  static_assert(compare(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}, stdcompat::is_lteq));
-  static_assert(compare(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}, stdcompat::is_gt));
-  static_assert(compare(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}, stdcompat::is_lt));
-  static_assert(compare(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}, stdcompat::is_neq));
+  static_assert(compare<stdcompat::is_eq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdcompat::is_gteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdcompat::is_lteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdcompat::is_gt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdcompat::is_lt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
+  static_assert(compare<stdcompat::is_neq>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
 }

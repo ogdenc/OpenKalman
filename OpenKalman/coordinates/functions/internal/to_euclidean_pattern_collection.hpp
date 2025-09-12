@@ -38,7 +38,7 @@ namespace OpenKalman::coordinates::internal
     {
       return std::forward<T>(t);
     }
-    else if constexpr (values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, std::not_equal_to<>>)
+    else if constexpr (values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, stdcompat::is_neq>)
     {
       return collections::apply(
         [](auto&&...ds){ return std::tuple {get_dimension(std::forward<decltype(ds)>(ds))...}; },

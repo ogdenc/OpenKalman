@@ -36,7 +36,7 @@ namespace OpenKalman
 #endif
   inline auto make_vector_space_adapter(Arg&& arg, Descriptors&& descriptors)
   {
-    if constexpr (fixed_pattern_tuple<Descriptors> and
+    if constexpr (fixed_pattern_collection<Descriptors> and
         compatible_with_vector_space_descriptor_collection<Arg, Descriptors>)
       return std::forward<Arg>(arg);
     else

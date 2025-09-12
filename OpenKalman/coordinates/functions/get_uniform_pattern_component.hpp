@@ -84,7 +84,7 @@ namespace OpenKalman::coordinates
       {
         if (get_is_euclidean(t)) return std::optional {A{Dimensions<1>{}}};
         decltype(auto) v = collections::views::all(std::forward<T>(t));
-        auto pred = [](const auto& x, const auto& y) -> bool { return compare(x, y, stdcompat::is_neq); };
+        auto pred = [](const auto& x, const auto& y) -> bool { return compare<stdcompat::is_neq>(x, y); };
 #ifdef __cpp_lib_ranges
         if (std::ranges::adjacent_find(v, pred) == v.end()) return std::optional {A{v.front()}};
 #else

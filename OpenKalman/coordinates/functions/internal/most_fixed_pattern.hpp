@@ -54,10 +54,10 @@ namespace OpenKalman::coordinates::internal
    * \details If there are no fixed patterns, returns the last pattern.
    */
 #ifdef __cpp_concepts
-  template<pattern_collection P> requires values::fixed_value_compares_with<collections::size_of<P>, 0, std::greater<>>
+  template<pattern_collection P> requires values::fixed_value_compares_with<collections::size_of<P>, 0, &std::is_gt>
   constexpr pattern decltype(auto)
 #else
-  template<typename P, std::enable_if_t<values::fixed_value_compares_with<collections::size_of<P>, 0, std::greater<>>, int> = 0>
+  template<typename P, std::enable_if_t<values::fixed_value_compares_with<collections::size_of<P>, 0, &stdcompat::is_gt>, int> = 0>
   constexpr decltype(auto)
 #endif
   most_fixed_pattern(P&& p)

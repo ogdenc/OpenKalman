@@ -46,12 +46,16 @@ namespace OpenKalman::coordinates
     constexpr Dimensions() = default;
 
 
-    /// Constructor, taking a \ref values::fixed "fixed" \ref values::index "index".
+    /// Constructor, taking a fixed-dimension \ref euclidean_pattern.
 #ifdef __cpp_concepts
-    template<values::fixed_value_compares_with<N> D> requires (not std::same_as<D, Dimensions>)
+    template<euclidean_pattern D> requires
+      (dimension_of<D>::value == N) and
+      (not std::same_as<D, Dimensions>)
 #else
-    template<typename D, std::enable_if_t<values::fixed_value_compares_with<D, N> and
-      not stdcompat::same_as<D, Dimensions>, int> = 0>
+    template<typename D, std::enable_if_t<
+      euclidean_pattern<D> and
+      values::fixed_value_compares_with<dimension_of<D>, N> and
+      not std::is_same_v<D, Dimensions>, int> = 0>
 #endif
     constexpr Dimensions(const D&) {}
 
@@ -89,17 +93,12 @@ namespace OpenKalman::coordinates
   {
     /// Construct from a \ref coordinates::euclidean_pattern or \ref dynamic_pattern.
 #ifdef __cpp_concepts
-    template<typename D> requires (not std::same_as<D, Dimensions>) and (euclidean_pattern<D> or dynamic_pattern<D>)
+    template<euclidean_pattern D> requires (not std::same_as<D, Dimensions>)
 #else
-    template<typename D, std::enable_if_t<(not std::is_same_v<Dimensions, D>) and
-      (euclidean_pattern<D> or dynamic_pattern<D>), int> = 0>
+    template<typename D, std::enable_if_t<euclidean_pattern<D> and (not std::is_same_v<Dimensions, D>), int> = 0>
 #endif
     constexpr Dimensions(const D& d) : runtime_size {get_dimension(d)}
-    {
-      if constexpr (not euclidean_pattern<D>)
-        if (not get_is_euclidean(d))
-          throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean_coordinate_list."};
-    }
+    {}
 
 
     /// Construct from an integral value.
@@ -111,17 +110,12 @@ namespace OpenKalman::coordinates
      * \brief Assign from another \ref coordinates::euclidean_pattern or \ref dynamic_pattern.
      */
 #ifdef __cpp_concepts
-    template<typename D> requires (euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::same_as<Dimensions, D>)
+    template<euclidean_pattern D> requires (not std::same_as<D, Dimensions>)
 #else
-    template<typename D, std::enable_if_t<(euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::is_same_v<Dimensions, D>), int> = 0>
+    template<typename D, std::enable_if_t<euclidean_pattern<D> and (not std::is_same_v<D, Dimensions>), int> = 0>
 #endif
     constexpr Dimensions& operator=(const D& d)
     {
-      if constexpr (not euclidean_pattern<D>)
-        if (not get_is_euclidean(d))
-          throw std::invalid_argument{"Argument of dynamic 'Dimensions' assignment operator must be a euclidean_coordinate_list."};
       runtime_size = get_dimension(d);
       return *this;
     }

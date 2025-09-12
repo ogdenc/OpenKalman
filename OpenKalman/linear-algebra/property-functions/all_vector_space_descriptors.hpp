@@ -17,7 +17,6 @@
 #define OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 
 #include "coordinates/concepts/pattern_collection.hpp"
-#include "coordinates/concepts/pattern_tuple.hpp"
 #include "linear-algebra/interfaces/object-traits-defined.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/property-functions/internal/VectorSpaceDescriptorRange.hpp"
@@ -76,7 +75,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (index_count_v<T> != dynamic_size) and (not has_dynamic_dimensions<T>) 
-  constexpr pattern_tuple auto
+  constexpr pattern_collection auto
 #else
   template<typename T, std::enable_if_t<indexible<T> and (index_count<T>::value != dynamic_size) and 
     (not has_dynamic_dimensions<T>), int> = 0>

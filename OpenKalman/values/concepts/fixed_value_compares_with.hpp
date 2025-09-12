@@ -22,27 +22,31 @@
 
 namespace OpenKalman::values
 {
-#ifndef __cpp_concepts
+#if not defined(__cpp_concepts) or not defined(__cpp_impl_three_way_comparison)
   namespace detail
   {
-    template<typename T, auto N, typename Comp, typename = void>
+    template<typename T, auto N, auto comp, typename = void>
     struct fixed_value_compares_with_impl : std::false_type {};
 
-    template<typename T, auto N, typename Comp>
-    struct fixed_value_compares_with_impl<T, N, Comp, std::enable_if_t<(stdcompat::invoke(Comp{}, fixed_value_of<T>::value, N))>>
+    template<typename T, auto N, auto comp>
+    struct fixed_value_compares_with_impl<T, N, comp, std::enable_if_t<
+      (stdcompat::invoke(comp, stdcompat::compare_three_way{}(fixed_value_of<T>::value, static_cast<typename value_type_of<T>::type>(N))))>>
       : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief T has a fixed value that compares with N according to Comp.
+   * \brief T has a fixed value that compares with N in a particular way based on parameter comp.
+   * \tparam comp A consteval-callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
-  template<typename T, auto N, typename Comp = std::equal_to<>>
-#ifdef __cpp_concepts
-  concept fixed_value_compares_with = fixed<T> and stdcompat::invoke(Comp{}, fixed_value_of_v<T>, N);
+  template<typename T, auto N, auto comp = &stdcompat::is_eq>
+#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
+  concept fixed_value_compares_with =
+    fixed<T> and
+    stdcompat::invoke(comp, fixed_value_of_v<T> <=> N);
 #else
-  constexpr bool fixed_value_compares_with = detail::fixed_value_compares_with_impl<T, N, Comp>::value;
+  constexpr bool fixed_value_compares_with = detail::fixed_value_compares_with_impl<T, N, comp>::value;
 #endif
 
 }

@@ -53,7 +53,7 @@ namespace OpenKalman::interface
       {
         return get_index_dimension_of(std::forward<Arg>(arg).nested_object(), n);
       }
-      else if constexpr (pattern_tuple<Descriptors>)
+      else if constexpr (pattern_collection<Descriptors>)
       {
         static_assert (dim != dynamic_size);
         if constexpr (values::fixed<N>)

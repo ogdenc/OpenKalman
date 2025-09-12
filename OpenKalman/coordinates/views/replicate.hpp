@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition of \ref coordinates::replicate_view and \ref coordinates::views::replicate.
+ * \brief Definition of \ref coordinates::views::replicate.
  */
 
 #ifndef OPENKALMAN_COORDINATES_VIEWS_REPLICATE_HPP
@@ -28,14 +28,17 @@ namespace OpenKalman::coordinates::views
       constexpr replicate_closure(Factor f) : factor_ {std::move(f)} {};
 
 #ifdef __cpp_concepts
-      template<viewable_collection R>
+      template<pattern R>
 #else
-      template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
+      template<typename R, std::enable_if_t<pattern<R>, int> = 0>
 #endif
       constexpr auto
       operator() (R&& r) const
       {
-        return replicate_view {all(std::forward<R>(r)), factor_};
+        if constexpr (descriptor<R>)
+          return collections::views::repeat(std::forward<R>(r), factor_);
+        else
+          return collections::views::replicate(std::forward<R>(r), factor_);
       }
 
     private:
@@ -58,14 +61,17 @@ namespace OpenKalman::coordinates::views
 
 
 #ifdef __cpp_concepts
-      template<viewable_collection R, values::index Factor>
+      template<pattern R, values::index Factor>
 #else
-      template<typename R, typename Factor, std::enable_if_t<viewable_collection<R> and values::index<Factor>, int> = 0>
+      template<typename R, typename Factor, std::enable_if_t<pattern<R> and values::index<Factor>, int> = 0>
 #endif
       constexpr auto
       operator() (R&& r, Factor factor) const
       {
-        return replicate_view {all(std::forward<R>(r)), std::move(factor)};
+        if constexpr (descriptor<R>)
+          return collections::views::repeat(std::forward<R>(r), std::move(factor));
+        else
+          return collections::views::replicate(std::forward<R>(r), std::move(factor));
       }
 
     };
@@ -75,6 +81,7 @@ namespace OpenKalman::coordinates::views
 
   /**
    * \brief a std::ranges::range_adaptor_closure for a set of replicated \ref pattern objects.
+   * \details The object to be replicated need not be a collection. It may be a \ref descritor
    */
   inline constexpr detail::replicate_adaptor replicate;
 

@@ -19,7 +19,7 @@
 
 #include <vector>
 #include "coordinates/concepts/pattern.hpp"
-#include "coordinates/concepts/pattern_tuple.hpp"
+#include "coordinates/concepts/pattern_collection.hpp"
 
 namespace OpenKalman::internal
 {
@@ -31,7 +31,7 @@ namespace OpenKalman::internal
   static constexpr decltype(auto)
   make_constant_diagonal_from_descriptors(C&& c, Descriptors&& descriptors)
   {
-    if constexpr (coordinates::pattern_tuple<Descriptors>)
+    if constexpr (coordinates::pattern_collection<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
         std::tuple(internal::smallest_pattern<scalar_type_of_t<T>>(

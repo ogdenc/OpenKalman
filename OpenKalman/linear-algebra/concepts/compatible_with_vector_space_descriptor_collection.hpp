@@ -50,12 +50,12 @@ namespace OpenKalman
  
  
 #ifdef __cpp_concepts
-    template<typename T, pattern_tuple D>
+    template<typename T, pattern_collection D>
     struct compatible_with_vector_space_descriptor_collection_impl<T, D> 
 #else
     template<typename T, typename D>
     struct compatible_with_vector_space_descriptor_collection_impl<T, D, std::enable_if_t<
-      pattern_tuple<D>>>
+      pattern_collection<D>>>
 #endif
       : std::bool_constant<is_compatible_descriptor_tuple<T, D>(std::make_index_sequence<collections::size_of_v<D>>{})> {};
 

@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_CONSTANT_DIAGONAL_MATRIX_HPP
 #define OPENKALMAN_CONSTANT_DIAGONAL_MATRIX_HPP
 
-#include "values/concepts/scalar.hpp"
+#include "coordinates/coordinates.hpp"
 #include "indexible.hpp"
 #include "linear-algebra/traits/constant_diagonal_coefficient.hpp"
 

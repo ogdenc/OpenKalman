@@ -85,8 +85,8 @@ namespace OpenKalman::coordinates
     template<typename T>
     struct heterogeneous_pattern<T, std::enable_if_t<
       descriptor_collection<T> and
-      values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, std::not_equal_to<>> and
-      values::fixed_value_compares_with<collections::size_of<T>, 1, std::greater<>> and
+      values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, &stdcompat::is_neq> and
+      values::fixed_value_compares_with<collections::size_of<T>, 1, &stdcompat::is_gt> and
       collections::uniformly_gettable<T>
     >>
 #endif
@@ -104,8 +104,8 @@ namespace OpenKalman::coordinates
     struct heterogeneous_pattern<T, std::enable_if_t<
       descriptor_collection<T> and
       (not collections::uniformly_gettable<T>) and
-      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, dynamic_size, std::not_equal_to<>> and
-      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, 1, std::not_equal_to<>>
+      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, dynamic_size, &stdcompat::is_neq> and
+      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, 1, &stdcompat::is_neq>
     >>
 #endif
       : std::true_type {};

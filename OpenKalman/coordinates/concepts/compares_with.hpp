@@ -225,7 +225,7 @@ namespace OpenKalman::coordinates
     }
 
 
-    template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
+    template<typename T, typename U, auto comp, applicability a>
     constexpr bool
     compares_with_impl()
     {
@@ -449,17 +449,6 @@ namespace OpenKalman::coordinates
       }
     }
 
-
-#ifndef __cpp_concepts
-    template<typename T, typename U, auto comp, applicability a, typename = void>
-    struct comparison_invocable : std::false_type {};
-
-    template<typename T, typename U, auto comp, applicability a>
-    struct comparison_invocable<T, U, comp, a,
-      std::enable_if_t<stdcompat::convertible_to<typename std::invoke_result<decltype(comp), stdcompat::partial_ordering>::type, bool>>>
-      : std::true_type {};
-#endif
-
   }
 
 
@@ -480,15 +469,12 @@ namespace OpenKalman::coordinates
   template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept compares_with =
-    pattern<T> and pattern<U> and
-    std::convertible_to<std::invoke_result_t<decltype(comp), std::partial_ordering>, bool> and
-    detail::compares_with_impl<T, U, comp, a>();
 #else
   constexpr bool compares_with =
-    pattern<T> and pattern<U> and
-    detail::comparison_invocable<T, U, comp, a>::value and
-    detail::compares_with_impl<T, U, comp, a>();
 #endif
+    pattern<T> and pattern<U> and
+    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
+    detail::compares_with_impl<T, U, comp, a>();
 
 
 }

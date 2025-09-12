@@ -19,7 +19,6 @@
 #include "collections/collections.hpp"
 #include "coordinates/concepts/descriptor.hpp"
 #include "coordinates/concepts/pattern.hpp"
-#include "coordinates/concepts/fixed_pattern.hpp"
 #include "coordinates/concepts/euclidean_pattern.hpp"
 #include "coordinates/descriptors/Dimensions.hpp"
 #include "coordinates/functions/get_dimension.hpp"
@@ -30,7 +29,7 @@ namespace OpenKalman::coordinates
   namespace detail
   {
     template<std::size_t ia = 0, std::size_t ib = 0, typename A, typename B, typename C>
-    constexpr stdcompat::partial_ordering
+    constexpr auto
     compare_three_way_fixed(const A& a, const B& b, const C& c, std::size_t abank = 0, std::size_t bbank = 0)
     {
       if constexpr (ia < collections::size_of_v<A>)
@@ -51,7 +50,7 @@ namespace OpenKalman::coordinates
           {
             if (abank == bbank)
               if (internal::get_descriptor_hash_code(ai) == internal::get_descriptor_hash_code(bi))
-                return compare_three_way_fixed<ia + 1, ib + 1>(a, b, c);
+                return values::cast_to<stdcompat::partial_ordering>(compare_three_way_fixed<ia + 1, ib + 1>(a, b, c));
             return stdcompat::partial_ordering::unordered;
           }
         }
@@ -132,10 +131,12 @@ namespace OpenKalman::coordinates
    */
 #ifdef __cpp_concepts
   template<pattern A, pattern B, typename Comparison = stdcompat::compare_three_way>
+  requires std::is_invocable_r_v<stdcompat::partial_ordering, Comparison, std::size_t, std::size_t>
   constexpr std::convertible_to<stdcompat::partial_ordering> auto
 #else
-  template<typename A, typename B, typename Comparison = stdcompat::compare_three_way, std::enable_if_t<
-    pattern<A> and pattern<B>, int> = 0>
+  template<typename A, typename B, typename Comparison = stdcompat::compare_three_way,
+    std::enable_if_t<pattern<A> and pattern<B> and
+      std::is_invocable_r<stdcompat::partial_ordering, Comparison, std::size_t, std::size_t>::value, int> = 0>
   constexpr auto
 #endif
   compare_three_way(A&& a, B&& b, const Comparison& c = {})
@@ -177,7 +178,7 @@ namespace OpenKalman::coordinates
         values::fixed<decltype(internal::get_descriptor_hash_code(std::declval<RB>()))>)
       {
         auto cmp = values::cast_to<stdcompat::partial_ordering>(values::operation(
-          stdcompat::compare_three_way{},
+          c,
           values::fixed_value_of<decltype(internal::get_descriptor_hash_code(std::declval<RA>()))>{},
           values::fixed_value_of<decltype(internal::get_descriptor_hash_code(std::declval<RB>()))>{}));
         if constexpr (values::fixed_value_of_v<decltype(cmp)> == stdcompat::partial_ordering::less or
@@ -227,7 +228,7 @@ namespace OpenKalman::coordinates
       else
         return detail::compare_three_way_fixed(a, b, c);
     }
-    else if constexpr (collections::size_of_v<A> != dynamic_size)
+    else if constexpr (collections::size_of_v<A> != dynamic_size) // collections::size_of_v<B> == dynamic_size
     {
       bool size_b_is_zero = values::to_value_type(collections::get_size(b)) == 0;
       if constexpr (collections::size_of_v<A> == 0)
@@ -237,7 +238,7 @@ namespace OpenKalman::coordinates
       else
         return detail::compare_three_way_impl(collections::views::all(std::forward<A>(a)), b, c);
     }
-    else if constexpr (collections::size_of_v<B> != dynamic_size)
+    else if constexpr (collections::size_of_v<B> != dynamic_size) // collections::size_of_v<A> == dynamic_size
     {
       bool size_a_is_zero = values::to_value_type(collections::get_size(a)) == 0;
       if constexpr (collections::size_of_v<B> == 0)

@@ -16,63 +16,125 @@
 #ifndef OPENKALMAN_COORDINATE_PATTERN_COLLECTION_COMPARES_WITH_HPP
 #define OPENKALMAN_COORDINATE_PATTERN_COLLECTION_COMPARES_WITH_HPP
 
-#include "coordinates/concepts/pattern_collection.hpp"
-#include "coordinates/concepts/fixed_pattern_collection.hpp"
-#include "coordinates/functions/compare_pattern_collections.hpp"
+#include "pattern_collection.hpp"
+#include "compares_with.hpp"
+#include "coordinates/descriptors/Dimensions.hpp"
 
 namespace OpenKalman::coordinates
 {
-#ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename U, auto comp, typename = void>
-    struct pc_compares_with_guaranteed : std::false_type {};
+    template<typename T, typename PU, auto comp, applicability a, std::size_t i = 0>
+    constexpr bool
+    pattern_collection_compares_with_iter_T()
+    {
+      if constexpr (i < collections::size_of_v<T>)
+      {
+        using Ti = std::decay_t<collections::collection_element_t<i, T>>;
+        if constexpr (compares_with<Ti, PU, comp, a>)
+          return pattern_collection_compares_with_iter_T<T, PU, comp, a, i + 1>();
+        else
+          return false;
+      }
+      else
+      {
+        return true;
+      }
+    }
 
-    template<typename T, typename U, auto comp>
-    struct pc_compares_with_guaranteed<T, U, comp, std::enable_if_t<
-      std::bool_constant<compare_pattern_collections<comp>(std::decay_t<T>{}, std::decay_t<U>{})>::value>>
-      : std::true_type {};
+
+    template<typename PT, typename U, auto comp, applicability a, std::size_t i = 0>
+    constexpr bool
+    pattern_collection_compares_with_iter_U()
+    {
+      if constexpr (i < collections::size_of_v<U>)
+      {
+        using Ui = std::decay_t<collections::collection_element_t<i, U>>;
+        if constexpr (compares_with<PT, Ui, comp, a>)
+          return pattern_collection_compares_with_iter_U<PT, U, comp, a, i + 1>();
+        else
+          return false;
+      }
+      else
+      {
+        return true;
+      }
+    }
 
 
-    template<typename T, typename U, auto comp, typename = void>
-    struct pc_compares_with_permitted : std::false_type {};
+    template<typename T, typename U, auto comp, applicability a, std::size_t i = 0>
+    constexpr bool
+    pattern_collection_compares_with_iter()
+    {
+      if constexpr (i < collections::size_of_v<T>)
+      {
+        if constexpr (i < collections::size_of_v<U>)
+        {
+          using Ti = std::decay_t<collections::collection_element_t<i, T>>;
+          using Ui = std::decay_t<collections::collection_element_t<i, U>>;
+          if constexpr (compares_with<Ti, Ui, comp, a>)
+            return pattern_collection_compares_with_iter<T, U, comp, a, i + 1>();
+          else
+            return false;
+        }
+        else
+        {
+          return pattern_collection_compares_with_iter_T<T, Dimensions<1>, comp, a, i>();
+        }
+      }
+      else if constexpr (i < collections::size_of_v<U>)
+      {
+        return pattern_collection_compares_with_iter_U<Dimensions<1>, U, comp, a, i>();
+      }
+      else
+      {
+        return true;
+      }
+    }
 
-    template<typename T, typename U, auto comp>
-    struct pc_compares_with_permitted<T, U, comp, std::enable_if_t<
-      not values::fixed<decltype(compare_pattern_collections<comp>(std::declval<T>(), std::declval<U>()))>>>
-      : std::true_type {};
+
+    template<typename T, typename U, auto comp, applicability a>
+    constexpr bool
+    pattern_collection_compares_with_impl()
+    {
+      constexpr bool fixed_t = collections::sized<T> and not values::fixed_value_compares_with<collections::size_of<T>, dynamic_size>;
+      constexpr bool fixed_u = collections::sized<U> and not values::fixed_value_compares_with<collections::size_of<U>, dynamic_size>;
+      if constexpr (fixed_t and fixed_u)
+      {
+        return detail::pattern_collection_compares_with_iter<T, U, comp, a>();
+      }
+      else if constexpr (fixed_t)
+      {
+        return detail::pattern_collection_compares_with_iter_T<T, stdcompat::ranges::range_value_t<U>, comp, a>();
+      }
+      else if constexpr (fixed_u)
+      {
+        return detail::pattern_collection_compares_with_iter_U<stdcompat::ranges::range_value_t<T>, U, comp, a>();
+      }
+      else
+      {
+        return compares_with<stdcompat::ranges::range_value_t<T>, stdcompat::ranges::range_value_t<U>, comp, a>;
+      }
+    }
+
   }
-#endif
 
 
   /**
-   * \brief Specifies that a set of \ref coordinates::pattern objects may be equivalent based on what is known at compile time.
-   * \details Every \ref coordinate_list in the set must be potentially equivalent to every other \ref coordinate_list in the set.
-   * Sets of vector space descriptors are equivalent if they are treated functionally the same.
-   * - Any \ref coordinate_list is equivalent to itself.
-   * - std::tuple<As...> is equivalent to std::tuple<Bs...>, if each As is equivalent to its respective Bs.
-   * - std::tuple<A> is equivalent to A, and vice versa.
-   * - Dynamic \ref coordinates::euclidean_pattern objects are equivalent to any other \ref coordinates::euclidean_pattern,
-   * \par Examples:
-   * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction&gt;&gt;</code>
-   * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction, angle::Radians&gt;, less_than<>, applicability::guaranteed&gt;</code>
-   * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Dimensions<>, Direction, angle::Radians&gt;, less_than<>, applicability::permitted&gt;</code>
-   * \tparam comp A callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
+   * \brief Specifies that a set of \ref coordinates::pattern objects are, or may be, equivalent.
+   * \details Every \ref coordinate_list in the set must be potentially equivalent to every other \ref coordinate_list
+   * in the set. Trailing 1D patterns are ignored.
+   * \tparam comp A consteval-callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
   template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept pattern_collection_compares_with =
-    pattern_collection<T> and pattern_collection<U> and std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
-    ((fixed_pattern_collection<T> and fixed_pattern_collection<U> and
-      std::bool_constant<compare_pattern_collections<comp>(std::decay_t<T>{}, std::decay_t<U>{})>::value) or
-    (a == applicability::permitted and
-      not values::fixed<decltype(compare_pattern_collections<comp>(std::declval<T>(), std::declval<U>()))>));
 #else
   constexpr bool pattern_collection_compares_with =
-    pattern_collection<T> and pattern_collection<U> and std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
-    ((fixed_pattern_collection<T> and fixed_pattern_collection<U> and detail::pc_compares_with_guaranteed<T, U, comp>::value) or
-      (a == applicability::permitted and detail::pc_compares_with_permitted<T, U, comp>::value));
 #endif
+    pattern_collection<T> and pattern_collection<U> and
+    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
+    detail::pattern_collection_compares_with_impl<T, U, comp, a>();
 
 
 }
