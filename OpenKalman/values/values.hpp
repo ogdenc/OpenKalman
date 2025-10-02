@@ -27,6 +27,8 @@ namespace OpenKalman::values {}
 
 #include "basics/basics.hpp"
 
+#include "constants.hpp"
+
 #include "interface/number_traits.hpp"
 
 #include "concepts/fixed.hpp"
@@ -43,6 +45,7 @@ namespace OpenKalman::values {}
 #include "concepts/integral.hpp"
 #include "concepts/index.hpp"
 #include "concepts/size.hpp"
+#include "concepts/size_compares_with.hpp"
 #include "concepts/floating.hpp"
 #include "concepts/not_complex.hpp"
 

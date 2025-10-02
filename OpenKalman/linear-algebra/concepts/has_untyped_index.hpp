@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_HAS_UNTYPED_INDEX_HPP
 #define OPENKALMAN_HAS_UNTYPED_INDEX_HPP
 
+#include "coordinates/coordinates.hpp"
+#include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
 {
@@ -30,7 +32,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    coordinates::euclidean_pattern<vector_space_descriptor_of_t<T, N>>;
+    coordinates::euclidean_pattern<decltype(get_pattern_collection(std::declval<T>(), std::integral_constant<std::size_t, N>{}))>;
 
 
 }

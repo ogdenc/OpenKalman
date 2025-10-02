@@ -19,17 +19,6 @@
 namespace OpenKalman
 {
   /**
-   * \brief The layout format of a multidimensional array.
-   */
-  enum struct data_layout : int {
-    none, ///< No storage layout (e.g., if the elements are calculated rather than stored).
-    right, ///< Row-major storage (C or C++ style): contiguous storage in which the right-most index has a stride of 1.
-    left, ///< Column-major storage (Fortran, Matlab, or Eigen style): contiguous storage in which the left-most extent has a stride of 1.
-    stride, ///< A generalization of the above: a custom stride is specified for each index.
-  };
-
-
-  /**
    * \brief The type of a triangular matrix.
    * \details This is generally applicable to a rank-2 tensor (e.g., a matrix).
    * It also applies to tensors of rank > 2, in which case every rank-2 slice over dimensions 0 and 1 must be a triangle of this type.

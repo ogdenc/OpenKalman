@@ -36,6 +36,7 @@ namespace OpenKalman::stdcompat::ranges {}
 #include "ranges/range-access.hpp"
 #include "ranges/range-concepts.hpp"
 #include "ranges/functional.hpp"
+#include "ranges/algorithm.hpp"
 
 #include "views/view_interface.hpp"
 #include "views/view-concepts.hpp"

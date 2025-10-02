@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,23 +16,33 @@
 #ifndef OPENKALMAN_WRITABLE_HPP
 #define OPENKALMAN_WRITABLE_HPP
 
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
 
 namespace OpenKalman
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct writable_impl : std::false_type {};
+
+    template<typename T>
+    struct writable_impl<T, std::enable_if_t<not std::is_const_v<typename element_type_of<T>::type>>>
+      : std::true_type {};
+  }
+#endif
+
+
   /**
    * \internal
-   * \brief Specifies that T is a dense, writable matrix.
-   * \todo Add some assignability test?
+   * \brief Specifies that T is an \ref indexible object whose elements are writable via the associated mdspan.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept writable =
-    indexible<T> and interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_writable and
-    (not std::is_const_v<std::remove_reference_t<T>>) and std::copy_constructible<std::decay_t<T>>;
+  concept writable = indexible<T> and (not std::is_const_v<element_type_of_t<T>>);
 #else
-  constexpr bool writable =
-    indexible<T> and interface::is_explicitly_writable<T>::value and (not std::is_const_v<std::remove_reference_t<T>>) and
-    stdcompat::copy_constructible<std::decay_t<T>> and std::is_move_constructible_v<std::decay_t<T>>;
+  constexpr bool writable = indexible<T> and detail::writable_impl<T>::value;
 #endif
 
 

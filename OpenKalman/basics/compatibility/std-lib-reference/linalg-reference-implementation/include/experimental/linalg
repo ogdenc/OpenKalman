@@ -1,0 +1,64 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+// ************************************************************************
+//@HEADER
+
+#pragma once
+
+#include "basics/compatibility/mdspan.hpp"
+
+#define MDSPAN_IMPL_INLINE_VARIABLE inline
+#define MDSPAN_IMPL_CONSTEXPR_14
+#define MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED
+
+//#include "__p1673_bits/linalg_config.h"
+#include "__p1673_bits/macros.hpp"
+#include "__p1673_bits/linalg_execpolicy_mapper.hpp"
+#include "__p1673_bits/maybe_static_size.hpp"
+#include "__p1673_bits/layout_tags.hpp"
+#include "__p1673_bits/layout_triangle.hpp"
+#include "__p1673_bits/packed_layout.hpp"
+#include "__p1673_bits/abs_if_needed.hpp"
+#include "__p1673_bits/conj_if_needed.hpp"
+#include "__p1673_bits/real_if_needed.hpp"
+#include "__p1673_bits/imag_if_needed.hpp"
+#include "__p1673_bits/scaled.hpp"
+#include "__p1673_bits/conjugated.hpp"
+#include "__p1673_bits/transposed.hpp"
+#include "__p1673_bits/conjugate_transposed.hpp"
+#include "__p1673_bits/blas1_givens.hpp"
+#include "__p1673_bits/blas1_linalg_swap.hpp"
+#include "__p1673_bits/blas1_matrix_frob_norm.hpp"
+#include "__p1673_bits/blas1_matrix_inf_norm.hpp"
+#include "__p1673_bits/blas1_matrix_one_norm.hpp"
+#include "__p1673_bits/blas1_scale.hpp"
+#include "__p1673_bits/blas1_linalg_copy.hpp"
+#include "__p1673_bits/blas1_linalg_add.hpp"
+#include "__p1673_bits/blas1_dot.hpp"
+#include "__p1673_bits/blas1_vector_norm2.hpp"
+#include "__p1673_bits/blas1_vector_abs_sum.hpp"
+#include "__p1673_bits/blas1_vector_idx_abs_max.hpp"
+#include "__p1673_bits/blas1_vector_sum_of_squares.hpp"
+#include "__p1673_bits/blas2_matrix_vector_product.hpp"
+#include "__p1673_bits/blas2_matrix_vector_solve.hpp"
+#include "__p1673_bits/blas2_matrix_rank_1_update.hpp"
+#include "__p1673_bits/blas2_matrix_rank_2_update.hpp"
+#include "__p1673_bits/blas3_matrix_product.hpp"
+#include "__p1673_bits/blas3_matrix_rank_k_update.hpp"
+#include "__p1673_bits/blas3_matrix_rank_2k_update.hpp"
+#include "__p1673_bits/blas3_triangular_matrix_matrix_solve.hpp"
+#ifdef LINALG_ENABLE_KOKKOS
+#include <experimental/linalg_kokkoskernels>
+#endif

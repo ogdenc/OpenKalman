@@ -13,7 +13,8 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(arrays
-        traits.cpp
+        properties.cpp
+        #functions.cpp
     )
 
 target_link_libraries(arrays GTest::gtest_main Threads::Threads)

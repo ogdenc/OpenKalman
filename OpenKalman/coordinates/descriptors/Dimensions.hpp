@@ -17,7 +17,7 @@
 #define OPENKALMAN_DIMENSIONS_HPP
 
 #include <cstddef>
-#include <type_traits>
+#include "collections/collections.hpp"
 #include "coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "coordinates/concepts/fixed_pattern.hpp"
 #include "coordinates/concepts/dynamic_pattern.hpp"

@@ -17,49 +17,57 @@
 #define OPENKALMAN_INDEX_COLLECTION_FOR_HPP
 
 #include "coordinates/coordinates.hpp"
+#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
+#include "linear-algebra/traits/index_count.hpp"
+#include "linear-algebra/traits/index_dimension_of.hpp"
 
 namespace OpenKalman
 {
-#ifndef __cpp_lib_ranges
   namespace detail
   {
+    template<typename Indices, typename Indexible, typename Seq = std::make_index_sequence<collections::size_of_v<Indices>>>
+    struct index_collection_for_iter : std::false_type {};
+
+    template<typename Indices, typename Indexible, std::size_t...ix>
+    struct index_collection_for_iter<Indices, Indexible, std::index_sequence<ix...>>
+      : std::bool_constant<(... and (values::size_compares_with<
+            collections::collection_element_t<ix, Indices>,
+            index_dimension_of<Indexible, ix>,
+            &stdcompat::is_lt,
+            applicability::permitted
+          >))> {};
+
+
+#ifndef __cpp_concepts
     template<typename Indices, typename Indexible, typename = void>
-    struct index_collection_for_impl_it : std::false_type {};
-
-    template<typename Indices, typename Indexible>
-    struct index_collection_for_impl_it<Indices, Indexible, std::enable_if_t<values::index<stdcompat::ranges::iterator_t<Indices>>>>
-        : std::true_type {};
-
-
-    template<typename Indices, typename Indexible, typename = void>
-    struct index_collection_for_impl : std::false_type {};
+    struct index_collection_for_impl : std::true_type {};
 
     template<typename Indices, typename Indexible>
     struct index_collection_for_impl<Indices, Indexible, std::enable_if_t<
-      collections::size_of<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
-      collections::size_of<Indices>::value >= index_count<Indexible>::value>>
-        : std::true_type {};
-
-  }
+      values::fixed_value_compares_with<collections::size_of<Indices>, dynamic_size, &stdcompat::is_neq>>>
+        : index_collection_for_iter<Indices, Indexible> {};
 #endif
+  }
 
 
   /**
    * \brief Indices is a std::ranges::sized_range of indices that are compatible with \ref indexible object T.
    */
   template<typename Indices, typename T>
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_concepts
   concept index_collection_for =
-    indexible<T> and std::ranges::input_range<std::decay_t<Indices>> and 
-    values::index<std::ranges::range_value_t<Indices>> and
+    indexible<T> and
+    collections::index<Indices> and
     interface::get_component_defined_for<T, T, Indices> and
-    (collections::size_of_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
-      collections::size_of_v<Indices> >= index_count_v<T>);
+    values::size_compares_with<collections::size_of<Indices>, index_count<T>, &stdcompat::is_gteq, applicability::permitted> and
+    (values::fixed_value_compares_with<collections::size_of<Indices>, dynamic_size, &std::is_eq> or
+      detail::index_collection_for_iter<Indices, T>::value);
 #else
   constexpr bool index_collection_for =
     indexible<T> and
-    detail::index_collection_for_impl_it<Indices, T>::value and
-    interface::get_component_defined_for<T, T, Indices> and 
+    collections::index<Indices> and
+    interface::get_component_defined_for<T, T, Indices> and
+    values::size_compares_with<collections::size_of<Indices>, index_count<T>, &stdcompat::is_gteq, applicability::permitted> and
     detail::index_collection_for_impl<Indices, T>::value;
 #endif
 

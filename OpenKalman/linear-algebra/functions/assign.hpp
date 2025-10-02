@@ -16,6 +16,14 @@
 #ifndef OPENKALMAN_ASSIGN_HPP
 #define OPENKALMAN_ASSIGN_HPP
 
+#include "coordinates/coordinates.hpp"
+#include "linear-algebra/concepts/writable.hpp"
+#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
+#include "linear-algebra/traits/index_count.hpp"
+#include "linear-algebra/functions/get_component.hpp"
+#include "linear-algebra/functions/set_component.hpp"
+#include "linear-algebra/functions/to_native_matrix.hpp"
+
 namespace OpenKalman
 {
   namespace detail
@@ -30,7 +38,7 @@ namespace OpenKalman
     template<typename M, typename Arg, std::size_t I, std::size_t...Is, typename...J>
     static void copy_tensor_elements(M& m, Arg&& arg, std::index_sequence<I, Is...>, J...j)
     {
-      for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
+      for (std::size_t i = 0; i < get_index_extent<I>(arg); i++)
         copy_tensor_elements(m, std::forward<Arg>(arg), std::index_sequence<Is...> {}, j..., i);
     }
   }
@@ -38,40 +46,43 @@ namespace OpenKalman
 
   /**
    * \brief Assign a writable object from an indexible object.
-   * \tparam To The writable object to be assigned.
-   * \tparam From The indexible object from which to assign.
+   * \tparam LHS The writable object to be assigned.
+   * \tparam RHS The indexible object from which to assign.
    * \return the assigned object as modified
    */
 #ifdef __cpp_concepts
-  template<indexible To, vector_space_descriptors_may_match_with<To> From>
+  template<writable LHS, vector_space_descriptors_may_match_with<LHS> RHS> requires (not std::is_const_v<LHS>)
 #else
-  template<typename To, typename From, std::enable_if_t<indexible<To> and vector_space_descriptors_may_match_with<From, To>, int> = 0>
+  template<typename LHS, typename RHS, std::enable_if_t<
+    writable<LHS> and
+    vector_space_descriptors_may_match_with<RHS, LHS> and
+    (not std::is_const_v<LHS>), int> = 0>
 #endif
-  constexpr To&&
-  assign(To&& a, From&& b)
+  constexpr LHS&
+  assign(LHS& lhs, RHS&& rhs)
   {
-    if constexpr (interface::assign_defined_for<To, std::add_lvalue_reference_t<To>, From&&>)
+    if constexpr (interface::assign_defined_for<LHS&, RHS&&>)
     {
-      interface::library_interface<std::decay_t<To>>::assign(a, std::forward<From>(b));
+      interface::library_interface<LHS>::assign(lhs, std::forward<RHS>(rhs));
     }
-    else if constexpr (interface::assign_defined_for<To, std::add_lvalue_reference_t<To>, decltype(to_native_matrix<To>(std::declval<From&&>()))>)
+    else if constexpr (interface::assign_defined_for<LHS&, decltype(to_native_matrix<LHS>(std::declval<RHS&&>()))>)
     {
-      interface::library_interface<std::decay_t<To>>::assign(a, to_native_matrix<To>(std::forward<From>(b)));
+      interface::library_interface<LHS>::assign(lhs, to_native_matrix<LHS>(std::forward<RHS>(rhs)));
     }
-    else if constexpr (stdcompat::assignable_from<std::add_lvalue_reference_t<To>, From&&>)
+    else if constexpr (stdcompat::assignable_from<LHS&, RHS&&>)
     {
-      a = std::forward<From>(b);
+      lhs = std::forward<RHS>(rhs);
     }
-    else if constexpr (std::is_assignable_v<std::add_lvalue_reference_t<To>, decltype(to_native_matrix<To>(std::declval<From&&>()))>)
+    else if constexpr (stdcompat::assignable_from<LHS&, decltype(to_native_matrix<LHS>(std::declval<RHS&&>()))>)
     {
-      a = to_native_matrix<To>(std::forward<From>(b));
+      lhs = to_native_matrix<LHS>(std::forward<RHS>(rhs));
     }
     // \todo include the case where A is \ref directly_accessible
     else
     {
-      detail::copy_tensor_elements(a, std::forward<From>(b), std::make_index_sequence<index_count_v<To>>{});
+      detail::copy_tensor_elements(lhs, std::forward<RHS>(rhs), std::make_index_sequence<index_count_v<LHS>>{});
     }
-    return std::forward<To>(a);
+    return std::forward<LHS>(lhs);
   }
 
 

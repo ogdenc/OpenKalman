@@ -21,6 +21,7 @@ namespace OpenKalman
   /**
    * \brief Convert an \ref indexible object into a \ref diagonal matrix.
    * \returns A \ref diagonal matrix
+   * \todo generalize for higher-rank tensors
    */
 #ifdef __cpp_concepts
   template<indexible Arg>

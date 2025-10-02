@@ -22,7 +22,8 @@
 namespace OpenKalman::values
 {
   /**
-   * \brief T is either an \ref values::index "index" representing a size, or void which represents that there is no size.
+   * \brief T is either an \ref values::index "index" representing a size, or
+   * std::unreachable_sentinel_t, which represents that there is no size.
    */
 #ifdef __cpp_concepts
   template<typename T>

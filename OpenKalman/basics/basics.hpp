@@ -66,6 +66,8 @@ namespace OpenKalman::stdcompat {}
 #include "compatibility/internal/movable_box.hpp"
 #include "compatibility/iterator.hpp"
 #include "compatibility/ranges.hpp"
+#include "compatibility/mdspan.hpp"
+#include "compatibility/linalg.hpp"
 
 #include "global-definitions.hpp"
 

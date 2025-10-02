@@ -21,9 +21,9 @@
 #include "linear-algebra/concepts/constant_matrix.hpp"
 #include "linear-algebra/concepts/index_collection_for.hpp"
 #include "linear-algebra/traits/internal/library_base.hpp"
-#include "linear-algebra/traits/scalar_type_of.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
 #include "linear-algebra/traits/constant_coefficient.hpp"
-#include "linear-algebra/property-functions/get_pattern_collection.hpp"
+#include "../traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
 {
@@ -233,9 +233,9 @@ namespace OpenKalman
   * \tparam N A \ref values::number type (by default, derived from Shape).
   */
 #ifdef __cpp_concepts
-  template<indexible Shape, values::number N = scalar_type_of_t<Shape>>
+  template<indexible Shape, values::number N = element_type_of_t<Shape>>
 #else
-  template<typename Shape, typename N = scalar_type_of_t<Shape>>
+  template<typename Shape, typename N = element_type_of_t<Shape>>
 #endif
   using zero_adapter = constant_adapter<values::fixed_value<N, 0>, Shape>;
 

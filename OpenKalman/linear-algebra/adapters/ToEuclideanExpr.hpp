@@ -20,7 +20,7 @@
 #include "coordinates/coordinates.hpp"
 #include "linear-algebra/concepts/identity_matrix.hpp"
 #include "linear-algebra/concepts/zero.hpp"
-#include "linear-algebra/property-functions/count_indices.hpp"
+#include "../traits/count_indices.hpp"
 #include "linear-algebra/traits/traits.hpp"
 #include "linear-algebra/adapters/internal/AdapterBase.hpp"
 
@@ -42,7 +42,7 @@ namespace OpenKalman
     static_assert(indexible<NestedObject>);
 #endif
 
-    using Scalar = scalar_type_of_t<NestedObject>;
+    using Scalar = element_type_of_t<NestedObject>;
 
     using Base = internal::AdapterBase<ToEuclideanExpr, NestedObject>;
 
@@ -114,7 +114,7 @@ template<indexible Arg>
     template<typename NestedObject>
     struct indexible_object_traits<ToEuclideanExpr<NestedObject>>
     {
-      using scalar_type = scalar_type_of_t<NestedObject>;
+      using scalar_type = element_type_of_t<NestedObject>;
 
       template<typename Arg>
       static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
@@ -131,7 +131,7 @@ template<indexible Arg>
         }
         else
         {
-          using Desc = coordinates::DynamicDescriptor<scalar_type_of<Arg>>;
+          using Desc = coordinates::DynamicDescriptor<element_type_of<Arg>>;
           if (n == 0) return Desc {coordinates::Axis};
           else return Desc {OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n)};
         }
@@ -267,7 +267,7 @@ template<indexible Arg>
       template<typename Arg, typename Indices>
 #endif
       static void
-      set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
+      set_component(Arg& arg, const element_type_of_t<Arg>& s, const Indices& indices)
       {
         if constexpr (has_untyped_index<NestedObject, 0>)
         {

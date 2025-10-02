@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_ELEMENT_GETTABLE_HPP
 #define OPENKALMAN_ELEMENT_GETTABLE_HPP
 
+#include "linear-algebra/traits/index_count.hpp"
 
 namespace OpenKalman
 {

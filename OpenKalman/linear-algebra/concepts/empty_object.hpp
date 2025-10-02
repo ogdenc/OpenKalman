@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_EMPTY_OBJECT_HPP
 #define OPENKALMAN_EMPTY_OBJECT_HPP
 
+#include "dimension_size_of_index_is.hpp"
 
 namespace OpenKalman
 {

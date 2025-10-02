@@ -58,7 +58,7 @@ namespace OpenKalman::test
 
 
     static ::testing::AssertionResult
-    compare(const Arg1 arg1, const Arg2 arg2, const Err& err)
+    compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
       if (values::internal::near(arg1, arg2, err))
         return ::testing::AssertionSuccess();

@@ -16,27 +16,50 @@
 #ifndef OPENKALMAN_FILL_COMPONENTS_HPP
 #define OPENKALMAN_FILL_COMPONENTS_HPP
 
+#include "linear-algebra/concepts/internal/layout_mapping_policy.hpp"
 
 namespace OpenKalman
 {
+  namespace detail
+  {
+    // \todo this is nonsensical right now, but can be converted to a generic function for copying elements
+    template<std::size_t rank = 0, typename U, typename Indices, typename S>
+    static constexpr void
+    fill_components_impl(U& u, const Indices& indices, const S& s)
+    {
+      if constexpr (rank < std::rank_v<T>)
+      {
+        auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
+        set_component_impl<rank + 1>(u[i], indices, s);
+      }
+      else
+      {
+        u = s;
+      }
+    }
+  }
+
+
   /**
    * \overload
    * \brief Fill the components of an object from a list of scalar values.
    * \details The scalar components are listed in the specified layout order, as follows:
-   * - \ref data_layout::left: column-major;
-   * - \ref data_layout::right: row-major (the default).
-   * \tparam layout The \ref data_layout of Args and the resulting object (\ref data_layout::right if unspecified).
+   * - \ref std::layout_left: column-major;
+   * - \ref std::layout_right: row-major (the default).
+   * \tparam layout The \ref layout_mapping_policy of Args and the resulting object (std::layout_right if unspecified).
    * \param arg The object to be modified.
    * \param s Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<data_layout layout = data_layout::right, indexible Arg, values::number ... S> requires
-    (layout == data_layout::right or layout == data_layout::left) and internal::may_hold_components<Arg, S...> and
+  template<internal::layout_mapping_policy layout = stdcompat::layout_right, indexible Arg, values::number ... S> requires
+    (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and
+    internal::may_hold_components<Arg, S...> and
     (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>)
   inline Arg&&
 #else
-  template<data_layout layout = data_layout::right, typename Arg, typename...S, std::enable_if_t<
-    indexible<Arg> and (values::number<S> and ...) and (layout == data_layout::right or layout == data_layout::left) and
+  template<typename layout layout = stdcompat::layout_right, typename Arg, typename...S, std::enable_if_t<
+    indexible<Arg> and (values::number<S> and ...) and
+    (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and
     internal::may_hold_components<Arg, S...> and
     (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>), int> = 0>
   inline Arg&&
@@ -49,11 +72,12 @@ namespace OpenKalman
     }
     else
     {
-      using Scalar = scalar_type_of_t<Arg>;
+      using Scalar = element_type_of_t<Arg>;
       using Trait = interface::library_interface<std::decay_t<Arg>>;
       Trait::template fill_components<layout>(arg, static_cast<const Scalar>(s)...);
       return std::forward<Arg>(arg);
     }
+    // \todo add a facility for when the interface is not defined
   }
 
 

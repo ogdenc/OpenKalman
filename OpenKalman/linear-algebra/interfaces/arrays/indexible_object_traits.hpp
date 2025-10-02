@@ -25,77 +25,43 @@ namespace OpenKalman::interface
    * \brief An interface to standard c++ arrays of any rank.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires std::is_array_v<T> and (std::extent_v<T> > 0)
+  template<typename T> requires std::is_array_v<T>
   struct indexible_object_traits<T>
 #else
   template<typename T>
-  struct indexible_object_traits<T, std::enable_if_t<std::is_array_v<T> and (std::extent_v<T> > 0)>>
+  struct indexible_object_traits<T, std::enable_if_t<std::is_array_v<T>>>
 #endif
   {
-    /**
-     * \sa scalar_type_of
-     */
-    using scalar_type = std::remove_all_extents_t<T>;
-
-
-    /**
-     * \sa OpenKalman::index_count
-     * \sa OpenKalman::count_indices
-     */
-    static constexpr auto
-    count_indices = std::rank<T>{};
-
   private:
 
-    template<std::size_t...i>
-    static constexpr auto
-    get_pattern_collection_impl(std::index_sequence<i...>) { return std::tuple {std::extent<T, i>{}...}; }
+    template<std::size_t rank = 0, std::size_t...es>
+    struct mdspan_extents : mdspan_extents<rank + 1, es..., std::extent_v<T, rank>> {};
+
+    template<std::size_t...es>
+    struct mdspan_extents<std::rank_v<T>, es...> { using type = stdcompat::extents<std::size_t, es...>; };
+
+    template<typename P>
+    static constexpr auto*
+    ptr_first_element(P* p)
+    {
+      if constexpr (std::rank_v<P> > 0)
+        return ptr_first_element(p[0]);
+      else
+        return p;
+    }
 
   public:
 
     /**
-     * \returns A tuple of extents.
+     * \brief Return a std::mdspan as a view to the array.
      */
     static constexpr auto
-    get_pattern_collection = [](const T&) -> coordinates::pattern_collection auto
+    get_mdspan = [](auto& t)
     {
-      return get_pattern_collection_impl(std::make_index_sequence<std::rank_v<T>>{});
+      using scalar = std::remove_all_extents_t<std::remove_reference_t<decltype(t)>>;
+      using ext = typename mdspan_extents<>::type;
+      return stdcompat::mdspan<scalar, ext>{ptr_first_element(t)};
     };
-
-
-    // nested_object is not defined.
-    // get_constant is not defined.
-    // get_constant_diagonal is not defined.
-    // one_dimensional is not defined.
-    // is_square is not defined.
-    // is_triangular is not defined.
-    // is_triangular_adapter is not defined.
-    // is_hermitian is not defined.
-    // is_hermitian_adapter_type is not defined.
-
-
-    /**
-     * \brief Whether T is a writable, self-contained matrix or array.
-     */
-    static constexpr bool
-    is_writable = not std::is_const_v<T>;
-
-
-    /**
-     * \brief Pointer to the first element of the array.
-     */
-    static constexpr auto
-    raw_data = [](auto&& t) { return std::addressof(t[0]); };
-
-
-    /**
-     * \brief The standard C++ layout is right (row-major).
-     */
-    static constexpr data_layout
-    layout = data_layout::right;
-
-
-    // strides is not defined.
 
   };
 

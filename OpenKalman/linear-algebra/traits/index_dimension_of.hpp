@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_INDEX_DIMENSION_OF_HPP
 #define OPENKALMAN_INDEX_DIMENSION_OF_HPP
 
+#include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
 {
@@ -34,14 +35,14 @@ namespace OpenKalman
   struct index_dimension_of {};
 
 
-  template<typename T, std::size_t N>
 #ifdef __cpp_concepts
-  requires requires { typename vector_space_descriptor_of_t<T, N>; }
+  template<indexible T, std::size_t N>
   struct index_dimension_of<T, N>
 #else
-  struct index_dimension_of<T, N, std::void_t<typename vector_space_descriptor_of<T, N>::type>>
+  template<typename T, std::size_t N>
+  struct index_dimension_of<T, N, std::enable_if_t<indexible<T>>>
 #endif
-    : std::integral_constant<std::size_t, coordinates::dimension_of_v<vector_space_descriptor_of_t<T, N>>> {};
+    : std::integral_constant<std::size_t, coordinates::dimension_of_v<decltype(get_pattern_collection<N>(std::declval<T>()))>> {};
 
 
   /**

@@ -18,6 +18,26 @@
 
 using namespace OpenKalman;
 
+
+#include "values/constants.hpp"
+
+TEST(values, applicability)
+{
+
+  static_assert(applicability::guaranteed == not applicability::permitted);
+  static_assert((not applicability::guaranteed) == applicability::permitted);
+
+  static_assert((applicability::guaranteed and applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::guaranteed and applicability::permitted) == applicability::permitted);
+  static_assert((applicability::permitted and applicability::guaranteed) == applicability::permitted);
+  static_assert((applicability::permitted and applicability::permitted) == applicability::permitted);
+
+  static_assert((applicability::guaranteed or applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::guaranteed or applicability::permitted) == applicability::guaranteed);
+  static_assert((applicability::permitted or applicability::guaranteed) == applicability::guaranteed);
+  static_assert((applicability::permitted or applicability::permitted) == applicability::permitted);
+}
+
 #include "values/concepts/number.hpp"
 
 TEST(values, number)

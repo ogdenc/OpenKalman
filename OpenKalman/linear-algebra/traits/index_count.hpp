@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,72 +16,46 @@
 #ifndef OPENKALMAN_INDEX_COUNT_HPP
 #define OPENKALMAN_INDEX_COUNT_HPP
 
+#include "count_indices.hpp"
 
 namespace OpenKalman
 {
   /**
-   * \brief The minimum number of indices need to access all the components of an object.
-   * \details If dynamic, the result is OpenKalman::dynamic_size.
+   * \brief The minimum number of indices needed to access all the components of an object.
+   * \details If dynamic, the result is OpenKalman::dynamic_size (currently not implemented).
    * \internal \sa interface::indexible_object_traits::count_indices
-   * \tparam T A tensor (vector, matrix, etc.)
+   * \tparam T An \indexible object (tensor, vector, matrix, etc.)
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct index_count;
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct static_count_indices_defined : std::false_type {};
-
-    template<typename T>
-    struct static_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
-    : std::bool_constant<values::fixed<decltype(count_indices(std::declval<T>()))>> {};
-  }
-#endif
+  struct index_count {};
 
 
   /**
    * \overload
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires(T t) { {count_indices(t)} -> values::fixed; }
+  template<indexible T> requires requires(T& t) { {count_indices(t)} -> values::fixed; }
   struct index_count<T>
 #else
   template<typename T>
-  struct index_count<T, std::enable_if_t<detail::static_count_indices_defined<T>::value>>
+  struct index_count<T, std::enable_if_t<values::fixed<decltype(count_indices(std::declval<T&>()))>>>
 #endif
-    : std::integral_constant<std::size_t, std::decay_t<decltype(count_indices(std::declval<T>()))>::value> {};
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct dynamic_count_indices_defined : std::false_type {};
-
-    template<typename T>
-    struct dynamic_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
-    : std::bool_constant<values::index<decltype(count_indices(std::declval<T>()))> and
-        values::dynamic<decltype(count_indices(std::declval<T>()))>> {};
-  }
-#endif
+    : std::decay_t<decltype(count_indices(std::declval<T&>()))> {};
 
 
   /**
    * \overload
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires(T t) { {count_indices(t)} -> values::dynamic; }
+  template<indexible T> requires requires(T& t) { {count_indices(t)} -> values::dynamic; }
   struct index_count<T>
 #else
   template<typename T>
-  struct index_count<T, std::enable_if_t<detail::dynamic_count_indices_defined<T>::value>>
+  struct index_count<T, std::enable_if_t<values::dynamic<decltype(count_indices(std::declval<T&>()))>>>
 #endif
     : std::integral_constant<std::size_t, dynamic_size> {};
 

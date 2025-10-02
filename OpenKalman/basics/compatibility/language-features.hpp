@@ -246,6 +246,13 @@ namespace OpenKalman
     using type_identity_t = typename type_identity<T>::type;
 #endif
 
+
+#ifdef __cpp_lib_span
+    using std::dynamic_extent;
+#else
+    inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
+#endif
+
   }
 
 }

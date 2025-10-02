@@ -18,7 +18,10 @@
 
 #include <algorithm>
 #include "linear-algebra/interfaces/default/library_interface.hpp"
-#include "linear-algebra/traits/scalar_type_of.hpp"
+#include "linear-algebra/concepts/writable.hpp"
+#include "linear-algebra/concepts/has_untyped_index.hpp"
+#include "linear-algebra/functions/get_component.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
 #include "linear-algebra/traits/index_count.hpp"
 
 namespace OpenKalman::interface
@@ -39,18 +42,18 @@ namespace OpenKalman::interface
 
   private:
 
-      template<std::size_t rank = 0>
+      template<std::size_t rank = 0, typename U, typename Indices>
       static constexpr decltype(auto)
-      get_component_impl(auto&& t, const auto& indices)
+      get_component_impl(U&& u, const Indices& indices)
       {
-        if constexpr (rank == index_count_v<T>)
+        if constexpr (rank < std::rank_v<T>)
         {
-          return std::forward<decltype(t)>(t);
+          auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
+          return get_component_impl<rank + 1>(std::forward<U>(u)[i], indices);
         }
         else
         {
-          auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
-          return get_component_impl<rank + 1>(std::forward<decltype(t)>(t)[i], indices);
+          return std::forward<U>(u);
         }
       }
 
@@ -60,25 +63,25 @@ namespace OpenKalman::interface
      * \brief Get the element based on row-major indices.
      */
     static constexpr auto
-    get_component = [](auto&& t, const auto& indices)
+    get_component = [](auto&& t, const auto& indices) -> decltype(auto)
     {
       return get_component_impl(std::forward<decltype(t)>(t), indices);
     };
 
   private:
 
-      template<std::size_t rank = 0>
+      template<std::size_t rank = 0, typename U, typename Indices, typename S>
       static constexpr void
-      set_component_impl(T& t, const auto& indices, const auto& s)
+      set_component_impl(U& u, const Indices& indices, const S& s)
       {
-        if constexpr (rank == index_count_v<T>)
+        if constexpr (rank < std::rank_v<T>)
         {
-          t = s;
+          auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
+          set_component_impl<rank + 1>(u[i], indices, s);
         }
         else
         {
-          auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
-          set_component_impl<rank + 1>(t[i], indices, s);
+          u = s;
         }
       }
 
@@ -88,97 +91,25 @@ namespace OpenKalman::interface
      * \brief Set a component based on row-major indices.
      */
     static constexpr auto
-    set_component = [](T& t, const auto& indices, const scalar_type_of_t<T>& s) -> void
+    set_component = [](T& t, const auto& indices, const std::remove_all_extents_t<T>& s) -> void
     {
       set_component_impl(t, indices, s);
     };
 
 
     /**
-     * \brief Converts the argument to a native c++ arrayConverts Arg (if it is not already) to a native matrix operable within the library associated with LibraryObject.
-     * \details The result should be in a form for which basic matrix operations can be performed within the library for LibraryObject.
-     * This should be a lightweight transformation that does not require copying of elements.
-     * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
-     * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
-     * \note if not defined, a call to \ref OpenKalman::to_native_matrix will construct a \ref LibraryWrapper.
+     * \brief This is effectively an identity function. \todo do we need this?
      */
     static constexpr auto
-    to_native_matrix = [](auto&& t)
+    to_native_matrix = [](auto&& t) -> decltype(auto)
     {
       return std::forward<decltype(t)>(t);
     };
 
-  private:
 
-      template<std::size_t rank = 0>
-      static constexpr void
-      assign_impl(T& t, auto&& other)
-      {
-        if constexpr (rank + 1 < index_count_v<T>)
-        {
-          set_component_impl<rank + 1>(t[i], indices, s);
-        }
-        else
-        {
-          std::copy(stdcompat::ranges::begin(other), stdcompat::ranges::end(other), stdcompat::ranges::begin(t));
-        }
-      }
-
-  public:
-
-    /**
-     * \brief Copy or move into an array.
-     */
-    static constexpr auto
-    assign = [](T& t, auto&& other) -> void
-    {
-      if constexpr (std::is_array_v<decltype(other)> and std::rank_v<decltype(other)> == std::rank_v<T> and stdcompat::assignable_from<>)
-      {
-        ;
-      }
-      t = std::forward<decltype(other)>(other);
-    };
-
-
-    /**
-     * \brief Make a default, potentially uninitialized, dense, writable matrix or array within the library.
-     * \details Takes a \ref coordinates::euclidean_pattern_collection that specifies the dimensions of the resulting object
-     * \tparam layout the \ref data_layout of the result, which may be data_layout::left, data_layout::right, or
-     * data_layout::none (which indicates the default layout for the library).
-     * \tparam Scalar The scalar value of the result.
-     * \return A default, potentially uninitialized, dense, writable object.
-     * \note The interface may base the return value on any properties of LibraryObject (e.g., whether LibraryObject is a matrix or array).
-     */
-#ifdef __cpp_concepts
-    template<data_layout layout, values::number Scalar> requires (layout != data_layout::stride)
-    static auto
-    make_default(coordinates::euclidean_pattern_collection auto&& descriptors) = delete;
-#else
-    template<data_layout layout, typename Scalar, typename Descriptors>
-    static auto
-    make_default(Descriptors&& descriptors) = delete;
-#endif
-
-
-    /**
-     * \brief Fill a writable matrix with a list of elements.
-     * \tparam Arg The \ref writable object to be filled.
-     * \tparam layout The \ref data_layout of the listed elements, which may be \ref data_layout::left or \ref data_layout::right.
-     * \param scalars A set of scalar values representing the elements. There must be exactly the right number of elements
-     * to fill Arg.
-     */
-#ifdef __cpp_concepts
-    template<data_layout layout, writable Arg> requires (layout == data_layout::right) or (layout == data_layout::left)
-    static void
-    fill_components(Arg& arg, const std::convertible_to<scalar_type_of_t<Arg>> auto ... scalars) = delete;
-#else
-    template<data_layout layout, typename Arg, typename...Scalars, std::enable_if_t<
-      writable<Arg> and (layout == data_layout::right) or (layout == data_layout::left), int> = 0>
-    static void
-    fill_components(Arg& arg, const Scalars...scalars) = delete;
-#endif
-
-
+    // assign is not defined
+    // make_default is not defined because the array could only be returned as a pointer to an array made in the heap
+    // fill_components is not defined. This will be handled by the global function.
     // make_constant is not defined
     // make_identity_matrix is not defined.
     // make_triangular_matrix is not defined.
@@ -191,14 +122,16 @@ namespace OpenKalman::interface
       * If not defined, the \ref OpenKalman::to_euclidean "to_euclidean" function will construct a ToEuclideanExpr object.
       * In this case, the library should be able to accept the ToEuclideanExpr object as native.
       */
- #ifdef __cpp_concepts
-     template<indexible Arg>
-     static constexpr indexible auto
- #else
-     template<typename Arg>
-     static constexpr auto
- #endif
-     to_euclidean(Arg&& arg) = delete;
+    static constexpr auto
+#ifdef __cpp_concepts
+    to_euclidean = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
+      (Arg&& arg) -> has_untyped_index<0> decltype(auto)
+#else
+    to_euclidean = [](auto&& arg) -> decltype(auto)
+#endif
+    {
+      // ...
+    };
 
 
      /**

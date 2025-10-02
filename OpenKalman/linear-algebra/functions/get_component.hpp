@@ -20,6 +20,8 @@
 #include "linear-algebra/concepts/index_collection_for.hpp"
 #include "linear-algebra/interfaces/default/library_interface.hpp"
 #include "linear-algebra/concepts/empty_object.hpp"
+#include "../traits/internal/truncate_indices.hpp"
+#include "linear-algebra/traits/index_dimension_of.hpp"
 
 namespace OpenKalman
 {
@@ -45,7 +47,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_lib_concepts
   template<indexible Arg, index_collection_for<Arg> Indices> requires (not empty_object<Arg>)
-  constexpr values::scalar decltype(auto)
+  constexpr values::value decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
     index_collection_for<Indices, Arg> and (not empty_object<Arg>), int> = 0>
@@ -63,7 +65,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_lib_concepts
   template<indexible Arg, values::index Ix> requires (not empty_object<Arg>)
-  constexpr values::scalar decltype(auto)
+  constexpr values::value decltype(auto)
 #else
   template<typename Arg, typename Ix, std::enable_if_t<values::index<Ix> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
@@ -108,7 +110,7 @@ namespace OpenKalman
   template<indexible Arg, values::index...I> requires
     (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
     (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
-  constexpr values::scalar decltype(auto)
+  constexpr values::value decltype(auto)
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (... and values::index<I>) and
     (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and

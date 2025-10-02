@@ -16,8 +16,6 @@
 #ifndef OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_HPP
 #define OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_HPP
 
-#include <type_traits>
-#include <tuple>
 #include "coordinates/coordinates.hpp"
 #include "linear-algebra/enumerations.hpp"
 
@@ -31,42 +29,26 @@ namespace OpenKalman::interface
    * \tparam T An object, such as a matrix, array, or tensor, with components addressable by indices.
    */
 #ifdef __cpp_concepts
-  template<typename T> requires std::is_object_v<T> and std::same_as<T, std::remove_cv_t<T>>
+  template<typename T>
 #else
-  template<typename T, typename>
+  template<typename T, typename = void>
 #endif
   struct indexible_object_traits
   {
+    static_assert(std::is_object_v<T>);
+
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
-     * \brief The scalar type of T (e.g., double, int).
-     * \details <code>OpenKalman::values::number&lt;scalar_type&gt;</code> must be satisfied.
-     * \note Mandatory.
-     * \sa scalar_type_of
-     */
-    using scalar_type = double;
-
-
-    /**
-     * \brief Get the number of indices needed to access the elements of T (preferably as an std::integral_constant).
-     * \details This generally corresponds to the tensor order. For example, this value would be 1
-     * (preferably std::integral_constant<std::size_t, 1>{}) for a row vector and 2
-     * (preferably std::integral_constant<std::size_t, 2>{}) for a matrix.
-     * If a library allows more than one choice for the number of indices,
-     * this value should be the maximum such value. For example, if a column vector is accessible by either
-     * one or two indices, the value should be 2 (preferably std::integral_constant<std::size_t, 2>{}).
-     * \note Mandatory. The \ref indexible concept applies iff this function is defined and returns an \ref values::index.
-     * \return An \ref values::index representing the number of indices.
-     * \sa OpenKalman::index_count
-     * \sa OpenKalman::count_indices
+     * \brief Return an std::mdspan as a view to the object.
+     * \note This is the only mandatory trait. The rest are optional.
      */
     static constexpr auto
-    count_indices = [](const T&) -> values::index auto { return std::integral_constant<std::size_t, 0_uz>{}; };
+    get_mdspan = [](T& t){ return std::mdspan{t}; };
 
 
     /**
      * \brief Get the \ref coordinates::pattern_collection associated with the object.
-     * \note Mandatory.
+     * \note If omitted, T will be associated with a Euclidean pattern derived from the extents of the mdspan.
      */
     static constexpr auto
     get_pattern_collection = [](const T&) -> coordinates::pattern_collection auto { return std::tuple{}; };
@@ -77,14 +59,8 @@ namespace OpenKalman::interface
      * /detail This should only be defined if T has a nested matrix.
      * \sa OpenKalman::nested_object
      */
-#ifdef __cpp_concepts
     static indexible decltype(auto)
     nested_object(std::convertible_to<const T&> auto&& arg) = delete;
-#else
-    template<typename Arg, std::enable_if_t<stdcompat::convertible_to<Arg, const T&>, int> = 0>
-    static decltype(auto)
-    nested_object(Arg&& arg) = delete;
-#endif
 
 
     /**
@@ -92,11 +68,7 @@ namespace OpenKalman::interface
      * \note: Optional.
      * \returns A \ref values::scalar (or, if no constant, some empty class such as std::monostate).
      */
-#ifdef __cpp_concepts
     static constexpr values::scalar auto
-#else
-    static constexpr auto
-#endif
     get_constant(const T& arg) = delete;
 
 
@@ -106,11 +78,7 @@ namespace OpenKalman::interface
      * \note: Optional.
      * \returns A \ref values::scalar (or, if no constant diagonal, some empty class such as std::monostate).
      */
-#ifdef __cpp_concepts
     static constexpr values::scalar auto
-#else
-    static constexpr auto
-#endif
     get_constant_diagonal(const T& arg) = delete;
 
 
@@ -158,7 +126,7 @@ namespace OpenKalman::interface
      * \brief Whether T is hermitian.
      * \note Optional. If omitted, T is not considered hermitian.
      * \details This is unnecessary if T is a square matrix and any of the following are true:
-     * - <code>scalar_type_of_t&lt;T&rt;</code> is real (not complex), or
+     * - <code>element_type_of_t&lt;T&rt;</code> is real (not complex), or
      * - T is a \ref constant_matrix or \ref constant_diagonal_matrix in which the constant is real
      */
     static constexpr bool
@@ -174,46 +142,6 @@ namespace OpenKalman::interface
      */
     static constexpr HermitianAdapterType
     hermitian_adapter_type = HermitianAdapterType::any;
-
-
-    /**
-     * \brief Whether T is a writable, self-contained matrix or array.
-     */
-    static constexpr bool
-    is_writable = false;
-
-
-    /**
-     * \brief If the argument has direct access to the underlying array data, return a pointer to that raw data.
-     * \details This should handle pointers to constant or non-constant data
-     */
-    static constexpr auto
-    raw_data = [](std::same_as<T> auto&&) -> std::same_as<scalar_type_of_t<T>> auto*
-    {
-      return std::addressof<T>;
-    };
-
-
-    /**
-     * \brief The layout of T.
-     */
-    static constexpr data_layout
-    layout = data_layout::none;
-
-
-    /**
-     * \brief If layout is data_layout::stride, this returns a tuple of strides, one for each dimension.
-     * \details This is only necessary if layout == data_layout::stride. An interface can still provide strides for
-     * \ref data_layout::left and \ref data_layout::right, and these will be used; however, this is not necessary and strides
-     * can be calculated without this interface.
-     * The tuple elements may be integral constants if the values are known at compile time. Example:
-     * <code>return std::tuple {std::ptrdiff_t{16}, std::ptrdiff_t{4}, std::integral_constant<std::ptrdiff_t, 1>{}></code>
-     * The stride values should be of type <code>std::ptrdiff_t</code> or <code>std::integral_constant<std::ptrdiff_t, ...></code>.
-     * \return A tuple-like object of types std::ptrdiff_t or std::integral_constant<std::ptrdiff_t, ...>.
-     */
-    static constexpr auto
-    strides = [](const T&) { return std::tuple{}; };
-
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
   };

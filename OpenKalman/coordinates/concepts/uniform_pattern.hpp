@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_UNIFORM_PATTERN_HPP
 #define OPENKALMAN_UNIFORM_PATTERN_HPP
 
+#include "collections/collections.hpp"
 #include "coordinates/concepts/compares_with.hpp"
 #include "coordinates/traits/uniform_pattern_type.hpp"
 

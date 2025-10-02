@@ -53,6 +53,8 @@ namespace OpenKalman::stdcompat
   using std::sized_sentinel_for;
   using std::unreachable_sentinel_t;
   using std::unreachable_sentinel;
+
+  using std::indirectly_copyable;
 #else
 
   // ---
@@ -624,6 +626,16 @@ namespace OpenKalman::stdcompat
 
 
   inline constexpr unreachable_sentinel_t unreachable_sentinel {};
+
+
+  // ---
+  // indirectly_copyable
+  // ---
+
+  template<typename In, typename Out>
+  inline constexpr bool indirectly_copyable =
+    indirectly_readable<In> and
+    indirectly_writable<Out, iter_reference_t<In>>;
 
 #endif
 

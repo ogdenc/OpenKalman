@@ -18,7 +18,6 @@
 #include "linear-algebra/concepts/hermitian_matrix.hpp"
 #include "linear-algebra/concepts/square_shaped.hpp"
 #include "linear-algebra/concepts/writable.hpp"
-#include "linear-algebra/concepts/writable_by_component.hpp"
 #include "linear-algebra/traits/constant_coefficient.hpp"
 #include "linear-algebra/interfaces/arrays/indexible_object_traits.hpp"
 #include "linear-algebra/interfaces/arrays/library_interface.hpp"
@@ -122,10 +121,6 @@ TEST(adapters, constant_adapter_traits)
   static_assert(element_gettable<constant_adapter<F2, double, 3>[2][2]>);
 
   static_assert(element_gettable<zero_adapter<double[3][3]>, 2>);
-
-  static_assert(not writable_by_component<constant_adapter<F3, double[2][2]>&, std::array<std::size_t, 2>>);
-
-  static_assert(not writable_by_component<zero_adapter<double[3][3]>&, std::array<std::size_t, 2>>);
 
   static_assert(get_pattern_collection(constant_adapter<F5, double[2][3]>{}, std::integral_constant<std::size_t, 0>{}) == 2);
   static_assert(get_pattern_collection(constant_adapter<F5, double[2][3]>{}, std::integral_constant<std::size_t, 1>{}) == 3);
@@ -306,12 +301,12 @@ TEST(adapters, make_constant)
   static_assert(constant_coefficient_v<decltype(make_constant<Mxx>(nd5, 2, 3))> == 5);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<Mxx>(nd5, 2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<Mxx>(nd5, 2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<Mxx>(nd5, 2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<Mxx>(nd5, 2, 3)), 2);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant<Mxx>(nd5, 2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_constant<Mxx>(nd5, 2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant<Mxx>(nd5, 2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx>(nd5, 2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_constant<Mxx>(nd5, 2, 3)), 3);
 
   EXPECT_TRUE(is_near(make_constant<M23>(5., Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<Mxx>(5., Dimensions<2>{}, 3), M23::Constant(5)));
@@ -356,12 +351,12 @@ TEST(adapters, make_constant)
   static_assert(constant_coefficient_v<decltype(make_constant<Mxx, double, 5>(2, 3))> == 5);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<Mxx, double, 5>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<Mxx, double, 5>(2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<Mxx, double, 5>(2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<Mxx, double, 5>(2, 3)), 2);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant<Mxx, double, 5>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_constant<Mxx, double, 5>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant<Mxx, double, 5>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<Mxx, double, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_constant<Mxx, double, 5>(2, 3)), 3);
 
   EXPECT_TRUE(is_near(make_constant<Mxx, cdouble, 3, 4>(Dimensions<2>{}, Dimensions<3>{}), CM23::Constant(cdouble{3, 4})));
   EXPECT_TRUE(is_near(make_constant<Mxx, cdouble, 3, 4>(Dimensions<2>{}, 3), CM23::Constant(cdouble{3, 4})));
@@ -394,11 +389,11 @@ TEST(adapters, make_constant)
   static_assert(constant_coefficient_v<decltype(make_constant<double, 5>(mxx_23))> == 5);
   static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(m23)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(m2x_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mx3_2)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<double, 5>(mx3_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mxx_23)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant<double, 5>(mxx_23)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(m2x_3)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant<double, 5>(m2x_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mx3_2)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<double, 5>(mx3_2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mxx_23)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_constant<double, 5>(mxx_23)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(m2x_3)), 1> == dynamic_size); EXPECT_EQ(get_index_extent<1>(make_constant<double, 5>(m2x_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mx3_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mxx_23)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant<double, 5>(mxx_23)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant<double, 5>(mxx_23)), 1> == dynamic_size); EXPECT_EQ(get_index_extent<1>(make_constant<double, 5>(mxx_23)), 3);
 
   EXPECT_TRUE(is_near(make_constant<cdouble, 3, 4>(m23), CM23::Constant(cdouble{3, 4})));
   EXPECT_TRUE(is_near(make_constant<cdouble, 3, 4>(m2x_3), CM23::Constant(cdouble{3, 4})));
@@ -445,22 +440,22 @@ TEST(adapters, make_zero)
 
   static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_zero<Mxx>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_zero<Mxx>(2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_zero<Mxx>(2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_zero<Mxx>(2, 3)), 2);
   static_assert(index_dimension_of_v<decltype(make_zero(m23)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_zero(m2x_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(mx3_2)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_zero(mx3_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_zero(mxx_23)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero(mx3_2)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_zero(mx3_2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 0> == dynamic_size); EXPECT_EQ(get_index_extent<0>(make_zero(mxx_23)), 2);
   static_assert(index_dimension_of_v<decltype(make_zero<M23>()), 0> == 2);
 
   static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_zero<Mxx>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_zero<Mxx>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_zero<Mxx>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_extent<1>(make_zero<Mxx>(2, 3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero(m23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(m2x_3)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_zero(m2x_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero(m2x_3)), 1> == dynamic_size); EXPECT_EQ(get_index_extent<1>(make_zero(m2x_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero(mx3_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_zero(mxx_23)), 3);
+  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 1> == dynamic_size); EXPECT_EQ(get_index_extent<1>(make_zero(mxx_23)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero<M23>()), 1> == 3);
 
   static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero<Mxx, int>(Dimensions<2>(), Dimensions<3>()))>::value_type>);

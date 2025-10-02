@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_DIMENSION_SIZE_OF_INDEX_IS_HPP
 #define OPENKALMAN_DIMENSION_SIZE_OF_INDEX_IS_HPP
 
+#include "dynamic_dimension.hpp"
+#include "linear-algebra/traits/index_dimension_of.hpp"
 
 namespace OpenKalman
 {

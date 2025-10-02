@@ -29,7 +29,12 @@ namespace OpenKalman::stdcompat::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::range;
+
   using std::ranges::borrowed_range;
+  using std::ranges::dangling;
+  using std::ranges::borrowed_iterator_t;
+  using std::ranges::borrowed_subrange_t;
+
   using std::ranges::sized_range;
   using std::ranges::input_range;
   using std::ranges::output_range;
@@ -67,7 +72,7 @@ namespace OpenKalman::stdcompat::ranges
 
 
   // ---
-  // borrowed_range
+  // borrowed_range, dangling, borrowed_iterator_t
   // ---
 
   namespace detail_borrowed_range
@@ -82,6 +87,20 @@ namespace OpenKalman::stdcompat::ranges
 
   template<typename T>
   inline constexpr bool borrowed_range = detail_borrowed_range::is_borrowed_range<T>::value;
+
+
+  struct dangling
+  {
+    constexpr dangling() noexcept = default;
+
+    template<typename...Args>
+    constexpr dangling(Args&&...) noexcept {}
+  };
+
+
+  template<typename R> // requires range<R>
+  using borrowed_iterator_t =
+    std::conditional_t<borrowed_range<R>, iterator_t<R>, dangling>;
 
 
   // ---

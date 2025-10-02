@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COORDINATE_PATTERN_COLLECTION_COMPARES_WITH_HPP
 #define OPENKALMAN_COORDINATE_PATTERN_COLLECTION_COMPARES_WITH_HPP
 
+#include "collections/collections.hpp"
 #include "pattern_collection.hpp"
 #include "compares_with.hpp"
 #include "coordinates/descriptors/Dimensions.hpp"
