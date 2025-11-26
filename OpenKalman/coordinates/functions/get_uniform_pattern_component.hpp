@@ -20,8 +20,9 @@
 #include <algorithm>
 #include "collections/collections.hpp"
 #include "coordinates/concepts/pattern.hpp"
-#include "coordinates/functions/compare.hpp"
+#include "coordinates/descriptors/Any.hpp"
 #include "coordinates/traits/common_descriptor_type.hpp"
+#include "coordinates/functions/compare.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -31,12 +32,20 @@ namespace OpenKalman::coordinates
     constexpr auto
     equal_tuple_elements(const T& t, std::index_sequence<i, is...>)
     {
-      auto t0 = collections::get(t, std::integral_constant<std::size_t, i>{});
-      if ((... and compare(t0, collections::get(t, std::integral_constant<std::size_t, is>{}))))
+      auto t0 = collections::get<i>(t);
+      if ((... and compare(t0, collections::get<is>(t))))
         return std::optional {A{t0}};
       else
         return std::optional<A> {};
     }
+
+
+    template<typename T>
+    struct Any_value_type { using type = double; };
+
+    template<typename S>
+    struct Any_value_type<Any<S>> { using type = S; };
+
   }
 
 
@@ -67,12 +76,12 @@ namespace OpenKalman::coordinates
     else // if constexpr (descriptor_collection<T>)
     {
       using C = common_descriptor_type_t<T>;
-      using A = Any<typename internal::is_Any<C>::scalar_type>;
+      using A = Any<typename detail::Any_value_type<C>::type>;
       if constexpr (dimension_of_v<C> == 1)
       {
         return std::optional {C{}};
       }
-      else if constexpr (dimension_of_v<C> != dynamic_size or not collections::sized<T>)
+      else if constexpr (dimension_of_v<C> != stdex::dynamic_extent or not collections::sized<T>)
       {
         return std::optional<A>{};
       }
@@ -80,11 +89,11 @@ namespace OpenKalman::coordinates
       {
         return std::optional<C>{};
       }
-      else if constexpr (collections::size_of_v<T> == dynamic_size)
+      else if constexpr (collections::size_of_v<T> == stdex::dynamic_extent)
       {
         if (get_is_euclidean(t)) return std::optional {A{Dimensions<1>{}}};
         decltype(auto) v = collections::views::all(std::forward<T>(t));
-        auto pred = [](const auto& x, const auto& y) -> bool { return compare<stdcompat::is_neq>(x, y); };
+        auto pred = [](const auto& x, const auto& y) -> bool { return compare<stdex::is_neq>(x, y); };
 #ifdef __cpp_lib_ranges
         if (std::ranges::adjacent_find(v, pred) == v.end()) return std::optional {A{v.front()}};
 #else

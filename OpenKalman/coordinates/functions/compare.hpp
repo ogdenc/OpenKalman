@@ -18,7 +18,6 @@
 
 #include "collections/collections.hpp"
 #include "coordinates/concepts/pattern.hpp"
-#include "coordinates/concepts/compares_with.hpp"
 #include "coordinates/functions/compare_three_way.hpp"
 
 namespace OpenKalman::coordinates
@@ -29,30 +28,18 @@ namespace OpenKalman::coordinates
    * \tparam comp A callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
 #ifdef __cpp_concepts
-  template<auto comp = &stdcompat::is_eq, pattern A, pattern B> requires
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering>
+  template<auto comp = &stdex::is_eq, pattern A, pattern B> requires
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering>
   constexpr OpenKalman::internal::boolean_testable auto
 #else
-  template<auto comp = &stdcompat::is_eq, typename A, typename B, std::enable_if_t<
+  template<auto comp = &stdex::is_eq, typename A, typename B, std::enable_if_t<
     pattern<A> and pattern<B> and
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering>, int> = 0>
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering>, int> = 0>
   constexpr auto
 #endif
   compare(const A& a, const B& b)
   {
-    if constexpr (compares_with<A, B, comp, applicability::guaranteed>)
-    {
-      return std::true_type {};
-    }
-    else if constexpr (not compares_with<A, B, comp, applicability::permitted> or
-        (not descriptor<A> and not collections::sized<A>) or (not descriptor<B> and not collections::sized<B>))
-    {
-      return std::false_type {};
-    }
-    else
-    {
-      return values::operation(comp, compare_three_way(a, b));
-    }
+    return values::operation(comp, compare_three_way(a, b));
   }
 
 }

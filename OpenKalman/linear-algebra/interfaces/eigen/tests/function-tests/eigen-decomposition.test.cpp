@@ -20,9 +20,9 @@ TEST(eigen3, cholesky_diagonal)
 {
   // zero
   auto z33 = M33::Identity() - M33::Identity();
-  static_assert(constant_coefficient{cholesky_factor<triangle_type::lower>(z33)} == 0);
-  static_assert(constant_coefficient{cholesky_factor<triangle_type::upper>(z33)} == 0);
-  static_assert(constant_coefficient{cholesky_square(z33)} == 0);
+  static_assert(constant_value{cholesky_factor<triangle_type::lower>(z33)} == 0);
+  static_assert(constant_value{cholesky_factor<triangle_type::upper>(z33)} == 0);
+  static_assert(constant_value{cholesky_square(z33)} == 0);
 
   // identity
   static_assert(identity_matrix<decltype(cholesky_factor<triangle_type::lower>(M33::Identity()))>);

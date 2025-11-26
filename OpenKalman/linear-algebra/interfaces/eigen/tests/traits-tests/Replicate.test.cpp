@@ -28,11 +28,11 @@ TEST(eigen3, Eigen_Replicate)
 
   static_assert(Eigen3::eigen_general<Zxx, true>);
   static_assert(index_count_v<Zxx> == 2);
-  static_assert(index_dimension_of_v<Zxx, 0> == dynamic_size);
-  static_assert(index_dimension_of_v<Zxx, 1> == dynamic_size);
+  static_assert(index_dimension_of_v<Zxx, 0> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Zxx, 1> == stdex::dynamic_extent);
   EXPECT_EQ(get_pattern_collection<0>(zxx_21), 2);
   EXPECT_EQ(get_pattern_collection<1>(zxx_21), 1);
-  static_assert(std::is_same_v<typename interface::indexible_object_traits<stdcompat::remove_cvref_t<Zxx>>::scalar_type, double>);
+  static_assert(std::is_same_v<typename interface::object_traits<stdex::remove_cvref_t<Zxx>>::scalar_type, double>);
 
   static_assert(one_dimensional<Eigen::Replicate<M11, 1, 1>>);
   static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, applicability::permitted>);
@@ -63,21 +63,21 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(not square_shaped<Eigen::Replicate<M2x, 2, 3>, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Replicate<Mx3, 2, 3>, applicability::permitted>);
 
-  static_assert(constant_coefficient_v<Eigen::Replicate<Z11, 1, 2>> == 0);
-  static_assert(constant_coefficient_v<decltype(z2x_1)> == 0);
-  static_assert(constant_coefficient_v<decltype(zx1_2)> == 0);
-  static_assert(constant_coefficient_v<Eigen::Replicate<C2x_2, 1, 2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Replicate<Cx2_2, 1, 2>> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().replicate<5,5>())> == 2);
+  static_assert(constant_value_v<Eigen::Replicate<Z11, 1, 2>> == 0);
+  static_assert(constant_value_v<decltype(z2x_1)> == 0);
+  static_assert(constant_value_v<decltype(zx1_2)> == 0);
+  static_assert(constant_value_v<Eigen::Replicate<C2x_2, 1, 2>> == 2);
+  static_assert(constant_value_v<Eigen::Replicate<Cx2_2, 1, 2>> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().replicate<5,5>())> == 2);
   static_assert(not constant_matrix<Eigen::Replicate<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>>);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().replicate<1,1>())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().replicate<5,5>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(z22)> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().replicate<1,1>())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().replicate<5,5>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(z22)> == 0);
   static_assert(constant_diagonal_matrix<decltype(z2x_2)>);
   static_assert(constant_diagonal_matrix<decltype(zx2_2)>);
   static_assert(constant_diagonal_matrix<decltype(zxx_22)>);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().replicate<1,1>())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_2>().replicate<1,1>())> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Replicate<C22_2, Eigen::Dynamic, Eigen::Dynamic>>);
 
   static_assert(identity_matrix<Eigen::Replicate<I22, 1, 1>>);

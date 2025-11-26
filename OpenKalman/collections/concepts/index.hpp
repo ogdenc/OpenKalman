@@ -18,6 +18,7 @@
 
 #include "values/values.hpp"
 #include "collection.hpp"
+#include "sized.hpp"
 #include "collections/traits/size_of.hpp"
 #include "collections/traits/collection_element.hpp"
 
@@ -30,7 +31,7 @@ namespace OpenKalman::collections
     struct is_index_range : std::false_type {};
 
     template<typename T>
-    struct is_index_range<T, std::enable_if_t<values::index<stdcompat::ranges::range_value_t<T>>>> : std::true_type {};
+    struct is_index_range<T, std::enable_if_t<values::index<stdex::ranges::range_value_t<T>>>> : std::true_type {};
 
 
     template<std::size_t i, typename T, typename = void>
@@ -53,27 +54,29 @@ namespace OpenKalman::collections
     struct is_index_tuple : std::false_type {};
 
     template<typename T>
-    struct is_index_tuple<T, std::enable_if_t<size_of<T>::value != dynamic_size>> : is_index_tuple_impl<T> {};
+    struct is_index_tuple<T, std::enable_if_t<size_of<T>::value != stdex::dynamic_extent>> : is_index_tuple_impl<T> {};
   }
 #endif
 
 
   /**
    * \brief An object describing a collection of /ref values::index objects.
+   * \todo Change the definition to be values::index<collections::common_collection_type_t<T>>?
    */
   template<typename T>
 #if defined(__cpp_lib_ranges) and __cpp_generic_lambdas >= 201707L
   concept index =
     collection<T> and
     (values::index<std::ranges::range_value_t<T>> or (
-      size_of_v<T> != dynamic_size and
+      size_of_v<T> != stdex::dynamic_extent and
       []<std::size_t...Ix>(std::index_sequence<Ix...>) {
           return (... and values::index<typename collection_element<Ix, T>::type>);
         }(std::make_index_sequence<size_of<T>::value>{}))
     );
 #else
   constexpr bool index =
-    collection<T> and (detail::is_index_range<T>::value or detail::is_index_tuple<T>::value);
+    collection<T> and
+    (detail::is_index_range<T>::value or detail::is_index_tuple<T>::value);
 #endif
 
 }

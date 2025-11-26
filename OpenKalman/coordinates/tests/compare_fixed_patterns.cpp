@@ -30,48 +30,48 @@ using namespace OpenKalman::coordinates;
 
 TEST(coordinates, compare_three_way_fixed_pattern)
 {
-  static_assert(values::to_value_type(compare_three_way(Dimensions<3>{}, std::tuple<Axis, Axis, Axis>{})) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(Dimensions<3>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(Dimensions<4>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(Dimensions<4>{}, std::tuple<Axis, Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(values::to_value_type(compare_three_way(Dimensions<3>{}, std::tuple<Axis, Axis, Axis>{})) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(Dimensions<3>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(Dimensions<4>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(Dimensions<4>{}, std::tuple<Axis, Axis, Axis>{}) == stdex::partial_ordering::greater);
 
-  static_assert(compare_three_way(std::tuple{Axis{}}, Dimensions<1>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(Dimensions<1>{}, std::tuple{Axis{}}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple{Axis{}}, Dimensions<1>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::array{Axis{}, Axis{}, Axis{}}, Dimensions<3>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::array{Axis{}, Axis{}}, Dimensions<3>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis>{}, Dimensions<3>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<3>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<4>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis>{}, Dimensions<4>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple{Axis{}}, Dimensions<1>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(Dimensions<1>{}, std::tuple{Axis{}}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple{Axis{}}, Dimensions<1>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::array{Axis{}, Axis{}, Axis{}}, Dimensions<3>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::array{Axis{}, Axis{}}, Dimensions<3>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis>{}, Dimensions<3>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<3>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<4>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple<Axis, Axis, Axis>{}, Dimensions<4>{}) == stdex::partial_ordering::less);
 
-  static_assert(compare_three_way(std::tuple<Axis, Axis>{}, std::array{Dimensions<4>{}}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::array{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::array{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::tuple<>{}, std::array<Inclination<>, 0>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple<Axis, Axis>{}, std::array{Dimensions<4>{}}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::array{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::array{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple<>{}, std::array<Inclination<>, 0>{}) == stdex::partial_ordering::equivalent);
 
-  static_assert(compare_three_way(std::tuple<Axis, Axis>{}, std::tuple{Dimensions<4>{}}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple<Axis, Axis>{}, std::tuple{Dimensions<4>{}}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdex::partial_ordering::greater);
 
-  static_assert(compare_three_way(std::tuple{}, std::tuple{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(stdcompat::ranges::views::empty<Dimensions<1>>, std::tuple{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple{}, stdcompat::ranges::views::empty<Dimensions<1>>) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple{}, std::tuple{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(stdex::ranges::views::empty<Dimensions<1>>, std::tuple{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple{}, stdex::ranges::views::empty<Dimensions<1>>) == stdex::partial_ordering::equivalent);
 
-  static_assert(compare_three_way(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple<>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::array<Polar<>, 0>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::tuple<Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians, Axis>{}) == stdcompat::partial_ordering::less);
-  static_assert(compare_three_way(std::tuple<Axis, angle::Radians, Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdcompat::partial_ordering::equivalent);
-  static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdcompat::partial_ordering::greater);
-  static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple<>{}, std::tuple<Axis, angle::Radians>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::array<Polar<>, 0>{}, std::tuple<Axis, angle::Radians>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple<Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians, Axis>{}) == stdex::partial_ordering::less);
+  static_assert(compare_three_way(std::tuple<Axis, angle::Radians, Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdex::partial_ordering::equivalent);
+  static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdex::partial_ordering::greater);
+  static_assert(compare_three_way(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}) == stdex::partial_ordering::less);
 
-  static_assert(compare<stdcompat::is_eq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
-  static_assert(compare<stdcompat::is_gteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
-  static_assert(compare<stdcompat::is_lteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
-  static_assert(compare<stdcompat::is_gt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
-  static_assert(compare<stdcompat::is_lt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
-  static_assert(compare<stdcompat::is_neq>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
+  static_assert(compare<stdex::is_eq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdex::is_gteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdex::is_lteq>(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdex::is_gt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
+  static_assert(compare<stdex::is_lt>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
+  static_assert(compare<stdex::is_neq>(std::tuple(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}));
 }

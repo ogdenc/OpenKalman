@@ -13,8 +13,8 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
-using stdcompat::numbers::sqrt2;
+using stdex::numbers::pi;
+using stdex::numbers::sqrt2;
 
 namespace
 {
@@ -200,27 +200,27 @@ TEST(adapters, VectorSpaceDescriptor_deduction_guides)
 TEST(adapters, VectorSpaceDescriptor_make_functions)
 {
   auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
-  EXPECT_TRUE(is_near(make_vector_space_adapter<C2, C3>(a), a));
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, 0>(a))>, C2>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3>(a)), 1>, C3>);
-  EXPECT_TRUE(is_near(make_vector_space_adapter<C2>(a), a));
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, 0>(a))>, C2>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2>(a)), 1>, Dimensions<3>>);
+  EXPECT_TRUE(is_near(attach_pattern<C2, C3>(a), a));
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2, C3, 0>(a))>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2, C3>(a)), 1>, C3>);
+  EXPECT_TRUE(is_near(attach_pattern<C2>(a), a));
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2, 0>(a))>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2>(a)), 1>, Dimensions<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(make_vector_space_adapter(b), a));
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
+  EXPECT_TRUE(is_near(attach_pattern(b), a));
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern(b)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern(b)), 1>, C3>);
 
   auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
-  EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
+  EXPECT_TRUE(is_near(attach_pattern(c), Mat22 {9, 3, 3, 10}));
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern(c)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern(c)), 1>, C2>);
 
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 0>, C2>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 1>, C3>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 0>, Dimensions<2>>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2, C3, M23>()), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<C2, C3, M23>()), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<M23>()), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_pattern<M23>()), 1>, Dimensions<3>>);
 }
 
 

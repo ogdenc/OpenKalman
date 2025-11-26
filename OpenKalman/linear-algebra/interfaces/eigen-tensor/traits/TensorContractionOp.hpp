@@ -20,13 +20,13 @@
 namespace OpenKalman::interface
 {
   template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
-  struct indexible_object_traits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+  struct object_traits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
   {
   private:
 
     using Xpr = Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>;
-    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
+    using Base = Eigen3::object_traits_tensor_base<Xpr>;
 
   public:
 
@@ -48,17 +48,17 @@ namespace OpenKalman::interface
 
       if constexpr (zero<LhsXprType>)
       {
-        return constant_coefficient{arg.lhsExpression()};
+        return constant_value{arg.lhsExpression()};
       }
       else if constexpr (zero<RhsXprType>)
       {
-        return constant_coefficient{arg.rhsExpression()};
+        return constant_value{arg.rhsExpression()};
       }
       else if constexpr (constant_diagonal_matrix<LhsXprType> and constant_matrix<RhsXprType>)
       {
         if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
         {
-          return constant_diagonal_coefficient{arg.lhsExpression()} * constant_coefficient{arg.rhsExpression()};
+          return constant_diagonal_value{arg.lhsExpression()} * constant_value{arg.rhsExpression()};
         }
         else
         {
@@ -66,14 +66,14 @@ namespace OpenKalman::interface
           auto dims = Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions();
           auto f = [&dims](const Scalar& a, auto b) -> Scalar { return a * dims[b.first]; };
           auto factor = std::accumulate(++indices.cbegin(), indices.cend(), Scalar{1}, f);
-          return factor * (constant_diagonal_coefficient{arg.lhsExpression()} * constant_coefficient{arg.rhsExpression()});
+          return factor * (constant_diagonal_value{arg.lhsExpression()} * constant_value{arg.rhsExpression()});
         }
       }
       else if constexpr (constant_matrix<LhsXprType> and constant_diagonal_matrix<RhsXprType>)
       {
         if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
         {
-          return constant_coefficient{arg.lhsExpression()} * constant_diagonal_coefficient{arg.rhsExpression()};
+          return constant_value{arg.lhsExpression()} * constant_diagonal_value{arg.rhsExpression()};
         }
         else
         {
@@ -81,7 +81,7 @@ namespace OpenKalman::interface
           auto dims = Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions();
           auto f = [&dims](const Scalar& a, auto b) -> Scalar { return a * dims[b.first]; };
           auto factor = std::accumulate(++indices.cbegin(), indices.cend(), Scalar{1}, f);
-          return factor * (constant_coefficient{arg.lhsExpression()} * constant_diagonal_coefficient{arg.rhsExpression()});
+          return factor * (constant_value{arg.lhsExpression()} * constant_diagonal_value{arg.rhsExpression()});
         }
       }
       else
@@ -90,7 +90,7 @@ namespace OpenKalman::interface
         auto dims = Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions();
         auto f = [&dims](const Scalar& a, auto b) -> Scalar { return a * dims[b.first]; };
         auto factor = std::accumulate(indices.cbegin(), indices.cend(), Scalar{1}, f);
-        return factor * (constant_coefficient{arg.lhsExpression()} * constant_coefficient{arg.rhsExpression()});
+        return factor * (constant_value{arg.lhsExpression()} * constant_value{arg.rhsExpression()});
       }
     }
 
@@ -101,7 +101,7 @@ namespace OpenKalman::interface
       if constexpr (collections::size_of_v<decltype(arg.indices())> == 1)
       {
         return values::operation(std::multiplies{},
-          constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()});
+          constant_diagonal_value{arg.lhs()}, constant_diagonal_value{arg.rhs()});
       }
       else
       {
@@ -110,7 +110,7 @@ namespace OpenKalman::interface
         auto dims = Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions();
         auto f = [&dims](const Scalar& a, auto b) -> Scalar { return a * dims[b.first]; };
         auto factor = std::accumulate(++indices.cbegin(), indices.cend(), Scalar{1}, f);
-        return factor * (constant_diagonal_coefficient{arg.lhsExpression()} * constant_coefficient{arg.rhsExpression()});
+        return factor * (constant_diagonal_value{arg.lhsExpression()} * constant_value{arg.rhsExpression()});
       }
     }
 
@@ -120,7 +120,7 @@ namespace OpenKalman::interface
     // is_square not defined
 
     //template<triangle_type t>
-    //static constexpr bool is_triangular = collections::size_of_v<decltype(std::declval<T>().indices())> == 1 and
+    //static constexpr bool triangle_type_value = collections::size_of_v<decltype(std::declval<T>().indices())> == 1 and
     //  triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t>;
 
 

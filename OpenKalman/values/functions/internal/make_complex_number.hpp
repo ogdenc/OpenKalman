@@ -90,7 +90,7 @@ namespace OpenKalman::values::internal
 #else
       template<typename Re, typename Im = fixed_value<real_type_of_t<T>, 0>, std::enable_if_t<value<Re> and value<Im> and
         (not values::complex<Re>) and (not values::complex<Im>) and
-        stdcompat::convertible_to<Re, real_type_of_t<T>> and stdcompat::convertible_to<Im, real_type_of_t<T>>, int> = 0>
+        stdex::convertible_to<Re, real_type_of_t<T>> and stdex::convertible_to<Im, real_type_of_t<T>>, int> = 0>
       constexpr decltype(auto)
 #endif
       operator()(Re&& re, Im&& im = {}) const
@@ -126,7 +126,7 @@ namespace OpenKalman::values::internal
       constexpr complex decltype(auto)
 #else
       template<typename Arg, std::enable_if_t<number<T> and complex<Arg> and
-        stdcompat::convertible_to<real_type_of_t<Arg>, real_type_of_t<T>>, int> = 0>
+        stdex::convertible_to<real_type_of_t<Arg>, real_type_of_t<T>>, int> = 0>
       constexpr decltype(auto)
 #endif
       operator()(Arg&& arg) const

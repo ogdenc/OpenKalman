@@ -16,7 +16,10 @@
 #ifndef OPENKALMAN_N_ARY_OPERATION_HPP
 #define OPENKALMAN_N_ARY_OPERATION_HPP
 
-#include "linear-algebra/concepts/writable.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
+#include "linear-algebra/concepts/dynamic_dimension.hpp"
+#include "linear-algebra/traits/constant_value.hpp"
+#include "linear-algebra/traits/layout_of.hpp"
 
 namespace OpenKalman
 {
@@ -35,7 +38,7 @@ namespace OpenKalman
         constexpr auto ix = ixs;
         return ([](const DTup& d_tup, const auto& arg){
           using Arg = decltype(arg);
-          if constexpr (dynamic_dimension<Arg, ix> or dynamic_pattern<collections::collection_element_t<ix, DTup>>)
+          if constexpr (dynamic_dimension<Arg, ix> or coordinates::dynamic_pattern<collections::collection_element_t<ix, DTup>>)
           {
             auto arg_d = get_pattern_collection<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
@@ -51,8 +54,8 @@ namespace OpenKalman
           {
             using D_Arg = std::decay_t<decltype(get_index_pattern(arg, std::integral_constant<std::size_t, ix>{}))>;
             using D = collections::collection_element_t<ix, DTup>;
-            static_assert(compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
-              (ix >= index_count_v<Arg> and uniform_pattern<D>),
+            static_assert(coordinates::compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
+              (ix >= index_count_v<Arg> and coordinates::uniform_pattern<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -136,9 +139,9 @@ namespace OpenKalman
     inline auto n_ary_operation_get_component_impl(Arg&& arg, std::index_sequence<I...>, J...j)
     {
       if constexpr (sizeof...(I) == sizeof...(J))
-        return get_component(std::forward<Arg>(arg), (j < get_index_extent<I>(arg) ? j : 0)...);
+        return access(std::forward<Arg>(arg), (j < get_index_extent<I>(arg) ? j : 0)...);
       else
-        return get_component(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
+        return access(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
           auto j = std::get<I>(j_tup);
           if (j < dim) return j;
           else return 0_uz;
@@ -197,10 +200,10 @@ namespace OpenKalman
     {
       constexpr std::index_sequence_for<Ds...> seq;
 
-      // constant_matrix:
-      if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and not is_invocable_with_indices<Op, element_type_of_t<Args>...>(seq))
+      // constant_object:
+      if constexpr (sizeof...(Args) > 0 and (constant_object<Args> and ...) and not is_invocable_with_indices<Op, element_type_of_t<Args>...>(seq))
       {
-        values::operation c {op, constant_coefficient {std::forward<Args>(args)}...};
+        values::operation c {op, constant_value {std::forward<Args>(args)}...};
         return std::apply(
           [](auto&&...as){ return make_constant<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
@@ -209,10 +212,10 @@ namespace OpenKalman
       else if constexpr (is_invocable_with_indices<Op, std::add_lvalue_reference_t<element_type_of_t<Args>>...>(seq) and
         interface::n_ary_operation_defined_for<PatternMatrix, const std::tuple<Ds...>&, Op&&, Args&&...>)
       {
-        using Interface = interface::library_interface<std::decay_t<PatternMatrix>>;
+        using Interface = interface::library_interface<stdex::remove_cvref_t<PatternMatrix>>;
         auto ret {Interface::n_ary_operation(d_tup, std::forward<Op>(op), replicate_arg(d_tup, std::forward<Args>(args), seq)...)};
         return std::apply([](auto&& a, auto&&...vs){
-          return make_vector_space_adapter(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
+          return attach_pattern(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
           }, std::tuple_cat(std::forward_as_tuple(std::move(ret)), d_tup));
       }
       // \todo add case where interface needs arguments to be wrapped in a library adapter
@@ -224,7 +227,7 @@ namespace OpenKalman
         if constexpr (((coordinates::dimension_of_v<Ds> == 1) and ...))
         {
           // one-by-one matrix
-          auto e = op(get_component(std::forward<Args>(args))...);
+          auto e = op(access(std::forward<Args>(args))...);
           return make_dense_object_from<PatternMatrix, layout_of_t<PatternMatrix>, Scalar>(d_tup, e);
         }
         else
@@ -312,7 +315,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<coordinates::pattern...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
     detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (coordinates::dimension_of_v<Ds> != 0))
-  constexpr compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> auto
+  constexpr compares_with_pattern_collection<std::tuple<Ds...>> auto
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
     (coordinates::pattern<Ds> and ...) and (indexible<Args> and ...) and (sizeof...(Args) > 0) and
@@ -335,7 +338,7 @@ namespace OpenKalman
       if constexpr (sizeof...(Args) == 0)
       {
         auto ret = get_pattern_collection<ix>(arg);
-        if constexpr (dynamic_pattern<decltype(ret)>)
+        if constexpr (coordinates::dynamic_pattern<decltype(ret)>)
         {
           if (get_dimension(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
             "to n_ary_operation is zero for at least index " + std::to_string(ix) + "."};
@@ -759,7 +762,7 @@ namespace OpenKalman
     template<typename Operation, typename Arg, typename...J>
     inline void do_elem_operation_in_place(const Operation& operation, Arg& arg, J...j)
     {
-      auto&& elem = get_component(arg, j...);
+      auto&& elem = access(arg, j...);
       if constexpr (std::is_assignable_v<decltype((elem)), std::decay_t<decltype(elem)>>)
       {
         do_elem_operation_in_place_impl(operation, elem, j...);

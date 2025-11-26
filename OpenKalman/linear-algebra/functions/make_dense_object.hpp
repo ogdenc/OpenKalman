@@ -42,7 +42,7 @@ namespace OpenKalman
   {
     decltype(auto) d = coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
     using D = decltype(d);
-    using Traits = interface::library_interface<std::decay_t<T>>;
+    using Traits = interface::library_interface<stdex::remove_cvref_t<T>>;
     if constexpr (coordinates::euclidean_pattern_collection<D>)
     {
       return Traits::template make_default<layout, Scalar>(std::forward<D>(d));
@@ -50,7 +50,7 @@ namespace OpenKalman
     else
     {
       auto ed = internal::to_euclidean_pattern_collection(d);
-      return make_vector_space_adapter(Traits::template make_default<layout, Scalar>(ed), std::forward<D>(d));
+      return attach_pattern(Traits::template make_default<layout, Scalar>(ed), std::forward<D>(d));
     }
   }
 

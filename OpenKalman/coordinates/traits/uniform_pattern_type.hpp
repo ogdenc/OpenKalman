@@ -63,7 +63,7 @@ namespace OpenKalman::coordinates
 #endif
     : std::conditional_t<
       euclidean_pattern<T>,
-      stdcompat::type_identity<Dimensions<1>>,
+      stdex::type_identity<Dimensions<1>>,
       common_descriptor_type<T>> {};
 
 

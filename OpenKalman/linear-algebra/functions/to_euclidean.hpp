@@ -20,7 +20,7 @@
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/traits/vector_space_descriptor_of.hpp"
 #include "linear-algebra/adapters/ToEuclideanExpr.hpp"
-#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
+#include "linear-algebra/interfaces/interfaces-defined.hpp"
 
 namespace OpenKalman
 {
@@ -43,7 +43,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::to_euclidean_defined_for<Arg, Arg&&>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::to_euclidean(std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::to_euclidean(std::forward<Arg>(arg));
     }
     else
     {

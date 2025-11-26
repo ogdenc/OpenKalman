@@ -49,7 +49,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_pattern<V0>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base> and fixed_pattern<V0>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<Base> and fixed_pattern<V0>, int> = 0>
     constexpr FromEuclideanExpr()
 #endif
     {}
@@ -63,7 +63,7 @@ namespace OpenKalman
       std::constructible_from<NestedObject, Arg&&> and std::constructible_from<std::decay_t<V0>, D0>
 #else
     template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and coordinates::pattern<C> and
-      stdcompat::constructible_from<NestedObject, Arg&&> and stdcompat::constructible_from<std::decay_t<V0>, D0>, int> = 0>
+      stdex::constructible_from<NestedObject, Arg&&> and stdex::constructible_from<std::decay_t<V0>, D0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg, const D0& d0) : Base {std::forward<Arg>(arg)}, vector_space_descriptor_index_0{d0} {}
 
@@ -75,7 +75,7 @@ namespace OpenKalman
     template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>
 #else
     template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and
-      stdcompat::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
+      stdex::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -106,7 +106,7 @@ namespace OpenKalman
 
     std::decay_t<V0> vector_space_descriptor_index_0;
 
-    friend struct interface::indexible_object_traits<VectorSpaceAdapter>;
+    friend struct interface::object_traits<VectorSpaceAdapter>;
     friend struct interface::library_interface<VectorSpaceAdapter>;
 
   }; // struct FromEuclideanExpr
@@ -132,12 +132,14 @@ namespace OpenKalman
   {
 
     // --------------------------- //
-    //   indexible_object_traits   //
+    //   object_traits   //
     // --------------------------- //
 
     template<typename NestedObject, typename V0>
-    struct indexible_object_traits<FromEuclideanExpr<NestedObject, V0>>
+    struct object_traits<FromEuclideanExpr<NestedObject, V0>>
     {
+      static const bool is_specialized = true;
+
       using scalar_type = scalar_type_of_t<NestedObject>;
 
 
@@ -176,7 +178,7 @@ namespace OpenKalman
       get_constant(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<V0>)
-          return constant_coefficient {arg.nested_object()};
+          return constant_value {arg.nested_object()};
         else
           return std::monostate {};
       }
@@ -187,7 +189,7 @@ namespace OpenKalman
       get_constant_diagonal(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<V0>)
-          return constant_diagonal_coefficient {arg.nested_object()};
+          return constant_diagonal_value {arg.nested_object()};
         else
           return std::monostate {};
       }
@@ -205,7 +207,7 @@ namespace OpenKalman
 
       template<triangle_type t>
       static constexpr bool
-      is_triangular = coordinates::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
+      triangle_type_value = coordinates::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
 
 
       static constexpr bool

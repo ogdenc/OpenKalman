@@ -13,16 +13,14 @@
  * \brief Definition for \ref collections::from_range.
  */
 
-#ifndef OPENKALMAN_COLLECTIONS_VIEWS_TO_TUPLE_HPP
-#define OPENKALMAN_COLLECTIONS_VIEWS_TO_TUPLE_HPP
+#ifndef OPENKALMAN_COLLECTIONS_VIEWS_FROM_RANGE_HPP
+#define OPENKALMAN_COLLECTIONS_VIEWS_FROM_RANGE_HPP
 
-#include <type_traits>
-#include "basics/basics.hpp"
-#include "values/concepts/index.hpp"
-#include "values/concepts/fixed.hpp"
+#include <variant>
+#include "values/values.hpp"
 #include "collections/functions/get_size.hpp"
+#include "collections/traits/size_of.hpp"
 #include "collections/functions/get.hpp"
-#include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "internal/movable_wrapper.hpp"
 
 namespace OpenKalman::collections
@@ -36,10 +34,10 @@ namespace OpenKalman::collections
 #endif
     struct tuple_element_impl
     {
-      using type = stdcompat::ranges::range_value_t<T>;
+      using type = stdex::ranges::range_value_t<T>;
 
       template<typename R> constexpr decltype(auto) operator() (R&& r) const
-       { return collections::get(std::forward<R>(r), std::integral_constant<std::size_t, i>{}); }
+       { return get<i>(std::forward<R>(r)); }
     };
 
 
@@ -53,7 +51,7 @@ namespace OpenKalman::collections
       : collection_element<i, T>
     {
       template<typename R> constexpr decltype(auto) operator() (R&& r) const
-       { return OpenKalman::internal::generalized_std_get<i>(std::forward<R>(r)); }
+       { return get<i>(std::forward<R>(r)); }
     };
 
 
@@ -67,11 +65,11 @@ namespace OpenKalman::collections
 
     template<std::size_t i, typename R>
     inline constexpr decltype(auto)
-    get_from_base(R&& r) { using namespace std; return get_elem<i, stdcompat::remove_cvref_t<R>>{}(std::forward<R>(r)); }
+    get_from_base(R&& r) { return get_elem<i, stdex::remove_cvref_t<R>>{}(std::forward<R>(r)); }
 
 
     template<typename T>
-    struct get_elem<0, stdcompat::ranges::single_view<T>>
+    struct get_elem<0, stdex::ranges::single_view<T>>
     {
       using type = T;
       template<typename U> constexpr decltype(auto) operator() (U&& u) const { return *std::forward<U>(u).data(); }
@@ -79,34 +77,34 @@ namespace OpenKalman::collections
 
 
     template<std::size_t i, typename R>
-    struct get_elem<i, stdcompat::ranges::ref_view<R>> : get_elem<i, stdcompat::remove_cvref_t<R>>
+    struct get_elem<i, stdex::ranges::ref_view<R>> : get_elem<i, stdex::remove_cvref_t<R>>
     {
       template<typename T> constexpr decltype(auto) operator() (T&& t) const { return get_from_base<i>(std::forward<T>(t).base()); }
     };
 
 
     template<std::size_t i, typename R>
-    struct get_elem<i, stdcompat::ranges::owning_view<R>> : get_elem<i, stdcompat::remove_cvref_t<R>>
+    struct get_elem<i, stdex::ranges::owning_view<R>> : get_elem<i, stdex::remove_cvref_t<R>>
     {
       template<typename T> constexpr decltype(auto) operator() (T&& t) const { return get_from_base<i>(std::forward<T>(t).base()); }
     };
 
 
 #ifdef __cpp_concepts
-    template<std::size_t i, typename V> requires (size_of_v<V> != dynamic_size)
-    struct get_elem<i, stdcompat::ranges::reverse_view<V>>
+    template<std::size_t i, typename V> requires (size_of_v<V> != stdex::dynamic_extent)
+    struct get_elem<i, stdex::ranges::reverse_view<V>>
 #else
     template<std::size_t i, typename V>
-    struct get_elem<i, stdcompat::ranges::reverse_view<V>, std::enable_if_t<size_of_v<V> != dynamic_size>>
+    struct get_elem<i, stdex::ranges::reverse_view<V>, std::enable_if_t<size_of_v<V> != stdex::dynamic_extent>>
 #endif
-      : get_elem<size_of_v<V> - i - 1_uz, stdcompat::remove_cvref_t<V>>
+      : get_elem<size_of_v<V> - i - 1_uz, stdex::remove_cvref_t<V>>
     {
       template<typename T> constexpr decltype(auto) operator() (T&& t) const
       {
-        if constexpr (not std::is_lvalue_reference_v<T> or stdcompat::copy_constructible<V>)
+        if constexpr (not std::is_lvalue_reference_v<T> or stdex::copy_constructible<V>)
           return get_from_base<size_of_v<V> - i - 1_uz>(std::forward<T>(t).base());
         else
-          return collections::get(std::forward<T>(t), std::integral_constant<std::size_t, i>{});
+          return get<i>(std::forward<T>(t));
       }
     };
 
@@ -117,12 +115,11 @@ namespace OpenKalman::collections
    * \brief A \ref collection_view created from a std::ranges::random_access_range that is a std::ranges::viewable_range.
    */
 #ifdef __cpp_concepts
-  template<stdcompat::ranges::random_access_range V> requires
-    stdcompat::ranges::view<stdcompat::remove_cvref_t<V>> or stdcompat::ranges::viewable_range<V>
+  template<stdex::ranges::random_access_range V> requires stdex::ranges::viewable_range<V>
 #else
   template<typename V>
 #endif
-  struct from_range : stdcompat::ranges::view_interface<from_range<V>>
+  struct from_range : stdex::ranges::view_interface<from_range<V>>
   {
   private:
 
@@ -137,7 +134,7 @@ namespace OpenKalman::collections
     constexpr
     from_range() = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<RangeBox>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<RangeBox>, int> = 0>
     constexpr
     from_range() {}
 #endif
@@ -147,9 +144,9 @@ namespace OpenKalman::collections
      * \brief Construct from a \ref std::ranges::random_access_range.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::same_as<stdcompat::remove_cvref_t<Arg>, from_range>)
+    template<typename Arg> requires (not std::same_as<stdex::remove_cvref_t<Arg>, from_range>)
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_same_v<stdcompat::remove_cvref_t<Arg>, from_range>), int> = 0>
+    template<typename Arg, std::enable_if_t<(not std::is_same_v<stdex::remove_cvref_t<Arg>, from_range>), int> = 0>
 #endif
     constexpr explicit 
     from_range(Arg&& arg) noexcept : r_ {std::forward<Arg>(arg)} {}
@@ -172,31 +169,19 @@ namespace OpenKalman::collections
     /**
      * \brief An iterator to the beginning of the range.
      */
-    constexpr auto begin()
-    {
-      return stdcompat::ranges::begin(base());
-    }
+    constexpr auto begin() { return stdex::ranges::begin(base()); }
 
     /// \overload
-    constexpr auto begin() const
-    {
-      return stdcompat::ranges::begin(base());
-    }
+    constexpr auto begin() const { return stdex::ranges::begin(base()); }
 
 
     /**
      * \brief An iterator to the end of the range.
      */
-    constexpr auto end()
-    {
-      return stdcompat::ranges::end(base());
-    }
+    constexpr auto end() { return stdex::ranges::end(base()); }
 
     /// \overload
-    constexpr auto end() const
-    {
-      return stdcompat::ranges::end(base());
-    }
+    constexpr auto end() const { return stdex::ranges::end(base()); }
 
 
     /**
@@ -211,7 +196,10 @@ namespace OpenKalman::collections
     size() const
 #endif
     {
-      return get_size(base());
+      if constexpr (values::fixed_value_compares_with<size_of<V>, stdex::dynamic_extent>)
+        return get_size(base());
+      else
+        return size_of<V>{};
     }
 
 
@@ -220,22 +208,22 @@ namespace OpenKalman::collections
      */
 #ifdef __cpp_concepts
     constexpr auto
-    empty() const requires sized<V> or stdcompat::ranges::forward_range<V>
+    empty() const requires sized<V> or stdex::ranges::forward_range<V>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and (sized<V> or stdcompat::ranges::forward_range<V>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (sized<V> or stdex::ranges::forward_range<V>), int> = 0>
     constexpr auto
     empty() const
 #endif
     {
       if constexpr (sized<V>)
       {
-        if constexpr (size_of_v<V> == dynamic_size) return get_size(base()) == 0_uz;
+        if constexpr (size_of_v<V> == stdex::dynamic_extent) return get_size(base()) == 0_uz;
         else if constexpr (size_of_v<V> == 0) return std::true_type{};
         else return std::false_type{};
       }
       else
       {
-        return stdcompat::ranges::begin(base()) == stdcompat::ranges::end(base());
+        return stdex::ranges::begin(base()) == stdex::ranges::end(base());
       }
     }
 
@@ -244,11 +232,11 @@ namespace OpenKalman::collections
      * \returns Returns the initial element.
      */
     constexpr decltype(auto)
-    front() { return collections::get(base(), std::integral_constant<std::size_t, 0>{}); }
+    front() { return collections::get<0>(base()); }
 
     /// \overload
     constexpr decltype(auto)
-    front() const { return collections::get(base(), std::integral_constant<std::size_t, 0>{}); }
+    front() const { return collections::get<0>(base()); }
 
   private:
 
@@ -259,14 +247,15 @@ namespace OpenKalman::collections
 #endif
     struct back_gettable : std::false_type {};
 
+    template<typename T>
 #ifdef __cpp_lib_ranges
-    template<sized T>
+      requires values::fixed_value_compares_with<size_of<T>, stdex::dynamic_extent, &stdex::is_neq>
     struct back_gettable<T>
 #else
-    template<typename T>
-    struct back_gettable<T, std::enable_if_t<sized<T>>>
+    struct back_gettable<T, std::enable_if_t<
+      values::fixed_value_compares_with<size_of<T>, stdex::dynamic_extent, &stdex::is_neq>>>
 #endif
-      : std::bool_constant<size_of_v<T> != dynamic_size and gettable<size_of_v<T> - 1_uz, T>> {};
+      : std::bool_constant<gettable<size_of_v<T> - 1_uz, T>> {};
 
   public:
 
@@ -275,39 +264,35 @@ namespace OpenKalman::collections
      */
 #ifdef __cpp_concepts
     constexpr decltype(auto)
-    back() requires (stdcompat::ranges::bidirectional_range<V> and stdcompat::ranges::common_range<V>) or back_gettable<V>::value
+    back() requires (stdex::ranges::bidirectional_range<V> and stdex::ranges::common_range<V>) or back_gettable<V>::value
 #else
     template<bool Enable = true, std::enable_if_t<Enable and
-      (stdcompat::ranges::bidirectional_range<V> and stdcompat::ranges::common_range<V>) or back_gettable<V>::value, int> = 0>
+      (stdex::ranges::bidirectional_range<V> and stdex::ranges::common_range<V>) or back_gettable<V>::value, int> = 0>
     constexpr decltype(auto)
     back()
 #endif
     {
       if constexpr (back_gettable<V>::value)
-      { return OpenKalman::internal::generalized_std_get<size_of_v<V> - 1_uz>(base()); }
+        return collections::get<size_of_v<V> - 1_uz>(base());
       else
-      {
-        using namespace std; return stdcompat::ranges::view_interface<from_range<V>>::back();
-      }
+        return stdex::ranges::view_interface<from_range<V>>::back();
     }
 
     /// \overload
 #ifdef __cpp_concepts
     constexpr decltype(auto)
-    back() const requires (stdcompat::ranges::bidirectional_range<V> and stdcompat::ranges::common_range<V>) or back_gettable<V>::value
+    back() const requires (stdex::ranges::bidirectional_range<V> and stdex::ranges::common_range<V>) or back_gettable<V>::value
 #else
     template<bool Enable = true, std::enable_if_t<Enable and
-      (stdcompat::ranges::bidirectional_range<V> and stdcompat::ranges::common_range<V>) or back_gettable<V>::value, int> = 0>
+      (stdex::ranges::bidirectional_range<V> and stdex::ranges::common_range<V>) or back_gettable<V>::value, int> = 0>
     constexpr decltype(auto)
     back() const
 #endif
     {
       if constexpr (back_gettable<V>::value)
-      { return OpenKalman::internal::generalized_std_get<size_of_v<V> - 1_uz>(base()); }
+        return collections::get<size_of_v<V> - 1_uz>(base());
       else
-      {
-        return stdcompat::ranges::view_interface<from_range<V>>::back();
-      }
+        return stdex::ranges::view_interface<from_range<V>>::back();
     }
 
     
@@ -320,45 +305,40 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     operator[](this Self&& self, I i)
     {
-      if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
-      return collections::get(std::forward<Self>(self), std::move(i));
+      static_assert(not values::size_compares_with<I, size_of<V>, &stdex::is_gteq>, "Index out of range");
+      return collections::get_element(std::forward<Self>(self), std::move(i));
     }
 #else
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     constexpr decltype(auto)
     operator[](I i) &
     {
-      if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
-      return collections::get(*this, std::move(i));
+      static_assert(not values::size_compares_with<I, size_of<V>, &stdex::is_gteq>, "Index out of range");
+      return collections::get_element(*this, std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     constexpr decltype(auto)
     operator[](I i) const &
     {
-      if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
-      return collections::get(*this, std::move(i));
+      static_assert(not values::size_compares_with<I, size_of<V>, &stdex::is_gteq>, "Index out of range");
+      return collections::get_element(*this, std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     constexpr decltype(auto)
     operator[](I i) && noexcept
     {
-      if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
-      return collections::get(std::move(*this), std::move(i));
+      static_assert(not values::size_compares_with<I, size_of<V>, &stdex::is_gteq>, "Index out of range");
+      return collections::get_element(std::move(*this), std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     constexpr decltype(auto)
     operator[](I i) const && noexcept
     {
-      if constexpr (values::fixed<I> and sized<V>)
-        static_assert(size_of_v<V> == dynamic_size or values::fixed_value_of_v<I> < size_of_v<V>, "Index out of range");
-      return collections::get(std::move(*this), std::move(i));
+      static_assert(not values::size_compares_with<I, size_of<V>, &stdex::is_gteq>, "Index out of range");
+      return collections::get_element(std::move(*this), std::move(i));
     }
 #endif
 
@@ -370,9 +350,10 @@ namespace OpenKalman::collections
 #ifdef __cpp_explicit_this_parameter
     template<std::size_t i>
     constexpr decltype(auto)
-    get(this auto&& self)
+    get(this auto&& self) noexcept
     {
-      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      using Ni = std::integral_constant<std::size_t, i>;
+      static_assert(not values::size_compares_with<Ni, size_of<V>, &stdex::is_gteq>, "Index out of range");
       return detail_from_range::get_from_base<i>(std::forward<decltype(self)>(self).base());
     }
 #else
@@ -380,7 +361,8 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() &
     {
-      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      using Ni = std::integral_constant<std::size_t, i>;
+      static_assert(not values::size_compares_with<Ni, size_of<V>, &stdex::is_gteq>, "Index out of range");
       return detail_from_range::get_from_base<i>(base());
     }
 
@@ -388,7 +370,8 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const &
     {
-      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      using Ni = std::integral_constant<std::size_t, i>;
+      static_assert(not values::size_compares_with<Ni, size_of<V>, &stdex::is_gteq>, "Index out of range");
       return detail_from_range::get_from_base<i>(base());
     }
 
@@ -396,7 +379,8 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() && noexcept
     {
-      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      using Ni = std::integral_constant<std::size_t, i>;
+      static_assert(not values::size_compares_with<Ni, size_of<V>, &stdex::is_gteq>, "Index out of range");
       return detail_from_range::get_from_base<i>(std::move(*this).base());
     }
 
@@ -404,7 +388,8 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const && noexcept
     {
-      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      using Ni = std::integral_constant<std::size_t, i>;
+      static_assert(not values::size_compares_with<Ni, size_of<V>, &stdex::is_gteq>, "Index out of range");
       return detail_from_range::get_from_base<i>(std::move(*this).base());
     }
 #endif
@@ -416,20 +401,10 @@ namespace OpenKalman::collections
   };
 
 
+  /// Deduction guide
   template<typename V>
   from_range(V&&) -> from_range<V>;
 
-
-#ifndef __cpp_concepts
-  namespace detail_from_range
-  {
-    template<typename V, typename = void>
-    struct tuple_size {};
-
-    template<typename V>
-    struct tuple_size<V, std::enable_if_t<sized<V> and size_of<V>::value != dynamic_size>> : size_of<V> {};
-  }
-#endif
 
 }
 
@@ -437,29 +412,29 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 #endif
 {
   template<typename V>
   constexpr bool enable_borrowed_range<OpenKalman::collections::from_range<V>> =
-    std::is_lvalue_reference_v<V> or enable_borrowed_range<OpenKalman::stdcompat::remove_cvref_t<V>>;
+    std::is_lvalue_reference_v<V> or enable_borrowed_range<OpenKalman::stdex::remove_cvref_t<V>>;
 }
 
 
 namespace std
 {
-#ifdef __cpp_concepts
-  template<OpenKalman::collections::sized V> requires (OpenKalman::collections::size_of_v<V> != OpenKalman::dynamic_size)
-  struct tuple_size<OpenKalman::collections::from_range<V>> : OpenKalman::collections::size_of<V> {};
-#else
   template<typename V>
-  struct tuple_size<OpenKalman::collections::from_range<V>> : OpenKalman::collections::detail_from_range::tuple_size<V> {};
-#endif
+  struct tuple_size<OpenKalman::collections::from_range<V>>
+    : std::conditional_t<
+      OpenKalman::values::fixed_value_compares_with<
+        OpenKalman::collections::size_of<V>, OpenKalman::stdex::dynamic_extent, &OpenKalman::stdex::is_neq>,
+      OpenKalman::collections::size_of<V>,
+      monostate> {};
 
 
   template<std::size_t i, typename V>
   struct tuple_element<i, OpenKalman::collections::from_range<V>>
-    : OpenKalman::collections::detail_from_range::get_elem<i, OpenKalman::stdcompat::remove_cvref_t<V>> {};
+    : OpenKalman::collections::detail_from_range::get_elem<i, OpenKalman::stdex::remove_cvref_t<V>> {};
 }
 
 

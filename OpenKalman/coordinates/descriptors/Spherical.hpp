@@ -152,15 +152,15 @@ namespace OpenKalman::interface
       static constexpr auto
       to_stat_space = [](const T&, auto&& data_view)
       {
-        decltype(auto) d = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, d_i>{});
-        decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, i_i>{});
-        decltype(auto) a = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, a_i>{});
+        decltype(auto) d = collections::get<d_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) i = collections::get<i_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) a = collections::get<a_i>(std::forward<decltype(data_view)>(data_view));
 
         using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
 
         auto theta = [](auto&& i)
         {
-          if constexpr (down == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
+          if constexpr (down == stdex::numbers::pi_v<R>) //< Avoid scaling, if possible.
           {
             return std::forward<decltype(i)>(i);
           }
@@ -173,7 +173,7 @@ namespace OpenKalman::interface
 
         auto phi = [](auto&& a)
         {
-          if constexpr (min == -stdcompat::numbers::pi_v<R> and max == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
+          if constexpr (min == -stdex::numbers::pi_v<R> and max == stdex::numbers::pi_v<R>) //< Avoid scaling, if possible.
           {
             return std::forward<decltype(a)>(a);
           }
@@ -205,7 +205,7 @@ namespace OpenKalman::interface
         template<typename R>
         constexpr auto operator()(R h, const R& z) const
         {
-          return (R{down} / stdcompat::numbers::pi_v<R>) * (h == R{0} ? std::move(h) : values::acos(z/h));
+          return (R{down} / stdex::numbers::pi_v<R>) * (h == R{0} ? std::move(h) : values::acos(z/h));
         }
       };
 
@@ -260,10 +260,10 @@ namespace OpenKalman::interface
       static constexpr auto
       from_stat_space = [](const T&, auto&& data_view)
       {
-        decltype(auto) d = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, d2_i>{});
-        decltype(auto) x = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, x_i>{});
-        decltype(auto) y = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, y_i>{});
-        decltype(auto) z = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, z_i>{});
+        decltype(auto) d = collections::get<d2_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) x = collections::get<x_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) y = collections::get<y_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) z = collections::get<z_i>(std::forward<decltype(data_view)>(data_view));
 
         using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
 
@@ -322,9 +322,9 @@ namespace OpenKalman::interface
       static constexpr auto
       wrap = [](const T&, auto&& data_view)
       {
-        decltype(auto) d = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, d_i>{});
-        decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, i_i>{});
-        decltype(auto) a = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, a_i>{});
+        decltype(auto) d = collections::get<d_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) i = collections::get<i_i>(std::forward<decltype(data_view)>(data_view));
+        decltype(auto) a = collections::get<a_i>(std::forward<decltype(data_view)>(data_view));
 
         using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
         auto d_real = values::real(values::real(d));
@@ -551,7 +551,7 @@ namespace std
   struct common_type<OpenKalman::coordinates::Spherical<C1, C2, C3>, T>
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
-      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<>>,
       std::monostate> {};
 }
 

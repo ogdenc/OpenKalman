@@ -23,11 +23,11 @@ TEST(eigen3, Eigen_VectorBlock)
 
   static_assert(eigen_general<decltype(std::declval<C21_2>().segment<1>(0)), true>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().segment<1>(0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_m2>().segment(1, 0))> == -2);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>().segment<1>(0))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C21_m2>().segment(1, 0))> == -2);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().segment<1>(0))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_m2>().segment<1>(0))> == -2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_2>().segment<1>(0))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_m2>().segment<1>(0))> == -2);
 
   static_assert(zero<decltype(std::declval<Z21>().segment<1>(0))>);
   static_assert(zero<decltype(std::declval<Z21>().segment(1, 0))>);

@@ -32,9 +32,9 @@ namespace OpenKalman::coordinates
     struct range_value_has_fixed_stat_dimension : std::false_type {};
 
     template<typename T>
-    struct range_value_has_fixed_stat_dimension<T, std::enable_if_t<stdcompat::ranges::range<T>>>
+    struct range_value_has_fixed_stat_dimension<T, std::enable_if_t<stdex::ranges::range<T>>>
       : std::bool_constant<values::fixed_value_compares_with<decltype(internal::get_descriptor_stat_dimension(
-          std::declval<stdcompat::ranges::range_value_t<T>>())), 0>> {};
+          std::declval<stdex::ranges::range_value_t<T>>())), 0>> {};
 #endif
 
 
@@ -45,7 +45,7 @@ namespace OpenKalman::coordinates
       {
         return values::operation(
           std::plus{},
-          internal::get_descriptor_stat_dimension(collections::get(t, std::integral_constant<std::size_t, i>{})),
+          internal::get_descriptor_stat_dimension(collections::get<i>(t)),
           get_stat_dimension_fixed<i + 1>(t));
       }
       else return std::integral_constant<std::size_t, 0_uz>{};
@@ -59,7 +59,7 @@ namespace OpenKalman::coordinates
    */
 #ifdef __cpp_concepts
   template<pattern Arg> requires descriptor<Arg> or collections::sized<Arg> or
-    values::fixed_value_compares_with<decltype(internal::get_descriptor_stat_dimension(std::declval<stdcompat::ranges::range_value_t<Arg>>())), 0>
+    values::fixed_value_compares_with<decltype(internal::get_descriptor_stat_dimension(std::declval<stdex::ranges::range_value_t<Arg>>())), 0>
   constexpr values::index auto
 #else
   template<typename Arg, std::enable_if_t<descriptor<Arg> or
@@ -76,9 +76,9 @@ namespace OpenKalman::coordinates
     {
       return std::integral_constant<std::size_t, 0_uz>{};
     }
-    else if constexpr (not collections::sized<Arg> or collections::size_of_v<Arg> == dynamic_size)
+    else if constexpr (not collections::sized<Arg> or collections::size_of_v<Arg> == stdex::dynamic_extent)
     {
-      using C = decltype(internal::get_descriptor_stat_dimension(std::declval<stdcompat::ranges::range_value_t<Arg>>()));
+      using C = decltype(internal::get_descriptor_stat_dimension(std::declval<stdex::ranges::range_value_t<Arg>>()));
       if constexpr (not values::fixed<C>)
 #ifdef __cpp_lib_ranges_fold
         return std::ranges::fold_left(collections::views::all(arg), 0_uz,

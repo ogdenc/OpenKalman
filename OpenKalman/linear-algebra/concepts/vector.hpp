@@ -24,32 +24,23 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, std::size_t N, applicability b, std::size_t...Is>
-    constexpr bool do_vector_impl(std::index_sequence<Is...>)
+    template<typename T, std::size_t N, applicability b, std::size_t...is>
+    constexpr auto
+    vector_fixed_index_count(std::index_sequence<is...>)
     {
-      return (... and (N == Is or (b == applicability::permitted and dynamic_dimension<T, Is>) or dimension_size_of_index_is<T, Is, 1>));
+      return (... and (N == is or dimension_size_of_index_is<T, is, 1, &stdex::is_eq, b>));
     }
 
 
-    // If index_count<T> is dynamic, at least check indices until N + 1.
-#ifdef __cpp_concepts
     template<typename T, std::size_t N, applicability b>
-#else
-    template<typename T, std::size_t N, applicability b, typename = void>
-#endif
-    struct vector_impl : std::bool_constant<
-      b == applicability::permitted and detail::do_vector_impl<T, N, b>(std::make_index_sequence<N + 1> {})> {};
-
-    // If index_count<T> is static, check all indices.
-#ifdef __cpp_concepts
-    template<typename T, std::size_t N, applicability b> requires (index_count_v<T> != dynamic_size)
-    struct vector_impl<T, N, b>
-#else
-    template<typename T, std::size_t N, applicability b>
-    struct vector_impl<T, N, b, std::enable_if_t<index_count<T>::value != dynamic_size>>
-#endif
-      : std::bool_constant<detail::do_vector_impl<T, N, b>(std::make_index_sequence<index_count_v<T>> {})> {};
-
+    constexpr auto
+    vector_impl()
+    {
+      if constexpr (not indexible<T>) // Only needed for c++17 mode
+        return false;
+      else
+        return detail::vector_fixed_index_count<T, N, b>(std::make_index_sequence<index_count_v<T>>{});
+    }
 
   }
 
@@ -58,7 +49,7 @@ namespace OpenKalman
    * \brief T is a vector (e.g., column or row vector).
    * \details In this context, a vector is an object in which every index but one is 1D.
    * \tparam T An indexible object
-   * \tparam N An index designating the "large" index (0 for a column vector, 1 for a row vector)
+   * \tparam N An index designating the "large" index (e.g., 0 for a column vector, 1 for a row vector)
    * \tparam b Whether the vector status is guaranteed known at compile time (applicability::guaranteed), or
    * only known at runtime (applicability::permitted)
    * \sa is_vector
@@ -69,7 +60,8 @@ namespace OpenKalman
 #else
   constexpr bool vector =
 #endif
-    indexible<T> and detail::vector_impl<T, N, b>::value;
+    indexible<T> and
+    detail::vector_impl<T, N, b>();
 
 
 }

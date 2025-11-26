@@ -26,7 +26,7 @@ namespace OpenKalman::coordinates
   /**
    * \brief The size of a \ref coordinates::pattern.
    * \details If T has a dimension, static member <code>value</code> holds that dimension.
-   * If a dimension exists but it is not known at compile time, <code>value</code> is \ref dynamic_size.
+   * If a dimension exists but it is not known at compile time, <code>value</code> is \ref stdex::dynamic_extent.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -37,16 +37,16 @@ namespace OpenKalman::coordinates
 
 
 #ifdef __cpp_concepts
-  template<pattern T> requires requires(T&& t) { {coordinates::get_dimension(t)} -> values::index; }
+  template<pattern T> requires requires(T&& t) { get_dimension(t); }
   struct dimension_of<T>
 #else
   template<typename T>
-  struct dimension_of<T, std::enable_if_t<values::index<decltype(coordinates::get_dimension(std::declval<T>()))>>>
+  struct dimension_of<T, std::void_t<decltype(get_dimension(std::declval<T>()))>>
 #endif
     : std::conditional_t<
-        values::fixed<decltype(coordinates::get_dimension(std::declval<T>()))>,
-        values::fixed_value_of<decltype(coordinates::get_dimension(std::declval<T>()))>,
-        std::integral_constant<std::size_t, dynamic_size>> {};
+        values::fixed<decltype(get_dimension(std::declval<T>()))>,
+        values::fixed_value_of<decltype(get_dimension(std::declval<T>()))>,
+        std::integral_constant<std::size_t, stdex::dynamic_extent>> {};
 
 
   /**

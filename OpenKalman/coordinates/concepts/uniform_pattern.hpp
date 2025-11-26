@@ -38,9 +38,9 @@ namespace OpenKalman::coordinates
         else
         {
           constexpr auto dA = dimension_of_v<A>;
-          if constexpr ((dA != dynamic_size and dA != 1) or not compares_with<C, A, &stdcompat::is_eq, applicability::permitted>)
+          if constexpr ((dA != stdex::dynamic_extent and dA != 1) or not compares_with<C, A, &stdex::is_eq, applicability::permitted>)
             return std::true_type {};
-          else if constexpr (dA != dynamic_size and dimension_of_v<C> == dynamic_size)
+          else if constexpr (dA != stdex::dynamic_extent and dimension_of_v<C> == stdex::dynamic_extent)
             return heterogeneous_pattern_impl<T, A, i + 1>();
           else
             return heterogeneous_pattern_impl<T, C, i + 1>();
@@ -70,7 +70,7 @@ namespace OpenKalman::coordinates
 #endif
       : std::bool_constant<
           (not euclidean_pattern<T>) and
-          (dimension_of_v<T> != dynamic_size) and
+          (dimension_of_v<T> != stdex::dynamic_extent) and
           (dimension_of_v<T> != 1)
         > {};
 
@@ -78,7 +78,7 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
     template<descriptor_collection T> requires
       collections::sized<T> and
-      (collections::size_of_v<T> != dynamic_size) and
+      (collections::size_of_v<T> != stdex::dynamic_extent) and
       (collections::size_of_v<T> > 1) and
       collections::uniformly_gettable<T>
     struct heterogeneous_pattern<T>
@@ -86,8 +86,8 @@ namespace OpenKalman::coordinates
     template<typename T>
     struct heterogeneous_pattern<T, std::enable_if_t<
       descriptor_collection<T> and
-      values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, &stdcompat::is_neq> and
-      values::fixed_value_compares_with<collections::size_of<T>, 1, &stdcompat::is_gt> and
+      values::fixed_value_compares_with<collections::size_of<T>, stdex::dynamic_extent, &stdex::is_neq> and
+      values::fixed_value_compares_with<collections::size_of<T>, 1, &stdex::is_gt> and
       collections::uniformly_gettable<T>
     >>
 #endif
@@ -97,7 +97,7 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
     template<descriptor_collection T> requires
       (not collections::uniformly_gettable<T>) and
-      (dimension_of_v<common_descriptor_type_t<T>> != dynamic_size) and
+      (dimension_of_v<common_descriptor_type_t<T>> != stdex::dynamic_extent) and
       (dimension_of_v<common_descriptor_type_t<T>> != 1)
     struct heterogeneous_pattern<T>
 #else
@@ -105,8 +105,8 @@ namespace OpenKalman::coordinates
     struct heterogeneous_pattern<T, std::enable_if_t<
       descriptor_collection<T> and
       (not collections::uniformly_gettable<T>) and
-      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, dynamic_size, &stdcompat::is_neq> and
-      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, 1, &stdcompat::is_neq>
+      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, stdex::dynamic_extent, &stdex::is_neq> and
+      values::fixed_value_compares_with<dimension_of<common_descriptor_type_t<T>>, 1, &stdex::is_neq>
     >>
 #endif
       : std::true_type {};

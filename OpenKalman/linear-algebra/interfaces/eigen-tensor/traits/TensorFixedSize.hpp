@@ -20,12 +20,12 @@
 namespace OpenKalman::interface
 {
   template<typename S, typename Dims, int options, typename IndexType>
-  struct indexible_object_traits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+  struct object_traits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
+    using Base = Eigen3::object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
 
   public:
 
@@ -48,7 +48,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == Dims::count)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdex::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == Dims::count), int> = 0>
 #endif
     static constexpr decltype(auto)

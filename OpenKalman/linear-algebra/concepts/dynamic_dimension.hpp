@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,7 +27,7 @@ namespace OpenKalman
     struct is_dynamic_dimension : std::false_type {};
 
     template<typename T, std::size_t N>
-    struct is_dynamic_dimension<T, N, std::enable_if_t<indexible<T> and index_dimension_of<T, N>::value == dynamic_size>>
+    struct is_dynamic_dimension<T, N, std::enable_if_t<indexible<T> and index_dimension_of<T, N>::value == stdex::dynamic_extent>>
       : std::true_type {};
   }
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_concepts
-  concept dynamic_dimension = indexible<T> and (index_dimension_of_v<T, N> == dynamic_size);
+  concept dynamic_dimension = indexible<T> and (index_dimension_of_v<T, N> == std::dynamic_extent);
 #else
   constexpr bool dynamic_dimension = detail::is_dynamic_dimension<T, N>::value;
 #endif

@@ -28,12 +28,12 @@ namespace OpenKalman::coordinates
     struct is_descriptor_range : std::false_type {};
 
     template<typename T>
-    struct is_descriptor_range<T, std::enable_if_t<descriptor<stdcompat::ranges::range_value_t<T>>>> : std::true_type {};
+    struct is_descriptor_range<T, std::enable_if_t<descriptor<stdex::ranges::range_value_t<T>>>> : std::true_type {};
 
 
     template<typename T>
     constexpr bool descriptor_range =
-      stdcompat::ranges::random_access_range<T> and is_descriptor_range<T>::value;
+      stdex::ranges::random_access_range<T> and is_descriptor_range<T>::value;
 
 
     template<typename T, std::size_t...Ix>

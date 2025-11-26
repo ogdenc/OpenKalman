@@ -38,7 +38,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::to_diagonal_defined_for<Arg, Arg&&>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
     }
     else
     {

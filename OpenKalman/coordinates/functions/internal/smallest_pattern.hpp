@@ -35,7 +35,7 @@ namespace OpenKalman::coordinates::internal
       if constexpr (i < collections::size_of_v<P>)
       {
         auto ix = std::integral_constant<std::size_t, i>{};
-        auto p_i = get_dimension(collections::get(p, ix));
+        auto p_i = get_dimension(collections::get<i>(p));
         auto is_new_min = values::operation(std::less{}, p_i, min);
         auto select = [](bool q, std::size_t curr, std::size_t old){ return q ? curr : old; };
         return smallest_pattern_fixed<i + 1>(
@@ -59,16 +59,16 @@ namespace OpenKalman::coordinates::internal
    */
 #ifdef __cpp_concepts
   template<pattern_collection P> requires collections::sized<P> and
-    (collections::size_of_v<P> == dynamic_size or collections::size_of_v<P> > 0_uz)
+    (collections::size_of_v<P> == stdex::dynamic_extent or collections::size_of_v<P> > 0_uz)
   constexpr values::index auto
 #else
   template<typename P, std::enable_if_t<pattern_collection<P> and collections::sized<P> and
-    (collections::size_of<P>::value == dynamic_size or collections::size_of<P>::value > 0_uz), int> = 0>
+    (collections::size_of<P>::value == stdex::dynamic_extent or collections::size_of<P>::value > 0_uz), int> = 0>
   constexpr auto
 #endif
   smallest_pattern(const P& p)
   {
-    if constexpr (collections::size_of_v<P> == dynamic_size)
+    if constexpr (collections::size_of_v<P> == stdex::dynamic_extent)
     {
       auto fn = [](auto a, auto b){ return get_dimension(a) < get_dimension(b); };
       decltype(auto) pr = collections::views::all(p);

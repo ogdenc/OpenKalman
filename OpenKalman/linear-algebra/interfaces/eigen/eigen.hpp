@@ -44,8 +44,6 @@ static_assert(true, "Eigen 3.3.9 required for c++20 or higher standard.");
 #endif
 #endif
 
-#include "linear-algebra/interfaces/interfaces.hpp" // Includes basics.hpp
-
 /**
  * \internal
  * \brief Namespace for all Eigen3-specific definitions, not intended for use outside of OpenKalman development.
@@ -58,7 +56,7 @@ namespace OpenKalman::Eigen3 {}
 #include "functions/make_eigen_matrix.hpp"
 #include "functions/eigen-wrapper.hpp"
 
-#include "traits/indexible_object_traits_base.hpp"
+#include "traits/object_traits_base.hpp"
 #include "eigen-library-interface.hpp"
 
 #include "traits/eigen-traits.hpp"

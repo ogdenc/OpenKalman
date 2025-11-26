@@ -43,12 +43,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, applicability::permitted> and
-    (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
+    (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and (index_count_v<B> == stdex::dynamic_extent or index_count_v<B> <= 2)
   constexpr compatible_with_vector_space_descriptor_collection<std::tuple<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>> decltype(auto)
 #else
   template<typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
     (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, applicability::permitted>) and
-    (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
+    (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and (index_count<B>::value == stdex::dynamic_extent or index_count<B>::value <= 2), int> = 0>
   constexpr decltype(auto)
 #endif
   contract(A&& a, B&& b)
@@ -87,12 +87,12 @@ namespace OpenKalman
         else return values::cast_to<Scalar>(get_index_dimension_of<1>(a));
       }(a, b);
 
-      auto abd = constant_coefficient{a} * constant_coefficient{b} * std::move(dim_const);
+      auto abd = constant_value{a} * constant_value{b} * std::move(dim_const);
       return detail::contract_constant(std::move(abd), std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (diagonal_matrix<A> and constant_matrix<B>)
     {
-      auto col = diagonal_of(std::forward<A>(a)) * constant_coefficient{b}();
+      auto col = diagonal_of(std::forward<A>(a)) * constant_value{b}();
       return chipwise_operation<1>([&]{ return col; }, get_index_dimension_of<1>(b));
       //Another way to do this:
       //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
@@ -101,7 +101,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<A> and diagonal_matrix<B>)
     {
-      auto row = transpose(diagonal_of(std::forward<B>(b))) * constant_coefficient{a}();
+      auto row = transpose(diagonal_of(std::forward<B>(b))) * constant_value{a}();
       return chipwise_operation<0>([&]{ return row; }, get_index_dimension_of<0>(a));
       //Another way to do this:
       //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
@@ -115,7 +115,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::contract_defined_for<A, A, B>)
     {
-      auto x = interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
+      auto x = interface::library_interface<stdex::remove_cvref_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
       auto ret = internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::move(x));
 
       constexpr triangle_type tri = triangle_type_of_v<A, B>;
@@ -127,15 +127,15 @@ namespace OpenKalman
     else if constexpr ((hermitian_matrix<A> or hermitian_matrix<B>) and
       interface::contract_defined_for<B, decltype(adjoint(std::declval<B>())), decltype(adjoint(std::declval<A>()))>)
     {
-      return adjoint(interface::library_interface<std::decay_t<B>>::contract(adjoint(std::forward<B>(b)), adjoint(std::forward<A>(a))));
+      return adjoint(interface::library_interface<stdex::remove_cvref_t<B>>::contract(adjoint(std::forward<B>(b)), adjoint(std::forward<A>(a))));
     }
     else if constexpr (interface::contract_defined_for<B, decltype(transpose(std::declval<B>())), decltype(transpose(std::declval<A>()))>)
     {
-      return transpose(interface::library_interface<std::decay_t<B>>::contract(transpose(std::forward<B>(b)), transpose(std::forward<A>(a))));
+      return transpose(interface::library_interface<stdex::remove_cvref_t<B>>::contract(transpose(std::forward<B>(b)), transpose(std::forward<A>(a))));
     }
     else
     {
-      return interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
+      return interface::library_interface<stdex::remove_cvref_t<A>>::contract(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
     }
   }
 

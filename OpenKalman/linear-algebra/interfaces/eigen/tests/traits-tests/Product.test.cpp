@@ -17,38 +17,38 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_Product)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_2>().matrix())> == 4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C12_2>().matrix() * std::declval<C21_2>().matrix())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_1>().matrix() * std::declval<C11_2>().matrix())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_1>().matrix())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_m2>().matrix())> == -8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C2x_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<Cx2_2>().matrix())> == 8);
-  static_assert(values::dynamic<constant_coefficient<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix())>>);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<I22>().matrix())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<I22>().matrix() * std::declval<C22_2>().matrix())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<Z22>().matrix())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<C22_2>().matrix())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<M22>().matrix() * std::declval<Z22>().matrix())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<M22>().matrix())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_2>().matrix())> == 4);
+  static_assert(constant_value_v<decltype(std::declval<C12_2>().matrix() * std::declval<C21_2>().matrix())> == 8);
+  static_assert(constant_value_v<decltype(std::declval<C11_1>().matrix() * std::declval<C11_2>().matrix())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_1>().matrix())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_m2>().matrix())> == -8);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
+  static_assert(constant_value_v<decltype(std::declval<C2x_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<Cx2_2>().matrix())> == 8);
+  static_assert(values::dynamic<constant_value<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix())>>);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<I22>().matrix())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<I22>().matrix() * std::declval<C22_2>().matrix())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<Z22>().matrix() * std::declval<C22_2>().matrix())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<M22>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<Z22>().matrix() * std::declval<M22>().matrix())> == 0);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_2>().matrix())> == 4);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_1>().matrix() * std::declval<C11_2>().matrix())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_1>().matrix())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_2>().matrix())> == 4);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_1>().matrix() * std::declval<C11_2>().matrix())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_1>().matrix())> == 2);
 
   static_assert(values::scalar<std::integral_constant<long long unsigned int, 2>>);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<Cd22_3>().matrix())> == 6);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<I22>().matrix())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<I22>().matrix() * std::declval<Cd22_2>().matrix())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C12_2>().matrix() * std::declval<C21_2>().matrix())> == 8);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<C22_2>().matrix())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<Z22>().matrix())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<M22>().matrix())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<M22>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<Cd22_3>().matrix())> == 6);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<I22>().matrix())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<I22>().matrix() * std::declval<Cd22_2>().matrix())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C12_2>().matrix() * std::declval<C21_2>().matrix())> == 8);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().matrix() * std::declval<C22_2>().matrix())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_2>().matrix() * std::declval<Z22>().matrix())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().matrix() * std::declval<M22>().matrix())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<M22>().matrix() * std::declval<Z22>().matrix())> == 0);
 
   static_assert(zero<decltype(std::declval<Z11>().matrix() * std::declval<Z11>().matrix())>);
   static_assert(zero<decltype(std::declval<Z12>().matrix() * std::declval<Z21>().matrix())>);

@@ -19,15 +19,15 @@
 
 #include "basics/basics.hpp"
 #include "collections/concepts/viewable_collection.hpp"
-#include "from_tuple_like_range.hpp"
 #include "from_tuple_like.hpp"
 #include "from_range.hpp"
+#include "collections/concepts/tuple_like.hpp"
 
 namespace OpenKalman::collections::views
 {
   namespace detail
   {
-    struct all_closure : stdcompat::ranges::range_adaptor_closure<all_closure>
+    struct all_closure : stdex::ranges::range_adaptor_closure<all_closure>
     {
 #ifdef __cpp_concepts
       template<viewable_collection R>
@@ -38,22 +38,20 @@ namespace OpenKalman::collections::views
 #endif
       operator() (R&& r) const
       {
-        using namespace std;
-        if constexpr (collection_view<R>)
+        if constexpr (
+          collection_view<R> and
+          (not values::fixed_value_compares_with<size_of<R>, stdex::dynamic_extent, &stdex::is_neq> or
+            collections::tuple_like<R>))
         {
           return std::forward<R>(r);
         }
-        else if constexpr (viewable_tuple_like<R> and stdcompat::ranges::random_access_range<R> and stdcompat::ranges::viewable_range<R>)
-        {
-          return from_tuple_like_range {std::forward<R>(r)};
-        }
-        else if constexpr (viewable_tuple_like<R>)
-        {
-          return from_tuple_like {std::forward<R>(r)};
-        }
-        else // std::ranges::random_access_range<R> and std::ranges::viewable_range<R>
+        else if constexpr (stdex::ranges::random_access_range<R> and stdex::ranges::viewable_range<R>)
         {
           return from_range {std::forward<R>(r)};
+        }
+        else //if constexpr (viewable_tuple_like<R>)
+        {
+          return from_tuple_like {std::forward<R>(r)};
         }
       }
     };
@@ -62,6 +60,7 @@ namespace OpenKalman::collections::views
 
   /**
    * \brief a std::ranges::range_adaptor_closure which returns a view to all members of its \ref collection argument.
+   * \details The result will be a \ref collection_view and, if if has a fixed size, will be \ref tuple_like
    * Examples:
    * \code
    * static_assert(equal_to{}(views::all{std::tuple{4, 5.}}, std::tuple{4, 5.}));

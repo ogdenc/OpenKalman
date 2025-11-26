@@ -56,10 +56,10 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(index_dimension_of_v<M11, 0> == 1);
   static_assert(index_dimension_of_v<M21, 0> == 2);
-  static_assert(index_dimension_of_v<Mxx, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<Mxx, 0> == stdex::dynamic_extent);
   static_assert(index_dimension_of_v<M11, 1> == 1);
   static_assert(index_dimension_of_v<M21, 1> == 1);
-  static_assert(index_dimension_of_v<Mxx, 1> == dynamic_size);
+  static_assert(index_dimension_of_v<Mxx, 1> == stdex::dynamic_extent);
   EXPECT_EQ(get_pattern_collection<0>(M11{}), 1);
   EXPECT_EQ(get_pattern_collection<0>(M21{}), 2);
   EXPECT_EQ((get_pattern_collection<0>(Mxx{2, 1})), 2);
@@ -67,14 +67,14 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_EQ((get_pattern_collection<1>(M21{})), 1);
   EXPECT_EQ((get_pattern_collection<1>(Mxx{2, 1})), 1);
 
-  static_assert(std::is_same_v<typename interface::indexible_object_traits<Mxx>::scalar_type, double>);
+  static_assert(std::is_same_v<typename interface::object_traits<Mxx>::scalar_type, double>);
 
-  static_assert(dynamic_dimension<eigen_matrix_t<double, dynamic_size, dynamic_size>, 0>);
-  static_assert(dynamic_dimension<eigen_matrix_t<double, dynamic_size, dynamic_size>, 1>);
-  static_assert(dynamic_dimension<eigen_matrix_t<double, dynamic_size, 1>, 0>);
-  static_assert(not dynamic_dimension<eigen_matrix_t<double, dynamic_size, 1>, 1>);
-  static_assert(not dynamic_dimension<eigen_matrix_t<double, 1, dynamic_size>, 0>);
-  static_assert(dynamic_dimension<eigen_matrix_t<double, 1, dynamic_size>, 1>);
+  static_assert(dynamic_dimension<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>, 0>);
+  static_assert(dynamic_dimension<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>, 1>);
+  static_assert(dynamic_dimension<eigen_matrix_t<double, stdex::dynamic_extent, 1>, 0>);
+  static_assert(not dynamic_dimension<eigen_matrix_t<double, stdex::dynamic_extent, 1>, 1>);
+  static_assert(not dynamic_dimension<eigen_matrix_t<double, 1, stdex::dynamic_extent>, 0>);
+  static_assert(dynamic_dimension<eigen_matrix_t<double, 1, stdex::dynamic_extent>, 1>);
 
   static_assert(dynamic_index_count_v<M22> == 0);
   static_assert(dynamic_index_count_v<M2x> == 1);

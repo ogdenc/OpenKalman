@@ -23,7 +23,7 @@
 #include "internal/exposition.hpp"
 #include "common.hpp"
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_integer_comparison_functions
   using std::cmp_equal;
@@ -116,7 +116,7 @@ namespace OpenKalman::stdcompat
     static const partial_ordering greater;
     static const partial_ordering unordered;
 
-    template<typename I, std::enable_if_t<stdcompat::constructible_from<std::ptrdiff_t, I>, int> = 0>
+    template<typename I, std::enable_if_t<stdex::constructible_from<std::ptrdiff_t, I>, int> = 0>
     explicit constexpr partial_ordering(I i) : my_value(static_cast<detail::Ord>(i)) {}
 
     [[nodiscard]] friend constexpr bool
@@ -179,9 +179,9 @@ namespace OpenKalman::stdcompat
     constexpr partial_ordering
     operator() [[nodiscard]] (T&& t, U&& u) const
     {
-      if (stdcompat::cmp_equal(t, u)) return partial_ordering::equivalent;
-      if (stdcompat::cmp_less(t, u)) return partial_ordering::less;
-      if (stdcompat::cmp_greater(t, u)) return partial_ordering::greater;
+      if (stdex::cmp_equal(t, u)) return partial_ordering::equivalent;
+      if (stdex::cmp_less(t, u)) return partial_ordering::less;
+      if (stdex::cmp_greater(t, u)) return partial_ordering::greater;
       return partial_ordering::unordered;
     }
 
@@ -237,14 +237,14 @@ namespace OpenKalman::stdcompat
 #else
   namespace detail
   {
-    template<typename T, typename U, typename C = typename stdcompat::common_reference<const T&, const U&>::type, typename = void>
+    template<typename T, typename U, typename C = typename stdex::common_reference<const T&, const U&>::type, typename = void>
     struct ComparisonCommonTypeWithImpl : std::false_type {};
 
     template<typename T, typename U, typename C>
     struct ComparisonCommonTypeWithImpl<T, U, C, std::enable_if_t<
-      stdcompat::same_as<common_reference_t<const T&, const U&>, common_reference_t<const U&, const T&>> and
-      (stdcompat::convertible_to<const T&, const C&> or stdcompat::convertible_to<T&, const C&>) and
-      (stdcompat::convertible_to<const U&, const C&> or stdcompat::convertible_to<U&, const C&>)
+      stdex::same_as<common_reference_t<const T&, const U&>, common_reference_t<const U&, const T&>> and
+      (stdex::convertible_to<const T&, const C&> or stdex::convertible_to<T&, const C&>) and
+      (stdex::convertible_to<const U&, const C&> or stdex::convertible_to<U&, const C&>)
       >> : std::true_type {};
 
 
@@ -288,7 +288,7 @@ namespace OpenKalman::stdcompat
 
     template<typename T, typename U>
     struct totally_ordered_with_impl<T, U, std::enable_if_t<
-      totally_ordered<typename stdcompat::common_reference<const std::remove_reference_t<T>&, const std::remove_reference_t<U>&>::type>>> : std::true_type {};
+      totally_ordered<typename stdex::common_reference<const std::remove_reference_t<T>&, const std::remove_reference_t<U>&>::type>>> : std::true_type {};
   }
 
 

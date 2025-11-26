@@ -20,13 +20,13 @@
 namespace OpenKalman::interface
 {
   template<typename BinaryOp, typename LhsXprType, typename RhsXprType>
-  struct indexible_object_traits<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
+  struct object_traits<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
   {
   private:
 
     using Xpr = Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>;
-    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>;
+    using Base = Eigen3::object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>;
     using Traits = Eigen3::BinaryFunctorTraits<std::decay_t<BinaryOp>>;
 
   public:
@@ -78,23 +78,23 @@ namespace OpenKalman::interface
 #endif
         return Traits::template get_constant<LhsXprType, RhsXprType>(arg);
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<LhsXprType>)
-        return constant_coefficient {arg.rhsExpression()};
+        return constant_value {arg.rhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<RhsXprType>)
-        return constant_coefficient {arg.lhsExpression()};
+        return constant_value {arg.lhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<LhsXprType>)
-        return constant_coefficient {arg.lhsExpression()};
+        return constant_value {arg.lhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<RhsXprType>)
-        return constant_coefficient {arg.rhsExpression()};
+        return constant_value {arg.rhsExpression()};
 #ifdef __cpp_concepts
       else if constexpr (requires { Traits::constexpr_operation(); })
 #else
         else if constexpr (constexpr_operation_defined<>::value)
 #endif
         return values::operation(Traits::constexpr_operation(),
-          constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()});
+          constant_value {arg.lhsExpression()}, constant_value {arg.rhsExpression()});
       else
         return values::operation(arg.functor(),
-          constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()});
+          constant_value {arg.lhsExpression()}, constant_value {arg.rhsExpression()});
     }
 
   private:
@@ -120,22 +120,22 @@ namespace OpenKalman::interface
 #endif
         return Traits::template get_constant_diagonal<LhsXprType, RhsXprType>(arg);
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<LhsXprType>)
-        return constant_diagonal_coefficient {arg.rhsExpression()};
+        return constant_diagonal_value {arg.rhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<RhsXprType>)
-        return constant_diagonal_coefficient {arg.lhsExpression()};
+        return constant_diagonal_value {arg.lhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<LhsXprType>)
-        return constant_coefficient {arg.lhsExpression()};
+        return constant_value {arg.lhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<RhsXprType>)
-        return constant_coefficient {arg.rhsExpression()};
+        return constant_value {arg.rhsExpression()};
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product)
       {
         auto c_left = [](const Arg& arg){
-            if constexpr (constant_matrix<LhsXprType>) return constant_coefficient {arg.lhsExpression()};
-            else return constant_diagonal_coefficient {arg.lhsExpression()};
+            if constexpr (constant_matrix<LhsXprType>) return constant_value {arg.lhsExpression()};
+            else return constant_diagonal_value {arg.lhsExpression()};
         }(arg);
         auto c_right = [](const Arg& arg){
-            if constexpr (constant_matrix<RhsXprType>) return constant_coefficient {arg.rhsExpression()};
-            else return constant_diagonal_coefficient {arg.rhsExpression()};
+            if constexpr (constant_matrix<RhsXprType>) return constant_value {arg.rhsExpression()};
+            else return constant_diagonal_value {arg.rhsExpression()};
         }(arg);
 #ifdef __cpp_concepts
         if constexpr (requires { Traits::constexpr_operation(); })
@@ -154,10 +154,10 @@ namespace OpenKalman::interface
         if constexpr (constexpr_operation_defined<>::value)
 #endif
           return values::operation(Traits::constexpr_operation(),
-            constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()});
+            constant_diagonal_value {arg.lhsExpression()}, constant_diagonal_value {arg.rhsExpression()});
         else
           return values::operation(arg.functor(),
-            constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()});
+            constant_diagonal_value {arg.lhsExpression()}, constant_diagonal_value {arg.rhsExpression()});
       }
       else
       {
@@ -185,7 +185,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular =
+    static constexpr bool triangle_type_value =
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
       triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t> and
       (t != triangle_type::any or triangle_type_of_v<LhsXprType, RhsXprType> != triangle_type::any) :

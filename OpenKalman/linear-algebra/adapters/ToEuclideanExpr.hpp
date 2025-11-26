@@ -54,7 +54,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     constexpr ToEuclideanExpr() requires std::default_initializable<Base>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<Base>, int> = 0>
     constexpr ToEuclideanExpr()
 #endif
     {}
@@ -66,7 +66,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<indexible<Arg> and stdex::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit ToEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -112,7 +112,7 @@ template<indexible Arg>
   namespace interface
   {
     template<typename NestedObject>
-    struct indexible_object_traits<ToEuclideanExpr<NestedObject>>
+    struct object_traits<ToEuclideanExpr<NestedObject>>
     {
       using scalar_type = element_type_of_t<NestedObject>;
 
@@ -151,7 +151,7 @@ template<indexible Arg>
       get_constant(const Arg& arg)
       {
         if constexpr (has_untyped_index<NestedObject, 0>)
-          return constant_coefficient {arg.nested_object()};
+          return constant_value {arg.nested_object()};
         else
           return std::monostate {};
       }
@@ -162,7 +162,7 @@ template<indexible Arg>
       get_constant_diagonal(const Arg& arg)
       {
         if constexpr (has_untyped_index<NestedObject, 0>)
-          return constant_diagonal_coefficient {arg.nested_object()};
+          return constant_diagonal_value {arg.nested_object()};
         else
           return std::monostate {};
       }
@@ -180,7 +180,7 @@ template<indexible Arg>
 
       template<triangle_type t>
       static constexpr bool
-      is_triangular = has_untyped_index<NestedObject, 0> and triangular_matrix<NestedObject, t>;
+      triangle_type_value = has_untyped_index<NestedObject, 0> and triangular_matrix<NestedObject, t>;
 
 
       static constexpr bool
@@ -247,15 +247,15 @@ template<indexible Arg>
       template<typename Arg, typename Indices>
       static constexpr decltype(auto)
 #endif
-      get_component(Arg&& arg, const Indices& indices)
+      access(Arg&& arg, const Indices& indices)
       {
         if constexpr (has_untyped_index<NestedObject, 0>)
         {
-          return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), indices);
+          return NestedInterface::access(nested_object(std::forward<Arg>(arg)), indices);
         }
         else
         {
-          auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
+          auto g {[&arg, is...](std::size_t ix) { return access(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           return coordinates::to_stat_space(get_pattern_collection<0>(arg), g, i);
         }
       }

@@ -16,15 +16,30 @@
 #ifndef OPENKALMAN_IS_VECTOR_HPP
 #define OPENKALMAN_IS_VECTOR_HPP
 
+#include "linear-algebra/traits/index_count.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<std::size_t N, std::size_t...Is, typename T>
-    constexpr bool get_is_vector_impl(std::index_sequence<Is...>, const T& t)
+    template<std::size_t N, std::size_t i = 0, typename T>
+    constexpr bool get_is_vector_impl(const T& t)
     {
-      return (... and (N == Is or get_index_extent<Is>(t) == 1));
+      if constexpr (i < index_count_v<T>)
+      {
+        return values::operation(
+          std::logical_and{},
+          values::operation(
+            std::logical_or{},
+            std::bool_constant<N == i>{},
+            values::operation(std::equal_to{}, get_index_extent<i>(t), std::integral_constant<std::size_t, 1>{})
+            ),
+          get_is_vector_impl<N, i + 1>(t));
+      }
+      else
+      {
+        return std::true_type {};
+      }
     }
   }
 
@@ -33,25 +48,26 @@ namespace OpenKalman
    * \brief Return true if T is a \ref vector at runtime.
    * \details In this context, a vector is an object in which every index but one is 1D.
    * \tparam N An index designating the "large" index (e.g., 0 for a column vector, 1 for a row vector)
-   * \tparam T A tensor or matrix
    * \sa vector
    */
 #ifdef __cpp_concepts
-  template<std::size_t N = 0, interface::count_indices_defined_for T>
+  template<std::size_t N = 0, indexible T>
+  constexpr internal::boolean_testable auto
 #else
-  template<std::size_t N = 0, typename T, std::enable_if_t<interface::count_indices_defined_for<T>, int> = 0>
+  template<std::size_t N = 0, typename T, std::enable_if_t<indexible<T>, int> = 0>
+  constexpr auto
 #endif
-  constexpr bool is_vector(const T& t)
+  is_vector(const T& t)
   {
-    if constexpr (values::fixed<decltype(count_indices(t))>)
+    if constexpr (index_count_v<T> == stdex::dynamic_extent)
     {
-      constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
-      return detail::get_is_vector_impl<N>(std::make_index_sequence<count>{}, t);
+      for (std::size_t i = 0; i < count_indices(t); ++i)
+        if (N != i and get_index_extent(t, i) != 1) return false;
+      return true;
     }
     else
     {
-      for (std::size_t i = 0; i < count_indices(t); ++i) if (N != i and get_index_extent(t, i) != 1) return false;
-      return true;
+      return detail::get_is_vector_impl<N>(t);
     }
   }
 

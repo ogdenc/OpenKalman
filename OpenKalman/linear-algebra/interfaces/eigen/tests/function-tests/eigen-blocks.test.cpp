@@ -502,15 +502,15 @@ TEST(eigen3, split_vertical)
 
   EXPECT_TRUE(is_near(split<0>(x1, std::tuple{Dimensions<3>{}}, std::tuple{Dimensions<2>{}}), tup_m33_m23));
   EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, 3> {x1}, std::tuple{Dimensions<3>{}}, std::tuple{Dimensions<2>{}}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, dynamic_size> {x1}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, dynamic_size, 3> {x1}, Dimensions{3}, Dimensions{2}), tup_m33_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, dynamic_size, dynamic_size> {x1}, 3, 2), tup_m33_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, stdex::dynamic_extent> {x1}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, stdex::dynamic_extent, 3> {x1}, Dimensions{3}, Dimensions{2}), tup_m33_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent> {x1}, 3, 2), tup_m33_m23));
 
   EXPECT_TRUE(is_near(split<0>(x1, Dimensions<2>{}, Dimensions<2>{}), tup_m23_m23));
   EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, 3> {x1}, Dimensions<2>{}, Dimensions<2>{}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, dynamic_size> {x1}, Dimensions<2>{}, Dimensions<2>{}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, dynamic_size, 3> {x1}, std::tuple{Dimensions{2}}, std::tuple{Dimensions{2}}), tup_m23_m23));
-  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, dynamic_size, dynamic_size> {x1}, std::tuple{2}, std::tuple{2}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, 5, stdex::dynamic_extent> {x1}, Dimensions<2>{}, Dimensions<2>{}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, stdex::dynamic_extent, 3> {x1}, std::tuple{Dimensions{2}}, std::tuple{Dimensions{2}}), tup_m23_m23));
+  EXPECT_TRUE(is_near(split<0>(eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent> {x1}, std::tuple{2}, std::tuple{2}), tup_m23_m23));
 }
 
 
@@ -543,9 +543,9 @@ TEST(eigen3, split_horizontal)
 
   EXPECT_TRUE(is_near(split<1>(b1, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m32));
   EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, 5> {b1}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, dynamic_size> {b1}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, 5> {b1}, std::tuple{Dimensions{3}}, std::tuple{Dimensions{2}}), tup_m33_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, dynamic_size> {b1}, 3, 2), tup_m33_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, stdex::dynamic_extent> {b1}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, stdex::dynamic_extent, 5> {b1}, std::tuple{Dimensions{3}}, std::tuple{Dimensions{2}}), tup_m33_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent> {b1}, 3, 2), tup_m33_m32));
 
   auto tup_m32_m32 = std::tuple {Eigen3::make_eigen_matrix<double, 3, 2>(
     1, 0,
@@ -557,9 +557,9 @@ TEST(eigen3, split_horizontal)
 
   EXPECT_TRUE(is_near(split<1>(b1, std::tuple{Dimensions<2>{}}, std::tuple{Dimensions<2>{}}), tup_m32_m32));
   EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, 5>(b1), Dimensions<2>{}, Dimensions<2>{}), tup_m32_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, dynamic_size>(b1), Dimensions<2>{}, Dimensions<2>{}), tup_m32_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, 5>(b1), Dimensions{2}, Dimensions{2}), tup_m32_m32));
-  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, dynamic_size>(b1), std::tuple{2}, std::tuple{2}), tup_m32_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, 3, stdex::dynamic_extent>(b1), Dimensions<2>{}, Dimensions<2>{}), tup_m32_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, stdex::dynamic_extent, 5>(b1), Dimensions{2}, Dimensions{2}), tup_m32_m32));
+  EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>(b1), std::tuple{2}, std::tuple{2}), tup_m32_m32));
 }
 
 

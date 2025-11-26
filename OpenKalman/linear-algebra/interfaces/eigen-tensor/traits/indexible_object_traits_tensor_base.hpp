@@ -13,8 +13,8 @@
  * \brief Base for type traits as applied to native Eigen tensor types.
  */
 
-#ifndef OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_TENSOR_BASE_HPP
-#define OPENKALMAN_INDEXIBLE_OBJECT_TRAITS_TENSOR_BASE_HPP
+#ifndef OPENKALMAN_OBJECT_TRAITS_TENSOR_BASE_HPP
+#define OPENKALMAN_OBJECT_TRAITS_TENSOR_BASE_HPP
 
 #include <type_traits>
 #include <tuple>
@@ -24,10 +24,10 @@ namespace OpenKalman::Eigen3
 {
 #ifdef __cpp_concepts
   template<Eigen3::eigen_tensor_general T>
-  struct indexible_object_traits_tensor_base<T>
+  struct object_traits_tensor_base<T>
 #else
   template<typename T>
-  struct indexible_object_traits_tensor_base<T, std::enable_if_t<Eigen3::eigen_tensor_general<T>>>
+  struct object_traits_tensor_base<T, std::enable_if_t<Eigen3::eigen_tensor_general<T>>>
 #endif
   {
     using scalar_type = typename Eigen::internal::traits<T>::Scalar;

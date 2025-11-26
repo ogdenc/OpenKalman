@@ -21,12 +21,14 @@
 namespace OpenKalman::interface
 {
   // ------------------------- //
-  //  indexible_object_traits  //
+  //  object_traits  //
   // ------------------------- //
 
   template<typename NestedObject, typename LibraryObject>
-  struct indexible_object_traits<internal::LibraryWrapper<NestedObject, LibraryObject>>
+  struct object_traits<internal::LibraryWrapper<NestedObject, LibraryObject>>
   {
+    static const bool is_specialized = true;
+
   private:
 
     using Xpr = internal::LibraryWrapper<NestedObject, LibraryObject>;
@@ -58,13 +60,13 @@ namespace OpenKalman::interface
 
     static constexpr auto get_constant(const Xpr& arg)
     {
-      return constant_coefficient{arg.nested_object()};
+      return constant_value{arg.nested_object()};
     }
 
 
     static constexpr auto get_constant_diagonal(const Xpr& arg)
     {
-      return constant_diagonal_coefficient {arg.nested_object()};
+      return constant_diagonal_value {arg.nested_object()};
     }
 
 
@@ -76,8 +78,7 @@ namespace OpenKalman::interface
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
-    template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<NestedObject, t>;
+    static constexpr triangle_type triangle_type_value = triangle_type_of<NestedObject>;
 
 
     static constexpr bool is_triangular_adapter = false;
@@ -179,14 +180,14 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<typename To, typename From> requires
-      interface::assign_defined_for<NestedObject, nested_object_of_t<To&&>, From&&>
+      interface::copy_defined_for<NestedObject, nested_object_of_t<To&&>, From&&>
 #else
-    template<typename To, typename From, std::enable_if_t<interface::assign_defined_for<
+    template<typename To, typename From, std::enable_if_t<interface::copy_defined_for<
       NestedObject, typename nested_object_of<To&&>::type, From&&>, int> = 0>
 #endif
-    static constexpr void assign(To& a, From&& b)
+    static constexpr void copy(To& a, From&& b)
     {
-      NestedInterface::assign(nested_object(a), std::forward<From>(b));
+      NestedInterface::copy(nested_object(a), std::forward<From>(b));
     }
 
 

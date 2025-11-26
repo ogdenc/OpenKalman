@@ -21,9 +21,9 @@
 namespace OpenKalman
 {
   /**
-   * \brief The minimum number of indices needed to access all the components of an object.
-   * \details If dynamic, the result is OpenKalman::dynamic_size (currently not implemented).
-   * \internal \sa interface::indexible_object_traits::count_indices
+   * \brief The minimum number of indices needed to access all the components of an object (i.e., the rank or order).
+   * \details If T is \ref indexible, the index_count will be a fixed \ref values::index.
+   * \internal \sa interface::object_traits::count_indices
    * \tparam T An \indexible object (tensor, vector, matrix, etc.)
    */
 #ifdef __cpp_concepts
@@ -38,26 +38,13 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires requires(T& t) { {count_indices(t)} -> values::fixed; }
+  template<indexible T> requires requires(const T& t) { {count_indices(t)} -> values::fixed; }
   struct index_count<T>
 #else
   template<typename T>
-  struct index_count<T, std::enable_if_t<values::fixed<decltype(count_indices(std::declval<T&>()))>>>
+  struct index_count<T, std::enable_if_t<values::fixed<decltype(count_indices(std::declval<const T&>()))>>>
 #endif
-    : std::decay_t<decltype(count_indices(std::declval<T&>()))> {};
-
-
-  /**
-   * \overload
-   */
-#ifdef __cpp_concepts
-  template<indexible T> requires requires(T& t) { {count_indices(t)} -> values::dynamic; }
-  struct index_count<T>
-#else
-  template<typename T>
-  struct index_count<T, std::enable_if_t<values::dynamic<decltype(count_indices(std::declval<T&>()))>>>
-#endif
-    : std::integral_constant<std::size_t, dynamic_size> {};
+    : std::integral_constant<std::size_t, values::fixed_value_of_v<decltype(count_indices(std::declval<const T&>()))>> {};
 
 
   /**

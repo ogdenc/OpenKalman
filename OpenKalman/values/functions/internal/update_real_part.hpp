@@ -45,7 +45,7 @@ namespace OpenKalman::values::internal
     if constexpr (complex<T>)
     {
       using U = std::common_type_t<real_type_of_t<T>, Re>;
-      return values::internal::make_complex_number<U>(std::forward<Re>(re), values::imag(std::move(t)));
+      return make_complex_number<U>(std::forward<Re>(re), values::imag(std::move(t)));
     }
     else
     {

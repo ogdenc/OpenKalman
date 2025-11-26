@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_BROADCAST_HPP
 #define OPENKALMAN_BROADCAST_HPP
 
-#include "collections/views/concat.hpp"
+#include "collections/collections.hpp"
 
 namespace OpenKalman
 {
@@ -71,7 +71,7 @@ namespace OpenKalman
         if ((... or (factors <= 0))) throw std::invalid_argument {"In broadcast, all factors must be positive"};
       }
 
-      using Trait = interface::library_interface<std::decay_t<Arg>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<Arg>>;
       return Trait::broadcast(std::forward<Arg>(arg), factors...);
     }
   }

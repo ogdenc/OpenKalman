@@ -23,7 +23,7 @@ namespace OpenKalman::coordinates::views
   namespace detail
   {
     template<typename Factor>
-    struct replicate_closure : stdcompat::ranges::range_adaptor_closure<replicate_closure<Factor>>
+    struct replicate_closure : stdex::ranges::range_adaptor_closure<replicate_closure<Factor>>
     {
       constexpr replicate_closure(Factor f) : factor_ {std::move(f)} {};
 

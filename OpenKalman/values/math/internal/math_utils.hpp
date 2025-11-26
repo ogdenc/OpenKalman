@@ -35,7 +35,7 @@ namespace OpenKalman::values::internal
   template<typename T>
   constexpr T atan2_impl(const T& y, const T& x)
   {
-    constexpr auto pi = stdcompat::numbers::pi_v<T>;
+    constexpr auto pi = stdex::numbers::pi_v<T>;
 
     if constexpr (std::numeric_limits<T>::has_infinity)
     {

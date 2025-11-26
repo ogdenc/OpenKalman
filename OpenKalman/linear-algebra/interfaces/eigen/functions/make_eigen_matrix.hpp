@@ -27,11 +27,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<values::number Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-    requires (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns)
+    requires (rows != stdex::dynamic_extent) and (columns != stdex::dynamic_extent) and (sizeof...(Args) == rows * columns)
 #else
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    values::number<Scalar> and (stdcompat::convertible_to<Args, Scalar> and ...) and
-    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
+    values::number<Scalar> and (stdex::convertible_to<Args, Scalar> and ...) and
+    (rows != stdex::dynamic_extent) and (columns != stdex::dynamic_extent) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args...args)
@@ -48,11 +48,11 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<std::size_t rows, std::size_t columns = 1, values::number...Args> requires
-    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns) and
+    (rows != stdex::dynamic_extent) and (columns != stdex::dynamic_extent) and (sizeof...(Args) == rows * columns) and
     requires { requires values::number<std::common_type_t<Args...>>; }
 #else
   template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<(values::number<Args> and ...) and
-    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
+    (rows != stdex::dynamic_extent) and (columns != stdex::dynamic_extent) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args...args)
@@ -69,7 +69,7 @@ namespace OpenKalman::Eigen3
   template<values::number Scalar, std::convertible_to<Scalar>...Args> requires (not std::is_void_v<Scalar>)
 #else
   template<typename Scalar, typename ... Args, std::enable_if_t<
-    values::number<Scalar> and (stdcompat::convertible_to<Args, Scalar> and ...) and (not std::is_void_v<Scalar>), int> = 0>
+    values::number<Scalar> and (stdex::convertible_to<Args, Scalar> and ...) and (not std::is_void_v<Scalar>), int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args ... args)

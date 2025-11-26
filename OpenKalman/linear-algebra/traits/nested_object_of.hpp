@@ -24,7 +24,7 @@ namespace OpenKalman
    * \brief A wrapper type's nested object type, if it exists.
    * \details For example, for OpenKalman::TriangularAdapter<M, triangle_type::lower>, the nested object type is M.
    * \tparam T A wrapper type that has a nested object.
-   * \internal \sa interface::indexible_object_traits
+   * \internal \sa interface::object_traits
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -42,7 +42,7 @@ namespace OpenKalman
   struct nested_object_of<T, std::enable_if_t<has_nested_object<T>>>
 #endif
   {
-    using type = decltype(interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::nested_object(std::declval<T>()));
+    using type = decltype(interface::object_traits<stdex::remove_cvref_t<T>>::nested_object(std::declval<T>()));
   };
 
 

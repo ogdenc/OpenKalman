@@ -40,7 +40,7 @@ namespace OpenKalman::collections
   template<typename T>
   struct size_of<T, std::enable_if_t<sized<T> and not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
-    : std::integral_constant<std::size_t, dynamic_size> {};
+    : std::integral_constant<std::size_t, stdex::dynamic_extent> {};
 
 
 #ifdef __cpp_concepts

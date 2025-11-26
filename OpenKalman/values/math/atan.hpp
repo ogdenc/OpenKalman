@@ -62,7 +62,7 @@ namespace OpenKalman::values
       else
       {
         if (values::isnan(arg)) return values::internal::NaN<Return>();
-        if (values::isinf(arg)) return values::copysign(stdcompat::numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
+        if (values::isinf(arg)) return values::copysign(stdex::numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
         if (arg == 0) return static_cast<Return>(arg);
         return internal::atan_impl(static_cast<Return>(arg));
       }

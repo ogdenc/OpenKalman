@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_MAX_TENSOR_ORDER_HPP
 #define OPENKALMAN_MAX_TENSOR_ORDER_HPP
 
+#include "linear-algebra/concepts/dimension_size_of_index_is.hpp"
 
 namespace OpenKalman
 {
@@ -36,7 +37,7 @@ namespace OpenKalman
    * \brief The maximum number of indices of structure T of size other than 1 (including any dynamic indices).
    * \details If T has any zero-dimensional indices, the tensor order is considered to be 0, based on the theory that
    * a zero-dimensional vector space has 0 as its only element, and 0 is a scalar value.
-   * This may be subject to change.
+   * (This may be subject to change.)
    * \tparam T A tensor (vector, matrix, etc.)
    */
 #ifdef __cpp_concepts
@@ -45,15 +46,15 @@ namespace OpenKalman
   template<typename T, typename = void>
 #endif
   struct max_tensor_order
-    : std::integral_constant<std::size_t, indexible<T> ? dynamic_size : 0> {};
+    : std::integral_constant<std::size_t, indexible<T> ? stdex::dynamic_extent : 0> {};
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires (index_count_v<T> != dynamic_size)
+  template<typename T> requires (index_count_v<T> != std::dynamic_extent)
   struct max_tensor_order<T>
 #else
   template<typename T>
-  struct max_tensor_order<T, std::enable_if_t<index_count<T>::value != dynamic_size>>
+  struct max_tensor_order<T, std::enable_if_t<index_count<T>::value != stdex::dynamic_extent>>
 #endif
     : std::integral_constant<std::size_t, detail::max_tensor_order_impl<index_count_v<T>, T>()> {};
 

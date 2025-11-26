@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_TRIANGULARADAPTER_HPP
 #define OPENKALMAN_TRIANGULARADAPTER_HPP
 
+#include "linear-algebra/traits/triangle_type_of.hpp"
+
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
@@ -53,7 +55,7 @@ namespace OpenKalman
     TriangularAdapter() requires std::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>)
 #else
     template<bool Enable = true, std::enable_if_t<Enable and
-      stdcompat::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
+      stdex::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
     TriangularAdapter()
 #endif
       : Base {} {}
@@ -85,7 +87,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<square_shaped<Arg, applicability::permitted> and
       (not triangular_matrix<Arg, tri>) and (not diagonal_matrix<NestedObject>) and
-      dimensions_match<Arg> and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
+      dimensions_match<Arg> and stdex::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit TriangularAdapter(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
@@ -118,7 +120,7 @@ namespace OpenKalman
       requires(Arg&& arg) { NestedObject {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularAdapter, std::decay_t<Arg>>) and
-      diagonal_matrix<NestedObject> and dimensions_match<Arg> and (not stdcompat::constructible_from<NestedObject, Arg&&>) and
+      diagonal_matrix<NestedObject> and dimensions_match<Arg> and (not stdex::constructible_from<NestedObject, Arg&&>) and
       std::is_constructible<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
     TriangularAdapter(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
@@ -185,8 +187,8 @@ namespace OpenKalman
     template<triangular_matrix<tri> Arg> requires
       (not std::is_base_of_v<TriangularAdapter, std::decay_t<Arg>>) and
       vector_space_descriptors_may_match_with<NestedObject, Arg> and
-      (not values::fixed<constant_diagonal_coefficient<NestedObject>> or
-        requires { requires constant_diagonal_coefficient<NestedObject>::value == constant_diagonal_coefficient<Arg>::value; }) and
+      (not values::fixed<constant_diagonal_value<NestedObject>> or
+        requires { requires constant_diagonal_value<NestedObject>::value == constant_diagonal_value<Arg>::value; }) and
       (not (diagonal_matrix<NestedObject> or tri == triangle_type::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg, tri> and
@@ -229,7 +231,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -241,7 +243,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -285,7 +287,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
@@ -297,7 +299,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
@@ -309,7 +311,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
@@ -361,7 +363,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedObject, triangle_type tri>
-    struct indexible_object_traits<TriangularAdapter<NestedObject, tri>>
+    struct object_traits<TriangularAdapter<NestedObject, tri>>
     {
       using scalar_type = scalar_type_of_t<NestedObject>;
 
@@ -390,9 +392,9 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         if constexpr (tri == triangle_type::diagonal and not diagonal_matrix<NestedObject>)
-          return constant_coefficient{OpenKalman::nested_object(arg)};
+          return constant_value{OpenKalman::nested_object(arg)};
         else
-          return constant_diagonal_coefficient{OpenKalman::nested_object(arg)};
+          return constant_diagonal_value{OpenKalman::nested_object(arg)};
       }
 
 
@@ -404,9 +406,7 @@ namespace OpenKalman
       static constexpr bool is_square = OpenKalman::square_shaped<NestedObject, b>;
 
 
-      template<triangle_type t>
-      static constexpr bool is_triangular = t == triangle_type::any or tri == triangle_type::diagonal or tri == t or
-        triangular_matrix<NestedObject, t>;
+      static constexpr triangle_type triangle_type_value = tri * triangle_type_of_v<NestedObject>;
 
 
       static constexpr bool is_triangular_adapter = true;

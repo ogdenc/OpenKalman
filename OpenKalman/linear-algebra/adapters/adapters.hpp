@@ -38,7 +38,7 @@
 #include "internal/ElementAccessor.hpp"
 #include "internal/AdapterBase.hpp"
 
-#include "VectorSpaceAdapter.hpp"
+#include "pattern_adapter.hpp"
 #include "interfaces/VectorSpaceAdapter.hpp"
 
 #include "diagonal_adapter.hpp"

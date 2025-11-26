@@ -18,8 +18,7 @@
 #define OPENKALMAN_DESCRIPTOR_ANY_HPP
 
 #include <memory>
-#include "values/concepts/number.hpp"
-#include "collections/views/generate.hpp"
+#include "collections/collections.hpp"
 #include "coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "coordinates/functions/to_stat_space.hpp"
 #include "coordinates/functions/from_stat_space.hpp"
@@ -33,39 +32,39 @@ namespace OpenKalman::coordinates
   /**
    * \internal
    * \brief A type representing any \ref coordinates::descriptor object.
-   * \tparam Scalar The scalar type for elements associated with this \ref coordinates::pattern object.
+   * \tparam S The value type for elements associated with this \ref coordinates::pattern object.
    */
 #ifdef __cpp_concepts
-  template<values::number Scalar = double> requires std::same_as<Scalar, std::decay_t<Scalar>>
+  template<values::number S = double> requires std::same_as<S, std::decay_t<S>>
 #else
-  template<typename Scalar = double>
+  template<typename S = double>
 #endif
   struct Any;
 
 
-  namespace internal
+  namespace detail
   {
     /**
      * \brief Tests whether the argument is an instance of of type \ref Any.
      */
     template<typename T>
-    struct is_Any : std::false_type { using scalar_type = double; };
+    struct is_Any : std::false_type {};
 
-    template<typename Scalar>
-    struct is_Any<Any<Scalar>> : std::true_type { using scalar_type = Scalar; };
+    template<typename S>
+    struct is_Any<Any<S>> : std::true_type {};
   }
 
 
 #ifdef __cpp_concepts
-  template<values::number Scalar> requires std::same_as<Scalar, std::decay_t<Scalar>>
+  template<values::number S> requires std::same_as<S, std::decay_t<S>>
 #else
-  template<typename Scalar>
+  template<typename S>
 #endif
   struct Any
   {
   private:
 
-    using Getter = std::function<Scalar(std::size_t)>;
+    using Getter = std::function<S(std::size_t)>;
 
     struct Base
     {
@@ -83,8 +82,6 @@ namespace OpenKalman::coordinates
     template <typename T>
     struct Derived : Base
     {
-      static_assert(descriptor<T> and not internal::is_Any<T>::value);
-
       template<typename Arg>
       explicit Derived(Arg&& arg) : my_t(std::forward<Arg>(arg)) {}
 
@@ -105,7 +102,7 @@ namespace OpenKalman::coordinates
         else
         {
           return [stat_data = coordinates::to_stat_space(my_t, collections::views::generate(std::move(g), get_dimension(my_t)))]
-            (std::size_t i) -> Scalar { return collections::get(stat_data, i); };
+            (std::size_t i) -> S { return collections::get_element(stat_data, i); };
         }
       }
 
@@ -118,7 +115,7 @@ namespace OpenKalman::coordinates
         else
         {
           return [data = coordinates::from_stat_space(my_t, collections::views::generate(std::move(g), get_stat_dimension(my_t)))]
-            (std::size_t i) -> Scalar { return collections::get(data, i); };
+            (std::size_t i) -> S { return collections::get_element(data, i); };
         }
       }
 
@@ -131,7 +128,7 @@ namespace OpenKalman::coordinates
         else
         {
           return [data = coordinates::wrap(my_t, collections::views::generate(std::move(g), get_dimension(my_t)))]
-            (std::size_t i) -> Scalar { return collections::get(data, i); };
+            (std::size_t i) -> S { return collections::get_element(data, i); };
         }
       }
 
@@ -146,9 +143,9 @@ namespace OpenKalman::coordinates
      * \brief Construct from a \ref coordinates::descriptor.
      */
 #ifdef __cpp_concepts
-    template <descriptor Arg> requires (not internal::is_Any<std::decay_t<Arg>>::value)
+    template <descriptor Arg> requires (not detail::is_Any<std::decay_t<Arg>>::value)
 #else
-    template<typename Arg, std::enable_if_t<descriptor<Arg> and (not internal::is_Any<std::decay_t<Arg>>::value), int> = 0>
+    template<typename Arg, std::enable_if_t<descriptor<Arg> and (not detail::is_Any<std::decay_t<Arg>>::value), int> = 0>
 #endif
     constexpr
     Any(Arg&& arg) : mBase {std::make_shared<Derived<std::decay_t<Arg>>>(std::forward<Arg>(arg))} {}
@@ -181,12 +178,12 @@ namespace OpenKalman::interface
    * \internal
    * \brief traits for coordinates::Any.
    */
-  template<typename Scalar>
-  struct coordinate_descriptor_traits<coordinates::Any<Scalar>>
+  template<typename S>
+  struct coordinate_descriptor_traits<coordinates::Any<S>>
   {
   private:
 
-    using T = coordinates::Any<Scalar>;
+    using T = coordinates::Any<S>;
 
   public:
 
@@ -210,7 +207,7 @@ namespace OpenKalman::interface
     {
       auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
       return collections::views::generate(
-        t.mBase->to_stat_space([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->to_stat_space([d](std::size_t i){ return collections::get_element(std::get<0>(d), i); }),
         t.mBase->stat_dimension());
     };
 
@@ -220,7 +217,7 @@ namespace OpenKalman::interface
     {
       auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
       return collections::views::generate(
-        t.mBase->from_stat_space([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->from_stat_space([d](std::size_t i){ return collections::get_element(std::get<0>(d), i); }),
         t.mBase->dimension());
     };
 
@@ -230,7 +227,7 @@ namespace OpenKalman::interface
     {
       auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
       return collections::views::generate(
-        t.mBase->wrap([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->wrap([d](std::size_t i){ return collections::get_element(std::get<0>(d), i); }),
         t.mBase->dimension());
     };
 
@@ -244,20 +241,20 @@ namespace std
   template<typename Scalar1, typename Scalar2>
   struct common_type<OpenKalman::coordinates::Any<Scalar1>, OpenKalman::coordinates::Any<Scalar2>>
     : std::conditional_t<
-        OpenKalman::stdcompat::common_with<Scalar1, Scalar2>,
-        OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<
+        OpenKalman::stdex::common_with<Scalar1, Scalar2>,
+        OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<
           typename std::conditional_t<
-            OpenKalman::stdcompat::common_with<Scalar1, Scalar2>,
+            OpenKalman::stdex::common_with<Scalar1, Scalar2>,
             common_type<Scalar1, Scalar2>,
-            OpenKalman::stdcompat::type_identity<double>>::type>>,
+            OpenKalman::stdex::type_identity<double>>::type>>,
         std::monostate> {};
 
 
-  template<typename Scalar, typename T>
-  struct common_type<OpenKalman::coordinates::Any<Scalar>, T>
+  template<typename S, typename T>
+  struct common_type<OpenKalman::coordinates::Any<S>, T>
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
-      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<Scalar>>,
+      OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<S>>,
       std::monostate> {};
 }
 

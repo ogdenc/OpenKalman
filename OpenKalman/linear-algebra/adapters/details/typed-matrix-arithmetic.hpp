@@ -32,7 +32,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
     else if constexpr (mean<V1> and mean<V2>) return make_mean<RC1>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC1{}, CC1{});
+    else return attach_pattern(std::move(b), RC1{}, CC1{});
   }
 
 
@@ -53,8 +53,8 @@ namespace OpenKalman
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) - nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
-    else if constexpr (mean<V1> and mean<V2>) return make_vector_space_adapter(std::move(b), typename RC1::difference_type{}, CC1{});
-    else return make_vector_space_adapter(std::move(b), RC1{}, CC1{});
+    else if constexpr (mean<V1> and mean<V2>) return attach_pattern(std::move(b), typename RC1::difference_type{}, CC1{});
+    else return attach_pattern(std::move(b), RC1{}, CC1{});
   }
 
 
@@ -63,7 +63,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<
-    typed_matrix<V> and stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
+    typed_matrix<V> and stdex::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(V&& v, S scale)
   {
@@ -75,7 +75,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC{}, CC{});
+    else return attach_pattern(std::move(b), RC{}, CC{});
   }
 
 
@@ -84,7 +84,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
+    stdex::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(S scale, V&& v)
   {
@@ -96,7 +96,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC{}, CC{});
+    else return attach_pattern(std::move(b), RC{}, CC{});
   }
 
 
@@ -105,7 +105,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
+    stdex::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator/(V&& v, S scale)
   {
@@ -117,7 +117,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC{}, CC{});
+    else return attach_pattern(std::move(b), RC{}, CC{});
   }
 
 
@@ -136,7 +136,7 @@ namespace OpenKalman
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) * nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC{}, CC{});
+    else return attach_pattern(std::move(b), RC{}, CC{});
   }
 
 
@@ -154,7 +154,7 @@ namespace OpenKalman
     auto b = make_self_contained<V>(-nested_object(std::forward<V>(v)));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
-    else return make_vector_space_adapter(std::move(b), RC{}, CC{});
+    else return attach_pattern(std::move(b), RC{}, CC{});
   }
 
 

@@ -26,7 +26,7 @@ namespace OpenKalman::coordinates
   /**
    * \brief The dimension size of a set of \ref coordinates::pattern if it is transformed into Euclidean space.
    * \details The associated static member <code>value</code> is the size of the \ref coordinates::pattern when transformed
-   * to Euclidean space, or \ref dynamic_size if not known at compile time.
+   * to Euclidean space, or \ref stdex::dynamic_extent if not known at compile time.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -46,7 +46,7 @@ namespace OpenKalman::coordinates
   : std::conditional_t<
         values::fixed<decltype(coordinates::get_stat_dimension(std::declval<T>()))>,
         values::fixed_value_of<decltype(coordinates::get_stat_dimension(std::declval<T>()))>,
-        std::integral_constant<std::size_t, dynamic_size>> {};
+        std::integral_constant<std::size_t, stdex::dynamic_extent>> {};
 
 
   /**

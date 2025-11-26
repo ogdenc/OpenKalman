@@ -39,7 +39,7 @@ namespace OpenKalman::collections
     using namespace std;
 
     template<typename T>
-    constexpr bool sized = stdcompat::ranges::sized_range<stdcompat::remove_cvref_t<T>> or has_tuple_size<T>::value;
+    constexpr bool sized = stdex::ranges::sized_range<stdex::remove_cvref_t<T>> or has_tuple_size<T>::value;
   }
 
 

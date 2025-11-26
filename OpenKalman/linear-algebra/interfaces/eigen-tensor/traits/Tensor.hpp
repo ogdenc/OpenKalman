@@ -20,12 +20,12 @@
 namespace OpenKalman::interface
 {
   template<typename Scalar, int NumIndices, int options, typename IndexType>
-  struct indexible_object_traits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+  struct object_traits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+    : Eigen3::object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
+    using Base = Eigen3::object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
 
   public:
 
@@ -42,7 +42,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == NumIndices)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdex::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == NumIndices), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
@@ -58,7 +58,7 @@ namespace OpenKalman::interface
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == NumIndices) and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdex::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == NumIndices) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)

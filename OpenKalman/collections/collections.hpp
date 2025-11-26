@@ -47,7 +47,9 @@ namespace OpenKalman
 #include "functions/get_size.hpp"
 #include "traits/size_of.hpp"
 
-#include "concepts/sized_random_access_range.hpp"
+#include "functions/get_element.hpp"
+#include "functions/get.hpp"
+
 #include "concepts/gettable.hpp"
 #include "concepts/uniformly_gettable.hpp"
 #include "concepts/tuple_like.hpp"
@@ -62,19 +64,15 @@ namespace OpenKalman
 #include "traits/collection_element.hpp"
 #include "traits/common_collection_type.hpp"
 #include "concepts/viewable_tuple_like.hpp"
-#include "functions/get.hpp"
 
 #include "functions/lexicographical_compare_three_way.hpp"
+#include "functions/compare_indices.hpp"
 
 #include "concepts/viewable_collection.hpp"
 #include "concepts/collection_view.hpp"
 
-#include "functions/internal/tuple_reverse.hpp"
-#include "functions/internal/tuple_flatten.hpp"
-#include "functions/internal/tuple_like_to_tuple.hpp"
 #include "functions/apply.hpp"
 
-#include "views/from_tuple_like_range.hpp"
 #include "views/from_tuple_like.hpp"
 #include "views/from_range.hpp"
 #include "views/all.hpp"

@@ -20,13 +20,13 @@
 namespace OpenKalman::interface
 {
   template<typename UnaryOp, typename XprType>
-  struct indexible_object_traits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-    : Eigen3::indexible_object_traits_base<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+  struct object_traits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+    : Eigen3::object_traits_base<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
   private:
 
     using Xpr = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
     using Traits = Eigen3::UnaryFunctorTraits<std::decay_t<UnaryOp>>;
 
     template<typename T>
@@ -78,9 +78,9 @@ namespace OpenKalman::interface
 #endif
         return Traits::get_constant(arg);
       else if constexpr (Eigen3::constexpr_unary_operation_defined<UnaryOp>)
-        return values::operation(Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()});
+        return values::operation(Traits::constexpr_operation(), constant_value {arg.nestedExpression()});
       else
-        return values::operation(arg.functor(), constant_coefficient {arg.nestedExpression()});
+        return values::operation(arg.functor(), constant_value {arg.nestedExpression()});
     }
 
   private:
@@ -108,9 +108,9 @@ namespace OpenKalman::interface
       else if constexpr (not Traits::preserves_triangle)
         return std::monostate{};
       else if constexpr (Eigen3::constexpr_unary_operation_defined<UnaryOp>)
-        return values::operation(Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()});
+        return values::operation(Traits::constexpr_operation(), constant_diagonal_value{arg.nestedExpression()});
       else
-        return values::operation(arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()});
+        return values::operation(arg.functor(), constant_diagonal_value{arg.nestedExpression()});
     }
 
 
@@ -126,7 +126,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = Traits::preserves_triangle and triangular_matrix<XprType, t>;
+    static constexpr bool triangle_type_value = Traits::preserves_triangle and triangular_matrix<XprType, t>;
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and hermitian_matrix<XprType, applicability::permitted>;

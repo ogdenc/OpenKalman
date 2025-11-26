@@ -52,9 +52,9 @@ namespace OpenKalman::interface
     get_component(Arg&& arg, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto it = stdcompat::ranges::begin(indices);
+      auto it = stdex::ranges::begin(indices);
       std::size_t i {*it};
-      std::size_t j {++it == stdcompat::ranges::end(indices) ? 1 : *it};
+      std::size_t j {++it == stdex::ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
@@ -104,9 +104,9 @@ namespace OpenKalman::interface
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto it = stdcompat::ranges::begin(indices);
+      auto it = stdex::ranges::begin(indices);
       std::size_t i {*it};
-      std::size_t j {++it == stdcompat::ranges::end(indices) ? 1 : *it};
+      std::size_t j {++it == stdex::ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
@@ -336,7 +336,7 @@ namespace OpenKalman::interface
     rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
       auto&& n = nested_object(std::forward<A>(a));
-      using Trait = interface::library_interface<std::decay_t<decltype(n)>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(n)>>;
       if constexpr (OpenKalman::internal::hermitian_expr<A>)
       {
         auto&& m = Trait::template rank_update_hermitian<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);

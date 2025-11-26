@@ -14,7 +14,6 @@
  */
 
 #include <type_traits>
-#include "collections/tests/tests.hpp"
 #include "coordinates/concepts/fixed_pattern.hpp"
 #include "coordinates/concepts/pattern.hpp"
 #include "coordinates/concepts/euclidean_pattern.hpp"
@@ -24,6 +23,7 @@
 #include "coordinates/traits/dimension_of.hpp"
 #include "coordinates/traits/stat_dimension_of.hpp"
 #include "coordinates/descriptors/Dimensions.hpp"
+#include "collections/tests/tests.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
@@ -71,15 +71,15 @@ TEST(coordinates, Dimensions_dynamic)
   static_assert(euclidean_pattern<D>);
   static_assert(euclidean_pattern<D>);
   static_assert(descriptor<D>);
-  static_assert(dimension_of_v<D> == dynamic_size);
-  static_assert(stat_dimension_of_v<D> == dynamic_size);
+  static_assert(dimension_of_v<D> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<D> == stdex::dynamic_extent);
   static_assert(get_dimension(D {0_uz}) == 0);
   static_assert(get_dimension(D {3_uz}) == 3);
   static_assert(get_dimension(Dimensions {0u}) == 0);
   static_assert(get_dimension(Dimensions {3u}) == 3);
   static_assert(get_stat_dimension(Dimensions{3u}) == 3);
-  static_assert(get_dimension(Dimensions<dynamic_size> {Axis {}}) == 1);
-  static_assert(get_dimension(Dimensions<dynamic_size> {Dimensions<3> {}}) == 3);
+  static_assert(get_dimension(Dimensions<stdex::dynamic_extent> {Axis {}}) == 1);
+  static_assert(get_dimension(Dimensions<stdex::dynamic_extent> {Dimensions<3> {}}) == 3);
   static_assert(static_cast<std::size_t>(Dimensions {3u}) == 3);
 }
 

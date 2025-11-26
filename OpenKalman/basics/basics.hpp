@@ -52,7 +52,7 @@ namespace OpenKalman::internal {}
  * \internal
  * \brief Namespace for recreating or updating elements of the Standard Template Library.
  */
-namespace OpenKalman::stdcompat {}
+namespace OpenKalman::stdex {}
 
 #include "compatibility/language-features.hpp"
 #include "compatibility/core-concepts.hpp"
@@ -66,11 +66,10 @@ namespace OpenKalman::stdcompat {}
 #include "compatibility/internal/movable_box.hpp"
 #include "compatibility/iterator.hpp"
 #include "compatibility/ranges.hpp"
+#include "compatibility/span.hpp"
 #include "compatibility/mdspan.hpp"
 #include "compatibility/linalg.hpp"
 
 #include "global-definitions.hpp"
-
-#include "compatibility/internal/generalized_std_get.hpp"
 
 #endif

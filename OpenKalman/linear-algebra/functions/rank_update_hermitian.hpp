@@ -39,7 +39,7 @@ namespace OpenKalman
   template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, applicability::permitted> and
-    stdcompat::convertible_to<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
+    stdex::convertible_to<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
   inline decltype(auto)
 #endif
   rank_update_hermitian(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)
@@ -96,14 +96,14 @@ namespace OpenKalman
     else if constexpr (hermitian_adapter<A>)
     {
       auto&& aw = internal::make_writable_square_matrix<U>(nested_object(std::forward<A>(a)));
-      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_hermitian<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
     else // hermitian_matrix but not hermitian_adapter
     {
       auto&& aw = internal::make_writable_square_matrix<U>(std::forward<A>(a));
-      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_hermitian<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }

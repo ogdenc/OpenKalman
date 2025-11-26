@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int RowFactor, int ColFactor>
-  struct indexible_object_traits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-    : Eigen3::indexible_object_traits_base<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+  struct object_traits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+    : Eigen3::object_traits_base<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
   {
   private:
 
     using Xpr = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 
@@ -45,14 +45,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg.nestedExpression()};
+      return constant_value {arg.nestedExpression()};
     }
 
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (RowFactor == 1 and ColFactor == 1) return constant_diagonal_coefficient {arg.nestedExpression()};
+      if constexpr (RowFactor == 1 and ColFactor == 1) return constant_diagonal_value {arg.nestedExpression()};
       else return std::monostate {};
     }
 
@@ -78,7 +78,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<MatrixType, t> and
+    static constexpr bool triangle_type_value = triangular_matrix<MatrixType, t> and
       ((RowFactor == 1 and ColFactor != 0 and (t == triangle_type::upper or t == triangle_type::any)) or
         (ColFactor == 1 and RowFactor != 0 and (t == triangle_type::lower or t == triangle_type::any)) or
         (RowFactor == 1 and ColFactor == 1 and t == triangle_type::diagonal));
@@ -89,7 +89,7 @@ namespace OpenKalman::interface
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted> and
       ((RowFactor == 1 and ColFactor == 1) or not values::complex<scalar_type> or
-        values::not_complex<constant_coefficient<MatrixType>> or values::not_complex<constant_diagonal_coefficient<MatrixType>>);
+        values::not_complex<constant_value<MatrixType>> or values::not_complex<constant_diagonal_value<MatrixType>>);
 
   };
 

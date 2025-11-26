@@ -20,7 +20,6 @@
 #include "values/concepts/index.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/functions/operation.hpp"
-#include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/functions/get.hpp"
@@ -42,14 +41,14 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
   template<collection V, values::index Offset, values::index Extent> requires
     std::same_as<std::decay_t<Offset>, Offset> and std::same_as<std::decay_t<Extent>, Extent> and
-    (not sized<V> or size_of_v<V> == dynamic_size or
+    (not sized<V> or size_of_v<V> == stdex::dynamic_extent or
     ((values::dynamic<Offset> or values::fixed_value_of_v<Offset> <= size_of_v<V>) and
     (values::dynamic<Extent> or values::fixed_value_of_v<Extent> <= size_of_v<V>) and
     (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_value_of_v<Offset> + values::fixed_value_of_v<Extent> <= size_of_v<V>)))
 #else
   template<typename V, typename Offset, typename Extent>
 #endif
-  struct slice_view : stdcompat::ranges::view_interface<slice_view<V, Offset, Extent>>
+  struct slice_view : stdex::ranges::view_interface<slice_view<V, Offset, Extent>>
   {
     /**
      * \brief Default constructor.
@@ -57,8 +56,8 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr slice_view() = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<V> and
-      stdcompat::default_initializable<Offset> and stdcompat::default_initializable<Extent>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<V> and
+      stdex::default_initializable<Offset> and stdex::default_initializable<Extent>, int> = 0>
     constexpr slice_view() {}
 #endif
 
@@ -96,7 +95,7 @@ namespace OpenKalman::collections
     static constexpr auto
     begin_impl(Self&& self) noexcept
     {
-      return stdcompat::ranges::begin(std::forward<Self>(self).v_);
+      return stdex::ranges::begin(std::forward<Self>(self).v_);
     }
 
   public:
@@ -107,21 +106,21 @@ namespace OpenKalman::collections
      */
 #ifdef __cpp_explicit_this_parameter
     constexpr auto
-    begin(this auto&& self) noexcept requires stdcompat::ranges::range<const V>
+    begin(this auto&& self) noexcept requires stdex::ranges::range<const V>
     {
-      return stdcompat::ranges::begin(std::forward<decltype(self)>(self).v_) + std::forward<decltype(self)>(self).offset_;
+      return stdex::ranges::begin(std::forward<decltype(self)>(self).v_) + std::forward<decltype(self)>(self).offset_;
     }
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto begin() & { return begin_impl(*this) + offset_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto begin() const & { return begin_impl(*this) + offset_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto begin() && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto begin() const && noexcept { return begin_impl(std::move(*this)) + std::move(*this).offset_; }
 #endif
 
@@ -131,21 +130,21 @@ namespace OpenKalman::collections
      */
 #ifdef __cpp_explicit_this_parameter
     constexpr auto
-    end(this auto&& self) noexcept requires stdcompat::ranges::range<const V>
+    end(this auto&& self) noexcept requires stdex::ranges::range<const V>
     {
       return std::forward<decltype(self)>(self).begin() + std::forward<decltype(self)>(self).extent_;
     }
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto end() & { return this->begin() + extent_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto end() const & { return this->begin() + extent_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto end() && noexcept { return std::move(*this).begin() + std::move(*this).extent_; }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
     constexpr auto end() const && noexcept { return std::move(*this).begin() + std::move(*this).extent_; }
 #endif
 
@@ -171,7 +170,7 @@ namespace OpenKalman::collections
     get(this auto&& self) noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get(std::forward<decltype(self)>(self).v_,
+      return collections::get_element(std::forward<decltype(self)>(self).v_,
         values::operation(std::plus{}, std::forward<decltype(self)>(self).offset_, std::integral_constant<std::size_t, i>{}));
     }
 #else
@@ -180,7 +179,7 @@ namespace OpenKalman::collections
     get() &
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get(v_,
+      return collections::get_element(v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -189,7 +188,7 @@ namespace OpenKalman::collections
     get() const &
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get(v_,
+      return collections::get_element(v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -198,7 +197,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get(std::move(*this).v_,
+      return collections::get_element(std::move(*this).v_,
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -207,7 +206,7 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get(std::move(*this).v_,
+      return collections::get_element(std::move(*this).v_,
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).get_t())));
     }
 #endif
@@ -233,7 +232,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 #endif
 {
   template<typename V, typename O, typename E>
@@ -298,7 +297,7 @@ namespace OpenKalman::collections::views
 
 
     template<typename O, typename E>
-    struct slice_closure : stdcompat::ranges::range_adaptor_closure<slice_closure<O, E>>
+    struct slice_closure : stdex::ranges::range_adaptor_closure<slice_closure<O, E>>
     {
       constexpr slice_closure(O o, E e) : offset_ {std::move(o)}, extent_ {std::move(e)} {};
 

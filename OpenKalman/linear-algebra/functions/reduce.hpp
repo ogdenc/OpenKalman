@@ -71,7 +71,7 @@ namespace OpenKalman
       else if constexpr (constant_matrix<Arg>)
       {
         auto dim = internal::count_reduced_dimensions(arg, indices_seq, seq);
-        auto c = detail::constant_reduce_operation(b, constant_coefficient{arg}, dim);
+        auto c = detail::constant_reduce_operation(b, constant_value{arg}, dim);
         return make_constant<Arg>(std::move(c), internal::get_reduced_vector_space_descriptor<Ix, indices...>(std::forward<Arg>(arg))...);
       }
       else if constexpr (diagonal_matrix<Arg> and internal::is_plus<BinaryFunction>::value and
@@ -105,7 +105,7 @@ namespace OpenKalman
       }
       else
       {
-        using LibraryInterface = interface::library_interface<std::decay_t<Arg>>;
+        using LibraryInterface = interface::library_interface<stdex::remove_cvref_t<Arg>>;
         auto red = LibraryInterface::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
         if constexpr (values::number<decltype(red)>)
           return make_constant<Arg>(std::move(red), internal::get_reduced_vector_space_descriptor<Ix, indices...>(arg)...);
@@ -192,7 +192,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       auto dim = internal::count_reduced_dimensions(arg, seq, seq);
-      return constant_reduce_operation(b, constant_coefficient {arg}, dim);
+      return constant_reduce_operation(b, constant_value {arg}, dim);
     }
     else
     {

@@ -17,8 +17,8 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_MatrixWrapper)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().matrix())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().matrix())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().matrix())> == 2);
   static_assert(zero<decltype(std::declval<Z23>().matrix())>);
   static_assert(identity_matrix<decltype(std::declval<I22>().matrix())>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().matrix())>);

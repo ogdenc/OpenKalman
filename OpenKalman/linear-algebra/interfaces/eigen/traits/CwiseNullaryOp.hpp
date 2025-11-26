@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename NullaryOp, typename PlainObjectType>
-  struct indexible_object_traits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-    : Eigen3::indexible_object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+  struct object_traits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+    : Eigen3::object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>;
+    using Base = Eigen3::object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>;
 
     using NullaryTraits = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>;
 
@@ -70,7 +70,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = NullaryTraits::template is_triangular<t>;
+    static constexpr bool triangle_type_value = NullaryTraits::template triangle_type_value<t>;
 
 
     static constexpr bool is_triangular_adapter = false;

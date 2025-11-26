@@ -21,14 +21,17 @@
 
 #ifdef __cpp_lib_linalg
 #include <linalg>
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
   using namespace std::linalg;
 }
 #else
+
 #define MDSPAN_IMPL_STANDARD_NAMESPACE OpenKalman
-#define MDSPAN_IMPL_PROPOSED_NAMESPACE stdcompat
-//#include "std-lib-reference/linalg-reference-implementation/include/experimental/linalg"
+#define MDSPAN_IMPL_PROPOSED_NAMESPACE stdex
+#define MDSPAN_IMPL_TRAIT(TRAIT, ...) TRAIT<__VA_ARGS__>::value
+#include "std-lib-reference/linalg-reference-implementation/include/experimental/linalg"
+
 #endif
 
 

@@ -23,7 +23,7 @@
 #include <ranges>
 #endif
 
-namespace OpenKalman::stdcompat::ranges {}
+namespace OpenKalman::stdex::ranges {}
 
 #include "common.hpp"
 #include "language-features.hpp"

@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 
 using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;

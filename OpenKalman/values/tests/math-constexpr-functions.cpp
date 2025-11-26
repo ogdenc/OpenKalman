@@ -336,8 +336,8 @@ TEST(values, sqrt)
   static_assert(values::sqrt(4) == 2);
   static_assert(values::sqrt(9) == 3);
   static_assert(values::sqrt(1000000) == 1000);
-  static_assert(values::internal::near(values::sqrt(2.), stdcompat::numbers::sqrt2));
-  static_assert(values::internal::near(values::sqrt(3.), stdcompat::numbers::sqrt3));
+  static_assert(values::internal::near(values::sqrt(2.), stdex::numbers::sqrt2));
+  static_assert(values::internal::near(values::sqrt(3.), stdex::numbers::sqrt3));
   static_assert(values::internal::near(values::sqrt(4.0e6), 2.0e3));
   static_assert(values::internal::near(values::sqrt(9.0e-2), 3.0e-1));
   static_assert(values::internal::near(values::sqrt(2.5e-11), 5.0e-6));
@@ -364,7 +364,7 @@ TEST(values, sqrt)
 
   static_assert(values::sqrt(std::integral_constant<int, 9>{}) == 3);
   static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sqrt(values::fixed_value<double, 9>{}))>, 3, 1e-6));
-  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sqrt(values::fixed_value<double, 2>{}))>, stdcompat::numbers::sqrt2, 1e-6));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::sqrt(values::fixed_value<double, 2>{}))>, stdex::numbers::sqrt2, 1e-6));
 }
 
 
@@ -455,8 +455,8 @@ TEST(values, abs)
 
 TEST(values, exp)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
-  constexpr auto eL = stdcompat::numbers::e_v<long double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
+  constexpr auto eL = stdex::numbers::e_v<long double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -506,8 +506,8 @@ TEST(values, exp)
 
 TEST(values, expm1)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
-  constexpr auto eL = stdcompat::numbers::e_v<long double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
+  constexpr auto eL = stdex::numbers::e_v<long double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -554,7 +554,7 @@ TEST(values, expm1)
 
 TEST(values, sinh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -595,7 +595,7 @@ TEST(values, sinh)
 
 TEST(values, cosh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -634,7 +634,7 @@ TEST(values, cosh)
 
 TEST(values, tanh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -673,9 +673,9 @@ TEST(values, tanh)
 
 TEST(values, sin)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -708,10 +708,10 @@ TEST(values, sin)
   static_assert(values::internal::near(values::sin(-0x1p250L*piL), 0, 1.));
   static_assert(values::internal::near(values::sin(pi/2), 1));
   static_assert(values::internal::near(values::sin(-pi/2), -1));
-  static_assert(values::internal::near(values::sin(pi/4), stdcompat::numbers::sqrt2_v<double>/2));
-  static_assert(values::internal::near(values::sin(piL/4), stdcompat::numbers::sqrt2_v<long double>/2));
-  static_assert(values::internal::near(values::sin(piF/4), stdcompat::numbers::sqrt2_v<float>/2));
-  static_assert(values::internal::near(values::sin(pi/4 + 32*pi), stdcompat::numbers::sqrt2_v<double>/2, 1e-9));
+  static_assert(values::internal::near(values::sin(pi/4), stdex::numbers::sqrt2_v<double>/2));
+  static_assert(values::internal::near(values::sin(piL/4), stdex::numbers::sqrt2_v<long double>/2));
+  static_assert(values::internal::near(values::sin(piF/4), stdex::numbers::sqrt2_v<float>/2));
+  static_assert(values::internal::near(values::sin(pi/4 + 32*pi), stdex::numbers::sqrt2_v<double>/2, 1e-9));
   EXPECT_NEAR(values::sin(2), std::sin(2), 1e-9);
   EXPECT_NEAR(values::sin(-32), std::sin(-32), 1e-9);
   EXPECT_NEAR(values::sin(0x1p16), std::sin(0x1p16), 1e-9);
@@ -733,9 +733,9 @@ TEST(values, sin)
 
 TEST(values, cos)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -766,9 +766,9 @@ TEST(values, cos)
   static_assert(values::internal::near(values::cos(-0x1p250L*piL), 1, 1.));
   static_assert(values::internal::near(values::cos(pi/2), 0));
   static_assert(values::internal::near(values::cos(-pi/2), 0));
-  static_assert(values::internal::near(values::cos(pi/4), stdcompat::numbers::sqrt2_v<double>/2));
-  static_assert(values::internal::near(values::cos(piL/4), stdcompat::numbers::sqrt2_v<long double>/2));
-  static_assert(values::internal::near(values::cos(piF/4), stdcompat::numbers::sqrt2_v<float>/2));
+  static_assert(values::internal::near(values::cos(pi/4), stdex::numbers::sqrt2_v<double>/2));
+  static_assert(values::internal::near(values::cos(piL/4), stdex::numbers::sqrt2_v<long double>/2));
+  static_assert(values::internal::near(values::cos(piF/4), stdex::numbers::sqrt2_v<float>/2));
   EXPECT_NEAR(values::cos(2), std::cos(2), 1e-9);
   EXPECT_NEAR(values::cos(-32), std::cos(-32), 1e-9);
   EXPECT_NEAR(values::cos(0x1p16), std::cos(0x1p16), 1e-9);
@@ -790,9 +790,9 @@ TEST(values, cos)
 
 TEST(values, tan)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -847,7 +847,7 @@ TEST(values, tan)
 
 TEST(values, log)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -860,8 +860,8 @@ TEST(values, log)
   }
 
   static_assert(values::log(1) == 0);
-  static_assert(values::internal::near<10>(values::log(2), stdcompat::numbers::ln2_v<double>));
-  static_assert(values::internal::near<10>(values::log(10), stdcompat::numbers::ln10_v<double>));
+  static_assert(values::internal::near<10>(values::log(2), stdex::numbers::ln2_v<double>));
+  static_assert(values::internal::near<10>(values::log(10), stdex::numbers::ln10_v<double>));
   static_assert(values::internal::near(values::log(e), 1));
   static_assert(values::internal::near(values::log(e*e), 2));
   static_assert(values::internal::near(values::log(e*e*e), 3));
@@ -894,8 +894,8 @@ TEST(values, log)
   COMPLEXINTEXISTS(static_assert(values::log(std::complex<int>{-100, 0}) == std::complex<int>{4, 3}));
   COMPLEXINTEXISTS(EXPECT_PRED3(tolerance, values::log(std::complex<int>{-3, 0}), std::log(std::complex<int>{-3, 0}), 1e-9));
 
-  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(std::integral_constant<int, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(values::fixed_value<double, 2>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(std::integral_constant<int, 2>{}))>, stdex::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log(values::fixed_value<double, 2>{}))>, stdex::numbers::ln2_v<double>, 1e-9));
   static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::log(values::fixed_value<std::complex<double>, 3, 4>{})))>, 1.609437912434100374601, 1e-9));
   static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::log(values::fixed_value<std::complex<double>, 3, 4>{})))>, 0.9272952180016122324285, 1e-9));
 }
@@ -905,7 +905,7 @@ TEST(values, log)
 
 TEST(values, log1p)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -918,8 +918,8 @@ TEST(values, log1p)
   }
 
   static_assert(values::internal::near<10>(values::log1p(-0.), 0));
-  static_assert(values::internal::near<10>(values::log1p(1.), stdcompat::numbers::ln2_v<double>));
-  static_assert(values::internal::near<10>(values::log1p(9.), stdcompat::numbers::ln10_v<double>));
+  static_assert(values::internal::near<10>(values::log1p(1.), stdex::numbers::ln2_v<double>));
+  static_assert(values::internal::near<10>(values::log1p(9.), stdex::numbers::ln10_v<double>));
   static_assert(values::internal::near<10>(values::log1p(e - 1), 1));
   static_assert(values::internal::near<10>(values::log1p(e*e - 1), 2));
   static_assert(values::internal::near<10>(values::log1p(e*e*e - 1), 3));
@@ -956,8 +956,8 @@ TEST(values, log1p)
   COMPLEXINTEXISTS(static_assert(values::log1p(std::complex<int>{99, 0}) == std::complex<int>{4, 0}));
   COMPLEXINTEXISTS(static_assert(values::log1p(std::complex<int>{-101, 0}) == std::complex<int>{4, 3}));
 
-  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(std::integral_constant<int, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
-  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(values::fixed_value<double, 1>{}))>, stdcompat::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(std::integral_constant<int, 1>{}))>, stdex::numbers::ln2_v<double>, 1e-9));
+  static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::log1p(values::fixed_value<double, 1>{}))>, stdex::numbers::ln2_v<double>, 1e-9));
   static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::real(values::log1p(values::fixed_value<std::complex<double>, 2, 4>{})))>, 1.609437912434100374601, 1e-9));
   static_assert(values::internal::near(values::fixed_value_of_v<decltype(values::imag(values::log1p(values::fixed_value<std::complex<double>, 2, 4>{})))>, 0.9272952180016122324285, 1e-9));
 }
@@ -967,7 +967,7 @@ TEST(values, log1p)
 
 TEST(values, asinh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1006,7 +1006,7 @@ TEST(values, asinh)
 
 TEST(values, acosh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1045,7 +1045,7 @@ TEST(values, acosh)
 
 TEST(values, atanh)
 {
-  constexpr auto e = stdcompat::numbers::e_v<double>;
+  constexpr auto e = stdex::numbers::e_v<double>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1090,9 +1090,9 @@ TEST(values, atanh)
 
 TEST(values, asin)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1109,11 +1109,11 @@ TEST(values, asin)
   static_assert(values::asin(1.0L) == piL/2);
   static_assert(values::asin(1.0F) == piF/2);
   static_assert(values::asin(-1) == -pi/2);
-  static_assert(values::internal::near(values::asin(stdcompat::numbers::sqrt2_v<double>/2), pi/4));
-  static_assert(values::internal::near(values::asin(-stdcompat::numbers::sqrt2_v<double>/2), -pi/4));
+  static_assert(values::internal::near(values::asin(stdex::numbers::sqrt2_v<double>/2), pi/4));
+  static_assert(values::internal::near(values::asin(-stdex::numbers::sqrt2_v<double>/2), -pi/4));
   static_assert(values::asin(0.99995) > 0);
   static_assert(values::asin(-0.99995) < 0);
-  EXPECT_NEAR(values::asin(stdcompat::numbers::sqrt2_v<double>/2), pi/4, 1e-9);
+  EXPECT_NEAR(values::asin(stdex::numbers::sqrt2_v<double>/2), pi/4, 1e-9);
   EXPECT_NEAR(values::asin(-0.7), std::asin(-0.7), 1e-9);
   EXPECT_NEAR(values::asin(0.9), std::asin(0.9), 1e-9);
   EXPECT_NEAR(values::asin(0.99), std::asin(0.99), 1e-9);
@@ -1122,7 +1122,7 @@ TEST(values, asin)
   EXPECT_NEAR(values::asin(0.99999), std::asin(0.99999), 1e-9);
   EXPECT_NEAR(values::asin(0.99999999), std::asin(0.99999999), 1e-9);
 
-  static_assert(values::internal::near(values::asin(std::complex<double>{stdcompat::numbers::sqrt2_v<double>/2, 0}), pi/4, 1e-9));
+  static_assert(values::internal::near(values::asin(std::complex<double>{stdex::numbers::sqrt2_v<double>/2, 0}), pi/4, 1e-9));
   EXPECT_PRED3(tolerance, values::asin(std::complex<double>{4.1, 3.1}), std::asin(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, values::asin(std::complex<double>{3.2, -4.2}), std::asin(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, values::asin(std::complex<double>{-3.3, 4.3}), std::asin(std::complex<double>{-3.3, 4.3}), 1e-9);
@@ -1140,9 +1140,9 @@ TEST(values, asin)
 
 TEST(values, acos)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1157,10 +1157,10 @@ TEST(values, acos)
   static_assert(values::acos(-1) == pi);
   static_assert(values::acos(-1.0L) == piL);
   static_assert(values::acos(-1.0F) == piF);
-  static_assert(values::internal::near(values::acos(0.5), stdcompat::numbers::pi/3));
-  static_assert(values::internal::near(values::acos(-0.5), 2*stdcompat::numbers::pi/3));
-  static_assert(values::internal::near(values::acos(stdcompat::numbers::sqrt2_v<double>/2), pi/4));
-  static_assert(values::internal::near(values::acos(-stdcompat::numbers::sqrt2_v<double>/2), 3*pi/4));
+  static_assert(values::internal::near(values::acos(0.5), stdex::numbers::pi/3));
+  static_assert(values::internal::near(values::acos(-0.5), 2*stdex::numbers::pi/3));
+  static_assert(values::internal::near(values::acos(stdex::numbers::sqrt2_v<double>/2), pi/4));
+  static_assert(values::internal::near(values::acos(-stdex::numbers::sqrt2_v<double>/2), 3*pi/4));
   EXPECT_NEAR(values::acos(-0.7), std::acos(-0.7), 1e-9);
   EXPECT_NEAR(values::acos(0.9), std::acos(0.9), 1e-9);
   EXPECT_NEAR(values::acos(0.999), std::acos(0.999), 1e-9);
@@ -1186,9 +1186,9 @@ TEST(values, acos)
 
 TEST(values, atan)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
@@ -1230,9 +1230,9 @@ TEST(values, atan)
 
 TEST(values, atan2)
 {
-  constexpr auto pi = stdcompat::numbers::pi_v<double>;
-  constexpr auto piL = stdcompat::numbers::pi_v<long double>;
-  constexpr auto piF = stdcompat::numbers::pi_v<float>;
+  constexpr auto pi = stdex::numbers::pi_v<double>;
+  constexpr auto piL = stdex::numbers::pi_v<long double>;
+  constexpr auto piF = stdex::numbers::pi_v<float>;
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {

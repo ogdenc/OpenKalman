@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref stdcompat::ranges::range_adaptor_closure.
+ * \brief Definition of \ref stdex::ranges::range_adaptor_closure.
  */
 
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_RANGE_ADAPTOR_CLOSURE_HPP
@@ -21,7 +21,7 @@
 #include "basics/compatibility/language-features.hpp"
 #include "view-concepts.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #if __cpp_lib_ranges >= 202202L
   using std::ranges::range_adaptor_closure;

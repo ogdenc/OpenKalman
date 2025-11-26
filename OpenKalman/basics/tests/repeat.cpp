@@ -21,16 +21,16 @@ using namespace OpenKalman;
 
 TEST(basics, repeat_view)
 {
-  static_assert(stdcompat::ranges::view<stdcompat::ranges::repeat_view<double, int>>);
-  auto i3 = stdcompat::ranges::views::repeat(7., 4);
+  static_assert(stdex::ranges::view<stdex::ranges::repeat_view<double, int>>);
+  auto i3 = stdex::ranges::views::repeat(7., 4);
   EXPECT_EQ(i3.size(), 4);
-  static_assert(stdcompat::ranges::views::repeat(7., 4).size() == 4);
+  static_assert(stdex::ranges::views::repeat(7., 4).size() == 4);
 
-  EXPECT_EQ(stdcompat::ranges::views::repeat(7., 4).begin()[2], 7.);
-  EXPECT_EQ(stdcompat::ranges::views::repeat(7., 4u).begin()[3], 7.);
-  EXPECT_EQ(stdcompat::ranges::views::repeat(7.).begin()[100], 7.);
+  EXPECT_EQ(stdex::ranges::views::repeat(7., 4).begin()[2], 7.);
+  EXPECT_EQ(stdex::ranges::views::repeat(7., 4u).begin()[3], 7.);
+  EXPECT_EQ(stdex::ranges::views::repeat(7.).begin()[100], 7.);
 
-  auto i8 = stdcompat::ranges::views::repeat(7., 8u);
+  auto i8 = stdex::ranges::views::repeat(7., 8u);
   auto it8 = i8.begin();
   EXPECT_EQ(*it8, 7.);
   it8++;

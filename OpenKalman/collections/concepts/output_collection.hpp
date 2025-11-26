@@ -30,7 +30,7 @@ namespace OpenKalman::collections
 #else
   constexpr bool output_collection =
 #endif
-    collection<C> and (stdcompat::ranges::output_range<C, T> or uniformly_settable<C, T>);
+    collection<C> and (stdex::ranges::output_range<C, T> or uniformly_settable<C, T>);
 
 
 }

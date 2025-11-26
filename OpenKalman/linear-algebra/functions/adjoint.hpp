@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,49 +16,48 @@
 #ifndef OPENKALMAN_ADJOINT_HPP
 #define OPENKALMAN_ADJOINT_HPP
 
-#include<complex>
-
+#include "conjugate.hpp"
+#include "transpose.hpp"
 
 namespace OpenKalman
 {
   /**
-   * \brief Take the adjoint of a matrix
-   * \tparam Arg The matrix
+   * \brief Take the conjugate-transpose of an \ref indexible_object
+   * \details By default, the first two indices are transposed.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (max_tensor_order_v<Arg> <= 2)
+  template<std::size_t indexa = 0, std::size_t indexb = 1, indexible Arg> requires (indexa < indexb)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_v<Arg> <= 2), int> = 0>
+  template<std::size_t indexa = 0, std::size_t indexb = 1, typename Arg, std::enable_if_t<
+    indexible<Arg> and (indexa < indexb), int> = 0>
 #endif
-  constexpr decltype(auto) adjoint(Arg&& arg)
+  constexpr decltype(auto)
+  adjoint(Arg&& arg)
   {
     if constexpr (hermitian_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (diagonal_matrix<Arg> and square_shaped<Arg>)
+    else if constexpr ((diagonal_matrix<Arg> or constant_object<Arg>) and
+      values::size_compares_with<index_dimension_of<Arg, 0>, index_dimension_of<Arg, 1>>)
     {
       return conjugate(std::forward<Arg>(arg));
     }
-    else if constexpr (zero<Arg>)
+    else if constexpr (not values::complex<element_type_of_t<Arg>> or values::not_complex<constant_value_of<Arg>>)
     {
       return transpose(std::forward<Arg>(arg));
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (indexb == 1 and interface::matrix_adjoint_defined_for<Arg&&>)
     {
-      if constexpr (values::not_complex<constant_coefficient<Arg>>)
-        return transpose(std::forward<Arg>(arg));
-      else if constexpr (not has_dynamic_dimensions<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
-        return conjugate(std::forward<Arg>(arg));
-      else
-      {
-        constexpr std::make_index_sequence<std::max({index_count_v<Arg>, 2_uz}) - 2_uz> seq;
-        return internal::transpose_constant(values::conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
-      }
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::adjoint(std::forward<Arg>(arg));
     }
-    else if constexpr (interface::adjoint_defined_for<Arg, Arg&&>)
+    else if constexpr (interface::adjoint_defined_for<Arg&&, indexa, indexb>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::template adjoint<indexa, indexb>(std::forward<Arg>(arg));
+    }
+    else if constexpr (std::is_lvalue_reference_v<Arg> and index_count_v<Arg> <= 2)
+    {
+      return adjoint(get_mdspan(arg));
     }
     else
     {

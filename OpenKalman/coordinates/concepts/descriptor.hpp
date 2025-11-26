@@ -30,7 +30,7 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool descriptor =
 #endif
-    interface::coordinate_descriptor_traits<std::decay_t<stdcompat::unwrap_ref_decay_t<T>>>::is_specialized or
+    interface::coordinate_descriptor_traits<std::decay_t<stdex::unwrap_ref_decay_t<T>>>::is_specialized or
     values::index<T>;
 
 }

@@ -17,7 +17,7 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_Ref)
 {
-  static_assert(constant_coefficient_v<Eigen::Ref<C22_m2>> == -2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Ref<Cd22_2>> == 2);
+  static_assert(constant_value_v<Eigen::Ref<C22_m2>> == -2);
+  static_assert(constant_diagonal_value_v<Eigen::Ref<Cd22_2>> == 2);
 }
 

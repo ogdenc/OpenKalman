@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_DYNAMIC_INDEX_COUNT_HPP
 #define OPENKALMAN_DYNAMIC_INDEX_COUNT_HPP
 
+#include "linear-algebra/traits/index_count.hpp"
+#include "linear-algebra/traits/index_dimension_of.hpp"
 
 namespace OpenKalman
 {
@@ -24,21 +26,21 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr std::size_t dynamic_index_count_impl(std::index_sequence<I...>)
     {
-      return ((dynamic_dimension<T, I> ? 1 : 0) + ... + 0);
+      return ((index_dimension_of_v<T, I> == stdex::dynamic_extent ? 1 : 0) + ... + 0);
     }
   }
 
 
   /**
    * \brief Counts the number of indices of T in which the dimensions are dynamic.
-   * \details If \ref index_count_v is itself dynamic, the result is \ref dynamic_size.
+   * \details If \ref index_count_v is itself dynamic, the result is \ref stdex::dynamic_extent.
    */
 #ifdef __cpp_concepts
-  template<indexible T>
+  template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct dynamic_index_count : std::integral_constant<std::size_t, dynamic_size> {};
+  struct dynamic_index_count  {};
 
 
   /**
@@ -46,11 +48,11 @@ namespace OpenKalman
    * \brief Case in which the number of indices is static.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires (index_count_v<T> != dynamic_size)
+  template<indexible T>
   struct dynamic_index_count<T>
 #else
   template<typename T>
-  struct dynamic_index_count<T, std::enable_if_t<(index_count<T>::value != dynamic_size)>>
+  struct dynamic_index_count<T, std::enable_if_t<indexible<T>>>
 #endif
     : std::integral_constant<std::size_t, detail::dynamic_index_count_impl<T>(std::make_index_sequence<index_count_v<T>> {})> {};
 

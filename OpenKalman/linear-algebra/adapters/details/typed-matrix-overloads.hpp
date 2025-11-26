@@ -319,7 +319,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       }
       else
       {
-        return make_vector_space_adapter(std::move(cat), RC{}, CC{});
+        return attach_pattern(std::move(cat), RC{}, CC{});
       }
     }
     else
@@ -667,7 +667,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    stdcompat::convertible_to<std::invoke_result_t<const Function&, std::decay_t<typename scalar_type_of<Arg>::type>>,
+    stdex::convertible_to<std::invoke_result_t<const Function&, std::decay_t<typename scalar_type_of<Arg>::type>>,
       typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
@@ -682,7 +682,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       std::decay_t<scalar_type_of_t<Arg>>, std::size_t, std::size_t>, scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and
-    stdcompat::convertible_to<std::invoke_result_t<const Function&,
+    stdex::convertible_to<std::invoke_result_t<const Function&,
       std::decay_t<typename scalar_type_of<Arg>::type>, std::size_t, std::size_t>,
       typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
@@ -698,7 +698,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     std::convertible_to<std::invoke_result_t<const Function&>, scalar_type_of_t<V>>
 #else
   template<typename V, typename Function, std::enable_if_t<typed_matrix<V> and
-    stdcompat::convertible_to<std::invoke_result_t<const Function&>, typename scalar_type_of<V>::type>, int> = 0>
+    stdex::convertible_to<std::invoke_result_t<const Function&>, typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f)
@@ -724,7 +724,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<typed_matrix V, typename Function> requires std::convertible_to<
     std::invoke_result_t<const Function&, std::size_t, std::size_t>, scalar_type_of_t<V>>
 #else
-  template<typename V, typename Function, std::enable_if_t<typed_matrix<V> and stdcompat::convertible_to<
+  template<typename V, typename Function, std::enable_if_t<typed_matrix<V> and stdex::convertible_to<
     std::invoke_result_t<const Function&, std::size_t, std::size_t>, typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto

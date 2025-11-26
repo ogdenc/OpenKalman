@@ -46,7 +46,7 @@ namespace OpenKalman::internal
         internal::smallest_pattern<scalar_type_of_t<T>>(std::ranges::views::take(indices, 2)),
         indices | std::ranges::views::drop(2));
 #else
-      auto it = stdcompat::ranges::begin(descriptors);
+      auto it = stdex::ranges::begin(descriptors);
       auto new_descriptors = std::vector<std::decay_t<decltype(*it)>>{};
       auto i0 = it;
       auto i1 = ++it;
@@ -58,7 +58,7 @@ namespace OpenKalman::internal
       {
         auto d0 = internal::smallest_pattern<scalar_type_of_t<T>>(*i0, *i1);
         new_descriptors.emplace_back(d0);
-        std::copy(++it, stdcompat::ranges::end(descriptors), ++stdcompat::ranges::begin(new_descriptors));
+        std::copy(++it, stdex::ranges::end(descriptors), ++stdex::ranges::begin(new_descriptors));
       }
 #endif
       return make_constant<T>(std::forward<C>(c), new_descriptors);

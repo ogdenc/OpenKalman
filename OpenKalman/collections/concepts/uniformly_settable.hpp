@@ -37,7 +37,7 @@ namespace OpenKalman::collections
     struct uniformly_settable_sized : std::false_type {};
 
     template<typename C, typename T>
-    struct uniformly_settable_sized<C, T, std::enable_if_t<size_of<C>::value != dynamic_size>>
+    struct uniformly_settable_sized<C, T, std::enable_if_t<size_of<C>::value != stdex::dynamic_extent>>
       : uniformly_settable_sized_impl<C, T> {};
   }
 #endif
@@ -50,14 +50,14 @@ namespace OpenKalman::collections
   template<typename C, typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept uniformly_settable =
-    ((sized<C> and size_of_v<C> != dynamic_size) or settable<0_uz, C, T>) and
-    (not sized<C> or size_of_v<C> == dynamic_size or
+    ((sized<C> and size_of_v<C> != stdex::dynamic_extent) or settable<0_uz, C, T>) and
+    (not sized<C> or size_of_v<C> == stdex::dynamic_extent or
       []<std::size_t...i>(std::index_sequence<i...>) { return (... and settable<i, C, T>); }
         (std::make_index_sequence<size_of_v<C>>{}));
 #else
   constexpr bool uniformly_settable =
-    ((sized<C> and not values::fixed_value_compares_with<size_of<C>, dynamic_size>) or settable<0_uz, C, T>) and
-    (not sized<C> or size_of_v<C> == dynamic_size or
+    ((sized<C> and not values::fixed_value_compares_with<size_of<C>, stdex::dynamic_extent>) or settable<0_uz, C, T>) and
+    (not sized<C> or size_of_v<C> == stdex::dynamic_extent or
       detail::uniformly_settable_sized<C, T>::value);
 #endif
 

@@ -22,7 +22,7 @@
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::iota_view;
@@ -39,7 +39,7 @@ namespace OpenKalman::stdcompat::ranges
   {
   private:
 
-    static_assert(weakly_incrementable<W> and stdcompat::semiregular<Bound>);
+    static_assert(weakly_incrementable<W> and stdex::semiregular<Bound>);
 
     template<typename I>
     using iota_diff_t = std::conditional_t<
@@ -64,17 +64,17 @@ namespace OpenKalman::stdcompat::ranges
     template<typename I>
     struct is_advanceable<I, std::enable_if_t<
       decrementable<I> and
-      stdcompat::convertible_to<decltype(std::declval<I>() == std::declval<I>()), bool> and
-      stdcompat::convertible_to<decltype(std::declval<I>() != std::declval<I>()), bool> and
-      stdcompat::convertible_to<decltype(std::declval<I>() < std::declval<I>()), bool> and
-      stdcompat::convertible_to<decltype(std::declval<I>() > std::declval<I>()), bool> and
-      stdcompat::convertible_to<decltype(std::declval<I>() <= std::declval<I>()), bool> and
-      stdcompat::convertible_to<decltype(std::declval<I>() >= std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() == std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() != std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() < std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() > std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() <= std::declval<I>()), bool> and
+      stdex::convertible_to<decltype(std::declval<I>() >= std::declval<I>()), bool> and
       std::is_same<decltype(std::declval<I&>() += std::declval<const iota_diff_t<I>>()), I&>::value and
       std::is_same<decltype(std::declval<I&>() -= std::declval<const iota_diff_t<I>>()), I&>::value and
-      stdcompat::constructible_from<I, decltype(std::declval<const I&>() + std::declval<const iota_diff_t<I>>())> and
-      stdcompat::constructible_from<I, decltype(std::declval<const iota_diff_t<I>>() + std::declval<const I&>())> and
-      stdcompat::constructible_from<I, decltype(std::declval<const I&>() - std::declval<const iota_diff_t<I>>())> and
+      stdex::constructible_from<I, decltype(std::declval<const I&>() + std::declval<const iota_diff_t<I>>())> and
+      stdex::constructible_from<I, decltype(std::declval<const iota_diff_t<I>>() + std::declval<const I&>())> and
+      stdex::constructible_from<I, decltype(std::declval<const I&>() - std::declval<const iota_diff_t<I>>())> and
       std::is_convertible<decltype(std::declval<const I&>() - std::declval<const I&>()), iota_diff_t<I>>::value>> : std::true_type {};
 
     template<typename I>
@@ -98,7 +98,7 @@ namespace OpenKalman::stdcompat::ranges
       using reference = W;
       using pointer = void;
 
-      template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<W>, int> = 0>
+      template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<W>, int> = 0>
       constexpr iterator() {};
 
       constexpr explicit iterator(W value) : value_ {value} {}
@@ -195,10 +195,10 @@ namespace OpenKalman::stdcompat::ranges
 
       friend constexpr bool operator!=( const sentinel& y, const iterator& x ) { return not (y.bound_ == x.value_); }
 
-      template<bool Enable = true, std::enable_if_t<Enable and stdcompat::convertible_to<decltype(std::declval<W>() - std::declval<Bound>()), iter_difference_t<W>>, int> = 0>
+      template<bool Enable = true, std::enable_if_t<Enable and stdex::convertible_to<decltype(std::declval<W>() - std::declval<Bound>()), iter_difference_t<W>>, int> = 0>
       friend constexpr iter_difference_t<W> operator-(const iterator& x, const sentinel& y) { return x.value_ - y.bound_; }
 
-      template<bool Enable = true, std::enable_if_t<Enable and stdcompat::convertible_to<decltype(-(std::declval<W>() - std::declval<Bound>())), iter_difference_t<W>>, int> = 0>
+      template<bool Enable = true, std::enable_if_t<Enable and stdex::convertible_to<decltype(-(std::declval<W>() - std::declval<Bound>())), iter_difference_t<W>>, int> = 0>
       friend constexpr iter_difference_t<W> operator-(const sentinel& x, const iterator& y) { return -(y.value_ - x.bound_); }
 
     private:
@@ -207,7 +207,7 @@ namespace OpenKalman::stdcompat::ranges
     };
 
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<W>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<W>, int> = 0>
     constexpr
     iota_view() {};
 
@@ -215,7 +215,7 @@ namespace OpenKalman::stdcompat::ranges
     iota_view(W value) : value_ {std::move(value)} {}
 
     constexpr explicit
-    iota_view(stdcompat::type_identity_t<W> value, stdcompat::type_identity_t<Bound> bound) : value_ {value}, bound_ {bound} {}
+    iota_view(stdex::type_identity_t<W> value, stdex::type_identity_t<Bound> bound) : value_ {value}, bound_ {bound} {}
 
     template<bool Enable = true, std::enable_if_t<Enable and std::is_same_v<Bound, W>, int> = 0>
     constexpr explicit
@@ -257,7 +257,7 @@ namespace OpenKalman::stdcompat::ranges
 
     template<typename A, typename B>
     struct subtractable<A, B, std::enable_if_t<
-      stdcompat::convertible_to<decltype(std::declval<A>() - std::declval<B>()), std::size_t>>> : std::false_type {};
+      stdex::convertible_to<decltype(std::declval<A>() - std::declval<B>()), std::size_t>>> : std::false_type {};
 
   public:
 
@@ -294,7 +294,7 @@ namespace OpenKalman::stdcompat::ranges
 
 
   template<typename W, typename Bound>
-  constexpr bool enable_borrowed_range<stdcompat::ranges::iota_view<W, Bound>> = true;
+  constexpr bool enable_borrowed_range<stdex::ranges::iota_view<W, Bound>> = true;
 
 
   namespace views
@@ -303,7 +303,7 @@ namespace OpenKalman::stdcompat::ranges
     {
       struct iota_adapter
       {
-        template<typename W, typename Bound = unreachable_sentinel_t, std::enable_if_t<weakly_incrementable<W> and stdcompat::semiregular<Bound>, int> = 0>
+        template<typename W, typename Bound = unreachable_sentinel_t, std::enable_if_t<weakly_incrementable<W> and stdex::semiregular<Bound>, int> = 0>
         constexpr auto
         operator() [[nodiscard]] (W&& value, Bound&& bound = {}) const
         {

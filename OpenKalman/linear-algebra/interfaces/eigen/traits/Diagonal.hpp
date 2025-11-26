@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int DiagIndex>
-  struct indexible_object_traits<Eigen::Diagonal<MatrixType, DiagIndex>>
-    : Eigen3::indexible_object_traits_base<Eigen::Diagonal<MatrixType, DiagIndex>>
+  struct object_traits<Eigen::Diagonal<MatrixType, DiagIndex>>
+    : Eigen3::object_traits_base<Eigen::Diagonal<MatrixType, DiagIndex>>
   {
   private:
 
     using Xpr = Eigen::Diagonal<MatrixType, DiagIndex>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 
@@ -46,7 +46,7 @@ namespace OpenKalman::interface
 
       if constexpr (constant_diagonal_matrix<MatrixType> and DiagIndex == 0)
       {
-        return constant_diagonal_coefficient{arg.nestedExpression()};
+        return constant_diagonal_value{arg.nestedExpression()};
       }
       else if constexpr (zero<MatrixType> or (constant_diagonal_matrix<MatrixType> and DiagIndex != Eigen::DynamicIndex and
         ((DiagIndex < 0 and (dynamic_dimension<MatrixType, 0> or DiagIndex > -int(index_dimension_of_v<MatrixType, 0>))) or
@@ -65,13 +65,13 @@ namespace OpenKalman::interface
       }
       else if constexpr (constant_diagonal_matrix<MatrixType> and DiagIndex == Eigen::DynamicIndex)
       {
-        if (arg.index() == 0) return static_cast<Scalar>(constant_diagonal_coefficient{arg.nestedExpression()});
+        if (arg.index() == 0) return static_cast<Scalar>(constant_diagonal_value{arg.nestedExpression()});
         else if (arg.index() > -arg.nestedExpression().rows() and arg.index() < arg.nestedExpression().cols()) return Scalar(0);
         else throw std::out_of_range {"Dynamic index for Eigen::Diagonal is out of range."};
       }
       else if constexpr (constant_matrix<MatrixType>>)
       {
-        return constant_coefficient{arg.nestedExpression()};
+        return constant_value{arg.nestedExpression()};
       }
       else
       {

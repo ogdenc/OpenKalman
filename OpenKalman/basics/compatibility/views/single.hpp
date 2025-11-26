@@ -21,7 +21,7 @@
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::single_view;
@@ -41,7 +41,7 @@ namespace OpenKalman::stdcompat::ranges
 #endif
   struct single_view : view_interface<single_view<T>>
   {
-    static_assert(stdcompat::move_constructible<T> and std::is_object_v<T>);
+    static_assert(stdex::move_constructible<T> and std::is_object_v<T>);
 
 
     /**
@@ -51,7 +51,7 @@ namespace OpenKalman::stdcompat::ranges
     constexpr
     single_view() requires std::default_initializable<T> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<T>, int> = 0>
     constexpr
     single_view() {}
 #endif
@@ -65,7 +65,7 @@ namespace OpenKalman::stdcompat::ranges
     single_view(const T& t) requires std::copy_constructible<T> : value_ {t} {}
     requires std::copy_constructible<T>
 #else
-    template<bool Enable = true, std::enable_if_t<stdcompat::copy_constructible<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<stdex::copy_constructible<T>, int> = 0>
     explicit constexpr
     single_view(const T& t) : value_ {t} {}
 #endif
@@ -153,7 +153,7 @@ namespace OpenKalman::stdcompat::ranges
   constexpr bool
   operator==(const single_view<T>& lhs, const T& rhs) noexcept
   {
-    return stdcompat::is_eq(operator<=>(lhs, rhs));
+    return stdex::is_eq(operator<=>(lhs, rhs));
   }
 #else
   template<typename T>

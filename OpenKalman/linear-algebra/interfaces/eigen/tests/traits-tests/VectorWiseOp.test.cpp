@@ -26,8 +26,8 @@ TEST(eigen3, Eigen_VectorWiseOp)
   static_assert(index_dimension_of_v<decltype(std::declval<M34>().colwise()), 1> == 4);
   static_assert(index_dimension_of_v<decltype(std::declval<Mx4>().colwise()), 1> == 4);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().colwise())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().rowwise())> == 2);
 
   static_assert(zero<decltype(std::declval<Z22>().colwise())>);
   static_assert(zero<decltype(std::declval<Z22>().rowwise())>);

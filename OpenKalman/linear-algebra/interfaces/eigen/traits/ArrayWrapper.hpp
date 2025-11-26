@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename XprType>
-  struct indexible_object_traits<Eigen::ArrayWrapper<XprType>>
-    : Eigen3::indexible_object_traits_base<Eigen::ArrayWrapper<XprType>>
+  struct object_traits<Eigen::ArrayWrapper<XprType>>
+    : Eigen3::object_traits_base<Eigen::ArrayWrapper<XprType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::ArrayWrapper<XprType>>;
+    using Base = Eigen3::object_traits_base<Eigen::ArrayWrapper<XprType>>;
     using NestedXpr = typename Eigen::ArrayWrapper<XprType>::NestedExpressionType;
 
   public:
@@ -52,14 +52,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient{arg.nestedExpression()};
+      return constant_value{arg.nestedExpression()};
     }
 
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_diagonal_coefficient {arg.nestedExpression()};
+      return constant_diagonal_value {arg.nestedExpression()};
     }
 
 
@@ -71,8 +71,7 @@ namespace OpenKalman::interface
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 
-    template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<XprType, t>;
+    static constexpr triangle_type triangle_type_value = triangle_type_of<XprType>;
 
 
     static constexpr bool is_triangular_adapter = false;

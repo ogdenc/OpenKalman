@@ -30,7 +30,7 @@ namespace OpenKalman::collections
 #else
     inline constexpr bool move_constructible_object_or_lvalue_ref =
 #endif
-      (stdcompat::move_constructible<T> and std::is_object_v<T>) or
+      (stdex::move_constructible<T> and std::is_object_v<T>) or
       std::is_lvalue_reference_v<T>;
 
 

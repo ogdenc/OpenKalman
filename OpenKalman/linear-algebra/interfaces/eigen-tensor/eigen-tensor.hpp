@@ -40,7 +40,7 @@
 
 #include "functions/make_eigen_tensor_wrapper.hpp"
 
-#include "traits/indexible_object_traits_tensor_base.hpp"
+#include "traits/object_traits_tensor_base.hpp"
 #include "eigen-tensor-library-interface.hpp"
 
 #include "traits/eigen-tensor-traits.hpp"

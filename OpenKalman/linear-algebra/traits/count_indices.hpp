@@ -16,12 +16,29 @@
 #ifndef OPENKALMAN_COUNT_INDICES_HPP
 #define OPENKALMAN_COUNT_INDICES_HPP
 
+#include "values/values.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/get_mdspan.hpp"
 
 namespace OpenKalman
 {
+  namespace detail
+  {
+    template<typename Mdspan, std::size_t i = Mdspan::rank()>
+    constexpr auto remove_trailing_1D_indices()
+    {
+      if constexpr (i == 0)
+        return std::integral_constant<std::size_t, i> {};
+      else if constexpr (Mdspan::static_extent(i - 1_uz) == 1_uz)
+        return remove_trailing_1D_indices<Mdspan, i - 1_uz>();
+      else
+        return std::integral_constant<std::size_t, i> {};
+    }
+  }
+
+
   /**
-   * \brief Get the number of indices available to address the components of an \ref indexible object.
+   * \brief Get the number of indices necessary to address all the components of an \ref indexible object.
    * \sa index_count
    */
 #ifdef __cpp_concepts
@@ -31,11 +48,10 @@ namespace OpenKalman
   template<typename T, std::enable_if_t<indexible<T>, int> = 0>
   constexpr auto
 #endif
-  count_indices(const T& t)
+  count_indices(const T&)
   {
-    using Traits = interface::indexible_object_traits<std::remove_reference_t<T>>;
-    using Mdspan = std::decay_t<std::invoke_result_t<decltype(Traits::get_mdspan), const T&>>;
-    return std::integral_constant<typename Mdspan::rank_type, Mdspan::rank()>{};
+    using Mdspan = std::decay_t<decltype(get_mdspan(std::declval<const T&>()))>;
+    return detail::remove_trailing_1D_indices<Mdspan>();
   }
 
 }

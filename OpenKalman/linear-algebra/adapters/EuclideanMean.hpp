@@ -63,7 +63,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
-      stdcompat::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdex::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -78,7 +78,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
-      stdcompat::constructible_from<NestedMatrix,
+      stdex::constructible_from<NestedMatrix,
         decltype(to_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg)
@@ -94,7 +94,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      stdcompat::constructible_from<NestedMatrix, Arg&&>, int> = 0>
+      stdex::constructible_from<NestedMatrix, Arg&&>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -403,8 +403,10 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
   namespace interface
   {
     template<typename Coeffs, typename NestedMatrix>
-    struct indexible_object_traits<EuclideanMean<Coeffs, NestedMatrix>>
+    struct object_traits<EuclideanMean<Coeffs, NestedMatrix>>
     {
+      static const bool is_specialized = true;
+
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
       template<typename Arg>
@@ -441,7 +443,7 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<Coeffs>)
-          return constant_coefficient {arg.nestedExpression()};
+          return constant_value {arg.nestedExpression()};
         else
           return std::monostate {};
       }
@@ -451,7 +453,7 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<Coeffs>)
-          return constant_diagonal_coefficient {arg.nestedExpression()};
+          return constant_diagonal_value {arg.nestedExpression()};
         else
           return std::monostate {};
       }
@@ -466,7 +468,7 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
 
 
       template<triangle_type t>
-      static constexpr bool is_triangular = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool triangle_type_value = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;

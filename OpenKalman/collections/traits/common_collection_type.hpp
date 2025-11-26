@@ -36,14 +36,14 @@ namespace OpenKalman::collections
 
   /// \overload
 #ifdef __cpp_concepts
-  template<stdcompat::ranges::random_access_range T>
+  template<stdex::ranges::random_access_range T>
   struct common_collection_type<T>
 #else
   template<typename T>
-  struct common_collection_type<T, std::enable_if_t<stdcompat::ranges::random_access_range<T>>>
+  struct common_collection_type<T, std::enable_if_t<stdex::ranges::random_access_range<T>>>
 #endif
   {
-    using type = stdcompat::ranges::range_value_t<stdcompat::remove_cvref_t<T>>;
+    using type = stdex::ranges::range_value_t<stdex::remove_cvref_t<T>>;
   };
 
 
@@ -54,18 +54,18 @@ namespace OpenKalman::collections
 
     template<typename T, std::size_t...i>
     struct common_tuple_type<T, std::index_sequence<i...>>
-      : stdcompat::common_reference<collection_element_t<i, T>...> {};
+      : stdex::common_reference<collection_element_t<i, T>...> {};
   }
 
 
   /// \overload
 #ifdef __cpp_concepts
-  template<uniformly_gettable T> requires (not stdcompat::ranges::random_access_range<T>)
+  template<uniformly_gettable T> requires (not stdex::ranges::random_access_range<T>)
   struct common_collection_type<T>
 #else
   template<typename T>
   struct common_collection_type<T,
-    std::enable_if_t<uniformly_gettable<T> and not stdcompat::ranges::random_access_range<T>>>
+    std::enable_if_t<uniformly_gettable<T> and not stdex::ranges::random_access_range<T>>>
 #endif
     : detail::common_tuple_type<T> {};
 

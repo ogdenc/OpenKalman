@@ -32,7 +32,7 @@ namespace OpenKalman::values::internal
   template <typename Return, typename X>
   constexpr Return integral_exp(const X& x)
   {
-    constexpr auto e = stdcompat::numbers::e_v<Return>;
+    constexpr auto e = stdex::numbers::e_v<Return>;
     if (x == X{0}) return Return{1};
     else if (x == X{1}) return e;
     else if (x < X{0}) return Return{1} / integral_exp<Return>(-x);

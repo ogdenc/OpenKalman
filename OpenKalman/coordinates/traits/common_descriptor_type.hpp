@@ -17,7 +17,11 @@
 #define OPENKALMAN_COLLECTIONS_COMMON_DESCRIPTOR_TYPE_HPP
 
 #include "collections/collections.hpp"
-#include "coordinates/concepts/pattern.hpp"
+#include "coordinates/concepts/descriptor.hpp"
+#include "coordinates/concepts/descriptor_collection.hpp"
+#include "coordinates/traits/dimension_of.hpp"
+#include "coordinates/concepts/euclidean_pattern.hpp"
+#include "coordinates/descriptors/Dimensions.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -46,50 +50,29 @@ namespace OpenKalman::coordinates
 #endif
     : std::conditional_t<
         euclidean_pattern<T>,
-        stdcompat::type_identity<Dimensions<1>>,
-        stdcompat::type_identity<std::decay_t<T>>
+        stdex::type_identity<Dimensions<1>>,
+        stdex::type_identity<std::decay_t<T>>
       > {};
-
-
-#ifndef __cpp_concepts
-  namespace internal
-  {
-    template<typename T, typename = void>
-    struct has_common_collection_type : std::false_type {};
-
-    template<typename T>
-    struct has_common_collection_type<T, std::void_t<typename collections::common_collection_type<T>::type>> : std::true_type {};
-  }
-#endif
 
 
   namespace detail
   {
     template<typename...Ts>
-    struct common_descriptor_type_iter : stdcompat::type_identity<std::tuple<>> {};
+    struct common_descriptor_type_iter : stdex::type_identity<std::tuple<>> {};
 
     template<typename T>
-    struct common_descriptor_type_iter<T> : stdcompat::type_identity<T> {};
+    struct common_descriptor_type_iter<T> : stdex::type_identity<T> {};
 
     template<typename T0, typename T1, typename...Ts>
     struct common_descriptor_type_iter<T0, T1, Ts...>
-      : std::conditional_t<
-          dimension_of_v<T0> == 0 and dimension_of_v<T1> == 0,
-          common_descriptor_type_iter<Ts...>,
-          std::conditional_t<
-            dimension_of_v<T0> == 0,
-            common_descriptor_type_iter<T1, Ts...>,
-            std::conditional_t<
-              dimension_of_v<T1> == 0,
-              common_descriptor_type_iter<T0, Ts...>,
-              common_descriptor_type_iter<typename std::conditional_t<
-                stdcompat::common_reference_with<T0, T1>,
-                stdcompat::common_reference<T0, T1>,
-                stdcompat::type_identity<Any<>>
-              >::type, Ts...>
-            >
-          >
-        > {};
+      : std::conditional_t<dimension_of_v<T0> == 0 and dimension_of_v<T1> == 0, common_descriptor_type_iter<Ts...>,
+        std::conditional_t<dimension_of_v<T0> == 0, common_descriptor_type_iter<T1, Ts...>,
+        std::conditional_t<dimension_of_v<T1> == 0, common_descriptor_type_iter<T0, Ts...>,
+        common_descriptor_type_iter<
+          typename std::conditional_t<stdex::common_reference_with<T0, T1>, stdex::common_reference<T0, T1>,
+          stdex::type_identity<Any<>>
+          >::type, Ts...>
+        >>> {};
 
 
     template<typename T, typename = std::make_index_sequence<collections::size_of<T>::value>>
@@ -109,12 +92,12 @@ namespace OpenKalman::coordinates
 
 
 #ifdef __cpp_concepts
-    template<collections::uniformly_gettable T> requires (not stdcompat::ranges::random_access_range<T>)
+    template<collections::uniformly_gettable T> requires (not stdex::ranges::random_access_range<T>)
     struct common_descriptor_type_impl<T>
 #else
     template<typename T>
     struct common_descriptor_type_impl<T,
-      std::enable_if_t<collections::uniformly_gettable<T> and not stdcompat::ranges::random_access_range<T>>>
+      std::enable_if_t<collections::uniformly_gettable<T> and not stdex::ranges::random_access_range<T>>>
 #endif
       : common_descriptor_type_expand<T> {};
 
@@ -131,7 +114,7 @@ namespace OpenKalman::coordinates
 #endif
     : std::conditional_t<
         euclidean_pattern<T>,
-        stdcompat::type_identity<Dimensions<1>>,
+        stdex::type_identity<Dimensions<1>>,
         detail::common_descriptor_type_impl<T>
       > {};
 

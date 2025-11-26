@@ -46,26 +46,26 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<A>)
     {
-      auto sq = values::sqrt(constant_diagonal_coefficient{a});
+      auto sq = values::sqrt(constant_diagonal_value{a});
       return to_diagonal(make_constant<A>(sq, get_pattern_collection<0>(a)));
     }
     else if constexpr (constant_matrix<A>)
     {
       auto m = [](const auto& a){
-        auto sq = values::sqrt(constant_coefficient{a});
+        auto sq = values::sqrt(constant_value{a});
         auto v = *is_square_shaped(a);
         auto dim = get_dimension(v);
 
         if constexpr (tri == triangle_type::lower)
         {
           auto col0 = make_constant<A>(sq, dim, coordinates::Axis{});
-          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - coordinates::Axis{})), v, v);
+          return attach_pattern(concatenate<1>(col0, make_zero<A>(dim, dim - coordinates::Axis{})), v, v);
         }
         else
         {
           static_assert(tri == triangle_type::upper);
           auto row0 = make_constant<A>(sq, coordinates::Axis{}, dim);
-          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - coordinates::Axis{}, dim)), v, v);
+          return attach_pattern(concatenate<0>(row0, make_zero<A>(dim - coordinates::Axis{}, dim)), v, v);
         }
       }(a);
 
@@ -85,7 +85,7 @@ namespace OpenKalman
     }
     else
     {
-     return interface::library_interface<std::decay_t<A>>::template cholesky_factor<tri>(std::forward<A>(a));
+     return interface::library_interface<stdex::remove_cvref_t<A>>::template cholesky_factor<tri>(std::forward<A>(a));
     }
   }
 

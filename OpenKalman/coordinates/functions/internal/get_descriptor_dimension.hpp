@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates::internal
     }
     else
     {
-      using U = std::decay_t<stdcompat::unwrap_ref_decay_t<Arg>>;
+      using U = std::decay_t<stdex::unwrap_ref_decay_t<Arg>>;
       using Traits = interface::coordinate_descriptor_traits<U>;
       if constexpr (std::is_same_v<U, std::decay_t<Arg>>) return Traits::dimension(std::forward<Arg>(arg));
       else return Traits::dimension(std::forward<Arg>(arg).get());

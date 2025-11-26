@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
 
+#include <variant> // for std::monostate
 #include "values/values.hpp"
 #include "collections/functions/lexicographical_compare_three_way.hpp"
 #include "internal/movable_wrapper.hpp"
@@ -27,19 +28,20 @@ namespace OpenKalman::collections
    * \details Typically, the generating function will be a closure.
    * \tparam F A callable object (possibly a closure) taking an index and producing an output value corresponding to the index.
    * This should preferably be able to take a \ref values::fixed index argument.
-   * \tparam Size The size of the output collection. If it is <code>void</code>, the view is unsized.
+   * \tparam Size The size of the output collection. If it is <code>values::unbounded_size_t</code>, the view is unsized.
    */
 #ifdef __cpp_concepts
-  template<typename F, values::size Size = stdcompat::unreachable_sentinel_t> requires
+  template<typename F, values::size Size = values::unbounded_size_t> requires
     std::same_as<Size, std::remove_reference_t<Size>> and std::is_object_v<F> and std::invocable<F&, std::size_t>
 #else
-  template<typename F, typename Size = stdcompat::unreachable_sentinel_t>
+  template<typename F, typename Size = values::unbounded_size_t>
 #endif
-  struct generate_view : stdcompat::ranges::view_interface<generate_view<F, Size>>
+  struct generate_view : stdex::ranges::view_interface<generate_view<F, Size>>
   {
   private:
 
-    using Size_ = std::conditional_t<values::index<Size>, Size, std::monostate>;
+    static_assert(not values::fixed_value_compares_with<Size, stdex::dynamic_extent>,
+      "Size parameter for generate_view cannot be std::dynamic_extent");
 
     using F_box = internal::movable_wrapper<F>;
 
@@ -70,12 +72,12 @@ namespace OpenKalman::collections
 
       constexpr value_type operator*() const
       {
-        return stdcompat::invoke(*f_, static_cast<std::size_t>(current_));
+        return stdex::invoke(*f_, static_cast<std::size_t>(current_));
       }
 
       constexpr value_type operator[](difference_type offset) const
       {
-        return stdcompat::invoke(*f_, static_cast<std::size_t>(current_ + offset));
+        return stdex::invoke(*f_, static_cast<std::size_t>(current_ + offset));
       }
 
       constexpr auto& operator++() noexcept { ++current_; return *this; }
@@ -116,14 +118,8 @@ namespace OpenKalman::collections
     /**
      * \brief Construct from a callable object and a size.
      */
-#ifdef __cpp_concepts
     constexpr
-    generate_view(F f, Size_ size) noexcept requires (values::index<Size>)
-#else
-    template<bool Enable = true, std::enable_if_t<Enable and values::index<Size>, int> = 0>
-    constexpr
-    generate_view(F f, Size_ size) noexcept
-#endif
+    generate_view(F f, Size size)
       : f_box {std::move(f)}, size_ {std::move(size)} {}
 
 
@@ -138,7 +134,7 @@ namespace OpenKalman::collections
     constexpr
     generate_view(F f) noexcept
 #endif
-      : f_box {std::move(f)}, size_ {} {}
+      : f_box {std::move(f)} {}
 
 
     /**
@@ -162,21 +158,19 @@ namespace OpenKalman::collections
      */
     constexpr auto end()
     {
-      using namespace std;
       if constexpr (values::index<Size>)
         return iterator<false> {f_box, static_cast<std::size_t>(size_)};
       else
-        return stdcompat::unreachable_sentinel;
+        return stdex::unreachable_sentinel;
     }
 
     /// \overload
     constexpr auto end() const
     {
-      using namespace std;
       if constexpr (values::index<Size>)
         return iterator<true> {f_box, static_cast<std::size_t>(size_)};
       else
-        return stdcompat::unreachable_sentinel;
+        return stdex::unreachable_sentinel;
     }
 
 
@@ -203,7 +197,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get(this auto&& self) noexcept
     {
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
+      static_assert (not values::fixed_value_compares_with<Size, i, &std::is_lteq>, "Index out of range");
       return std::forward<decltype(self)>(self).f_box(std::integral_constant<std::size_t, i>{});
     }
 #else
@@ -211,8 +205,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() &
     {
-      using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
+      static_assert (not values::fixed_value_compares_with<Size, i, &stdex::is_lteq>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -220,8 +213,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const &
     {
-      using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
+      static_assert (not values::fixed_value_compares_with<Size, i, &stdex::is_lteq>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -229,8 +221,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() && noexcept
     {
-      using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
+      static_assert (not values::fixed_value_compares_with<Size, i, &stdex::is_lteq>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -238,8 +229,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get() const && noexcept
     {
-      using namespace std;
-      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_value_of_v<Size>, "Index out of range");
+      static_assert (not values::fixed_value_compares_with<Size, i, &stdex::is_lteq>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 #endif
@@ -247,7 +237,7 @@ namespace OpenKalman::collections
   private:
 
     F_box f_box;
-    Size_ size_;
+    Size size_;
 
   };
 
@@ -269,12 +259,12 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 #endif
 {
   template<typename F, typename S>
   constexpr bool enable_borrowed_range<OpenKalman::collections::generate_view<F, S>> = std::is_lvalue_reference_v<F> or
-    OpenKalman::stdcompat::semiregular<OpenKalman::collections::internal::movable_wrapper<F>>;
+    OpenKalman::stdex::semiregular<OpenKalman::collections::internal::movable_wrapper<F>>;
 }
 
 

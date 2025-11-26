@@ -24,13 +24,13 @@ TEST(eigen3, scalar_product)
   // Zero * anything
   static_assert(zero<decltype(scalar_product(std::declval<Z23>(), std::declval<double>()))>);
   static_assert(zero<decltype(scalar_product(std::declval<Z23>(), std::declval<std::integral_constant<int, 2>>()))>);
-  EXPECT_TRUE(constant_coefficient{scalar_product(M23::Identity() - M23::Identity(), std::integral_constant<int, 2>{})} == 0);
-  EXPECT_TRUE(constant_coefficient{scalar_product(M23::Identity() - M23::Identity(), 5)} == 0);
+  EXPECT_TRUE(constant_value{scalar_product(M23::Identity() - M23::Identity(), std::integral_constant<int, 2>{})} == 0);
+  EXPECT_TRUE(constant_value{scalar_product(M23::Identity() - M23::Identity(), 5)} == 0);
 
   // Constant * runtime value
-  static_assert(values::dynamic<constant_coefficient<decltype(scalar_product(std::declval<C22_2>(), std::declval<double>()))>>);
-  EXPECT_TRUE(constant_coefficient{scalar_product(c22_2, 5)} == 10);
-  EXPECT_TRUE(constant_coefficient{scalar_product(cxx_22_2, 5)} == 10);
+  static_assert(values::dynamic<constant_value<decltype(scalar_product(std::declval<C22_2>(), std::declval<double>()))>>);
+  EXPECT_TRUE(constant_value{scalar_product(c22_2, 5)} == 10);
+  EXPECT_TRUE(constant_value{scalar_product(cxx_22_2, 5)} == 10);
 
   // Any object * runtime 0
   EXPECT_TRUE(is_near(scalar_product(m23a, 0), m23a * 0));
@@ -51,13 +51,13 @@ TEST(eigen3, scalar_quotient)
   // Zero / anything
   static_assert(zero<decltype(scalar_quotient(std::declval<Z23>(), std::declval<double>()))>);
   static_assert(zero<decltype(scalar_quotient(std::declval<Z23>(), std::declval<std::integral_constant<int, 2>>()))>);
-  EXPECT_TRUE(constant_coefficient{scalar_quotient(M23::Identity() - M23::Identity(), std::integral_constant<int, 2>{})} == 0);
-  EXPECT_TRUE(constant_coefficient{scalar_quotient(M23::Identity() - M23::Identity(), 5)} == 0);
+  EXPECT_TRUE(constant_value{scalar_quotient(M23::Identity() - M23::Identity(), std::integral_constant<int, 2>{})} == 0);
+  EXPECT_TRUE(constant_value{scalar_quotient(M23::Identity() - M23::Identity(), 5)} == 0);
 
   // Constant / runtime value
-  static_assert(values::dynamic<constant_coefficient<decltype(scalar_quotient(std::declval<C22_2>(), std::declval<double>()))>>);
-  EXPECT_TRUE(constant_coefficient{scalar_quotient(c22_2, 2)} == 1);
-  EXPECT_TRUE(constant_coefficient{scalar_quotient(cxx_22_2, 2)} == 1);
+  static_assert(values::dynamic<constant_value<decltype(scalar_quotient(std::declval<C22_2>(), std::declval<double>()))>>);
+  EXPECT_TRUE(constant_value{scalar_quotient(c22_2, 2)} == 1);
+  EXPECT_TRUE(constant_value{scalar_quotient(cxx_22_2, 2)} == 1);
 
   // general case
   EXPECT_TRUE(is_near(scalar_quotient(m23a, 1), m23a));

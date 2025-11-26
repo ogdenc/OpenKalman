@@ -103,7 +103,7 @@ namespace OpenKalman
       }
       else
       {
-        return make_vector_space_adapter(std::move(sum), C{}, C{});
+        return attach_pattern(std::move(sum), C{}, C{});
       }
     }
   }
@@ -167,7 +167,7 @@ namespace OpenKalman
       }
       else
       {
-        return make_vector_space_adapter(std::move(diff), C{}, C{});
+        return attach_pattern(std::move(diff), C{}, C{});
       }
     }
   }
@@ -214,7 +214,7 @@ namespace OpenKalman
       }
       else
       {
-        return make_vector_space_adapter(std::move(prod), C{}, C{});
+        return attach_pattern(std::move(prod), C{}, C{});
       }
     }
   }
@@ -249,7 +249,7 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_object_of_t<M>>)
     {
-      return make_vector_space_adapter(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
+      return attach_pattern(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
     }
     else
     {
@@ -292,7 +292,7 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_object_of_t<M>>)
     {
-      return make_vector_space_adapter(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
+      return attach_pattern(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
     }
     else
     {
@@ -312,7 +312,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdex::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto operator*(M&& m, const S s)
   {
@@ -373,7 +373,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename S, typename M, std::enable_if_t<
-    stdcompat::convertible_to<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
+    stdex::convertible_to<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
 #endif
   inline auto operator*(const S s, M&& m)
   {
@@ -388,7 +388,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdex::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   constexpr auto operator/(M&& m, const S s)
   {
@@ -512,7 +512,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdex::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   scale(M&& m, const S s)
@@ -537,7 +537,7 @@ namespace OpenKalman
     template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdex::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   inverse_scale(M&& m, const S s)

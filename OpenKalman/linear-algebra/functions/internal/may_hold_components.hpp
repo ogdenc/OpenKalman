@@ -37,7 +37,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   concept may_hold_components = indexible<T> and (std::convertible_to<Components, const scalar_type_of_t<T>> and ...) and
 #else
-  constexpr bool may_hold_components = indexible<T> and (stdcompat::convertible_to<Components, const scalar_type_of_t<T>> and ...) and
+  constexpr bool may_hold_components = indexible<T> and (stdex::convertible_to<Components, const scalar_type_of_t<T>> and ...) and
 #endif
     detail::may_hold_components_impl<T, sizeof...(Components)>(std::make_index_sequence<index_count_v<T>> {});
 

@@ -25,7 +25,7 @@
 #include "basics/compatibility/iterator.hpp"
 #include "range-access.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::range;
@@ -82,7 +82,7 @@ namespace OpenKalman::stdcompat::ranges
 
     template<typename R>
     struct is_borrowed_range<R, std::enable_if_t<range<R> and
-      (std::is_lvalue_reference_v<R> or enable_borrowed_range<stdcompat::remove_cvref_t<R>>)>> : std::true_type {};
+      (std::is_lvalue_reference_v<R> or enable_borrowed_range<stdex::remove_cvref_t<R>>)>> : std::true_type {};
   }
 
   template<typename T>
@@ -113,7 +113,7 @@ namespace OpenKalman::stdcompat::ranges
     struct is_sized_range : std::false_type {};
 
     template<typename T>
-    struct is_sized_range<T, std::void_t<decltype(stdcompat::ranges::size(std::declval<T&>()))>> : std::true_type {};
+    struct is_sized_range<T, std::void_t<decltype(stdex::ranges::size(std::declval<T&>()))>> : std::true_type {};
 
   }
 

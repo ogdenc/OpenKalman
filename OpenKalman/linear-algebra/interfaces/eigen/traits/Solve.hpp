@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename Decomposition, typename RhsType>
-  struct indexible_object_traits<Eigen::Solve<Decomposition, RhsType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Solve<Decomposition, RhsType>>
+  struct object_traits<Eigen::Solve<Decomposition, RhsType>>
+    : Eigen3::object_traits_base<Eigen::Solve<Decomposition, RhsType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Solve<Decomposition, RhsType>>;
+    using Base = Eigen3::object_traits_base<Eigen::Solve<Decomposition, RhsType>>;
 
   public:
 

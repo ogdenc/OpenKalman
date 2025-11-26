@@ -299,7 +299,7 @@ namespace OpenKalman
       template<typename RC, typename, typename Arg>
       static auto call(Arg&& arg)
       {
-        auto f = [](auto&& m) { return make_vector_space_adapter(std::forward<decltype(m)>(m), RC{}, CC{}); };
+        auto f = [](auto&& m) { return attach_pattern(std::forward<decltype(m)>(m), RC{}, CC{}); };
         return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
       }
     };
@@ -310,7 +310,7 @@ namespace OpenKalman
       template<typename, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        auto f = [](auto&& m) { return make_vector_space_adapter(std::forward<decltype(m)>(m), RC{}, CC{}); };
+        auto f = [](auto&& m) { return attach_pattern(std::forward<decltype(m)>(m), RC{}, CC{}); };
         return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
       }
     };
@@ -376,9 +376,9 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col) -> auto {
-      return make_self_contained(nested_object(f(make_vector_space_adapter(std::forward<decltype(col)>(col), C{}, Axis{}))));
+      return make_self_contained(nested_object(f(attach_pattern(std::forward<decltype(col)>(col), C{}, Axis{}))));
     };
-    return make_vector_space_adapter(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
+    return attach_pattern(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
   }
 
 
@@ -398,9 +398,9 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
-      return make_self_contained(nested_object(f(make_vector_space_adapter(std::forward<decltype(col)>(col), C{}, Axis{}), i)));
+      return make_self_contained(nested_object(f(attach_pattern(std::forward<decltype(col)>(col), C{}, Axis{}), i)));
     };
-    return make_vector_space_adapter(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
+    return attach_pattern(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
   }
 
 
@@ -409,14 +409,14 @@ namespace OpenKalman
     std::invoke_result_t<Function, scalar_type_of_t<Arg>>, const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    stdcompat::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type>,
+    stdex::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type>,
       const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
-    return make_vector_space_adapter(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
+    return attach_pattern(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
   }
 
 
@@ -426,14 +426,14 @@ namespace OpenKalman
       const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    stdcompat::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type, std::size_t, std::size_t>,
+    stdex::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type, std::size_t, std::size_t>,
     const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
-    return make_vector_space_adapter(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
+    return attach_pattern(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))), C{}, C{});
   }
 
 

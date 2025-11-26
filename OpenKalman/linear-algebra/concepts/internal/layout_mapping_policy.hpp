@@ -26,7 +26,50 @@ namespace OpenKalman::internal
     struct is_extents : std::false_type {};
 
     template<typename IndexType, std::size_t...Extents>
-    struct is_extents<stdcompat::extents<IndexType, Extents...>> : std::true_type {};
+    struct is_extents<stdex::extents<IndexType, Extents...>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief MP is a LayoutMapping.
+   */
+  template<typename M>
+#ifdef __cpp_concepts
+  concept layout_mapping =
+#else
+  constexpr bool layout_mapping =
+#endif
+    stdex::copyable<M> and
+    stdex::equality_comparable<M> and
+    std::is_nothrow_move_constructible_v<M> and
+    std::is_nothrow_move_assignable_v<M> and
+    std::is_nothrow_swappable_v<M> and
+    detail::is_extents<typename M::extents_type>::value and
+    stdex::same_as<typename M::index_type, typename M::extents_type::index_type> and
+    stdex::same_as<typename M::rank_type, typename M::extents_type::rank_type>;
+
+
+  namespace detail
+  {
+    template<typename MP, typename M, typename E>
+#ifdef __cpp_concepts
+    concept layout_mapping_policy_impl_impl =
+#else
+    constexpr bool layout_mapping_policy_impl_impl =
+#endif
+      layout_mapping<M> and
+      stdex::same_as<MP, typename M::layout_type> and
+      stdex::same_as<E, typename M::extents_type>;
+
+
+    template<typename MP, typename E>
+#ifdef __cpp_concepts
+    concept layout_mapping_policy_impl =
+#else
+    constexpr bool layout_mapping_policy_impl =
+#endif
+      layout_mapping_policy_impl_impl<MP, typename MP::template mapping<E>, E>;
+
   }
 
 
@@ -39,13 +82,7 @@ namespace OpenKalman::internal
 #else
   constexpr bool layout_mapping_policy =
 #endif
-    stdcompat::copyable<typename MP::mapping> and
-    stdcompat::equality_comparable<typename MP::mapping> and
-    std::is_nothrow_move_constructible_v<typename MP::mapping> and
-    std::is_nothrow_move_assignable_v<typename MP::mapping> and
-    std::is_nothrow_swappable_v<typename MP::mapping> and
-    stdcompat::same_as<typename MP::mapping::layout_type, MP> and
-    detail::is_extents<typename MP::mapping::extents_type>::value;
+    detail::layout_mapping_policy_impl<MP, stdex::extents<std::size_t>>;
 
 }
 

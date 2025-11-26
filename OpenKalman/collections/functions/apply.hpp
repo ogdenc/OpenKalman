@@ -29,7 +29,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     apply_impl(F&& f, T&& t, std::index_sequence<i...>)
     {
-      return stdcompat::invoke(std::forward<F>(f), get(std::forward<T>(t), std::integral_constant<std::size_t, i>{})...);
+      return stdex::invoke(std::forward<F>(f), get<i>(std::forward<T>(t))...);
     }
   }
 
@@ -40,10 +40,10 @@ namespace OpenKalman::collections
    */
 #ifdef __cpp_concepts
   template<typename F, collection T>
-  requires values::fixed_value_compares_with<size_of<T>, dynamic_size, &std::is_neq>
+  requires values::fixed_value_compares_with<size_of<T>, stdex::dynamic_extent, &std::is_neq>
 #else
   template<typename F, typename T, std::enable_if_t<
-    collection<T> and values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq>, int> = 0>
+    collection<T> and values::fixed_value_compares_with<size_of<T>, stdex::dynamic_extent, &stdex::is_neq>, int> = 0>
 #endif
   constexpr decltype(auto)
   apply(F&& f, T&& t)

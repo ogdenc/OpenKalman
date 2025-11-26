@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_IDENTITY_MATRIX_HPP
 #define OPENKALMAN_IDENTITY_MATRIX_HPP
 
+#include "values/values.hpp"
+#include "constant_diagonal_object.hpp"
+#include "linear-algebra/traits/constant_value.hpp"
 
 namespace OpenKalman
 {
@@ -26,25 +29,27 @@ namespace OpenKalman
     struct is_identity_matrix : std::false_type {};
 
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<values::fixed<constant_diagonal_coefficient<T>>>>
-      : std::bool_constant<values::internal::near(constant_diagonal_coefficient_v<T>, 1)> {};
+    struct is_identity_matrix<T, std::enable_if_t<
+      constant_diagonal_object<T> and
+      values::fixed_value_compares_with<decltype(constant_value(std::declval<T&>())), 1>>>
+      : std::true_type {};
   }
 #endif
 
   /**
-   * \brief Specifies that a type is an identity matrix.
+   * \brief Specifies that a type is known at compile time to be a rank-2 or lower identity matrix.
    * \details This is a generalized identity matrix which may be rectangular (with zeros in all non-diagonal components.
-   * For rank >2 tensors, every rank-2 slice comprising dimensions 0 and 1 must be an identity matrix as defined here.
-   * Every \ref empty_object is also an identity matrix.
+   * A 1D vector with constant element 1 and an \ref empty_matrix are also considered to be identity matrices.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix =
-    (values::fixed<constant_diagonal_coefficient<T>> and values::internal::near(constant_diagonal_coefficient_v<T>, 1)) or
+    constant_diagonal_object<T> and
+    values::fixed_value_compares_with<decltype(constant_value(std::declval<T&>())), 1>;
 #else
-    constexpr bool identity_matrix = detail::is_identity_matrix<T>::value or
+    constexpr bool identity_matrix =
+      detail::is_identity_matrix<T>::value;
 #endif
-    empty_object<T>;
 
 
 }

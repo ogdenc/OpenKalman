@@ -98,23 +98,23 @@ namespace OpenKalman::coordinates
     constexpr bool
     pattern_collection_compares_with_impl()
     {
-      constexpr bool fixed_t = collections::sized<T> and not values::fixed_value_compares_with<collections::size_of<T>, dynamic_size>;
-      constexpr bool fixed_u = collections::sized<U> and not values::fixed_value_compares_with<collections::size_of<U>, dynamic_size>;
+      constexpr bool fixed_t = collections::sized<T> and not values::fixed_value_compares_with<collections::size_of<T>, stdex::dynamic_extent>;
+      constexpr bool fixed_u = collections::sized<U> and not values::fixed_value_compares_with<collections::size_of<U>, stdex::dynamic_extent>;
       if constexpr (fixed_t and fixed_u)
       {
         return detail::pattern_collection_compares_with_iter<T, U, comp, a>();
       }
       else if constexpr (fixed_t)
       {
-        return detail::pattern_collection_compares_with_iter_T<T, stdcompat::ranges::range_value_t<U>, comp, a>();
+        return detail::pattern_collection_compares_with_iter_T<T, stdex::ranges::range_value_t<U>, comp, a>();
       }
       else if constexpr (fixed_u)
       {
-        return detail::pattern_collection_compares_with_iter_U<stdcompat::ranges::range_value_t<T>, U, comp, a>();
+        return detail::pattern_collection_compares_with_iter_U<stdex::ranges::range_value_t<T>, U, comp, a>();
       }
       else
       {
-        return compares_with<stdcompat::ranges::range_value_t<T>, stdcompat::ranges::range_value_t<U>, comp, a>;
+        return compares_with<stdex::ranges::range_value_t<T>, stdex::ranges::range_value_t<U>, comp, a>;
       }
     }
 
@@ -122,19 +122,19 @@ namespace OpenKalman::coordinates
 
 
   /**
-   * \brief Specifies that a set of \ref coordinates::pattern objects are, or may be, equivalent.
+   * \brief Compares a two \ref coordinates::pattern_collection objects.
    * \details Every \ref coordinate_list in the set must be potentially equivalent to every other \ref coordinate_list
    * in the set. Trailing 1D patterns are ignored.
    * \tparam comp A consteval-callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
-  template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
+  template<typename T, typename U, auto comp = &stdex::is_eq, applicability a = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept pattern_collection_compares_with =
 #else
   constexpr bool pattern_collection_compares_with =
 #endif
     pattern_collection<T> and pattern_collection<U> and
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering> and
     detail::pattern_collection_compares_with_impl<T, U, comp, a>();
 
 

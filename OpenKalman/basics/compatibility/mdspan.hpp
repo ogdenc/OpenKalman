@@ -17,15 +17,30 @@
 #ifndef OPENKALMAN_COMPATIBILITY_MDSPAN_HPP
 #define OPENKALMAN_COMPATIBILITY_MDSPAN_HPP
 
+#include "language-features.hpp"
+#include "span.hpp"
+
 #ifdef __cpp_lib_mdspan
 #include <mdspan>
 #else
-#include "std-lib-reference/mdspan-reference-implementation/include/experimental/mdspan"
+#ifndef __cpp_lib_span
+namespace std::experimental
+{
+  using OpenKalman::stdex::span;
+  //using OpenKalman::stdex::dynamic_extent; // already defined in mdspan reference implementation
+  using OpenKalman::stdex::as_bytes;
+  using OpenKalman::stdex::as_writable_bytes;
+}
+#define OPENKALMAN_COMPATIBILITY_SPAN
 #endif
 
-#include "language-features.hpp"
+#include "std-lib-reference/mdspan-reference-implementation/include/experimental/mdspan"
 
-namespace OpenKalman::stdcompat
+#undef OPENKALMAN_COMPATIBILITY_SPAN
+
+#endif
+
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_mdspan
   using std::mdspan;
@@ -62,6 +77,5 @@ namespace OpenKalman::stdcompat
 #endif
 
 }
-
 
 #endif

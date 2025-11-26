@@ -60,18 +60,13 @@ namespace OpenKalman::coordinates::views {}
 
 #include "concepts/pattern.hpp"
 
-#include "functions/internal/get_descriptor_dimension.hpp"
 #include "functions/get_dimension.hpp"
 #include "traits/dimension_of.hpp"
 
-#include "functions/internal/get_descriptor_stat_dimension.hpp"
 #include "functions/get_stat_dimension.hpp"
 #include "traits/stat_dimension_of.hpp"
 
-#include "functions/internal/get_descriptor_is_euclidean.hpp"
 #include "functions/get_is_euclidean.hpp"
-
-#include "functions/internal/get_descriptor_hash_code.hpp"
 
 #include "concepts/fixed_pattern.hpp"
 #include "concepts/dynamic_pattern.hpp"
@@ -91,15 +86,9 @@ namespace OpenKalman::coordinates::views {}
 #include "descriptors/Polar.hpp"
 #include "descriptors/Spherical.hpp"
 
-// views
-
-#include "views/concat.hpp"
-#include "views/replicate.hpp"
-
 // comparisons
 
 #include "traits/common_descriptor_type.hpp"
-#include "functions/internal/get_descriptor_collection_element.hpp" // \todo delete?
 #include "functions/compare_three_way.hpp"
 #include "functions/compare.hpp"
 #include "concepts/compares_with.hpp"
@@ -120,11 +109,11 @@ namespace OpenKalman::coordinates::views {}
 #include "functions/compare_pattern_collections.hpp"
 #include "concepts/pattern_collection_compares_with.hpp"
 
-#include "functions/internal/smallest_pattern.hpp"
-#include "functions/internal/largest_pattern.hpp"
-#include "functions/internal/strip_1D_tail.hpp"
-#include "functions/internal/most_fixed_pattern.hpp"
-#include "functions/internal/to_euclidean_pattern_collection.hpp"
+// views
+
+#include "views/concat.hpp"
+#include "views/replicate.hpp"
+#include "views/dimensions.hpp"
 
 
 #endif

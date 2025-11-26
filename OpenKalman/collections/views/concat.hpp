@@ -35,7 +35,10 @@ namespace OpenKalman::collections
     constexpr auto concat_tuple_view_indices()
     {
       constexpr std::size_t size = size_of_v<T>;
-      if constexpr (i < size) return std::pair {std::integral_constant<std::size_t, 0_uz>{}, std::integral_constant<std::size_t, i>{}};
+      if constexpr (i < size)
+      {
+        return std::pair {std::integral_constant<std::size_t, 0_uz>{}, std::integral_constant<std::size_t, i>{}};
+      }
       else
       {
         auto [a, b] = concat_tuple_view_indices<i - size, Ts...>();
@@ -60,7 +63,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr concat_tuple_view() requires (... and std::default_initializable<Ts>) = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and (... and stdcompat::default_initializable<Ts>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (... and stdex::default_initializable<Ts>), int> = 0>
     constexpr concat_tuple_view() {};
 #endif
 
@@ -68,7 +71,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     template<typename...Args> requires (... and std::constructible_from<Ts, Args&&>)
 #else
-    template<typename...Args, std::enable_if_t<(... and stdcompat::constructible_from<Ts, Args&&>), int> = 0>
+    template<typename...Args, std::enable_if_t<(... and stdex::constructible_from<Ts, Args&&>), int> = 0>
 #endif
     explicit constexpr concat_tuple_view(Args&&...args) : tup {std::forward<Args>(args)...} {}
 
@@ -76,33 +79,52 @@ namespace OpenKalman::collections
     /**
      * \brief Get element i of a \ref concat_tuple_view
      */
-#ifdef __cpp_concepts
-    template<std::size_t i> requires (i < (0_uz + ... + size_of_v<Ts>))
-#else
-    template<std::size_t i, std::enable_if_t<(i < (0_uz + ... + size_of_v<Ts>)), int> = 0>
-#endif
-    friend constexpr decltype(auto)
-    get(const concat_tuple_view& v)
+#ifdef __cpp_explicit_this_parameter
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get(this auto&& self) noexcept
     {
+      static_assert(i < (0_uz + ... + size_of_v<Ts>), "Index out of range");
       auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
-      return get(get(v.tup, element).get(), index);
+      return get_element(get_element(std::forward<decltype(self)>(self).tup, element).get(), index);
+    }
+#else
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() &
+    {
+      static_assert(i < (0_uz + ... + size_of_v<Ts>), "Index out of range");
+      auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
+      return get_element(get_element(tup, element).get(), index);
     }
 
-
-    /**
-     * \overload
-     */
-#ifdef __cpp_concepts
-    template<std::size_t i> requires (i < (0_uz + ... + size_of_v<Ts>))
-#else
-    template<std::size_t i, std::enable_if_t<(i < (0_uz + ... + size_of_v<Ts>)), int> = 0>
-#endif
-    friend constexpr decltype(auto)
-    get(concat_tuple_view&& v)
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const &
     {
+      static_assert(i < (0_uz + ... + size_of_v<Ts>), "Index out of range");
       auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
-      return get(get(std::move(v).tup, element).get(), index);
+      return get_element(get_element(tup, element).get(), index);
     }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() && noexcept
+    {
+      static_assert(i < (0_uz + ... + size_of_v<Ts>), "Index out of range");
+      auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
+      return get_element(get_element(std::move(*this).tup, element).get(), index);
+    }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const && noexcept
+    {
+      static_assert(i < (0_uz + ... + size_of_v<Ts>), "Index out of range");
+      auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
+      return get_element(get_element(std::move(*this).tup, element).get(), index);
+    }
+#endif
 
   private:
 
@@ -160,7 +182,7 @@ namespace OpenKalman::collections::views
         else if constexpr ((... and (uniformly_gettable<R>)))
           return concat_tuple_view {std::forward<R>(r)...} | all;
         else
-          return stdcompat::ranges::views::concat(all(std::forward<R>(r))...) | all;
+          return stdex::ranges::views::concat(all(std::forward<R>(r))...) | all;
       }
 
     };

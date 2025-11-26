@@ -47,7 +47,7 @@ namespace OpenKalman
     else
     {
       auto m {make_dense_object<T, layout, Scalar>(all_vector_space_descriptors(arg))};
-      assign(m, std::forward<Arg>(arg));
+      copy(m, std::forward<Arg>(arg));
       return m;
     }
   }

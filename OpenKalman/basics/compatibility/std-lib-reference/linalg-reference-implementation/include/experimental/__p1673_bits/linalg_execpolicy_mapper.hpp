@@ -110,7 +110,7 @@ using remove_cvref_t =
 #ifdef __cpp_lib_remove_cvref
   std::remove_cvref_t<T>;
 #else
-  std::remove_const_t<std::remove_reference_t<decltype(policy)>>;
+  std::remove_const_t<std::remove_reference_t<T>>;
 #endif
 
 // This function is not to be specialized; that's why

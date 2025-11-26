@@ -27,7 +27,7 @@ namespace OpenKalman::Eigen3
   {
     /**
      * \brief Return a scalar constant or std::monostate
-     * \tparam is_diag True if \ref constant_diagonal_coefficient, false if \ref constant_coefficient.
+     * \tparam is_diag True if \ref constant_diagonal_value, false if \ref constant_value.
      * \return \ref values::scalar
      */
     template<bool is_diag, typename Arg>
@@ -37,7 +37,7 @@ namespace OpenKalman::Eigen3
     }
 
     template<triangle_type t>
-    static constexpr bool is_triangular = false;
+    static constexpr bool triangle_type_value = false;
 
     static constexpr bool is_hermitian = false;
   };

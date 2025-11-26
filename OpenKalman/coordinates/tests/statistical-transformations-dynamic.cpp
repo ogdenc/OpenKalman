@@ -28,7 +28,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 namespace
 {

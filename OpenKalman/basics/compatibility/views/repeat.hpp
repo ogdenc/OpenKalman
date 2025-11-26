@@ -22,7 +22,7 @@
 #include "basics/compatibility/internal/movable_box.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges_repeat
   using std::ranges::repeat_view;
@@ -50,11 +50,7 @@ namespace OpenKalman::stdcompat::ranges
     {
     private:
 
-#ifdef __cpp_lib_ranges
-      using index_type = std::conditional_t<std::is_same_v<Bound, std::unreachable_sentinel_t>, std::ptrdiff_t, Bound>;
-#else
       using index_type = std::conditional_t<std::is_same_v<Bound, unreachable_sentinel_t>, std::ptrdiff_t, Bound>;
-#endif
 
       template<typename I>
       using iota_diff_t = std::conditional_t<
@@ -124,7 +120,7 @@ namespace OpenKalman::stdcompat::ranges
 #ifdef __cpp_lib_concepts
     repeat_view() requires std::default_initializable<W> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<W>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<W>, int> = 0>
     constexpr repeat_view() {};
 #endif
 
@@ -142,7 +138,7 @@ namespace OpenKalman::stdcompat::ranges
       std::constructible_from<W, WArgs...> and std::constructible_from<Bound, BoundArgs...>
 #else
     template<typename...WArgs, typename...BoundArgs, std::enable_if_t<
-      stdcompat::constructible_from<W, WArgs...> and stdcompat::constructible_from<Bound, BoundArgs...>, int> = 0>
+      stdex::constructible_from<W, WArgs...> and stdex::constructible_from<Bound, BoundArgs...>, int> = 0>
 #endif
     constexpr explicit
     repeat_view(std::piecewise_construct_t, std::tuple<WArgs...> value_args, std::tuple<BoundArgs...> bound_args = std::tuple<>{})
@@ -153,20 +149,21 @@ namespace OpenKalman::stdcompat::ranges
     begin() const { return iterator {std::addressof(*value_)}; }
 
 
-    template<bool Enable = true, std::enable_if_t<Enable and not std::is_same_v<Bound, unreachable_sentinel_t>, int> = 0>
-    constexpr iterator
-    end() const { return iterator {std::addressof(*value_), bound_}; }
-
-
-    constexpr unreachable_sentinel_t
-    end() const { return {}; }
+    constexpr auto
+    end() const
+    {
+      if constexpr (same_as<Bound, unreachable_sentinel_t>)
+        return unreachable_sentinel;
+      else
+        return iterator {std::addressof(*value_), bound_};
+    }
 
 
 #ifdef __cpp_lib_concepts
     constexpr auto
-    size() const requires (not std::same_as<Bound, std::unreachable_sentinel_t>)
+    size() const requires (not same_as<Bound, unreachable_sentinel_t>)
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and not stdcompat::same_as<Bound, unreachable_sentinel_t>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and not same_as<Bound, unreachable_sentinel_t>, int> = 0>
     constexpr auto size() const
 #endif
     {

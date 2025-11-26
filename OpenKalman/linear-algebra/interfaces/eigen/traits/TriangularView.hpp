@@ -16,15 +16,15 @@
 #ifndef OPENKALMAN_EIGEN_TRIANGULARVIEW_HPP
 #define OPENKALMAN_EIGEN_TRIANGULARVIEW_HPP
 
-#include <type_traits>
-
+#include "linear-algebra/concepts/triangular_matrix.hpp"
+#include "linear-algebra/traits/triangle_type_of.hpp"
 
 namespace OpenKalman
 {
   namespace interface
   {
     template<typename MatrixType, unsigned int Mode>
-    struct indexible_object_traits<Eigen::TriangularView<MatrixType, Mode>>
+    struct object_traits<Eigen::TriangularView<MatrixType, Mode>>
     {
     private:
 
@@ -83,7 +83,7 @@ namespace OpenKalman
         }
         else
         {
-          return constant_diagonal_coefficient {arg.nestedExpression()};
+          return constant_diagonal_value {arg.nestedExpression()};
         }
       }
 
@@ -95,20 +95,23 @@ namespace OpenKalman
       template<applicability b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
+    private:
 
-      template<triangle_type t>
-      static constexpr bool is_triangular =
-        (t == triangle_type::any) or
-        (t == triangle_type::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, triangle_type::lower>)) or
-        (t == triangle_type::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, triangle_type::upper>)) or
-        (t == triangle_type::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) != 0 ? triangle_type::upper : triangle_type::lower>);
+      static constexpr triangle_type Eigen_tri =
+        ((Mode & Eigen::Lower) != 0) ? triangle_type::lower :
+        ((Mode & Eigen::Upper) != 0) ? triangle_type::upper :
+        triangle_type::none;
+
+    public:
+
+      static constexpr triangle_type triangle_type_value = Eigen_tri * triangle_type_of_v<MatrixType>;
 
 
       static constexpr bool is_triangular_adapter = true;
 
 
       static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and (not values::complex<scalar_type> or
-        values::not_complex<constant_coefficient<MatrixType>> or values::not_complex<constant_diagonal_coefficient<MatrixType>>);
+        values::not_complex<constant_value<MatrixType>> or values::not_complex<constant_diagonal_value<MatrixType>>);
 
     };
 

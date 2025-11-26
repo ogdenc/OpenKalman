@@ -52,12 +52,12 @@ namespace OpenKalman::coordinates
     else
     {
       using C = common_descriptor_type_t<B>;
-      if constexpr (compares_with<A, C, &stdcompat::is_eq, applicability::guaranteed>)
+      if constexpr (compares_with<A, C, &stdex::is_eq, applicability::guaranteed>)
       {
         return values::operation(std::equal_to{}, get_dimension(a), std::integral_constant<std::size_t, 1>{});
       }
-      else if constexpr (compares_with<A, C, &stdcompat::is_neq, applicability::guaranteed> or
-        (dimension_of_v<C> != dynamic_size and dimension_of_v<C> != 1))
+      else if constexpr (compares_with<A, C, &stdex::is_neq, applicability::guaranteed> or
+        (dimension_of_v<C> != stdex::dynamic_extent and dimension_of_v<C> != 1))
       {
         return std::false_type {};
       }

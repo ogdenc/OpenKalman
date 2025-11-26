@@ -16,7 +16,7 @@ using namespace OpenKalman::coordinates;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 namespace
 {
@@ -287,10 +287,10 @@ TEST(adapters, zero_adapter_functions)
 
   auto ec12_2 = Eigen::Replicate<decltype(ec11_2), 1, 2> {ec11_2, 1, 2};
 
-  EXPECT_TRUE(is_near(transpose(ec21_2), ec12_2)); static_assert(constant_coefficient_v<decltype(transpose(ec21_2))> == 2);
-  EXPECT_TRUE(is_near(transpose(ec2x_1_2), ec12_2)); static_assert(constant_coefficient_v<decltype(transpose(ec2x_1_2))> == 2);
-  EXPECT_TRUE(is_near(transpose(ecx1_2_2), ec12_2)); static_assert(constant_coefficient_v<decltype(transpose(ecx1_2_2))> == 2);
-  EXPECT_TRUE(is_near(transpose(ecxx_21_2), ec12_2)); static_assert(constant_coefficient_v<decltype(transpose(ecxx_21_2))> == 2);
+  EXPECT_TRUE(is_near(transpose(ec21_2), ec12_2)); static_assert(constant_value_v<decltype(transpose(ec21_2))> == 2);
+  EXPECT_TRUE(is_near(transpose(ec2x_1_2), ec12_2)); static_assert(constant_value_v<decltype(transpose(ec2x_1_2))> == 2);
+  EXPECT_TRUE(is_near(transpose(ecx1_2_2), ec12_2)); static_assert(constant_value_v<decltype(transpose(ecx1_2_2))> == 2);
+  EXPECT_TRUE(is_near(transpose(ecxx_21_2), ec12_2)); static_assert(constant_value_v<decltype(transpose(ecxx_21_2))> == 2);
 
   EXPECT_TRUE(is_near(transpose(z23), M32::Zero()));
   EXPECT_TRUE(is_near(transpose(z2x_3), M32::Zero()));
@@ -300,10 +300,10 @@ TEST(adapters, zero_adapter_functions)
 
   // adjoint
 
-  EXPECT_TRUE(is_near(adjoint(ec21_2), ec12_2)); static_assert(constant_coefficient_v<decltype(adjoint(ec21_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ec2x_1_2), ec12_2)); static_assert(constant_coefficient_v<decltype(adjoint(ec2x_1_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ecx1_2_2), ec12_2)); static_assert(constant_coefficient_v<decltype(adjoint(ecx1_2_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ecxx_21_2), ec12_2)); static_assert(constant_coefficient_v<decltype(adjoint(ecxx_21_2))> == 2);
+  EXPECT_TRUE(is_near(adjoint(ec21_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ec21_2))> == 2);
+  EXPECT_TRUE(is_near(adjoint(ec2x_1_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ec2x_1_2))> == 2);
+  EXPECT_TRUE(is_near(adjoint(ecx1_2_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ecx1_2_2))> == 2);
+  EXPECT_TRUE(is_near(adjoint(ecxx_21_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ecxx_21_2))> == 2);
 
   EXPECT_TRUE(is_near(adjoint(ez21), ez12)); static_assert(zero<decltype(adjoint(ez21))>);
   EXPECT_TRUE(is_near(adjoint(ez2x_1), ez12)); static_assert(zero<decltype(adjoint(ez2x_1))>);
@@ -419,10 +419,10 @@ TEST(adapters, zero_adapter_functions)
   EXPECT_TRUE(is_near(contract(ec2x_3_2, ecxx_33_3), ec23_18));
   EXPECT_TRUE(is_near(contract(ecx3_2_2, ecxx_33_3), ec23_18));
   EXPECT_TRUE(is_near(contract(ecxx_23_2, ecxx_33_3), ec23_18));
-  static_assert(constant_coefficient_v<decltype(contract(ec23_2, ec33_3))> == 18);
+  static_assert(constant_value_v<decltype(contract(ec23_2, ec33_3))> == 18);
 
   EXPECT_TRUE(is_near(contract(make_constant<M23, double, 2>(), make_constant<M33, double, 3>()), ec23_18));
-  static_assert(constant_coefficient_v<decltype(contract(make_constant<M23, double, 2>(), make_constant<M33, double, 3>()))> == 18);
+  static_assert(constant_value_v<decltype(contract(make_constant<M23, double, 2>(), make_constant<M33, double, 3>()))> == 18);
 
   EXPECT_TRUE(is_near(contract(m23, make_identity_matrix_like(m33)), m23));
   EXPECT_TRUE(is_near(contract(make_identity_matrix_like(m22), m23), m23));
@@ -659,10 +659,10 @@ TEST(adapters, constant_solve)
   EXPECT_TRUE(is_near(solve(cxx_22, cx3_2), m23_2));
   EXPECT_TRUE(is_near(solve(cxx_22, cxx_23), m23_2));
 
-  static_assert(constant_coefficient_v<decltype(solve(c22, c23))> == 2);
-  static_assert(values::dynamic<constant_coefficient<decltype(solve(c2x_2, c23))>>);
-  static_assert(constant_coefficient_v<decltype(solve(cx2_2, c23))> == 2);
-  static_assert(values::dynamic<constant_coefficient<decltype(solve(cxx_22, c23))>>);
+  static_assert(constant_value_v<decltype(solve(c22, c23))> == 2);
+  static_assert(values::dynamic<constant_value<decltype(solve(c2x_2, c23))>>);
+  static_assert(constant_value_v<decltype(solve(cx2_2, c23))> == 2);
+  static_assert(values::dynamic<constant_value<decltype(solve(cxx_22, c23))>>);
 
   auto c12_2 = Eigen::Replicate<decltype(c11_2), 1, 2> {c11_2, 1, 2};
   auto c1x_2_2 = Eigen::Replicate<decltype(c11_2), 1, Eigen::Dynamic> {c11_2, 1, 2};
@@ -775,30 +775,30 @@ TEST(adapters, constant_diagonalizing)
   auto ecx1_2_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, 1>(ec11_2, 2, 1);
   auto ecxx_21_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, Eigen::Dynamic>(ec11_2, 2, 1);
 
-  EXPECT_TRUE(is_near(diagonal_of(ec21_2.asDiagonal()), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec21_2.asDiagonal()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(ec2x_1_2.asDiagonal()), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec2x_1_2.asDiagonal()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(ecx1_2_2.asDiagonal()), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecx1_2_2.asDiagonal()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(ecxx_21_2.asDiagonal()), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecxx_21_2.asDiagonal()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(ec21_2.asDiagonal()), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ec21_2.asDiagonal()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(ec2x_1_2.asDiagonal()), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ec2x_1_2.asDiagonal()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(ecx1_2_2.asDiagonal()), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ecx1_2_2.asDiagonal()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(ecxx_21_2.asDiagonal()), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ecxx_21_2.asDiagonal()))> == 2);
 
   auto ec22_2 = ec11_2.replicate<2, 2>();
   auto ec2x_2_2 = Eigen::Replicate<decltype(ec11_2), 2, Eigen::Dynamic>(ec11_2, 2, 2);
   auto ecx2_2_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, 2>(ec11_2, 2, 2);
   auto ecxx_22_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, Eigen::Dynamic>(ec11_2, 2, 2);
 
-  EXPECT_TRUE(is_near(diagonal_of(ec22_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec22_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ec22_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ec2x_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec2x_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ec2x_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ecx2_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecx2_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecx2_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ecxx_22_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecxx_22_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecxx_22_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ec22_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ec22_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ec22_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ec2x_2_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ec2x_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ec2x_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ecx2_2_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ecx2_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecx2_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ecxx_22_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(ecxx_22_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecxx_22_2))>);
 
   auto d21_2 = ec21_2.asDiagonal();
   auto d2x_1_2 = Eigen::Replicate<decltype(ec11_2), 2, Eigen::Dynamic> {ec11_2, 2, 1}.asDiagonal();
   auto dx1_2_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, 1> {ec11_2, 2, 1}.asDiagonal();
   auto dxx_21_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, Eigen::Dynamic> {ec11_2, 2, 1}.asDiagonal();
 
-  EXPECT_TRUE(is_near(diagonal_of(d21_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d21_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(d21_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(d2x_1_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(d2x_1_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(d2x_1_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(dx1_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(dx1_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(dx1_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(dxx_21_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(dxx_21_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(dxx_21_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d21_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(d21_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(d21_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(d2x_1_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(d2x_1_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(d2x_1_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(dx1_2_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(dx1_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(dx1_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(dxx_21_2), ec21_2)); static_assert(constant_value_v<decltype(diagonal_of(dxx_21_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(dxx_21_2))>);
 
   auto z11 = M11::Identity() - M11::Identity();
 
@@ -819,15 +819,15 @@ TEST(adapters, constant_diagonalizing)
   auto cx2_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 2>(c11_2, 2, 2);
   auto cxx_22_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 2, 2);
 
-  EXPECT_TRUE(is_near(diagonal_of(c22_2.template selfadjointView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(c22_2.template selfadjointView<Eigen::Upper>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(c2x_2_2.template selfadjointView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(c2x_2_2.template selfadjointView<Eigen::Lower>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(cx2_2_2.template selfadjointView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(cx2_2_2.template selfadjointView<Eigen::Upper>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(cxx_22_2.template selfadjointView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(cxx_22_2.template selfadjointView<Eigen::Lower>()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(c22_2.template selfadjointView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c22_2.template selfadjointView<Eigen::Upper>()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(c2x_2_2.template selfadjointView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c2x_2_2.template selfadjointView<Eigen::Lower>()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(cx2_2_2.template selfadjointView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(cx2_2_2.template selfadjointView<Eigen::Upper>()))> == 2);
+  EXPECT_TRUE(is_near(diagonal_of(cxx_22_2.template selfadjointView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(cxx_22_2.template selfadjointView<Eigen::Lower>()))> == 2);
 
-  EXPECT_TRUE(is_near(diagonal_of(M22::Identity().template selfadjointView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M22::Identity().template selfadjointView<Eigen::Upper>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(M22::Identity().template selfadjointView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M22::Identity().template selfadjointView<Eigen::Upper>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Upper>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template selfadjointView<Eigen::Lower>()))> == 1);
 
   constant_adapter<M33, double, 5> c533 {};
   constant_adapter<M3x, double, 5> c53x_3 {3};
@@ -850,7 +850,7 @@ TEST(adapters, constant_diagonalizing)
   EXPECT_TRUE(is_near(diagonal_of(c53x_3), M31::Constant(5)));
   EXPECT_TRUE(is_near(diagonal_of(c5x3_3), M31::Constant(5)));
   EXPECT_TRUE(is_near(diagonal_of(c5xx_33), M31::Constant(5)));
-  static_assert(constant_coefficient_v<decltype(diagonal_of(c5xx_33))> == 5);
+  static_assert(constant_value_v<decltype(diagonal_of(c5xx_33))> == 5);
 
   ZA21 z21;
   ZA20 z2x_1 {1};
@@ -947,16 +947,16 @@ TEST(adapters, constant_reductions)
   auto ec21 = Eigen::Replicate<EC11, 2, 1> {ec11};
 
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, ec23), 2 * ec13));
-  static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, ec23))> == 4);
+  static_assert(constant_value_v<decltype(reduce<0>(std::plus<double>{}, ec23))> == 4);
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, ecx3_2), 2 * ec13));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, ec2x_3), 2 * ec13));
-  static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, ec2x_3))> == 4);
+  static_assert(constant_value_v<decltype(reduce<0>(std::plus<double>{}, ec2x_3))> == 4);
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, ecxx_23), 2 * ec13));
 
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, ec23), 3 * ec21));
-  static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, ec23))> == 6);
+  static_assert(constant_value_v<decltype(reduce<1>(std::plus<double>{}, ec23))> == 6);
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, ecx3_2), 3 * ec21));
-  static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, ecx3_2))> == 6);
+  static_assert(constant_value_v<decltype(reduce<1>(std::plus<double>{}, ecx3_2))> == 6);
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, ec2x_3), 4 * ec21));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, ecxx_23), 4 * ec21));
 
@@ -989,7 +989,7 @@ TEST(adapters, constant_reductions)
 
   auto efc11 = (M11::Identity() + M11::Identity()).array() / (M11::Identity() + M11::Identity() + M11::Identity()).array();
   using EFC11 = decltype(efc11);
-  static_assert(values::internal::near(constant_coefficient_v<EFC11>, 2./3));
+  static_assert(values::internal::near(constant_value_v<EFC11>, 2./3));
 
   auto efc23 = Eigen::Replicate<EFC11, 2, 3> {efc11};
   auto efc2x_3 = Eigen::Replicate<EFC11, 2, Eigen::Dynamic> {efc11, 2, 3};
@@ -1004,8 +1004,8 @@ TEST(adapters, constant_reductions)
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efc2x_3), 2./3 * efc13));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efcxx_23), 2./3 * efc13));
 
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(values::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(values::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(values::internal::near(constant_value_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(values::internal::near(constant_value_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efc2x_3), 4./9 * efc21));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efcxx_23), 4./9 * efc21));
 
@@ -1071,15 +1071,15 @@ TEST(adapters, constant_reductions)
   EXPECT_TRUE(is_near(average_reduce<1>(Mx2::Identity(2, 2)), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(Mxx::Identity(2, 2)), M21::Constant(0.5)));
 
-  EXPECT_TRUE(is_near(average_reduce<1>(ec23), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ec23))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<1>(ec2x_3), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ec2x_3))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<1>(ecx3_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ecx3_2))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<1>(ecxx_23), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ecxx_23))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<1>(ec23), M21::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<1>(ec23))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<1>(ec2x_3), M21::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<1>(ec2x_3))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<1>(ecx3_2), M21::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<1>(ecx3_2))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<1>(ecxx_23), M21::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<1>(ecxx_23))> == 2);
 
-  EXPECT_TRUE(is_near(average_reduce<0>(ec23), M13::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<0>(ec23))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<0>(ec2x_3), M13::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<0>(ec2x_3))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<0>(ecx3_2), M13::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<0>(ecx3_2))> == 2);
-  EXPECT_TRUE(is_near(average_reduce<0>(ecxx_23), M13::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<0>(ecxx_23))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<0>(ec23), M13::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<0>(ec23))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<0>(ec2x_3), M13::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<0>(ec2x_3))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<0>(ecx3_2), M13::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<0>(ecx3_2))> == 2);
+  EXPECT_TRUE(is_near(average_reduce<0>(ecxx_23), M13::Constant(2))); static_assert(constant_value_v<decltype(average_reduce<0>(ecxx_23))> == 2);
 
   static_assert(average_reduce(ec23) == 2);
   static_assert(average_reduce(ec2x_3) == 2);
@@ -1095,18 +1095,18 @@ TEST(adapters, constant_reductions)
   auto dx1_2_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, 1> {ec11_2, 2, 1}.asDiagonal();
   auto dxx_21_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, Eigen::Dynamic> {ec11_2, 2, 1}.asDiagonal();
 
-  static_assert(constant_coefficient_v<decltype(average_reduce<1>(d21_2))> == 1);
+  static_assert(constant_value_v<decltype(average_reduce<1>(d21_2))> == 1);
   EXPECT_TRUE(is_near(average_reduce<1>(d2x_1_2), M21::Constant(1)));
   EXPECT_TRUE(is_near(average_reduce<1>(dx1_2_2), M21::Constant(1)));
   EXPECT_TRUE(is_near(average_reduce<1>(dxx_21_2), M21::Constant(1)));
 
-  static_assert(constant_coefficient_v<decltype(average_reduce<0>(d21_2))> == 1);
+  static_assert(constant_value_v<decltype(average_reduce<0>(d21_2))> == 1);
   EXPECT_TRUE(is_near(average_reduce<0>(d2x_1_2), M12::Constant(1)));
   EXPECT_TRUE(is_near(average_reduce<0>(dx1_2_2), M12::Constant(1)));
   EXPECT_TRUE(is_near(average_reduce<0>(dxx_21_2), M12::Constant(1)));
 
-  static_assert(constant_coefficient_v<decltype(average_reduce<0>(d21_2))> == 1);
-  static_assert(constant_coefficient_v<decltype(average_reduce<1>(d21_2))> == 1);
+  static_assert(constant_value_v<decltype(average_reduce<0>(d21_2))> == 1);
+  static_assert(constant_value_v<decltype(average_reduce<1>(d21_2))> == 1);
 
   static_assert(average_reduce(d21_2) == 1);
   EXPECT_EQ(average_reduce(d2x_1_2), 1);
@@ -1285,12 +1285,12 @@ TEST(adapters, constant_element_functions)
   auto c5c34 = get_chip<1>(c5xx_34, 1);
   EXPECT_EQ(get_pattern_collection<0>(c5c34), 3);
   static_assert(dimension_size_of_index_is<decltype(c5c34), 1, 1>);
-  static_assert(constant_coefficient_v<decltype(c5c34)> == 5);
+  static_assert(constant_value_v<decltype(c5c34)> == 5);
 
   auto c5v34 = get_chip<1>(constant_adapter<Mx4, double, 5> {3}, N1);
   EXPECT_EQ(get_pattern_collection<0>(c5v34), 3);
   static_assert(dimension_size_of_index_is<decltype(c5v34), 1, 1>);
-  static_assert(constant_coefficient_v<decltype(c5v34)> == 5);
+  static_assert(constant_value_v<decltype(c5v34)> == 5);
 
   EXPECT_TRUE(is_near(get_chip<0>(constant_adapter<M32, double, 6> {}, 1), (M12::Constant(6))));
   EXPECT_TRUE(is_near(get_chip<0>(constant_adapter<M32, double, 7> {}, N1), (M12::Constant(7))));
@@ -1298,12 +1298,12 @@ TEST(adapters, constant_element_functions)
   auto r5c34 = get_chip<0>(c5xx_34, 1);
   EXPECT_EQ(get_pattern_collection<1>(r5c34), 4);
   static_assert(dimension_size_of_index_is<decltype(r5c34), 0, 1>);
-  static_assert(constant_coefficient_v<decltype(r5c34)> == 5);
+  static_assert(constant_value_v<decltype(r5c34)> == 5);
 
   auto r5v34 = get_chip<0>(constant_adapter<M3x, double, 5> {4}, N1);
   EXPECT_EQ(get_pattern_collection<1>(r5v34), 4);
   static_assert(dimension_size_of_index_is<decltype(r5v34), 0, 1>);
-  static_assert(constant_coefficient_v<decltype(r5v34)> == 5);
+  static_assert(constant_value_v<decltype(r5v34)> == 5);
 
   EXPECT_TRUE(is_near(get_chip<1>(zero_adapter<M23>(), N1), (M21::Zero())));
   EXPECT_TRUE(is_near(get_chip<1>(zero_adapter<M23>(), 1), (M21::Zero())));
@@ -1429,13 +1429,13 @@ TEST(adapters, sum)
 
   // constant
 
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_m2>(), std::declval<C22_m2>()))> == -4);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
+  static_assert(constant_value_v<decltype(sum(std::declval<C22_m2>(), std::declval<C22_m2>()))> == -4);
+  static_assert(constant_value_v<decltype(sum(std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
+  static_assert(constant_value_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
 
   // constant diagonal
 
-  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Cd22_2>(), std::declval<Cd22_3>()))> == 5);
-  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_m2>(), std::declval<Cd22_3>()))> == 1);
+  static_assert(constant_diagonal_value_v<decltype(sum(std::declval<Cd22_2>(), std::declval<Cd22_3>()))> == 5);
+  static_assert(constant_diagonal_value_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_m2>(), std::declval<Cd22_3>()))> == 1);
 }
 

@@ -51,15 +51,13 @@ namespace OpenKalman::collections
   /// \overload
 #ifdef __cpp_concepts
   template<std::size_t i, sized T> requires
-    (size_of_v<T> != dynamic_size) and
-    (i < size_of_v<T>) and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt> and
     requires { typename std::tuple_element<i, std::decay_t<T>>::type; }
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq> and
-    values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt> and
     detail::has_tuple_element<i, T>::value>>
 #endif
     : std::tuple_element<i, std::decay_t<T>> {};
@@ -71,22 +69,20 @@ namespace OpenKalman::collections
  */
 #ifdef __cpp_concepts
   template<std::size_t i, typename T> requires
-    (size_of_v<T> != dynamic_size) and
-    (i < size_of_v<T>) and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt> and
     (not requires { typename std::tuple_element<i, std::decay_t<T>>::type; }) and
     gettable<i, T>
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::fixed_value_compares_with<size_of<T>, dynamic_size, &stdcompat::is_neq> and
-    values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt> and
     (not detail::has_tuple_element<i, T>::value) and
     gettable<i, T>>>
 #endif
   {
     using type = OpenKalman::internal::remove_rvalue_reference_t<
-      decltype(OpenKalman::internal::generalized_std_get<i>(std::declval<stdcompat::remove_cvref_t<T>>()))>;
+      decltype(get<i>(std::declval<stdex::remove_cvref_t<T>>()))>;
   };
 
 
@@ -95,22 +91,21 @@ namespace OpenKalman::collections
    * \details Does not do any bounds checking if the size is dynamic.
    */
 #ifdef __cpp_concepts
-  template<std::size_t i, stdcompat::ranges::random_access_range T> requires
-    (size_of_v<T> == dynamic_size or i < size_of_v<T>) and
+  template<std::size_t i, stdex::ranges::random_access_range T> requires
+    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt>) and
     (not requires { typename std::tuple_element<i, std::decay_t<T>>::type; }) and
     (not gettable<i, T>)
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    (values::fixed_value_compares_with<size_of<T>, dynamic_size> or
-      values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt>) and
-    stdcompat::ranges::random_access_range<T> and
+    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt>) and
+    stdex::ranges::random_access_range<T> and
     not detail::has_tuple_element<i, T>::value and
     not gettable<i, T>>>
 #endif
   {
-    using type = stdcompat::ranges::range_value_t<stdcompat::remove_cvref_t<T>>;
+    using type = stdex::ranges::range_value_t<stdex::remove_cvref_t<T>>;
   };
 
 

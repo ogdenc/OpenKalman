@@ -22,7 +22,7 @@
 namespace OpenKalman::interface
 {
   template<typename ExpressionType, int Direction>
-  struct indexible_object_traits<Eigen::VectorwiseOp<ExpressionType, Direction>>
+  struct object_traits<Eigen::VectorwiseOp<ExpressionType, Direction>>
   {
     using scalar_type = scalar_type_of_t<ExpressionType>;
 
@@ -44,7 +44,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg._expression()};
+      return constant_value {arg._expression()};
     }
 
     template<applicability b>

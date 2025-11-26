@@ -32,7 +32,7 @@ namespace OpenKalman::internal
     template<typename T, std::size_t N>
     constexpr bool an_extended_dim_is_dynamic()
     {
-      if constexpr (index_count_v<T> != dynamic_size and index_count_v<T> > N)
+      if constexpr (index_count_v<T> != stdex::dynamic_extent and index_count_v<T> > N)
         return an_extended_dim_is_dynamic_impl<T, N>(std::make_index_sequence<index_count_v<T> - N>{});
       else
         return false;

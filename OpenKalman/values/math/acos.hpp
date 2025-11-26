@@ -56,14 +56,14 @@ namespace OpenKalman::values
       {
         using R = real_type_of_t<real_type_of_t<Return>>;
         auto s = values::asin(internal::make_complex_number<R>(arg));
-        return internal::make_complex_number<Return>(stdcompat::numbers::pi_v<R> / 2 - values::real(s), - values::imag(s));
+        return internal::make_complex_number<Return>(stdex::numbers::pi_v<R> / 2 - values::real(s), - values::imag(s));
       }
       else
       {
         if (arg == 1) return static_cast<Return>(+0.);
         auto s = values::asin(arg);
         if (values::isnan(s)) return internal::NaN<Return>();
-        return stdcompat::numbers::pi_v<Return> / 2 - s;
+        return stdex::numbers::pi_v<Return> / 2 - s;
       }
     }
   }

@@ -20,12 +20,12 @@
 namespace OpenKalman::interface
 {
   template<typename NullaryOp, typename XprType>
-  struct indexible_object_traits<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
+  struct object_traits<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>;
+    using Base = Eigen3::object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>;
 
   public:
 
@@ -69,7 +69,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template is_triangular<t>;
+    static constexpr bool triangle_type_value = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template triangle_type_value<t>;
 
 
     static constexpr bool is_triangular_adapter = false;

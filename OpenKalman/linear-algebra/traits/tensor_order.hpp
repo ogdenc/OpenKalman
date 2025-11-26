@@ -26,7 +26,10 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T>
-    constexpr auto get_tensor_order_of_impl(std::index_sequence<>, const T& t) { return 0; }
+    constexpr auto get_tensor_order_of_impl(std::index_sequence<>, const T& t)
+    {
+      return std::integral_constant<std::size_t, 0>{};
+    }
 
     template<std::size_t I, std::size_t...Is, typename T>
     constexpr auto get_tensor_order_of_impl(std::index_sequence<I, Is...>, const T& t)
@@ -40,10 +43,7 @@ namespace OpenKalman
         {
           auto next = get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
           if constexpr (stat_dim == 1) return next;
-          else if constexpr (values::fixed<decltype(next)>)
-            return std::integral_constant<std::size_t, 1_uz + std::decay_t<decltype(next)>::value> {};
-          else
-            return 1_uz + next;
+          else return values::operation(std::plus{}, std::integral_constant<std::size_t, 1>{}, next);
         }
       }
       else

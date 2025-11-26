@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,19 +16,23 @@
 #ifndef OPENKALMAN_HERMITIAN_ADAPTER_TYPE_OF_HPP
 #define OPENKALMAN_HERMITIAN_ADAPTER_TYPE_OF_HPP
 
+#include "linear-algebra/enumerations.hpp"
+#include "linear-algebra/concepts/hermitian_adapter.hpp"
 
 namespace OpenKalman
 {
   /**
    * \brief The triangle_type associated with the storage triangle of one or more matrices.
    * \details If there is no common triangle type, the result is triangle_type::any.
+   * If any of the arguments are not a \ref hermitian_matrix, the result is HermitianAdapterType::none.
    * If the matrices have a dynamic shape, the result assumes the matrices are square.
    */
   template<typename T, typename...Ts>
   struct hermitian_adapter_type_of : std::integral_constant<HermitianAdapterType,
     (hermitian_adapter<T, HermitianAdapterType::lower> and ... and hermitian_adapter<Ts, HermitianAdapterType::lower>) ? HermitianAdapterType::lower :
     (hermitian_adapter<T, HermitianAdapterType::upper> and ... and hermitian_adapter<Ts, HermitianAdapterType::upper>) ? HermitianAdapterType::upper :
-    HermitianAdapterType::any> {};
+    (hermitian_adapter<T> and ... and hermitian_adapter<Ts>) ? HermitianAdapterType::any :
+    HermitianAdapterType::none> {};
 
 
   /**

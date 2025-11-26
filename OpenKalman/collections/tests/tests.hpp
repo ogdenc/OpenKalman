@@ -18,11 +18,12 @@
 #define OPENKALMAN_COLLECTIONS_TESTS_HPP
 
 #include <string>
-#include "values/tests/tests.hpp"
 #include "values/values.hpp"
+#include "collections/traits/size_of.hpp"
+#include "collections/functions/get.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/concepts/uniformly_gettable.hpp"
-#include "collections/traits/size_of.hpp"
+#include "values/tests/tests.hpp"
 
 namespace OpenKalman::test
 {
@@ -35,25 +36,23 @@ namespace OpenKalman::test
    */
 #ifdef __cpp_concepts
   template<collections::collection Arg1, collections::collection Arg2, typename Err> requires
-    (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and (collections::uniformly_gettable<Err> or values::value<Err>)) or
-    (stdcompat::ranges::range<Arg1> and stdcompat::ranges::range<Arg2> and
-      (stdcompat::ranges::range<Err> or values::value<Err>))
+    (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and
+      (collections::uniformly_gettable<Err> or values::value<Err>)) or
+    (stdex::ranges::range<Arg1> and stdex::ranges::range<Arg2> and
+      (stdex::ranges::range<Err> or values::value<Err>))
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
   struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
     collections::collection<Arg1> and collections::collection<Arg2> and
-    ((collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and (collections::uniformly_gettable<Err> or values::value<Err>)) or
-      (stdcompat::ranges::range<Arg1> and stdcompat::ranges::range<Arg2> and
-        (stdcompat::ranges::range<Err> or values::value<Err>)))>>
+    ((collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2> and
+        (collections::uniformly_gettable<Err> or values::value<Err>)) or
+      (stdex::ranges::range<Arg1> and stdex::ranges::range<Arg2> and
+        (stdex::ranges::range<Err> or values::value<Err>)))>>
 #endif
     : ::testing::AssertionResult
   {
   private:
-
-    template<std::size_t i, typename Arg>
-    static constexpr auto geti(const Arg& arg) { return internal::generalized_std_get<i>(arg); }
-
 
     template<std::size_t...Ix>
     static auto
@@ -61,30 +60,30 @@ namespace OpenKalman::test
     {
       if constexpr (collections::uniformly_gettable<Err>)
       {
-        if ((... and OpenKalman::test::TestComparison {geti<Ix>(arg1), geti<Ix>(arg2), geti<Ix>(err)}))
+        if ((... and OpenKalman::test::TestComparison {collections::get<Ix>(arg1), collections::get<Ix>(arg2), collections::get<Ix>(err)}))
         {
           return ::testing::AssertionSuccess();
         }
         else
         {
           return (::testing::AssertionFailure() << ... << (std::string(Ix == 0 ? "" : ", ") +
-            std::string(OpenKalman::test::TestComparison {geti<Ix>(arg1), geti<Ix>(arg2), geti<Ix>(err)} ?
-              std::to_string(geti<Ix>(arg1)) + "==" + std::to_string(geti<Ix>(arg2)) :
-              std::to_string(geti<Ix>(arg1)) + "!=" + std::to_string(geti<Ix>(arg2)) )));
+            std::string(OpenKalman::test::TestComparison {collections::get<Ix>(arg1), collections::get<Ix>(arg2), collections::get<Ix>(err)} ?
+              std::to_string(collections::get<Ix>(arg1)) + "==" + std::to_string(collections::get<Ix>(arg2)) :
+              std::to_string(collections::get<Ix>(arg1)) + "!=" + std::to_string(collections::get<Ix>(arg2)) )));
         }
       }
       else
       {
-        if ((... and OpenKalman::test::TestComparison {geti<Ix>(arg1), geti<Ix>(arg2), err}))
+        if ((... and OpenKalman::test::TestComparison {collections::get<Ix>(arg1), collections::get<Ix>(arg2), err}))
         {
           return ::testing::AssertionSuccess();
         }
         else
         {
           return (::testing::AssertionFailure() << ... << (std::string(Ix == 0 ? "" : ", ") +
-            std::string(OpenKalman::test::TestComparison {geti<Ix>(arg1), geti<Ix>(arg2), err} ?
-              std::to_string(geti<Ix>(arg1)) + " == " + std::to_string(geti<Ix>(arg2)) :
-              std::to_string(geti<Ix>(arg1)) + " != " + std::to_string(geti<Ix>(arg2)) )));
+            std::string(OpenKalman::test::TestComparison {collections::get<Ix>(arg1), collections::get<Ix>(arg2), err} ?
+              std::to_string(collections::get<Ix>(arg1)) + " == " + std::to_string(collections::get<Ix>(arg2)) :
+              std::to_string(collections::get<Ix>(arg1)) + " != " + std::to_string(collections::get<Ix>(arg2)) )));
         }
       }
     }
@@ -127,33 +126,35 @@ namespace OpenKalman::test
     static auto
     compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
-      static_assert(values::size_compares_with<collections::size_of<Arg1>, collections::size_of<Arg2>,
-        &stdcompat::is_eq, applicability::permitted>, "size of arguments must match");
+      static_assert(
+        not values::size_compares_with<collections::size_of<Arg1>, collections::size_of<Arg2>, &stdex::is_neq>,
+        "size of arguments must match");
 
-      static_assert(values::value<Err> or values::size_compares_with<collections::size_of<Err>, collections::size_of<Arg1>,
-        &stdcompat::is_eq, applicability::permitted>, "size of error margins must match that of arguments");
+      static_assert(values::value<Err> or
+        not values::size_compares_with<collections::size_of<Err>, collections::size_of<Arg1>, &stdex::is_neq>,
+        "size of error margins must match that of arguments");
 
-      if constexpr (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2>)
-      {
-        return compare_tuple_like(arg1, arg2, err, std::make_index_sequence<collections::size_of_v<Arg1>>{});
-      }
-      else if constexpr (std::rank_v<Arg1> > 1 and std::rank_v<Arg1> == std::rank_v<Arg2> and (std::rank_v<Err> == std::rank_v<Arg1> or values::value<Err>))
+      if constexpr (std::rank_v<Arg1> > 1 and std::rank_v<Arg1> == std::rank_v<Arg2> and (std::rank_v<Err> == std::rank_v<Arg1> or values::value<Err>))
       {
         std::string message;
         if (compare_mdarray(arg1, arg2, err, message)) return ::testing::AssertionSuccess();
         else return ::testing::AssertionFailure() << message;
       }
-      else // if constexpr (stdcompat::ranges::range<Arg1> and stdcompat::ranges::range<Arg2>)
+      else if constexpr (collections::uniformly_gettable<Arg1> and collections::uniformly_gettable<Arg2>)
+      {
+        return compare_tuple_like(arg1, arg2, err, std::make_index_sequence<collections::size_of_v<Arg1>>{});
+      }
+      else // if constexpr (stdex::ranges::range<Arg1> and stdex::ranges::range<Arg2>)
       {
         std::string message;
         bool success = true;
-        auto it1 = stdcompat::ranges::begin(arg1);
-        auto it2 = stdcompat::ranges::begin(arg2);
+        auto it1 = stdex::ranges::begin(arg1);
+        auto it2 = stdex::ranges::begin(arg2);
         std::size_t count = 0;
-        if constexpr (stdcompat::ranges::range<Err>)
+        if constexpr (stdex::ranges::range<Err>)
         {
-          for (auto ite = stdcompat::ranges::begin(err);
-               it1 != stdcompat::ranges::end(arg1) and it2 != stdcompat::ranges::end(arg2) and ite != stdcompat::ranges::end(err);
+          for (auto ite = stdex::ranges::begin(err);
+               it1 != stdex::ranges::end(arg1) and it2 != stdex::ranges::end(arg2) and ite != stdex::ranges::end(err);
                ++it1, ++it2, ++ite, ++count)
           {
             if (not OpenKalman::test::TestComparison {*it1, *it2, *ite})
@@ -166,7 +167,7 @@ namespace OpenKalman::test
         }
         else
         {
-          for (; it1 != stdcompat::ranges::end(arg1) and it2 != stdcompat::ranges::end(arg2); ++it1, ++it2, ++count)
+          for (; it1 != stdex::ranges::end(arg1) and it2 != stdex::ranges::end(arg2); ++it1, ++it2, ++count)
           {
             if (not OpenKalman::test::TestComparison {*it1, *it2, err})
             {

@@ -24,7 +24,6 @@
 #include "coordinates/concepts/euclidean_pattern.hpp"
 #include "coordinates/traits/dimension_of.hpp"
 #include "coordinates/functions/get_dimension.hpp"
-#include "coordinates/functions/get_is_euclidean.hpp"
 #include "Any.hpp"
 
 namespace OpenKalman::coordinates
@@ -37,9 +36,9 @@ namespace OpenKalman::coordinates
    * \brief A structure representing the dimensions associated with of a particular index.
    * \details The dimension may or may not be known at compile time. If unknown at compile time, the size is set
    * at the time of construction and cannot be modified thereafter.
-   * \tparam N The dimension (or <code>dynamic_size</code>, if not known at compile time)
+   * \tparam N The dimension (or <code>stdex::dynamic_extent</code>, if not known at compile time)
    */
-  template<std::size_t N = dynamic_size>
+  template<std::size_t N = stdex::dynamic_extent>
   struct Dimensions
   {
     /// Default constructor
@@ -89,7 +88,7 @@ namespace OpenKalman::coordinates
    * \brief Case where the dimension or size associated with a given dynamic index is known only at runtime.
    */
   template<>
-  struct Dimensions<dynamic_size>
+  struct Dimensions<stdex::dynamic_extent>
   {
     /// Construct from a \ref coordinates::euclidean_pattern or \ref dynamic_pattern.
 #ifdef __cpp_concepts
@@ -156,10 +155,10 @@ namespace OpenKalman::coordinates
 #else
   template<typename D, std::enable_if_t<dynamic_pattern<D> and euclidean_pattern<D>, int> = 0>
 #endif
-  explicit Dimensions(D&&) -> Dimensions<dynamic_size>;
+  explicit Dimensions(D&&) -> Dimensions<stdex::dynamic_extent>;
 
 
-  explicit Dimensions(const std::size_t&) -> Dimensions<dynamic_size>;
+  explicit Dimensions(const std::size_t&) -> Dimensions<stdex::dynamic_extent>;
 
 
   // ------ //
@@ -195,7 +194,7 @@ namespace OpenKalman::interface
     static constexpr auto
     dimension = [](const T& t)
     {
-      if constexpr (N == dynamic_size) return t.runtime_size;
+      if constexpr (N == stdex::dynamic_extent) return t.runtime_size;
       else return std::integral_constant<std::size_t, N>{};
     };
 
@@ -211,7 +210,7 @@ namespace OpenKalman::interface
     static constexpr auto
     hash_code = [](const T& t)
     {
-      if constexpr (N == dynamic_size)
+      if constexpr (N == stdex::dynamic_extent)
         return static_cast<std::size_t>(t.runtime_size);
       else
         return std::integral_constant<std::size_t, N>{};
@@ -227,7 +226,7 @@ namespace std
   template<std::size_t M, std::size_t N>
   struct common_type<OpenKalman::coordinates::Dimensions<M>, OpenKalman::coordinates::Dimensions<N>>
   {
-    using type = OpenKalman::coordinates::Dimensions<M == N ? N : OpenKalman::dynamic_size>;
+    using type = OpenKalman::coordinates::Dimensions<M == N ? N : OpenKalman::stdex::dynamic_extent>;
   };
 
 
@@ -236,7 +235,7 @@ namespace std
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
       std::conditional<OpenKalman::coordinates::euclidean_pattern<T>,
-        OpenKalman::coordinates::Dimensions<N == OpenKalman::coordinates::dimension_of_v<T> ? N : OpenKalman::dynamic_size>,
+        OpenKalman::coordinates::Dimensions<N == OpenKalman::coordinates::dimension_of_v<T> ? N : OpenKalman::stdex::dynamic_extent>,
         OpenKalman::coordinates::Any<>>,
       std::monostate> {};
 

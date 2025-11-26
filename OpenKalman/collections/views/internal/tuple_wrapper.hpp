@@ -19,6 +19,7 @@
 
 #include <functional>
 #include "basics/basics.hpp"
+#include "collections/functions/get.hpp"
 #include "collections/concepts/viewable_tuple_like.hpp"
 #include "collections/views/internal/movable_wrapper.hpp"
 
@@ -50,7 +51,7 @@ namespace OpenKalman::collections::internal
     static constexpr decltype(auto)
     fill_tuple(U&& u, std::index_sequence<i...>)
     {
-      return std::tuple { movable_wrapper {OpenKalman::internal::generalized_std_get<i>(std::forward<U>(u))}...};
+      return std::tuple { movable_wrapper {collections::get<i>(std::forward<U>(u))}...};
     }
 
 
@@ -85,11 +86,20 @@ namespace OpenKalman::collections::internal
     /**
      * \brief Get an element.
      */
+#ifdef __cpp_explicit_this_parameter
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get(this auto&& self) noexcept
+    {
+      static_assert(i < size_of_v<T>, "Index out of range");
+      return collections::get<i>(*(std::forward<decltype(self)>(self).t_).get());
+    }
+#else
     template<std::size_t i>
     constexpr decltype(auto) get() & noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(*t_).get();
+      return collections::get<i>(*t_).get();
     }
 
     /// \overload
@@ -97,7 +107,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() const & noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(*t_).get();
+      return collections::get<i>(*t_).get();
     }
 
     /// \overload
@@ -105,7 +115,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() && noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return std::move(OpenKalman::internal::generalized_std_get<i>(*t_).get());
+      return collections::get<i>(*std::move(t_)).get();
     }
 
     /// \overload
@@ -113,8 +123,9 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() const && noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return std::move(OpenKalman::internal::generalized_std_get<i>(*t_).get());
+      return collections::get<i>(*std::move(t_)).get();
     }
+#endif
 
   private:
 
@@ -133,7 +144,7 @@ namespace OpenKalman::collections::internal
   struct tuple_wrapper<T>
 #else
   template<typename T>
-  struct tuple_wrapper<T, std::enable_if_t<viewable_tuple_like<T> and stdcompat::move_constructible<T> and std::is_object_v<T>>>
+  struct tuple_wrapper<T, std::enable_if_t<viewable_tuple_like<T> and stdex::move_constructible<T> and std::is_object_v<T>>>
 #endif
   {
   private:
@@ -173,7 +184,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() & noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return  OpenKalman::internal::generalized_std_get<i>(t_.operator*());
+      return  collections::get<i>(t_.operator*());
     }
 
     /// \overload
@@ -181,7 +192,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() const & noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return  OpenKalman::internal::generalized_std_get<i>(t_.operator*());
+      return  collections::get<i>(t_.operator*());
     }
 
     /// \overload
@@ -189,7 +200,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() && noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return  OpenKalman::internal::generalized_std_get<i>(std::move(t_.operator*()));
+      return  collections::get<i>(std::move(t_.operator*()));
     }
 
     /// \overload
@@ -197,7 +208,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() const && noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return  OpenKalman::internal::generalized_std_get<i>(std::move(t_.operator*()));
+      return  collections::get<i>(std::move(t_.operator*()));
     }
 
   private:
@@ -222,7 +233,7 @@ namespace OpenKalman::collections::internal
   {
   private:
 
-    using T_ = stdcompat::reference_wrapper<std::remove_reference_t<T>>;
+    using T_ = stdex::reference_wrapper<std::remove_reference_t<T>>;
 
   public:
 
@@ -246,7 +257,7 @@ namespace OpenKalman::collections::internal
     constexpr decltype(auto) get() const noexcept
     {
       static_assert(i < size_of_v<T>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(t_.get());
+      return collections::get<i>(t_.get());
     }
 
   private:

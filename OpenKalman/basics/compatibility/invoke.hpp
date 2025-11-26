@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_COMPATIBILITY_INVOKE_HPP
 #define OPENKALMAN_COMPATIBILITY_INVOKE_HPP
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #if __cplusplus >= 202002L
   using std::invoke;
@@ -25,7 +25,7 @@ namespace OpenKalman::stdcompat
   {
     template<typename> static constexpr bool is_reference_wrapper_v = false;
     template<typename U> static constexpr bool is_reference_wrapper_v<std::reference_wrapper<U>> = true;
-    template<typename U> static constexpr bool is_reference_wrapper_v<stdcompat::reference_wrapper<U>> = true;
+    template<typename U> static constexpr bool is_reference_wrapper_v<stdex::reference_wrapper<U>> = true;
 
     template<typename C, typename Pointed, typename Object, typename...Args>
     static constexpr decltype(auto)
@@ -67,7 +67,7 @@ namespace OpenKalman::stdcompat
   static constexpr std::invoke_result_t<F, Args...>
   invoke(F&& f, Args&&... args) noexcept(std::is_nothrow_invocable_v<F, Args...>)
   {
-    if constexpr (std::is_member_pointer_v<stdcompat::remove_cvref_t<F>>)
+    if constexpr (std::is_member_pointer_v<stdex::remove_cvref_t<F>>)
       return detail::invoke_memptr(f, std::forward<Args>(args)...);
     else
       return std::forward<F>(f)(std::forward<Args>(args)...);
@@ -90,9 +90,9 @@ namespace OpenKalman::stdcompat
   constexpr R invoke_r(F&& f, Args&&... args) noexcept(std::is_nothrow_invocable_r_v<R, F, Args...>)
   {
     if constexpr (std::is_void_v<R>)
-      stdcompat::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+      stdex::invoke(std::forward<F>(f), std::forward<Args>(args)...);
     else
-      return stdcompat::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+      return stdex::invoke(std::forward<F>(f), std::forward<Args>(args)...);
   }
 #endif
 

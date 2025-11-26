@@ -24,8 +24,8 @@ namespace OpenKalman::interface
   // \todo: Add other interface traits. This is a child of Eigen::MatrixBase
 
   template<typename MatrixType, int Direction>
-  struct indexible_object_traits<Eigen::Homogeneous<MatrixType, Direction>>
-    : Eigen3::indexible_object_traits_base<Eigen::Homogeneous<MatrixType, Direction>>
+  struct object_traits<Eigen::Homogeneous<MatrixType, Direction>>
+    : Eigen3::object_traits_base<Eigen::Homogeneous<MatrixType, Direction>>
   {
   };
 

@@ -56,6 +56,13 @@ private:
     ReferenceType __callop(mdspan const& __self, const array<SizeType, N>& indices) noexcept {
       return __self.__accessor_ref().access(__self.__ptr_ref(), __self.__mapping_ref()(indices[Idxs]...));
     }
+    // Added by CLO:
+    template <class ReferenceType, class SizeType>
+    MDSPAN_FORCE_INLINE_FUNCTION static constexpr
+    ReferenceType __callop(mdspan const& __self, const span<SizeType, Extents::rank()>& indices) noexcept {
+      return __self.__accessor_ref().access(__self.__ptr_ref(), __self.__mapping_ref()(indices[Idxs]...));
+    }
+    // End
   };
 
 public:
@@ -237,7 +244,7 @@ public:
     return __impl::template __callop<reference>(*this, indices);
   }
 
-  #ifdef __cpp_lib_span
+  #if defined (__cpp_lib_span) or defined (OPENKALMAN_COMPATIBILITY_SPAN)
   MDSPAN_TEMPLATE_REQUIRES(
     class SizeType,
     /* requires */ (

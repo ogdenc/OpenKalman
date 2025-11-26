@@ -49,7 +49,7 @@ namespace OpenKalman
   constexpr std::size_t operator ""_uz(unsigned long long x) { return x; };
 
 
-  namespace stdcompat
+  namespace stdex
   {
     namespace numbers
     {
@@ -136,7 +136,7 @@ namespace OpenKalman
       using type = T;
 
       template<typename U, typename = std::void_t<decltype(detail::reference_wrapper_FUN<T>(std::declval<U>()))>,
-        std::enable_if_t<not std::is_same_v<reference_wrapper, stdcompat::remove_cvref_t<U>>, int> = 0>
+        std::enable_if_t<not std::is_same_v<reference_wrapper, stdex::remove_cvref_t<U>>, int> = 0>
       constexpr reference_wrapper(U&& u) noexcept(noexcept(detail::reference_wrapper_FUN<T>(std::forward<U>(u))))
         : ptr(std::addressof(detail::reference_wrapper_FUN<T>(std::forward<U>(u)))) {}
 
@@ -207,7 +207,7 @@ namespace OpenKalman
 
 #if __cplusplus < 202002L
     template<typename U>
-    struct unwrap_reference<stdcompat::reference_wrapper<U>> { using type = U&; };
+    struct unwrap_reference<stdex::reference_wrapper<U>> { using type = U&; };
 #endif
 
     template<typename T>
@@ -244,13 +244,6 @@ namespace OpenKalman
 
     template<typename T>
     using type_identity_t = typename type_identity<T>::type;
-#endif
-
-
-#ifdef __cpp_lib_span
-    using std::dynamic_extent;
-#else
-    inline constexpr std::size_t dynamic_extent = std::numeric_limits<std::size_t>::max();
 #endif
 
   }

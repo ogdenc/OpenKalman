@@ -16,9 +16,7 @@
 #ifndef OPENKALMAN_ANGLE_HPP
 #define OPENKALMAN_ANGLE_HPP
 
-#include <type_traits>
-#include <cmath>
-#include <array>
+#include "values/functions/internal/update_real_part.hpp"
 #include "collections/collections.hpp"
 #include "coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "Any.hpp"
@@ -54,9 +52,9 @@ template<typename Min = values::fixed_minus_pi<long double>, typename Max = valu
     static_assert(values::fixed_value_of_v<Max> > 0);
     static_assert(not values::complex<Min>);
     static_assert(not values::complex<Max>);
-    static_assert(stdcompat::convertible_to<values::value_type_of_t<Min>, float>);
-    static_assert(stdcompat::convertible_to<values::value_type_of_t<Max>, float>);
-    static_assert(stdcompat::common_with<values::value_type_of_t<Min>, values::value_type_of_t<Max>>);
+    static_assert(stdex::convertible_to<values::value_type_of_t<Min>, float>);
+    static_assert(stdex::convertible_to<values::value_type_of_t<Max>, float>);
+    static_assert(stdex::common_with<values::value_type_of_t<Min>, values::value_type_of_t<Max>>);
 #endif
   };
 
@@ -170,9 +168,9 @@ namespace OpenKalman::interface
     static constexpr auto
     to_stat_space = [](const T&, auto&& data_view)
     {
-      decltype(auto) a = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) a = collections::get<0>(std::forward<decltype(data_view)>(data_view));
       using R = values::real_type_of_t<values::real_type_of_t<decltype(a)>>;
-      if constexpr (min == -stdcompat::numbers::pi_v<R> and max == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
+      if constexpr (min == -stdex::numbers::pi_v<R> and max == stdex::numbers::pi_v<R>) //< Avoid scaling, if possible.
       {
         return make_range(values::cos(a), values::sin(a));
       }
@@ -208,10 +206,10 @@ namespace OpenKalman::interface
     static constexpr auto
     from_stat_space = [](const T&, auto&& data_view)
     {
-      decltype(auto) x = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
-      decltype(auto) y = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 1>{});
+      decltype(auto) x = collections::get<0>(std::forward<decltype(data_view)>(data_view));
+      decltype(auto) y = collections::get<1>(std::forward<decltype(data_view)>(data_view));
       using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
-      if constexpr (min == -stdcompat::numbers::pi_v<R> and max == stdcompat::numbers::pi_v<R>) //< Avoid scaling and wrapping, if possible.
+      if constexpr (min == -stdex::numbers::pi_v<R> and max == stdex::numbers::pi_v<R>) //< Avoid scaling and wrapping, if possible.
       {
         return std::array {values::atan2(std::forward<decltype(y)>(y), std::forward<decltype(x)>(x))};
       }
@@ -248,7 +246,7 @@ namespace OpenKalman::interface
     static constexpr auto
     wrap = [](const T&, auto&& data_view)
     {
-      decltype(auto) phi = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) phi = collections::get<0>(std::forward<decltype(data_view)>(data_view));
       return std::array {values::internal::update_real_part(std::forward<decltype(phi)>(phi),
         values::operation(wrap_phi_mod{}, values::real(values::real(phi))))};
     };
@@ -278,7 +276,7 @@ namespace std
   struct common_type<OpenKalman::coordinates::Angle<Min1, Max1>, T>
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
-      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<>>,
       std::monostate> {};
 }
 

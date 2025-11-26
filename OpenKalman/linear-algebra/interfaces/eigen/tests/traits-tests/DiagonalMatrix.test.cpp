@@ -18,10 +18,10 @@ using namespace OpenKalman::test;
 TEST(eigen3, Eigen_DiagonalMatrix)
 {
   static_assert(index_dimension_of_v<DM2, 0> == 2);
-  static_assert(index_dimension_of_v<DMx, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<DMx, 0> == stdex::dynamic_extent);
 
   static_assert(index_dimension_of_v<DM2, 1> == 2);
-  static_assert(index_dimension_of_v<DMx, 1> == dynamic_size);
+  static_assert(index_dimension_of_v<DMx, 1> == stdex::dynamic_extent);
 
   static_assert(square_shaped<DMx>);
 

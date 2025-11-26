@@ -48,20 +48,20 @@ TEST(collections, generate_view)
 {
   constexpr auto i0 = generate_view(fi{}, c3{});
   using I0 = std::decay_t<decltype(i0)>;
-  static_assert(stdcompat::ranges::view<I0>);
+  static_assert(stdex::ranges::view<I0>);
   static_assert(collection_view<I0>);
   static_assert(std::tuple_size_v<std::decay_t<I0>> == 3U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<I0>>> == 1U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<2, std::decay_t<I0>>> == 2U);
-  static_assert(get(i0, c0{}) == 0U);
-  static_assert(get(i0, c1{}) == 1U);
-  static_assert(get(i0, c2{}) == 2U);
-  static_assert(get(i0, 0U) == 0U);
-  static_assert(get(i0, 1U) == 1U);
-  static_assert(get(i0, 2U) == 2U);
+  static_assert(get_element(i0, c0{}) == 0U);
+  static_assert(get_element(i0, c1{}) == 1U);
+  static_assert(get_element(i0, c2{}) == 2U);
+  static_assert(get_element(i0, 0U) == 0U);
+  static_assert(get_element(i0, 1U) == 1U);
+  static_assert(get_element(i0, 2U) == 2U);
   static_assert(i0.size() == 3U);
-  static_assert(get(generate_view(fi{}, c3{}), c2{}) == 2U);
+  static_assert(get_element(generate_view(fi{}, c3{}), c2{}) == 2U);
 
   auto iti0 = i0.begin();
   EXPECT_EQ(*iti0, 0U);
@@ -82,17 +82,17 @@ TEST(collections, generate_view)
     return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c0{}), i), c1{}),
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c1{}), i), c1{})),
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c2{}), i), c1{}));
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c0{}), i), c1{}),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c1{}), i), c1{})),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c2{}), i), c1{}));
     };
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{}, c3{})), c2{});
   static_assert(std::tuple_size_v<std::decay_t<decltype(t0)>> == 2U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
-  static_assert(get(t0, c0{}) == 6U);
-  static_assert(get(t0, c1{}) == 24U);
+  static_assert(get_element(t0, c0{}) == 6U);
+  static_assert(get_element(t0, c1{}) == 24U);
 
   auto it0 = t0.begin();
   EXPECT_EQ(*it0, 6U);
@@ -112,15 +112,15 @@ TEST(collections, generate_view)
   {
     return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
-      return (get(std::get<0>(r), c0{}) + i + 1) * (get(std::get<0>(r), c1{}) + i + 1) * (get(std::get<0>(r), c2{}) + i + 1);
+      return (get_element(std::get<0>(r), c0{}) + i + 1) * (get_element(std::get<0>(r), c1{}) + i + 1) * (get_element(std::get<0>(r), c2{}) + i + 1);
     };
   };
   constexpr auto t1 = views::generate(f1(generate_view(fi{}, c3{})), c2{});
   static_assert(std::tuple_size_v<std::decay_t<decltype(t1)>> == 2);
   static_assert(std::is_same_v<std::tuple_element_t<0, std::decay_t<decltype(t1)>>, std::size_t>);
   static_assert(std::is_same_v<std::tuple_element_t<1, std::decay_t<decltype(t1)>>, std::size_t>);
-  static_assert(get(t1, c0{}) == 6U);
-  static_assert(get(t1, c1{}) == 24U);
+  static_assert(get_element(t1, c0{}) == 6U);
+  static_assert(get_element(t1, c1{}) == 24U);
 
   auto it1 = t1.begin();
   EXPECT_EQ(*it1, 6U);
@@ -142,21 +142,21 @@ TEST(collections, generate_view_unsized)
 {
   constexpr auto i0 = generate_view(fi{});
   using I0 = std::decay_t<decltype(i0)>;
-  static_assert(stdcompat::ranges::view<I0>);
+  static_assert(stdex::ranges::view<I0>);
   static_assert(not sized<I0>);
   static_assert(not uniformly_gettable<I0>);
   static_assert(collection_view<I0>);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<1000, std::decay_t<I0>>> == 1000);
-  static_assert(get(i0, c0{}) == 0U);
-  static_assert(get(i0, c1{}) == 1U);
-  static_assert(get(i0, c2{}) == 2U);
-  static_assert(get(i0, 0U) == 0U);
-  static_assert(get(i0, 1U) == 1U);
-  static_assert(get(i0, 1000U) == 1000U);
-  static_assert(get(generate_view<fi>(), 100U) == 100U);
-  static_assert(get(generate_view<fi>(fi{}), 101U) == 101U);
-  static_assert(get(views::generate(fi{}), 102U) == 102U);
+  static_assert(get_element(i0, c0{}) == 0U);
+  static_assert(get_element(i0, c1{}) == 1U);
+  static_assert(get_element(i0, c2{}) == 2U);
+  static_assert(get_element(i0, 0U) == 0U);
+  static_assert(get_element(i0, 1U) == 1U);
+  static_assert(get_element(i0, 1000U) == 1000U);
+  static_assert(get_element(generate_view<fi>(), 100U) == 100U);
+  static_assert(get_element(generate_view<fi>(fi{}), 101U) == 101U);
+  static_assert(get_element(views::generate(fi{}), 102U) == 102U);
 
   auto iti0 = i0.begin();
   EXPECT_EQ(*iti0, 0U);
@@ -177,17 +177,17 @@ TEST(collections, generate_view_unsized)
     return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c0{}), i), c1{}),
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c1{}), i), c1{})),
-        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c2{}), i), c1{}));
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c0{}), i), c1{}),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c1{}), i), c1{})),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c2{}), i), c1{}));
     };
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{})));
   static_assert(values::fixed_value_of_v<std::tuple_element_t<0, std::decay_t<decltype(t0)>>> == 6U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<1, std::decay_t<decltype(t0)>>> == 24U);
   static_assert(values::fixed_value_of_v<std::tuple_element_t<100, std::decay_t<decltype(t0)>>> == 1061106U);
-  static_assert(get(t0, c0{}) == 6U);
-  static_assert(get(t0, c1{}) == 24U);
+  static_assert(get_element(t0, c0{}) == 6U);
+  static_assert(get_element(t0, c1{}) == 24U);
 
   auto it0 = t0.begin();
   EXPECT_EQ(*it0, 6U);
@@ -207,14 +207,14 @@ TEST(collections, generate_view_unsized)
   {
     return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
-      return (get(std::get<0>(r), c0{}) + i + 1) * (get(std::get<0>(r), c1{}) + i + 1) * (get(std::get<0>(r), c2{}) + i + 1);
+      return (get_element(std::get<0>(r), c0{}) + i + 1) * (get_element(std::get<0>(r), c1{}) + i + 1) * (get_element(std::get<0>(r), c2{}) + i + 1);
     };
   };
   constexpr auto t1 = views::generate(f1(generate_view(fi{})));
   static_assert(std::is_same_v<std::tuple_element_t<0, std::decay_t<decltype(t1)>>, std::size_t>);
   static_assert(std::is_same_v<std::tuple_element_t<1, std::decay_t<decltype(t1)>>, std::size_t>);
-  static_assert(get(t1, c0{}) == 6U);
-  static_assert(get(t1, c1{}) == 24U);
+  static_assert(get_element(t1, c0{}) == 6U);
+  static_assert(get_element(t1, c1{}) == 24U);
 
   auto it1 = t1.begin();
   EXPECT_EQ(*it1, 6U);

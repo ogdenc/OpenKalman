@@ -37,11 +37,11 @@ namespace OpenKalman::coordinates
   make_descriptor_range(Args&&...args)
   {
     if constexpr (sizeof...(Args) == 0)
-      return stdcompat::ranges::views::empty<Dimensions<1>>;
+      return stdex::ranges::views::empty<Dimensions<1>>;
     else if constexpr (sizeof...(Args) == 1)
-      return stdcompat::ranges::views::single(std::forward<Args>(args)...);
+      return stdex::ranges::views::single(std::forward<Args>(args)...);
     else
-      return std::array {static_cast<stdcompat::common_reference_t<Args...>>(std::forward<Args>(args))...};
+      return std::array {static_cast<stdex::common_reference_t<Args...>>(std::forward<Args>(args))...};
   }
 
 

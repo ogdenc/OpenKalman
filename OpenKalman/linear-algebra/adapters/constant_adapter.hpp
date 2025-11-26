@@ -18,12 +18,12 @@
 
 #include "coordinates/coordinates.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/concepts/constant_matrix.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
 #include "linear-algebra/concepts/index_collection_for.hpp"
 #include "linear-algebra/traits/internal/library_base.hpp"
 #include "linear-algebra/traits/element_type_of.hpp"
-#include "linear-algebra/traits/constant_coefficient.hpp"
-#include "../traits/get_pattern_collection.hpp"
+#include "linear-algebra/traits/constant_value.hpp"
+#include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
 {
@@ -67,7 +67,7 @@ namespace OpenKalman
 #else
     template<typename V, typename P, std::enable_if_t<
       values::value<V> and pattern_collection<P> and
-      stdcompat::constructible_from<Value, V&&> and stdcompat::constructible_from<Pattern, P&&>, int> = 0>
+      stdex::constructible_from<Value, V&&> and stdex::constructible_from<Pattern, P&&>, int> = 0>
 #endif
     explicit constexpr constant_adapter(V&& v, P&& p)
       : value_ {std::forward<V>(v)}, pattern_ {std::forward<P>(p)} {}
@@ -82,8 +82,8 @@ namespace OpenKalman
       std::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<S&&>()))>
 #else
     template<typename V, typename S, std::enable_if_t<values::value<V> and
-      stdcompat::constructible_from<Value, V&&> and
-      stdcompat::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<S&&>()))>, int> = 0>
+      stdex::constructible_from<Value, V&&> and
+      stdex::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<S&&>()))>, int> = 0>
 #endif
     explicit constexpr constant_adapter(V&& v, S&& s)
       : value_ {std::forward<V>(v)}, pattern_ {get_pattern_collection(std::forward<S>(s))} {}
@@ -99,7 +99,7 @@ namespace OpenKalman
       coordinates::fixed_pattern_collection<Pattern>
 #else
     template<typename V, typename S, std::enable_if_t<values::value<V> and
-      stdcompat::constructible_from<Value, V&&> and coordinates::fixed_pattern_collection<Pattern>, int> = 0>
+      stdex::constructible_from<Value, V&&> and coordinates::fixed_pattern_collection<Pattern>, int> = 0>
 #endif
     explicit constexpr constant_adapter(V&& v)
       : value_ {std::forward<V>(v)}, pattern_ {} {}
@@ -120,41 +120,41 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct from another \ref constant_matrix.
+     * \brief Construct from another \ref constant_object.
      */
 #ifdef __cpp_concepts
-    template<constant_matrix Arg> requires
+    template<constant_object Arg> requires
       (not std::same_as<std::decay_t<Arg>, constant_adapter>) and
-      std::constructible_from<Value, constant_coefficient<Arg>> and
+      std::constructible_from<Value, constant_value<Arg>> and
       std::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not stdcompat::same_as<std::decay_t<Arg>, constant_adapter>) and
-      stdcompat::constructible_from<Value, constant_coefficient<Arg>> and
-      stdcompat::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<Arg&&>()))>, int> = 0>
+    template<typename Arg, std::enable_if_t<constant_object<Arg> and
+      (not stdex::same_as<std::decay_t<Arg>, constant_adapter>) and
+      stdex::constructible_from<Value, constant_value<Arg>> and
+      stdex::constructible_from<Pattern, decltype(get_pattern_collection(std::declval<Arg&&>()))>, int> = 0>
 #endif
     constexpr constant_adapter(Arg&& arg) :
-      value_ {constant_coefficient {arg}}, 
+      value_ {constant_value {arg}},
       pattern_ {get_pattern_collection(std::forward<Arg>(arg))} {}
 
 
     /**
-     * \brief Assign from a compatible \ref constant_matrix.
+     * \brief Assign from a compatible \ref constant_object.
      */
 #ifdef __cpp_concepts
-    template<constant_matrix Arg> requires
+    template<constant_object Arg> requires
       (not std::same_as<std::decay_t<Arg>, constant_adapter>) and
-      std::assignable_from<Value&, constant_coefficient<Arg>> and
+      std::assignable_from<Value&, constant_value<Arg>> and
       std::assignable_from<Pattern&, decltype(get_pattern_collection(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not stdcompat::same_as<std::decay_t<Arg>, constant_adapter>) and
-      stdcompat::assignable_from<Value&, constant_coefficient<Arg>> and
-      stdcompat::assignable_from<Pattern&, decltype(get_pattern_collection(std::declval<Arg&&>()))>, int> = 0>
+    template<typename Arg, std::enable_if_t<constant_object<Arg> and
+      (not stdex::same_as<std::decay_t<Arg>, constant_adapter>) and
+      stdex::assignable_from<Value&, constant_value<Arg>> and
+      stdex::assignable_from<Pattern&, decltype(get_pattern_collection(std::declval<Arg&&>()))>, int> = 0>
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      value_ = constant_coefficient {arg};
+      value_ = constant_value {arg};
       pattern_ = get_pattern_collection(std::forward<Arg>(arg));
       return *this;
     }
@@ -197,7 +197,7 @@ namespace OpenKalman
 
     Pattern pattern_;
 
-    friend struct interface::indexible_object_traits<constant_adapter>;
+    friend struct interface::object_traits<constant_adapter>;
     friend struct interface::library_interface<constant_adapter>;
 
   };
@@ -216,11 +216,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<constant_matrix Arg> requires (not is_constant_adapter<Arg>::value)
+  template<constant_object Arg> requires (not is_constant_adapter<Arg>::value)
 #else
-  template<typename Arg, std::enable_if_t<constant_matrix<Arg> and (not is_constant_adapter<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<constant_object<Arg> and (not is_constant_adapter<Arg>), int> = 0>
 #endif
-  constant_adapter(const Arg&) -> constant_adapter<is_constant_coefficient<Arg>::value, Arg>;
+  constant_adapter(const Arg&) -> constant_adapter<is_constant_value<Arg>::value, Arg>;
 
 
   // -------------- //
@@ -247,7 +247,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct indexible_object_traits<constant_adapter<PatternMatrix, Scalar, constant...>>
+    struct object_traits<constant_adapter<PatternMatrix, Scalar, constant...>>
     {
     private:
 
@@ -262,7 +262,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto count_indices(const Arg& arg)
       {
-        if constexpr (index_count_v<PatternMatrix> == dynamic_size)
+        if constexpr (index_count_v<PatternMatrix> == stdex::dynamic_extent)
           return std::forward<Arg>(arg).pattern_.size();
         else
           return collections::size_of<MyDims> {};
@@ -272,7 +272,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_pattern_collection(Arg&& arg, const N& n)
       {
-        if constexpr (index_count_v<PatternMatrix> == dynamic_size)
+        if constexpr (index_count_v<PatternMatrix> == stdex::dynamic_extent)
         {
           return std::forward<Arg>(arg).pattern_[static_cast<typename MyDims::size_type>(n)];
         }
@@ -312,7 +312,7 @@ namespace OpenKalman
       static constexpr bool is_square = OpenKalman::square_shaped<PatternMatrix, b>;
 
 
-      // No is_triangular, is_triangular_adapter, is_hermitian, or hermitian_adapter_type defined
+      // No triangle_type_value, is_triangular_adapter, is_hermitian, or hermitian_adapter_type defined
 
 
       static constexpr bool is_writable = false;
@@ -332,7 +332,7 @@ namespace OpenKalman
 
       template<typename Arg, typename Indices>
       static constexpr auto
-      get_component(Arg&& arg, const Indices&) { return std::forward<Arg>(arg).value(); }
+      access(Arg&& arg, const Indices&) { return std::forward<Arg>(arg).value(); }
 
 
       // No set_component defined  because constant_adapter is not writable.

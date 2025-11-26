@@ -37,6 +37,40 @@ namespace OpenKalman
 
 
   /**
+   * The resulting \ref triangle_type if two \ref indexible objects, each having a triangle_type, are multiplied component-wise.
+   */
+  constexpr triangle_type
+  operator * (triangle_type a, triangle_type b)
+  {
+    if (a == triangle_type::diagonal or
+        b == triangle_type::diagonal or
+        (a == triangle_type::upper and b == triangle_type::lower) or
+        (a == triangle_type::lower and b == triangle_type::upper)) return triangle_type::diagonal;
+    if (a == triangle_type::lower or
+        b == triangle_type::lower) return triangle_type::lower;
+    if (a == triangle_type::upper or
+        b == triangle_type::upper) return triangle_type::upper;
+    if (a == triangle_type::any or
+        b == triangle_type::any) return triangle_type::any;
+    return triangle_type::none;
+  }
+
+
+  /**
+   * The resulting \ref triangle_type if two \ref indexible objects, each having a triangle_type, are added component-wise.
+   */
+  constexpr triangle_type
+  operator + (triangle_type a, triangle_type b)
+  {
+    if (a == triangle_type::diagonal) return b;
+    if (b == triangle_type::diagonal) return a;
+    if (a == triangle_type::lower and b == triangle_type::lower) return triangle_type::lower;
+    if (a == triangle_type::upper and b == triangle_type::upper) return triangle_type::upper;
+    return triangle_type::none;
+  }
+
+
+  /**
    * \brief The type of a hermitian adapter, indicating which triangle of the nested matrix is used.
    * \details This type can be statically cast from \ref triangle_type so that <code>lower</code>, <code>upper</code>,
    * and <code>any</code> correspond to each other. The value <code>none</code> corresponds to triangle_type::diagonal.

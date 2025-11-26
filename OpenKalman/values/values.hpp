@@ -56,10 +56,7 @@ namespace OpenKalman::values {}
 #include "math/real.hpp"
 #include "math/imag.hpp"
 #include "traits/real_type_of.hpp"
-#include "functions/internal/make_complex_number.hpp"
 #include "traits/complex_type_of.hpp"
-
-#include "functions/internal/update_real_part.hpp"
 
 #include "functions/cast_to.hpp"
 

@@ -110,7 +110,7 @@ namespace OpenKalman::internal
     struct boolean_testable_impl1 : std::false_type {};
 
     template<typename B>
-    struct boolean_testable_impl1<B, std::enable_if_t<stdcompat::convertible_to<B, bool>>> : std::true_type {};
+    struct boolean_testable_impl1<B, std::enable_if_t<stdex::convertible_to<B, bool>>> : std::true_type {};
 
 
     template<typename B, typename = void>

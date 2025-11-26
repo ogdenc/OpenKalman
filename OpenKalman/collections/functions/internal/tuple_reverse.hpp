@@ -46,7 +46,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr tuple_reverse_view() requires std::default_initializable<T> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<T>, int> = 0>
     constexpr tuple_reverse_view() {};
 #endif
 
@@ -54,7 +54,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     template<typename Arg> requires std::constructible_from<T, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<stdcompat::constructible_from<T, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<stdex::constructible_from<T, Arg&&>, int> = 0>
 #endif
     explicit constexpr tuple_reverse_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
 
@@ -62,31 +62,47 @@ namespace OpenKalman::collections
     /**
      * \brief Get element i of a \ref tuple_reverse_view
      */
-#ifdef __cpp_concepts
-    template<std::size_t i> requires (i < size_of_v<T>)
-#else
-    template<std::size_t i, std::enable_if_t<i < size_of_v<T>, int> = 0>
-#endif
-    friend constexpr decltype(auto)
-    get(const tuple_reverse_view& v)
+#ifdef __cpp_explicit_this_parameter
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get(this auto&& self) noexcept
     {
-      return collections::get(v.t, std::integral_constant<std::size_t, base_size - i - 1_uz>{});
+      static_assert(i < size_of_v<T>, "Index out of range.");
+      return collections::get<base_size - i - 1_uz>(std::forward<decltype(self)>(self).t);
+    }
+#else
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() &
+    {
+      static_assert(i < size_of_v<T>, "Index out of range.");
+      return collections::get<base_size - i - 1_uz>(t);
     }
 
-
-    /**
-     * \overload
-     */
-#ifdef __cpp_concepts
-    template<std::size_t i> requires (i < size_of_v<T>)
-#else
-    template<std::size_t i, std::enable_if_t<i < size_of_v<T>, int> = 0>
-#endif
-    friend constexpr decltype(auto)
-    get(tuple_reverse_view&& v)
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const &
     {
-      return collections::get(std::move(v).t, std::integral_constant<std::size_t, base_size - i - 1_uz>{});
+      static_assert(i < size_of_v<T>, "Index out of range.");
+      return collections::get<base_size - i - 1_uz>(t);
     }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() && noexcept
+    {
+      static_assert(i < size_of_v<T>, "Index out of range.");
+      return collections::get<base_size - i - 1_uz>(std::move(*this).t);
+    }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const && noexcept
+    {
+      static_assert(i < size_of_v<T>, "Index out of range.");
+      return collections::get<base_size - i - 1_uz>(std::move(*this).t);
+    }
+#endif
 
   private:
 
@@ -143,7 +159,7 @@ namespace OpenKalman::collections
   template<uniformly_gettable T> requires std::default_initializable<T>
   constexpr tuple_like auto
 #else
-  template<typename T, std::enable_if_t<uniformly_gettable<T> and stdcompat::default_initializable<T>, int> = 0>
+  template<typename T, std::enable_if_t<uniformly_gettable<T> and stdex::default_initializable<T>, int> = 0>
   constexpr auto
 #endif
   tuple_reverse()

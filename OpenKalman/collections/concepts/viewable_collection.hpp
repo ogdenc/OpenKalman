@@ -31,7 +31,7 @@ namespace OpenKalman::collections
 #else
   constexpr bool viewable_collection =
 #endif
-    (stdcompat::ranges::random_access_range<T> and stdcompat::ranges::viewable_range<T>) or
+    (stdex::ranges::random_access_range<T> and stdex::ranges::viewable_range<T>) or
     viewable_tuple_like<T>;
 
 

@@ -108,10 +108,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename T>
-  struct indexible_object_traits_tensor_base;
+  struct object_traits_tensor_base;
 #else
   template<typename T, typename = void>
-  struct indexible_object_traits_tensor_base;
+  struct object_traits_tensor_base;
 #endif
 
 

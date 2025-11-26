@@ -32,19 +32,19 @@ TEST(eigen3, Eigen_Select)
   static_assert(square_shaped<decltype(std::declval<Bxx_true>().select(std::declval<M2x>(), std::declval<Mx2>()))>);
   static_assert(square_shaped<decltype(std::declval<Bxx_true>().select(std::declval<DMx>(), std::declval<Mxx>()))>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<M22>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_coefficient_v<decltype(br.select(std::declval<C22_2>(), std::declval<C22_2>()))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>().select(std::declval<C22_2>(), std::declval<M22>()))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 0);
+  static_assert(constant_value_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))> == 0);
+  static_assert(constant_value_v<decltype(br.select(std::declval<C22_2>(), std::declval<C22_2>()))> == 2);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<Cd22_2>(), std::declval<Z22>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_true>().select(std::declval<Cd22_2>(), std::declval<M22>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<Cd22_2>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(br.select(std::declval<Cd22_2>(), std::declval<Cd22_2>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B11_true>().select(std::declval<C11_2>(), std::declval<Z22>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_true>().select(std::declval<Cd22_2>(), std::declval<Z22>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_true>().select(std::declval<Cd22_2>(), std::declval<M22>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_false>().select(std::declval<Cd22_2>(), std::declval<Z22>()))> == 0);
+  static_assert(constant_diagonal_value_v<decltype(br.select(std::declval<Cd22_2>(), std::declval<Cd22_2>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_false>().select(std::declval<C22_2>(), std::declval<Z22>()))> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Z22>()))> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B11_true>().select(std::declval<C11_2>(), std::declval<Z22>()))> == 2);
 
   static_assert(zero<decltype(std::declval<B22_true>().select(std::declval<Z22>(), M22::Identity()))>);
   static_assert(not zero<decltype(std::declval<B22_true>().select(std::declval<I22>(), std::declval<Z22>()))>);

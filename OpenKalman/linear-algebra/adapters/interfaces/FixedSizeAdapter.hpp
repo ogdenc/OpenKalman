@@ -20,12 +20,14 @@
 namespace OpenKalman::interface
 {
   // --------------------------- //
-  //   indexible_object_traits   //
+  //   object_traits   //
   // --------------------------- //
 
   template<typename NestedObject, typename Descriptors>
-  struct indexible_object_traits<internal::FixedSizeAdapter<NestedObject, Descriptors>>
+  struct object_traits<internal::FixedSizeAdapter<NestedObject, Descriptors>>
   {
+    static const bool is_specialized = true;
+
   private:
 
     using Xpr = internal::FixedSizeAdapter<NestedObject, Descriptors>;
@@ -78,7 +80,7 @@ namespace OpenKalman::interface
 #endif
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {nested_object(arg)};
+      return constant_value {nested_object(arg)};
     }
 
 
@@ -89,7 +91,7 @@ namespace OpenKalman::interface
 #endif
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_diagonal_coefficient {nested_object(arg)};
+      return constant_diagonal_value {nested_object(arg)};
     }
 
 
@@ -99,8 +101,7 @@ namespace OpenKalman::interface
     // is_square is not necessary
 
 
-    template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<NestedObject, t>;
+    static constexpr triangle_type triangle_type_value = triangle_type_of<NestedObject>;
 
 
     static constexpr bool is_triangular_adapter = false;
@@ -165,9 +166,9 @@ namespace OpenKalman::interface
     {
       if constexpr (not index_collection_for<Indices, Object>)
       {
-        constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because index_collection_for is not satisfied.
+        constexpr auto N = index_count_v<Object>; //< We know N is not stdex::dynamic_extent because index_collection_for is not satisfied.
         std::array<std::size_t, N> ret;
-        std::ranges::fill(std::ranges::copy<stdcompat::ranges::begin(indices), stdcompat::ranges::end(indices), stdcompat::ranges::begin(ret)), stdcompat::ranges::end(ret), 0);
+        std::ranges::fill(std::ranges::copy<stdex::ranges::begin(indices), stdex::ranges::end(indices), stdex::ranges::begin(ret)), stdex::ranges::end(ret), 0);
         return ret;
       }
       else return indices;
@@ -218,15 +219,15 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<typename To, typename From> requires
-      interface::assign_defined_for<NestedObject, nested_object_of_t<To&>, From&&>
+      interface::copy_defined_for<NestedObject, nested_object_of_t<To&>, From&&>
 #else
     template<typename To, typename From, std::enable_if_t<
-      interface::assign_defined_for<NestedObject, nested_object_of_t<To&>, From&&>, int> = 0>
+      interface::copy_defined_for<NestedObject, nested_object_of_t<To&>, From&&>, int> = 0>
 #endif
     static void
-    assign(To& a, From&& b)
+    copy(To& a, From&& b)
     {
-      NestedInterface::assign(nested_object(a), std::forward<From>(b));
+      NestedInterface::copy(nested_object(a), std::forward<From>(b));
     }
 
 

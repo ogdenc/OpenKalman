@@ -16,14 +16,14 @@
 #ifndef OPENKALMAN_INDEXIBLE_HPP
 #define OPENKALMAN_INDEXIBLE_HPP
 
-#include "linear-algebra/interfaces/object-traits-defined.hpp"
+#include "linear-algebra/interfaces/object_traits.hpp"
 
 namespace OpenKalman
 {
-  /**
-   * \brief T is a generalized tensor type.
-   * \details T can be a tensor over a vector space, but can also be an analogous algebraic structure over a
-   * tensor product of modules over division rings (e.g., an vector-like structure that contains angles).
+/**
+   * \brief T is a multidimensional array type.
+   * \details T can be a vector, matrix, tensor, or other generalized array in which elements are accessed
+   * by a set of indices. It includes any type for which \ref interface::object_traits is specialized.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -31,7 +31,7 @@ namespace OpenKalman
 #else
   constexpr bool indexible =
 #endif
-    interface::get_mdspan_defined_for<T>;
+    interface::object_traits<stdex::remove_cvref_t<T>>::is_specialized;
 
 
 }

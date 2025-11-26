@@ -20,7 +20,7 @@
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::empty_view;
@@ -34,7 +34,7 @@ namespace OpenKalman::stdcompat::ranges
    * \internal
    */
   template<typename T>
-  struct empty_view : stdcompat::ranges::view_interface<empty_view<T>>
+  struct empty_view : stdex::ranges::view_interface<empty_view<T>>
   {
     static constexpr T* begin() noexcept { return nullptr; }
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,26 +16,29 @@
 #ifndef OPENKALMAN_TRIANGULAR_MATRIX_HPP
 #define OPENKALMAN_TRIANGULAR_MATRIX_HPP
 
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/triangle_type_of.hpp"
 
 namespace OpenKalman
 {
   /**
-   * \brief Specifies that a type is a triangular matrix (upper, lower, or diagonal).
-   * \details A triangular matrix need not be \ref square_shaped, but it must be zero either above or below the diagonal (or both).
-   * For rank >2 tensors, this must be applicable on every rank-2 slice comprising dimensions 0 and 1.
-   * \note One-dimensional matrices or vectors are considered to be triangular, and a vector is triangular if
-   * every component other than its first component is zero.
-   * \tparam T A matrix or tensor.
+   * \brief Specifies that an argument is an \ref indexible object having
+   * a given \ref triangle_type (e.g., upper, lower, or diagonal).
+   * \details This can also test whether the argument is triangular (\ref triangle_type::none).
+   * To test whether the argument has any triangle type, use \ref triangle_type::any (which is the default).
+   * Diagonal matrices are considered to also be both upper and lower.
    * \tparam t The \ref triangle_type
-   * triangular if it is \ref one-dimensional, and that is not necessarily known at compile time.
    */
   template<typename T, triangle_type t = triangle_type::any>
 #ifdef __cpp_concepts
-  concept triangular_matrix = indexible<T> and
-    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::template is_triangular<t> or constant_diagonal_matrix<T>);
+  concept triangular_matrix =
 #else
-  constexpr bool triangular_matrix = internal::is_explicitly_triangular<T, t>::value or constant_diagonal_matrix<T>;
+  constexpr bool triangular_matrix =
 #endif
+    indexible<T> and
+    (t == triangle_type_of_v<T> or
+      (t == triangle_type::any and triangle_type_of_v<T> != triangle_type::none) or
+      ((t == triangle_type::upper or t == triangle_type::lower) and triangle_type_of_v<T> == triangle_type::diagonal));
 
 
 }

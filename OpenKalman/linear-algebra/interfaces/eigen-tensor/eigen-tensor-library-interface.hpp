@@ -93,7 +93,7 @@ namespace OpenKalman::interface
     get_component(Arg&& arg, const Indices& indices)
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
-      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(stdcompat::ranges::begin(indices), stdcompat::ranges::end(indices)));
+      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(stdex::ranges::begin(indices), stdex::ranges::end(indices)));
     }
 
 
@@ -122,7 +122,7 @@ namespace OpenKalman::interface
     set_component(Arg& arg, const scalar_type_of_t<T>& s, const Indices& indices)
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
-      set_component(arg, s, make_ix_array<ix_count>(stdcompat::ranges::begin(indices), stdcompat::ranges::end(indices)));
+      set_component(arg, s, make_ix_array<ix_count>(stdex::ranges::begin(indices), stdex::ranges::end(indices)));
     }
 
   private:
@@ -197,7 +197,7 @@ namespace OpenKalman::interface
 #else
     template<typename To, typename From, std::enable_if_t<Eigen3::eigen_tensor_general<From> and std::is_assignable_v<To&, From&&>, int> = 0>
 #endif
-    static void assign(To& a, From&& b)
+    static void copy(To& a, From&& b)
     {
       a = std::forward<From>(b);
     }
@@ -474,7 +474,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         constexpr std::size_t dim = dynamic_dimension<Arg, 0> ? index_dimension_of_v<Arg, 1> : index_dimension_of_v<Arg, 0>;
-        if constexpr (dim == dynamic_size) return make_constant<Arg, Scalar, 1>(*d, Dimensions<1>{});
+        if constexpr (dim == stdex::dynamic_extent) return make_constant<Arg, Scalar, 1>(*d, Dimensions<1>{});
         else return make_constant<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       else
@@ -490,11 +490,11 @@ namespace OpenKalman::interface
     replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
     {
       using R = Eigen::Replicate<std::decay_t<Arg>,
-        (coordinates::dimension_of_v<Ds> == dynamic_size or coordinates::dimension_of_v<ArgDs> == dynamic_size ?
+        (coordinates::dimension_of_v<Ds> == stdex::dynamic_extent or coordinates::dimension_of_v<ArgDs> == stdex::dynamic_extent ?
         Eigen::Dynamic : static_cast<IndexType>(coordinates::dimension_of_v<Ds> / coordinates::dimension_of_v<ArgDs>))...>;
 
-      if constexpr (((coordinates::dimension_of_v<Ds> != dynamic_size) and ...) and
-        ((coordinates::dimension_of_v<ArgDs> != dynamic_size) and ...))
+      if constexpr (((coordinates::dimension_of_v<Ds> != stdex::dynamic_extent) and ...) and
+        ((coordinates::dimension_of_v<ArgDs> != stdex::dynamic_extent) and ...))
       {
         if constexpr (((coordinates::dimension_of_v<Ds> == coordinates::dimension_of_v<ArgDs>) and ...))
           return std::forward<Arg>(arg);
@@ -1013,7 +1013,7 @@ namespace OpenKalman::interface
 
             if (rt_rows < rt_cols)
               ret << QR.matrixQR().topRows(rt_rows),
-                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rt_rows, rt_cols);
+                Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(rt_cols - rt_rows, rt_cols);
             else
               ret = QR.matrixQR().topRows(rt_cols);
           }
@@ -1021,7 +1021,7 @@ namespace OpenKalman::interface
           {
             if (rows < rt_cols)
               ret << QR.matrixQR().template topRows<rows>(),
-                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rows, rt_cols);
+                Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(rt_cols - rows, rt_cols);
             else
               ret = QR.matrixQR().topRows(rt_cols);
           }
@@ -1038,7 +1038,7 @@ namespace OpenKalman::interface
 
             if (rt_rows < cols)
               ret << QR.matrixQR().topRows(rt_rows),
-              Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(cols - rt_rows, cols);
+              Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(cols - rt_rows, cols);
             else
               ret = QR.matrixQR().template topRows<cols>();
           }

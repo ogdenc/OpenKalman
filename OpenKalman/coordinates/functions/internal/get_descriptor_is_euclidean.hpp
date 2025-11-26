@@ -42,7 +42,7 @@ namespace OpenKalman::coordinates::internal
     }
     else
     {
-      using U = std::decay_t<stdcompat::unwrap_reference_t<Arg>>;
+      using U = std::decay_t<stdex::unwrap_reference_t<Arg>>;
       using Traits = interface::coordinate_descriptor_traits<U>;
       if constexpr (std::is_same_v<U, Arg>) return Traits::is_euclidean(arg);
       else return Traits::is_euclidean(arg.get());

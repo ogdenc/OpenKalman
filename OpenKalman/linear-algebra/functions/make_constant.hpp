@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,214 +16,113 @@
 #ifndef OPENKALMAN_MAKE_CONSTANT_HPP
 #define OPENKALMAN_MAKE_CONSTANT_HPP
 
+#include "linear-algebra/functions/internal/constant_mdspan_policies.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
+#include "linear-algebra/adapters/pattern_adapter.hpp"
+#include "linear-algebra/functions/attach_pattern.hpp"
+
 namespace OpenKalman
 {
-
   /**
-   * \brief Make a constant object based on a particular library object.
-   * \details A constant object is a matrix or tensor in which every component is the same scalar value.
-   * \tparam T An \indexible object (matrix or tensor) from a particular library. Its shape and contents are irrelevant.
-   * \tparam C A \ref values::scalar
-   * \tparam Descriptors A \ref pattern_collection defining the dimensions of each index.
+   * \brief Make an \ref indexible object in which every element is a constant \ref values::value "value".
+   * \returns An mdspan returning the constant value at every set of indices.
+   * \param c A \ref values::value "value"
+   * \param extents An std::extents object defining the extents.
    */
 #ifdef __cpp_concepts
-  template<indexible T, values::scalar C, pattern_collection Descriptors>
-  constexpr constant_matrix auto
+  template<values::value C, typename IndexType, std::size_t...Extents>
+  constexpr constant_object auto
 #else
-  template<typename T, typename C, typename Ds, std::enable_if_t<
-    indexible<T> and values::scalar<C> and pattern_collection<Ds>, int> = 0>
+  template<typename C, typename IndexType, std::size_t...Extents, std::enable_if_t<values::value<C>, int> = 0>
   constexpr auto
 #endif
-  make_constant(C&& c, Descriptors&& descriptors)
+  make_constant(C c, stdex::extents<IndexType, Extents...> extents)
   {
-    decltype(auto) d = coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
-    using D = decltype(d);
-    using Trait = interface::library_interface<std::decay_t<T>>;
+    using ElementType = C;
+    using E = stdex::extents<IndexType, Extents...>;
+    auto mapping = typename internal::layout_constant::mapping<E> {extents};
+    auto accessor = internal::accessor_constant<ElementType> {std::move(c)};
+    return stdex::mdspan {accessor.data_handle(), mapping, accessor};
+  }
 
-    if constexpr (coordinates::euclidean_pattern_collection<D> and interface::make_constant_defined_for<T, C&&, D>)
+
+  namespace detail
+  {
+    template<std::size_t N, std::size_t i = 0, std::size_t...SDs, typename P, typename...Ds>
+    constexpr auto
+    derive_extents(const P& p, Ds...ds)
     {
-      return Trait::template make_constant(std::forward<C>(c), std::forward<D>(d));
-    }
-    else if constexpr (interface::make_constant_defined_for<T, C&&, decltype(internal::to_euclidean_pattern_collection(d))>)
-    {
-      auto ed = internal::to_euclidean_pattern_collection(d);
-      return make_vector_space_adapter(Trait::template make_constant(std::forward<C>(c), ed), std::forward<D>(d));
-    }
-    else
-    {
-      // Default behavior if interface function not defined:
-      using Scalar = values::value_type_of_t<C>;
-      using U = std::decay_t<decltype(make_dense_object<T, data_layout::none, Scalar>(d))>;
-      return constant_adapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<D>(d)};
+      if constexpr (i < N)
+      {
+        auto d = coordinates::get_dimension(collections::get<i>(p));
+        if constexpr (values::fixed<decltype(d)>)
+          return derive_extents<N, i + 1, SDs..., values::fixed_value_of_v<decltype(d)>>(p, std::move(ds)...);
+        else
+          return derive_extents<N, i + 1, SDs..., stdex::dynamic_extent>(p, std::move(ds)..., std::move(d));
+      }
+      else return stdex::extents<std::size_t, SDs...>{std::move(ds)...};
     }
   }
 
 
   /**
    * \overload
-   * \brief \ref vector_space_descriptors are specified as arguments.
+   * \brief \ref Make a \ref constant_object based on a \ref coordinates::pattern_collection "pattern_collection".
    */
 #ifdef __cpp_concepts
-  template<indexible T, values::scalar C, coordinates::pattern...Ds>
-  constexpr constant_matrix auto
+  template<values::value C, coordinates::pattern_collection P> requires values::fixed<collections::size_of<P>>
+  constexpr constant_object auto
 #else
-  template<typename T, typename C, typename...Ds, std::enable_if_t<
-    indexible<T> and values::scalar<C> and (coordinates::pattern<Ds> and ...), int> = 0>
+  template<typename C, typename P, std::enable_if_t<
+    values::value<C> and
+    coordinates::pattern_collection<P> and
+    values::fixed<collections::size_of<P>>, int> = 0>
   constexpr auto
 #endif
-  make_constant(C&& c, Ds&&...ds)
+  make_constant(C c, P&& p)
   {
-    return make_constant<T>(std::forward<C>(c), std::tuple {std::forward<Ds>(ds)...});
+    return attach_pattern(
+      make_constant(std::move(c), detail::derive_extents<collections::size_of_v<P>>(p)),
+      std::forward<P>(p));
   }
 
 
   /**
    * \overload
-   * \brief Make a new constant object based on a library object.
-   * \tparam T The object on which the new matrix is patterned. This need not itself be constant, as only
-   * its dimensions are used.
-   * \tparam C A \ref values::scalar.
+   * \brief The \ref coordinates::pattern_collection "pattern_collection" is constructed from a list of \ref coordinates::patterns "patterns".
    */
 #ifdef __cpp_concepts
-  template<indexible T, values::scalar C>
-  constexpr constant_matrix auto
+  template<values::value C, coordinates::pattern...Ps>
+  constexpr constant_object auto
 #else
-  template<typename T, typename C, std::enable_if_t<indexible<T> and values::scalar<C>, int> = 0>
+  template<typename C, typename...Ps, std::enable_if_t<values::value<C> and (... and coordinates::pattern<Ps>), int> = 0>
   constexpr auto
 #endif
-  make_constant(const T& t, C&& c)
+  make_constant(C c, Ps&&...ps)
   {
-    return make_constant<T>(std::forward<C>(c), all_vector_space_descriptors(t));
+    return make_constant(std::move(c), std::tuple{std::forward<Ps>(ps)...});
   }
 
 
   /**
    * \overload
-   * \brief Make a compile-time constant based on a particular library object and a scalar constant value known at compile time
-   * \tparam T A matrix or tensor from a particular library.
-   * \tparam C A \ref values::scalar for the new zero matrix. Must be constructible from {constant...}
-   * \tparam constant A constant or set of coefficients in a vector space defining a constant
-   * (e.g., real and imaginary parts of a complex number).
-   * \param Ds A \ref pattern_collection defining the dimensions of each index.
+   * \brief \ref Make a \ref constant_object based on a default-initializable \ref coordinates::pattern_collection "pattern_collection".
    */
 #ifdef __cpp_concepts
-  template<indexible T, values::scalar C, auto...constant, pattern_collection Ds> requires
-    ((values::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
-  constexpr constant_matrix auto
+  template<coordinates::pattern_collection P, values::value C> requires
+    std::default_initializable<P> and
+    values::fixed<collections::size_of<P>>
+  constexpr constant_object auto
 #else
-  template<typename T, typename C, auto...constant, typename Ds, std::enable_if_t<
-    indexible<T> and values::scalar<C> and pattern_collection<Ds> and
-    ((values::fixed<C> and sizeof...(constant) == 0) or
-      std::is_constructible<C, decltype(constant)...>::value), int> = 0>
+  template<typename C, typename P, std::enable_if_t<
+    coordinates::pattern_collection<P> and
+    values::value<C> and
+    values::fixed<collections::size_of<P>>, int> = 0>
   constexpr auto
 #endif
-  make_constant(Ds&& ds)
+  make_constant(C c)
   {
-    using Scalar = values::value_type_of_t<C>;
-    if constexpr (sizeof...(constant) == 0)
-      return make_constant<T>(C{}, std::forward<Ds>(ds));
-    else
-      return make_constant<T>(values::fixed_value<Scalar, constant...>{}, std::forward<Ds>(ds));
-  }
-
-
-  /**
-   * \overload
-   * \brief Same as above, except that the scalar type is derived from the constant template parameter
-   * \tparam constant The constant
-   */
-#ifdef __cpp_concepts
-  template<indexible T, auto constant, pattern_collection Ds> requires values::number<decltype(constant)>
-  constexpr constant_matrix auto
-#else
-  template<typename T, auto constant, typename Ds, std::enable_if_t<
-    indexible<T> and values::number<decltype(constant)> and pattern_collection<Ds>, int> = 0>
-  constexpr auto
-#endif
-  make_constant(Ds&& ds)
-  {
-    return make_constant<T, decltype(constant), constant>(std::forward<Ds>(ds));
-  }
-
-
-  /**
-   * \overload
-   * \brief Make a compile-time constant based on a particular library object and a scalar constant value known at compile time
-   * \tparam T A matrix or tensor from a particular library.
-   * \tparam C A \ref values::scalar for the new zero matrix. Must be constructible from {constant...}
-   * \tparam constant A constant or set of coefficients in a vector space defining a constant
-   * (e.g., real and imaginary parts of a complex number).
-   * \param Ds A set of \ref coordinates::pattern defining the dimensions of each index.
-   */
-#ifdef __cpp_concepts
-  template<indexible T, values::scalar C, auto...constant, coordinates::pattern...Ds> requires
-    ((values::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
-  constexpr constant_matrix auto
-#else
-  template<typename T, typename C, auto...constant, typename...Ds, std::enable_if_t<
-    indexible<T> and values::scalar<C> and (coordinates::pattern<Ds> and ...) and
-    ((values::fixed<C> and sizeof...(constant) == 0) or
-      std::is_constructible<C, decltype(constant)...>::value), int> = 0>
-  constexpr auto
-#endif
-  make_constant(Ds&&...ds)
-  {
-    return make_constant<T, C, constant...>(std::forward_as_tuple(std::forward<Ds>(ds)...));
-  }
-
-
-  /**
-   * \overload
-   * \brief Same as above, except that the scalar type is derived from the constant template parameter
-   * \tparam constant The constant
-   */
-#ifdef __cpp_concepts
-  template<indexible T, auto constant, coordinates::pattern...Ds> requires values::number<decltype(constant)>
-  constexpr constant_matrix auto
-#else
-  template<typename T, auto constant, typename...Ds, std::enable_if_t<
-    indexible<T> and values::number<decltype(constant)> and (coordinates::pattern<Ds> and ...), int> = 0>
-  constexpr auto
-#endif
-  make_constant(Ds&&...ds)
-  {
-    return make_constant<T, decltype(constant), constant>(std::forward_as_tuple(std::forward<Ds>(ds)...));
-  }
-
-
-  /**
-   * \overload
-   * \brief Construct a constant object, where the shape of the new object is derived from t.
-   */
-#ifdef __cpp_concepts
-  template<values::scalar C, auto...constant, indexible T> requires
-    ((values::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
-  constexpr constant_matrix auto
-#else
-  template<typename C, auto...constant, typename T, std::enable_if_t<values::scalar<C> and indexible<T> and
-    ((values::fixed<C> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value), int> = 0>
-  constexpr auto
-#endif
-  make_constant(const T& t)
-  {
-    return make_constant<T, C, constant...>(all_vector_space_descriptors(t));
-  }
-
-
-/**
- * \overload
- * \brief Same as above, except that the scalar type is derived from the constant template parameter
- */
-#ifdef __cpp_concepts
-  template<auto constant, indexible T> requires values::number<decltype(constant)>
-  constexpr constant_matrix auto
-#else
-  template<auto constant, typename T, std::enable_if_t<values::number<decltype(constant)> and indexible<T>, int> = 0>
-  constexpr auto
-#endif
-  make_constant(const T& t)
-  {
-    return make_constant<decltype(constant), constant>(all_vector_space_descriptors(t));
+    return make_constant(std::move(c), P{});
   }
 
 

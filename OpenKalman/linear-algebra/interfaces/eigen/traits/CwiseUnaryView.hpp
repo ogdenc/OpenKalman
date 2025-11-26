@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename ViewOp, typename MatrixType>
-  struct indexible_object_traits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
-    : Eigen3::indexible_object_traits_base<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+  struct object_traits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+    : Eigen3::object_traits_base<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
   private:
 
     using Xpr = Eigen::CwiseUnaryView<ViewOp, MatrixType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
     using Traits = Eigen3::UnaryFunctorTraits<std::decay_t<ViewOp>>;
 
   public:
@@ -70,13 +70,13 @@ namespace OpenKalman::interface
         return Traits::template get_constant(arg);
 #ifdef __cpp_concepts
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return values::operation(Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()});
+        return values::operation(Traits::constexpr_operation(), constant_value {arg.nestedExpression()});
 #else
-      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and values::fixed<constant_coefficient<MatrixType>>)
-        return values::operation(Traits::constexpr_operation(), constant_coefficient<MatrixType>{});
+      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and values::fixed<constant_value<MatrixType>>)
+        return values::operation(Traits::constexpr_operation(), constant_value<MatrixType>{});
 #endif
       else
-        return values::operation(arg.functor(), constant_coefficient {arg.nestedExpression()});
+        return values::operation(arg.functor(), constant_value {arg.nestedExpression()});
     }
 
   private:
@@ -104,9 +104,9 @@ namespace OpenKalman::interface
       else if constexpr (not Traits::preserves_triangle)
         return std::monostate{};
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return values::operation(Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()});
+        return values::operation(Traits::constexpr_operation(), constant_diagonal_value{arg.nestedExpression()});
       else
-        return values::operation(arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()});
+        return values::operation(arg.functor(), constant_diagonal_value{arg.nestedExpression()});
     }
 
 
@@ -122,7 +122,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = Traits::preserves_triangle and triangular_matrix<MatrixType, t>;
+    static constexpr bool triangle_type_value = Traits::preserves_triangle and triangular_matrix<MatrixType, t>;
 
 
     static constexpr bool is_hermitian = Traits ::preserves_hermitian and hermitian_matrix<MatrixType, applicability::permitted>;

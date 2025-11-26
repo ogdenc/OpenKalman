@@ -37,10 +37,10 @@ TEST(coordinates, fixed_pattern)
   static_assert(dimension_of_v<std::tuple<>> == 0);
   static_assert(fixed_pattern<std::tuple<>>);
   static_assert(euclidean_pattern<std::tuple<>>);
-  static_assert(dimension_of_v<stdcompat::ranges::empty_view<Dimensions<1>>> == 0);
-  static_assert(fixed_pattern<stdcompat::ranges::empty_view<Dimensions<1>>>);
-  static_assert(euclidean_pattern<stdcompat::ranges::empty_view<Dimensions<1>>>);
-  static_assert(euclidean_pattern<stdcompat::ranges::empty_view<Distance>>); // Euclidean because it is empty
+  static_assert(dimension_of_v<stdex::ranges::empty_view<Dimensions<1>>> == 0);
+  static_assert(fixed_pattern<stdex::ranges::empty_view<Dimensions<1>>>);
+  static_assert(euclidean_pattern<stdex::ranges::empty_view<Dimensions<1>>>);
+  static_assert(euclidean_pattern<stdex::ranges::empty_view<Distance>>); // Euclidean because it is empty
 
   static_assert(fixed_pattern<std::vector<Dimensions<0>>>);
   static_assert(dimension_of_v<std::vector<Dimensions<0>>> == 0);
@@ -64,15 +64,15 @@ TEST(coordinates, fixed_pattern)
   static_assert(not descriptor<std::tuple<Axis>>);
 
   static_assert(descriptor<std::reference_wrapper<Distance>>);
-  static_assert(descriptor<stdcompat::reference_wrapper<Distance>>);
-  static_assert(descriptor_collection<std::tuple<stdcompat::reference_wrapper<Distance>>>);
-  static_assert(descriptor_collection<std::tuple<stdcompat::reference_wrapper<Distance>, Angle<>>>);
+  static_assert(descriptor<stdex::reference_wrapper<Distance>>);
+  static_assert(descriptor_collection<std::tuple<stdex::reference_wrapper<Distance>>>);
+  static_assert(descriptor_collection<std::tuple<stdex::reference_wrapper<Distance>, Angle<>>>);
 
   static_assert(fixed_pattern<std::reference_wrapper<Distance>>);
-  static_assert(fixed_pattern<stdcompat::reference_wrapper<Distance>>);
-  static_assert(fixed_pattern<std::tuple<stdcompat::reference_wrapper<Distance>>>);
-  static_assert(fixed_pattern<std::tuple<stdcompat::reference_wrapper<Distance>, Angle<>>>);
-  static_assert(not fixed_pattern<std::tuple<stdcompat::reference_wrapper<Any<>>, Angle<>>>);
+  static_assert(fixed_pattern<stdex::reference_wrapper<Distance>>);
+  static_assert(fixed_pattern<std::tuple<stdex::reference_wrapper<Distance>>>);
+  static_assert(fixed_pattern<std::tuple<stdex::reference_wrapper<Distance>, Angle<>>>);
+  static_assert(not fixed_pattern<std::tuple<stdex::reference_wrapper<Any<>>, Angle<>>>);
 
   static_assert(dimension_of_v<Distance[5]> == 5);
   static_assert(stat_dimension_of_v<Distance[5]> == 5);

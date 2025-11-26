@@ -16,31 +16,43 @@
 #ifndef OPENKALMAN_EMPTY_OBJECT_HPP
 #define OPENKALMAN_EMPTY_OBJECT_HPP
 
+#include "linear-algebra/traits/index_count.hpp"
 #include "dimension_size_of_index_is.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, applicability b, std::size_t...Ix>
-    constexpr bool has_0_dim(std::index_sequence<Ix...>)
+    template<typename T, std::size_t...is>
+    constexpr auto
+    empty_object_fixed_index_count(std::index_sequence<is...>)
     {
-      return (dimension_size_of_index_is<T, Ix, 0, b> or ...);
+      return (... or (dimension_size_of_index_is<T, is, 0>));
     }
+
+
+#ifndef __cpp_concepts
+    template<typename T, std::enable_if_t<indexible<T>, int> = 0>
+    constexpr auto
+    empty_object_impl()
+    {
+      return detail::empty_object_fixed_index_count<T>(std::make_index_sequence<index_count_v<T>>{});
+    }
+#endif
   }
 
 
   /**
    * \brief Specifies that an object is empty (i.e., at least one index is zero-dimensional).
    */
-  template<typename T, applicability b = applicability::guaranteed>
+  template<typename T>
 #ifdef __cpp_concepts
   concept empty_object =
+    indexible<T> and
+    detail::empty_object_fixed_index_count<T>(std::make_index_sequence<index_count_v<T>>{});
 #else
-  constexpr bool empty_object =
+  constexpr inline bool empty_object = detail::empty_object_impl<T>();
 #endif
-    indexible<T> and (index_count_v<T> != dynamic_size or b != applicability::guaranteed) and
-    (index_count_v<T> == dynamic_size or detail::has_0_dim<T, b>(std::make_index_sequence<index_count_v<T>>{}));
 
 
 }

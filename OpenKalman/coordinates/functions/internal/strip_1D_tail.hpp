@@ -36,7 +36,7 @@ namespace OpenKalman::coordinates::internal
         if constexpr (values::fixed_value_of_v<I> > 0_uz)
         {
           auto new_i = values::operation(std::minus{}, i, std::integral_constant<std::size_t, 1>{});
-          if (compare(collections::get(d, new_i), Dimensions<1>{}))
+          if (compare(collections::get_element(d, new_i), Dimensions<1>{}))
             return strip_1D_tail_dynamic(std::forward<D>(d), new_i);
         }
         return collections::views::slice(std::forward<D>(d), std::integral_constant<std::size_t, 0>{}, values::to_value_type(i));
@@ -46,7 +46,7 @@ namespace OpenKalman::coordinates::internal
         decltype(auto) d_coll = collections::views::all(std::forward<D>(d));
         while (i > 0_uz)
         {
-          if (compare<stdcompat::is_neq>(collections::get(d_coll, --i), Dimensions<1>{})) { ++i; break; }
+          if (compare<stdex::is_neq>(collections::get_element(d_coll, --i), Dimensions<1>{})) { ++i; break; }
         }
         return collections::views::slice(std::forward<decltype(d_coll)>(d_coll), std::integral_constant<std::size_t, 0>{}, i);
       }
@@ -59,16 +59,16 @@ namespace OpenKalman::coordinates::internal
     {
       if constexpr (i == 0)
       {
-        return stdcompat::ranges::views::empty<Dimensions<1>>;
+        return stdex::ranges::views::empty<Dimensions<1>>;
       }
       else
       {
-        using LastElem = decltype(collections::get(d, std::integral_constant<std::size_t, i - 1_uz>{}));
+        using LastElem = decltype(collections::get<i - 1_uz>(d));
         if constexpr (compares_with<LastElem, Dimensions<1>>)
         {
           return strip_1D_tail_fixed<i - 1_uz>(std::forward<D>(d));
         }
-        else if constexpr (compares_with<LastElem, Dimensions<1>, &stdcompat::is_eq, applicability::permitted>)
+        else if constexpr (compares_with<LastElem, Dimensions<1>, &stdex::is_eq, applicability::permitted>)
         {
           return strip_1D_tail_dynamic(std::forward<D>(d), std::integral_constant<std::size_t, i>{});
         }
@@ -96,7 +96,7 @@ namespace OpenKalman::coordinates::internal
 #endif
   strip_1D_tail(P&& p)
   {
-    if constexpr (collections::size_of_v<P> == dynamic_size)
+    if constexpr (collections::size_of_v<P> == stdex::dynamic_extent)
       return detail::strip_1D_tail_dynamic(std::forward<P>(p), collections::get_size(p));
     else
       return detail::strip_1D_tail_fixed<collections::size_of_v<P>>(std::forward<P>(p));

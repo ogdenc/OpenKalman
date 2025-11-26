@@ -148,7 +148,7 @@ namespace OpenKalman
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
-      const auto delta = make_vector_space_adapter(to_dense_object(square_root(gamma_L * covariance_of(d))), Coeffs{}, Dimensions<dim_i>{});
+      const auto delta = attach_pattern(to_dense_object(square_root(gamma_L * covariance_of(d))), Coeffs{}, Dimensions<dim_i>{});
 
       if constexpr(1 + frame_size == points_count)
       {

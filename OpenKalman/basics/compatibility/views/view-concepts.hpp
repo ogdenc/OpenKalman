@@ -23,7 +23,7 @@
 #include "view_interface.hpp"
 
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::view_base;
@@ -55,13 +55,13 @@ namespace OpenKalman::stdcompat::ranges
   template<class T>
   inline constexpr bool
   enable_view =
-    (std::is_base_of_v<view_base, T> and stdcompat::convertible_to<const volatile T&, const volatile view_base&>) or
+    (std::is_base_of_v<view_base, T> and stdex::convertible_to<const volatile T&, const volatile view_base&>) or
     detail::is_derived_from_view_interface<T>::value;
 
 
   template<typename T>
   inline constexpr bool
-  view = range<T> and stdcompat::movable<T> and enable_view<T>;
+  view = range<T> and stdex::movable<T> and enable_view<T>;
 
 
   // ---
@@ -70,11 +70,11 @@ namespace OpenKalman::stdcompat::ranges
 
   template<typename T>
   constexpr bool
-  viewable_range =  stdcompat::ranges::range<T> and
-    ((view<stdcompat::remove_cvref_t<T>> and stdcompat::constructible_from<stdcompat::remove_cvref_t<T>, T>) or
+  viewable_range =  stdex::ranges::range<T> and
+    ((view<stdex::remove_cvref_t<T>> and stdex::constructible_from<stdex::remove_cvref_t<T>, T>) or
      (not view<remove_cvref_t<T>> and
       (std::is_lvalue_reference_v<T> or
-        (stdcompat::movable<std::remove_reference_t<T>> and not OpenKalman::internal::is_initializer_list<stdcompat::remove_cvref_t<T>>::value))));
+        (stdex::movable<std::remove_reference_t<T>> and not OpenKalman::internal::is_initializer_list<stdex::remove_cvref_t<T>>::value))));
 
 #endif
 }

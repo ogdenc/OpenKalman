@@ -29,7 +29,7 @@ namespace OpenKalman
     {
       if constexpr (rank < std::rank_v<T>)
       {
-        auto i = values::to_value_type(collections::get(indices, std::integral_constant<std::size_t, rank>{}));
+        auto i = values::to_value_type(collections::get_element(indices, std::integral_constant<std::size_t, rank>{}));
         set_component_impl<rank + 1>(u[i], indices, s);
       }
       else
@@ -51,15 +51,15 @@ namespace OpenKalman
    * \param s Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<internal::layout_mapping_policy layout = stdcompat::layout_right, indexible Arg, values::number ... S> requires
-    (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and
+  template<internal::layout_mapping_policy layout = stdex::layout_right, indexible Arg, values::number ... S> requires
+    (std::same_as<layout, stdex::layout_right> or std::same_as<layout, stdex::layout_left>) and
     internal::may_hold_components<Arg, S...> and
     (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>)
   inline Arg&&
 #else
-  template<typename layout layout = stdcompat::layout_right, typename Arg, typename...S, std::enable_if_t<
+  template<typename layout layout = stdex::layout_right, typename Arg, typename...S, std::enable_if_t<
     indexible<Arg> and (values::number<S> and ...) and
-    (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and
+    (std::same_as<layout, stdex::layout_right> or std::same_as<layout, stdex::layout_left>) and
     internal::may_hold_components<Arg, S...> and
     (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>), int> = 0>
   inline Arg&&
@@ -73,7 +73,7 @@ namespace OpenKalman
     else
     {
       using Scalar = element_type_of_t<Arg>;
-      using Trait = interface::library_interface<std::decay_t<Arg>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<Arg>>;
       Trait::template fill_components<layout>(arg, static_cast<const Scalar>(s)...);
       return std::forward<Arg>(arg);
     }

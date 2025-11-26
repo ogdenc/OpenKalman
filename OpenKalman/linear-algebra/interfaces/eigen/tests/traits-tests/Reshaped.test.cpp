@@ -116,31 +116,31 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
 
-  static_assert(constant_coefficient_v<Eigen::Reshaped<C22_2, 2, 2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<C2x_2, 2, 2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<Cx2_2, 2, 2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<Cxx_2, 2, 2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<C22_2, 4, 1>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<C2x_2, 1, 4>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<Cx2_2, Eigen::Dynamic, 1>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<Cxx_2, 1, Eigen::Dynamic>> == 2);
-  static_assert(constant_coefficient_v<Eigen::Reshaped<Cxx_2, Eigen::Dynamic, Eigen::Dynamic>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<C22_2, 2, 2>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<C2x_2, 2, 2>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<Cx2_2, 2, 2>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<Cxx_2, 2, 2>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<C22_2, 4, 1>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<C2x_2, 1, 4>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<Cx2_2, Eigen::Dynamic, 1>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<Cxx_2, 1, Eigen::Dynamic>> == 2);
+  static_assert(constant_value_v<Eigen::Reshaped<Cxx_2, Eigen::Dynamic, Eigen::Dynamic>> == 2);
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd22_2, 2, 2>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd22_2, 2, Eigen::Dynamic>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, 2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<Cd22_2, 2, 2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<Cd22_2, 2, Eigen::Dynamic>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, 2>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), 3, 2>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), 3, Eigen::Dynamic>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), 3, 2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), 3, Eigen::Dynamic>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), 2, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), Eigen::Dynamic, 2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), Eigen::Dynamic, 2>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), Eigen::Dynamic, 3>>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<decltype(std::declval<I32>() + std::declval<I32>()), Eigen::Dynamic, Eigen::Dynamic>>);
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd2x_2, 2, Eigen::Dynamic>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<Cd2x_2, 2, Eigen::Dynamic>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cd2x_2, Eigen::Dynamic, 2>>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cd2x_2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cdx2_2, Eigen::Dynamic, 2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::Reshaped<Cdx2_2, Eigen::Dynamic, 2>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdx2_2, 2, Eigen::Dynamic>>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdx2_2, Eigen::Dynamic, Eigen::Dynamic>>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, 2, 2>>);

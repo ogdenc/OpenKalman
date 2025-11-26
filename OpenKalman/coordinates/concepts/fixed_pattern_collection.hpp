@@ -35,7 +35,7 @@ namespace OpenKalman::coordinates
 
     template<typename T>
     struct is_fixed_pattern_iter<T, std::enable_if_t<
-      collections::uniformly_gettable<T> and stdcompat::default_initializable<std::decay_t<T>>>>
+      collections::uniformly_gettable<T> and stdex::default_initializable<std::decay_t<T>>>>
       : std::bool_constant<is_fixed_pattern_iter_impl<T>(std::make_index_sequence<collections::size_of_v<T>>{})> {};
 
 
@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates
     struct is_fixed_descriptor_range : std::false_type {};
  
     template<typename T>
-    struct is_fixed_descriptor_range<T, std::enable_if_t<fixed_pattern<stdcompat::ranges::range_value_t<T>>>>
+    struct is_fixed_descriptor_range<T, std::enable_if_t<fixed_pattern<stdex::ranges::range_value_t<T>>>>
       : std::true_type {};
   }
 #endif 
@@ -56,8 +56,8 @@ namespace OpenKalman::coordinates
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept fixed_pattern_collection =
     collections::collection<T> and
-    (collections::size_of_v<T> != dynamic_size) and
-    ( fixed_pattern<stdcompat::ranges::range_value_t<T>> or
+    (collections::size_of_v<T> != stdex::dynamic_extent) and
+    ( fixed_pattern<stdex::ranges::range_value_t<T>> or
       []<std::size_t...Ix>(std::index_sequence<Ix...>)
         { return (... and fixed_pattern<collections::collection_element_t<Ix, T>>); }
         (std::make_index_sequence<collections::size_of_v<T>>{})
@@ -65,7 +65,7 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool fixed_pattern_collection =
     collections::collection<T> and
-    values::fixed_value_compares_with<collections::size_of<T>, dynamic_size, &stdcompat::is_neq> and
+    values::fixed_value_compares_with<collections::size_of<T>, stdex::dynamic_extent, &stdex::is_neq> and
     ( detail::is_fixed_pattern_iter<T>::value or
       detail::is_fixed_descriptor_range<T>::value);
 #endif

@@ -60,12 +60,12 @@ namespace OpenKalman::Eigen3::detail
       auto n_dim = get_index_dimension_of<direction>(n_xpr);
 
       auto f = [](const auto& dim, const auto& n_dim) {
-        if constexpr (F::value != dynamic_size) return F{};
+        if constexpr (F::value != stdex::dynamic_extent) return F{};
         else return values::operation(std::divides<std::size_t>{}, dim, n_dim);
       }(dim, n_dim);
 
       auto new_dim = [](const auto& dim, const auto& n_dim) {
-        if constexpr (values::fixed<decltype(dim)> and F::value != dynamic_size and
+        if constexpr (values::fixed<decltype(dim)> and F::value != stdex::dynamic_extent and
             not values::fixed<decltype(n_dim)>)
           return values::operation(std::divides<std::size_t>{}, dim, F{});
         else
@@ -79,13 +79,13 @@ namespace OpenKalman::Eigen3::detail
     {
       if constexpr (constant_matrix<XprType>)
       {
-        auto c = values::operation(std::forward<Func>(func), constant_coefficient {xpr});
+        auto c = values::operation(std::forward<Func>(func), constant_value {xpr});
         return Eigen3::ReduxTraits<MemberOp, direction>::get_constant(c, factor, dim);
       }
       else if constexpr (constant_diagonal_matrix<XprType>)
       {
         constexpr bool als = at_least_square<decltype(dim), decltype(get_index_dimension_of<direction == 1 ? 0 : 1>(xpr))>;
-        auto c = values::operation(std::forward<Func>(func), constant_diagonal_coefficient {xpr});
+        auto c = values::operation(std::forward<Func>(func), constant_diagonal_value {xpr});
         return Eigen3::ReduxTraits<MemberOp, direction>::template get_constant_diagonal<als>(c, factor, dim);
       }
       else
@@ -102,16 +102,16 @@ namespace OpenKalman::interface
 {
 
   // ------------------------- //
-  //  indexible_object_traits  //
+  //  object_traits  //
   // ------------------------- //
 
   template<typename MatrixType, typename MemberOp, int Direction>
-  struct indexible_object_traits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
-    : Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+  struct object_traits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+    : Eigen3::object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>;
+    using Base = Eigen3::object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>;
 
   public:
 
@@ -133,7 +133,7 @@ namespace OpenKalman::interface
       const auto& x = arg.nestedExpression();
       auto dim = get_index_dimension_of<direction>(x);
       std::integral_constant<std::size_t, 1> f;
-      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, stdcompat::identity{});
+      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, stdex::identity{});
     }
 
   };

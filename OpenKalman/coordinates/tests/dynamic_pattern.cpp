@@ -33,7 +33,7 @@
 
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 TEST(coordinates, dynamic_pattern_traits)
 {
@@ -47,10 +47,10 @@ TEST(coordinates, dynamic_pattern_traits)
   static_assert(not dynamic_pattern<std::tuple<Axis, Distance, Dimensions<3>>>);
   static_assert(dynamic_pattern<std::tuple<Axis, Distance, Dimensions<>>>);
   static_assert(dynamic_pattern<std::vector<Any<double>>>);
-  static_assert(dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<>>> == dynamic_size);
-  static_assert(dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<3>>> != dynamic_size);
-  static_assert(stat_dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<>>> == dynamic_size);
-  static_assert(stat_dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<3>>> != dynamic_size);
+  static_assert(dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<>>> == stdex::dynamic_extent);
+  static_assert(dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<3>>> != stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<>>> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<std::tuple<Axis, angle::Degrees, Dimensions<3>>> != stdex::dynamic_extent);
 
   static constexpr unsigned a1[3] = {2U, 3U, 4U};
   static_assert(get_dimension(a1) == 9U);
@@ -62,29 +62,29 @@ TEST(coordinates, dynamic_pattern_traits)
   EXPECT_EQ(get_stat_dimension(a2), 5U);
   EXPECT_FALSE(get_is_euclidean(a2));
 
-  static_assert(dimension_of_v<unsigned[5]> == dynamic_size);
-  static_assert(stat_dimension_of_v<unsigned[5]> == dynamic_size);
-  static_assert(dimension_of_v<Any<>[5]> == dynamic_size);
-  static_assert(stat_dimension_of_v<Any<>[5]> == dynamic_size);
+  static_assert(dimension_of_v<unsigned[5]> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<unsigned[5]> == stdex::dynamic_extent);
+  static_assert(dimension_of_v<Any<>[5]> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<Any<>[5]> == stdex::dynamic_extent);
   static_assert(dynamic_pattern<Any<>[5]>);
   static_assert(descriptor_collection<Any<>[5]>);
   static_assert(euclidean_pattern<unsigned[5]>);
   static_assert(not euclidean_pattern<Any<>[5]>);
 
-  static_assert(euclidean_pattern<stdcompat::ranges::repeat_view<Dimensions<1>>>);
-  static_assert(not euclidean_pattern<stdcompat::ranges::repeat_view<Distance>>);
+  static_assert(euclidean_pattern<stdex::ranges::repeat_view<Dimensions<1>>>);
+  static_assert(not euclidean_pattern<stdex::ranges::repeat_view<Distance>>);
 
   static_assert(descriptor<std::reference_wrapper<Any<>>>);
-  static_assert(descriptor<stdcompat::reference_wrapper<Any<>>>);
-  static_assert(descriptor_collection<std::vector<stdcompat::reference_wrapper<Distance>>>);
-  static_assert(descriptor_collection<std::vector<stdcompat::reference_wrapper<Any<>>>>);
-  static_assert(descriptor_collection<std::tuple<stdcompat::reference_wrapper<Any<>>, Distance>>);
+  static_assert(descriptor<stdex::reference_wrapper<Any<>>>);
+  static_assert(descriptor_collection<std::vector<stdex::reference_wrapper<Distance>>>);
+  static_assert(descriptor_collection<std::vector<stdex::reference_wrapper<Any<>>>>);
+  static_assert(descriptor_collection<std::tuple<stdex::reference_wrapper<Any<>>, Distance>>);
 
   static_assert(dynamic_pattern<std::reference_wrapper<Any<>>>);
-  static_assert(dynamic_pattern<stdcompat::reference_wrapper<Any<>>>);
-  static_assert(dynamic_pattern<std::vector<stdcompat::reference_wrapper<Distance>>>);
-  static_assert(dynamic_pattern<std::vector<stdcompat::reference_wrapper<Any<>>>>);
-  static_assert(dynamic_pattern<std::tuple<stdcompat::reference_wrapper<Any<>>, Distance>>);
+  static_assert(dynamic_pattern<stdex::reference_wrapper<Any<>>>);
+  static_assert(dynamic_pattern<std::vector<stdex::reference_wrapper<Distance>>>);
+  static_assert(dynamic_pattern<std::vector<stdex::reference_wrapper<Any<>>>>);
+  static_assert(dynamic_pattern<std::tuple<stdex::reference_wrapper<Any<>>, Distance>>);
 
   static_assert(pattern<std::vector<std::size_t>>);
   static_assert(dynamic_pattern<std::vector<std::size_t>>);
@@ -125,9 +125,9 @@ TEST(coordinates, dynamic_pattern_functions)
 
 TEST(coordinates, make_descriptor_range)
 {
-  static_assert(stdcompat::same_as<decltype(make_descriptor_range()), stdcompat::ranges::empty_view<Dimensions<1>>>);
-  static_assert(stdcompat::same_as<decltype(make_descriptor_range(Dimensions{5})), stdcompat::ranges::single_view<Dimensions<>>>);
-  static_assert(stdcompat::same_as<decltype(make_descriptor_range(Dimensions{1}, Dimensions{5}, Dimensions{2})), std::array<Dimensions<>, 3>>);
-  static_assert(stdcompat::same_as<decltype(make_descriptor_range(Distance{}, Distance{})), std::array<Distance, 2>>);
-  static_assert(stdcompat::same_as<decltype(make_descriptor_range(Dimensions{1}, angle::Radians{}, Dimensions{1})), std::array<Any<>, 3>>);
+  static_assert(stdex::same_as<decltype(make_descriptor_range()), stdex::ranges::empty_view<Dimensions<1>>>);
+  static_assert(stdex::same_as<decltype(make_descriptor_range(Dimensions{5})), stdex::ranges::single_view<Dimensions<>>>);
+  static_assert(stdex::same_as<decltype(make_descriptor_range(Dimensions{1}, Dimensions{5}, Dimensions{2})), std::array<Dimensions<>, 3>>);
+  static_assert(stdex::same_as<decltype(make_descriptor_range(Distance{}, Distance{})), std::array<Distance, 2>>);
+  static_assert(stdex::same_as<decltype(make_descriptor_range(Dimensions{1}, angle::Radians{}, Dimensions{1})), std::array<Any<>, 3>>);
 }

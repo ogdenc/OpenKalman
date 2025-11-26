@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref stdcompat::ranges::views::all and \ref stdcompat::ranges::views::all_t.
+ * \brief Definition of \ref stdex::ranges::views::all and \ref stdex::ranges::views::all_t.
  */
 
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_ALL_HPP
@@ -24,7 +24,7 @@
 #include "ref_view.hpp"
 #include "owning_view.hpp"
 
-namespace OpenKalman::stdcompat::ranges::views
+namespace OpenKalman::stdex::ranges::views
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::views::all;
@@ -36,7 +36,7 @@ namespace OpenKalman::stdcompat::ranges::views
     struct can_ref_view : std::false_type {};
 
     template<typename R>
-    struct can_ref_view<R, std::enable_if_t<std::is_object_v<stdcompat::remove_cvref_t<R>> and range<stdcompat::remove_cvref_t<R>>>,
+    struct can_ref_view<R, std::enable_if_t<std::is_object_v<stdex::remove_cvref_t<R>> and range<stdex::remove_cvref_t<R>>>,
       std::void_t<decltype(ref_view {std::declval<R>()})>> : std::true_type {};
 
 

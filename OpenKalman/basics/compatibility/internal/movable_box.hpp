@@ -30,7 +30,7 @@ namespace OpenKalman::internal
 #else
     inline constexpr bool boxable =
 #endif
-      stdcompat::move_constructible<T> and std::is_object_v<T>;
+      stdex::move_constructible<T> and std::is_object_v<T>;
 
 
     template<typename Tp>
@@ -39,8 +39,8 @@ namespace OpenKalman::internal
 #else
     inline constexpr bool boxable_copyable =
 #endif
-      stdcompat::copy_constructible<Tp> and
-      (stdcompat::copyable<Tp> or (std::is_nothrow_move_constructible_v<Tp> and std::is_nothrow_copy_constructible_v<Tp>));
+      stdex::copy_constructible<Tp> and
+      (stdex::copyable<Tp> or (std::is_nothrow_move_constructible_v<Tp> and std::is_nothrow_copy_constructible_v<Tp>));
 
 
     template<typename Tp>
@@ -49,8 +49,8 @@ namespace OpenKalman::internal
 #else
     inline constexpr bool boxable_movable =
 #endif
-      (not stdcompat::copy_constructible<Tp>) and
-      (stdcompat::movable<Tp> or std::is_nothrow_move_constructible_v<Tp>);
+      (not stdex::copy_constructible<Tp>) and
+      (stdex::movable<Tp> or std::is_nothrow_move_constructible_v<Tp>);
 
   }
 
@@ -77,7 +77,7 @@ namespace OpenKalman::internal
     constexpr
     movable_box() noexcept(std::is_nothrow_default_constructible_v<T>) requires std::default_initializable<T>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<T>, int> = 0>
     constexpr
     movable_box() noexcept(std::is_nothrow_default_constructible_v<T>)
 #endif
@@ -100,7 +100,7 @@ namespace OpenKalman::internal
     operator=(const movable_box& that) noexcept(std::is_nothrow_copy_constructible_v<T>)
       requires (not std::copyable<T>) && std::copy_constructible<T>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and (not stdcompat::copyable<T>) && stdcompat::copy_constructible<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (not stdex::copyable<T>) && stdex::copy_constructible<T>, int> = 0>
     constexpr movable_box&
     operator=(const movable_box& that) noexcept(std::is_nothrow_copy_constructible_v<T>)
 #endif
@@ -118,7 +118,7 @@ namespace OpenKalman::internal
     constexpr movable_box&
     operator=(movable_box&& that) noexcept(std::is_nothrow_move_constructible_v<T>) requires (not std::movable<T>)
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and (not stdcompat::movable<T>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (not stdex::movable<T>), int> = 0>
     constexpr movable_box&
     operator=(movable_box&& that) noexcept(std::is_nothrow_move_constructible_v<T>)
 #endif
@@ -152,7 +152,7 @@ namespace OpenKalman::internal
     constexpr
     movable_box() requires std::default_initializable<T> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<T>, int> = 0>
     constexpr
     movable_box() {};
 #endif
@@ -162,7 +162,7 @@ namespace OpenKalman::internal
     constexpr explicit
     movable_box(const T& t) noexcept(std::is_nothrow_copy_constructible_v<T>) requires std::copy_constructible<T>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::copy_constructible<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::copy_constructible<T>, int> = 0>
     constexpr explicit
     movable_box(const T& t) noexcept(std::is_nothrow_copy_constructible_v<T>)
 #endif
@@ -176,7 +176,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_lib_concepts
     template<typename...Args> requires std::constructible_from<T, Args...>
 #else
-    template<typename...Args, std::enable_if_t<stdcompat::constructible_from<T, Args...>, int> = 0>
+    template<typename...Args, std::enable_if_t<stdex::constructible_from<T, Args...>, int> = 0>
 #endif
     constexpr explicit
     movable_box(std::in_place_t, Args&&...args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
@@ -206,11 +206,11 @@ namespace OpenKalman::internal
 #else
     constexpr movable_box& operator=(const movable_box& that)
     {
-      static_assert(stdcompat::copy_constructible<T> and std::is_nothrow_copy_constructible_v<T>);
-      if constexpr (stdcompat::copyable<T>)
+      static_assert(stdex::copy_constructible<T> and std::is_nothrow_copy_constructible_v<T>);
+      if constexpr (stdex::copyable<T>)
       if (this != std::addressof(that))
       {
-        if constexpr (stdcompat::copyable<T>)
+        if constexpr (stdex::copyable<T>)
         {
           M_value = that.M_value;
         }
@@ -247,7 +247,7 @@ namespace OpenKalman::internal
       static_assert(std::is_nothrow_move_constructible_v<T>);
       if (this != std::addressof(that))
       {
-        if constexpr (stdcompat::movable<T>)
+        if constexpr (stdex::movable<T>)
         {
           M_value = std::move(that.M_value);
         }

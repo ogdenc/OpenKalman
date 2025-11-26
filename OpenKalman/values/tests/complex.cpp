@@ -35,10 +35,10 @@ using namespace OpenKalman;
 
 TEST(values, interface)
 {
-  static_assert(stdcompat::same_as<values::value_type_of_t<std::complex<double>>, std::complex<double>>);
-  static_assert(stdcompat::same_as<values::real_type_of_t<std::complex<double>>, double>);
-  static_assert(stdcompat::same_as<values::real_type_of_t<double>, double>);
-  static_assert(stdcompat::same_as<values::real_type_of_t<int>, double>);
+  static_assert(stdex::same_as<values::value_type_of_t<std::complex<double>>, std::complex<double>>);
+  static_assert(stdex::same_as<values::real_type_of_t<std::complex<double>>, double>);
+  static_assert(stdex::same_as<values::real_type_of_t<double>, double>);
+  static_assert(stdex::same_as<values::real_type_of_t<int>, double>);
 }
 
 
@@ -118,13 +118,13 @@ TEST(values, update_real_part)
 
 TEST(values, complex_type_of)
 {
-  static_assert(stdcompat::same_as<values::complex_type_of_t<double>, std::complex<double>>);
-  static_assert(stdcompat::same_as<values::complex_type_of_t<float>, std::complex<float>>);
-  static_assert(stdcompat::same_as<values::complex_type_of_t<std::complex<double>>, std::complex<double>>);
+  static_assert(stdex::same_as<values::complex_type_of_t<double>, std::complex<double>>);
+  static_assert(stdex::same_as<values::complex_type_of_t<float>, std::complex<float>>);
+  static_assert(stdex::same_as<values::complex_type_of_t<std::complex<double>>, std::complex<double>>);
 #if __cpp_nontype_template_args >= 201911L
-  static_assert(stdcompat::same_as<values::complex_type_of_t<values::fixed_value<double, 3.>>, values::fixed_value<std::complex<double>, 3., 0.>>);
+  static_assert(stdex::same_as<values::complex_type_of_t<values::fixed_value<double, 3.>>, values::fixed_value<std::complex<double>, 3., 0.>>);
 #else
-  static_assert(stdcompat::same_as<values::complex_type_of_t<values::fixed_value<double, 3>>, values::fixed_value<std::complex<double>, static_cast<std::intmax_t>(3), static_cast<std::intmax_t>(0)>>);
+  static_assert(stdex::same_as<values::complex_type_of_t<values::fixed_value<double, 3>>, values::fixed_value<std::complex<double>, static_cast<std::intmax_t>(3), static_cast<std::intmax_t>(0)>>);
 #endif
   static_assert(values::real(values::fixed_value_of_v<values::complex_type_of_t<values::fixed_value<double, 3>>>) == 3.);
   static_assert(values::imag(values::fixed_value_of_v<values::complex_type_of_t<values::fixed_value<double, 3>>>) == 0.);
@@ -139,12 +139,12 @@ TEST(values, cast_to_complex)
   static_assert(values::cast_to<std::complex<double>>(std::complex<float>{3, 4}) == std::complex<double>{3, 4});
   static_assert(values::real(values::cast_to<double>(values::fixed_value<std::complex<float>, 3, 4>{})) == 3);
   static_assert(values::imag(values::cast_to<double>(values::fixed_value<std::complex<float>, 3, 4>{})) == 4);
-  static_assert(stdcompat::same_as<decltype(values::cast_to<double>(values::fixed_value<double, 4>{})), values::fixed_value<double, 4>&&>);
-  static_assert(stdcompat::same_as<typename values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<double, 4>{}))>::value_type, double>);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<int>(values::fixed_value<int, 4>{}))>::value_type, int>);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<int, 4>{}))>::value_type, double>);
+  static_assert(stdex::same_as<decltype(values::cast_to<double>(values::fixed_value<double, 4>{})), values::fixed_value<double, 4>&&>);
+  static_assert(stdex::same_as<typename values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<double, 4>{}))>::value_type, double>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<int>(values::fixed_value<int, 4>{}))>::value_type, int>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<int, 4>{}))>::value_type, double>);
   static_assert(values::cast_to<double>(values::fixed_value<float, 4>{}) == 4);
-  static_assert(stdcompat::same_as<values::value_type_of_t<decltype(values::cast_to<double>(values::fixed_value<float, 4>{}))>, double>);
+  static_assert(stdex::same_as<values::value_type_of_t<decltype(values::cast_to<double>(values::fixed_value<float, 4>{}))>, double>);
 }
 
 

@@ -22,14 +22,14 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, typename StrideType>
-  struct indexible_object_traits<Eigen::Ref<PlainObjectType, Options, StrideType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Ref<PlainObjectType, Options, StrideType>>
+  struct object_traits<Eigen::Ref<PlainObjectType, Options, StrideType>>
+    : Eigen3::object_traits_base<Eigen::Ref<PlainObjectType, Options, StrideType>>
   {
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<PlainObjectType>>)
-        return constant_coefficient<PlainObjectType> {};
+      if constexpr (values::fixed<constant_value<PlainObjectType>>)
+        return constant_value<PlainObjectType> {};
       else
         return std::monostate {};
     }
@@ -37,8 +37,8 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_diagonal_coefficient<PlainObjectType>>)
-        return constant_diagonal_coefficient<PlainObjectType> {};
+      if constexpr (values::fixed<constant_diagonal_value<PlainObjectType>>)
+        return constant_diagonal_value<PlainObjectType> {};
       else
         return std::monostate {};
     }

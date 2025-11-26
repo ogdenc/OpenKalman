@@ -31,7 +31,7 @@ namespace OpenKalman::collections
 #else
   constexpr bool collection =
 #endif
-    stdcompat::ranges::random_access_range<T> or uniformly_gettable<T>;
+    stdex::ranges::random_access_range<T> or uniformly_gettable<T>;
 
 
 }

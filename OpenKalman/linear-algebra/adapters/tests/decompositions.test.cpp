@@ -81,7 +81,7 @@ namespace
 TEST(special_matrices, cholesky_diagonal)
 {
   // constant diagonal
-  static_assert(constant_diagonal_coefficient{cholesky_factor<triangle_type::lower>(to_diagonal(make_constant<M41>(std::integral_constant<int, 4>{})))} == 2);
+  static_assert(constant_diagonal_value{cholesky_factor<triangle_type::lower>(to_diagonal(make_constant<M41>(std::integral_constant<int, 4>{})))} == 2);
 
   // constant
   EXPECT_TRUE(is_near(cholesky_factor<triangle_type::lower>(make_constant<M22>(std::integral_constant<int, 4>{})), M22{2, 2, 0, 0}));

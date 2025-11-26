@@ -58,8 +58,8 @@ TEST(coordinates, integral)
   static_assert(euclidean_pattern<unsigned>);
   static_assert(descriptor<unsigned>);
   static_assert(euclidean_pattern<unsigned>);
-  static_assert(dimension_of_v<unsigned> == dynamic_size);
-  static_assert(stat_dimension_of_v<unsigned> == dynamic_size);
+  static_assert(dimension_of_v<unsigned> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<unsigned> == stdex::dynamic_extent);
   static_assert(get_dimension(3u) == 3);
   EXPECT_EQ(get_dimension(0u), 0);
   EXPECT_EQ(get_dimension(3u), 3);

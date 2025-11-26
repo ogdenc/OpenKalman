@@ -47,7 +47,7 @@ namespace OpenKalman::collections::internal
     constexpr auto
     tuple_like_to_tuple_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      return std::tuple {get(std::forward<Arg>(arg), std::integral_constant<std::size_t, Ix>{})...};
+      return std::tuple {collections::get<Ix>(std::forward<Arg>(arg))...};
     }
   }
 

@@ -32,7 +32,7 @@ namespace OpenKalman::coordinates
     {
       constexpr auto ix = std::integral_constant<std::size_t, i>{};
       if constexpr (i < collections::size_of_v<A>)
-        return compare<comp>(collections::get(a, ix), Dimensions<1>{}) and
+        return compare<comp>(collections::get<ix>(a), Dimensions<1>{}) and
           compare_pattern_collections_a_tail<comp, i + 1>(a, b);
       else
         return std::true_type {};
@@ -43,9 +43,8 @@ namespace OpenKalman::coordinates
     constexpr auto
     compare_pattern_collections_b_tail(const A& a, const B& b)
     {
-      constexpr auto ix = std::integral_constant<std::size_t, i>{};
       if constexpr (i < collections::size_of_v<B>)
-        return compare<comp>(Dimensions<1>{}, collections::get(b, ix)) and
+        return compare<comp>(Dimensions<1>{}, collections::get<i>(b)) and
           compare_pattern_collections_b_tail<comp, i + 1>(a, b);
       else
         return std::true_type {};
@@ -56,12 +55,11 @@ namespace OpenKalman::coordinates
     constexpr auto
     compare_pattern_collections_iter_a(const A& a, const B& b)
     {
-      constexpr auto ix = std::integral_constant<std::size_t, i>{};
       std::size_t size_b = collections::get_size(b);
       if constexpr (i < collections::size_of_v<A>)
       {
         if (i < size_b)
-          return compare<comp>(collections::get(a, ix), collections::get(b, ix)) and
+          return compare<comp>(collections::get<i>(a), collections::get<i>(b)) and
             compare_pattern_collections_iter_a<comp, i + 1>(a, b);
         else
           return compare_pattern_collections_a_tail<comp, i>(a, b);
@@ -69,7 +67,7 @@ namespace OpenKalman::coordinates
       else
       {
         for (std::size_t j = i; j < size_b; ++j)
-          if (not compare<comp>(Dimensions<1>{}, collections::get(b, j))) return false;
+          if (not compare<comp>(Dimensions<1>{}, collections::get_element(b, j))) return false;
         return true;
       }
     }
@@ -84,7 +82,7 @@ namespace OpenKalman::coordinates
       if constexpr (i < collections::size_of_v<B>)
       {
         if (i < size_a)
-          return compare<comp>(collections::get(a, ix), collections::get(b, ix)) and
+          return compare<comp>(collections::get_element(a, ix), collections::get_element(b, ix)) and
             compare_pattern_collections_iter_b<comp, i + 1>(a, b);
         else
           return compare_pattern_collections_b_tail<comp, i>(a, b);
@@ -92,7 +90,7 @@ namespace OpenKalman::coordinates
       else
       {
         for (std::size_t j = i; j < size_a; ++j)
-          if (not compare<comp>(collections::get(a, j), Dimensions<1>{})) return false;
+          if (not compare<comp>(collections::get_element(a, j), Dimensions<1>{})) return false;
         return true;
       }
     }
@@ -106,7 +104,7 @@ namespace OpenKalman::coordinates
       if constexpr (i < collections::size_of_v<A>)
       {
         if constexpr (i < collections::size_of_v<B>)
-          return compare<comp>(collections::get(a, ix), collections::get(b, ix)) and
+          return compare<comp>(collections::get_element(a, ix), collections::get_element(b, ix)) and
             compare_pattern_collections_iter<comp, i + 1>(a, b);
         else
           return compare_pattern_collections_a_tail<comp, i>(a, b);
@@ -127,13 +125,13 @@ namespace OpenKalman::coordinates
    * \tparam comp A callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
 #ifdef __cpp_concepts
-  template<auto comp = &stdcompat::is_eq, pattern_collection A, pattern_collection B> requires
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering>
+  template<auto comp = &stdex::is_eq, pattern_collection A, pattern_collection B> requires
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering>
   constexpr OpenKalman::internal::boolean_testable auto
 #else
-  template<auto comp = &stdcompat::is_eq, typename A, typename B, std::enable_if_t<
+  template<auto comp = &stdex::is_eq, typename A, typename B, std::enable_if_t<
     pattern_collection<A> and pattern_collection<B> and
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering>, int> = 0>
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering>, int> = 0>
 constexpr auto
 #endif
   compare_pattern_collections(const A& a, const B& b)
@@ -147,24 +145,24 @@ constexpr auto
     {
       return std::false_type {};
     }
-    else if constexpr (collections::size_of_v<A> == dynamic_size and collections::size_of_v<B> == dynamic_size)
+    else if constexpr (collections::size_of_v<A> == stdex::dynamic_extent and collections::size_of_v<B> == stdex::dynamic_extent)
     {
       std::size_t size_a = collections::get_size(a);
       std::size_t size_b = collections::get_size(b);
       std::size_t i = 0;
       for (; i < size_a and i < size_b; ++i)
-        if (not compare<comp>(collections::get(a, i), collections::get(b, i))) return false;
+        if (not compare<comp>(collections::get_element(a, i), collections::get_element(b, i))) return false;
       for (; i < size_a; ++i)
-        if (not compare<comp>(collections::get(a, i), Dimensions<1>{})) return false;
+        if (not compare<comp>(collections::get_element(a, i), Dimensions<1>{})) return false;
       for (; i < size_b; ++i)
-        if (not compare<comp>(Dimensions<1>{}, collections::get(b, i))) return false;
+        if (not compare<comp>(Dimensions<1>{}, collections::get_element(b, i))) return false;
       return true;
     }
-    else if constexpr (collections::size_of_v<B> == dynamic_size)
+    else if constexpr (collections::size_of_v<B> == stdex::dynamic_extent)
     {
       return detail::compare_pattern_collections_iter_a<comp>(a, b);
     }
-    else if constexpr (collections::size_of_v<A> == dynamic_size)
+    else if constexpr (collections::size_of_v<A> == stdex::dynamic_extent)
     {
       return detail::compare_pattern_collections_iter_b<comp>(a, b);
     }

@@ -24,13 +24,13 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct indexible_object_traits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-      : Eigen3::indexible_object_traits_base<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    struct object_traits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+      : Eigen3::object_traits_base<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
     private:
 
       using Xpr = Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>;
-      using Base = Eigen3::indexible_object_traits_base<Xpr>;
+      using Base = Eigen3::object_traits_base<Xpr>;
 
     public:
 
@@ -78,8 +78,7 @@ namespace OpenKalman
       static constexpr bool is_square = true;
 
 
-      template<triangle_type t>
-      static constexpr bool is_triangular = true;
+      static constexpr triangle_type triangle_type_value = triangle_type::diagonal;
 
 
       static constexpr bool is_triangular_adapter = false;

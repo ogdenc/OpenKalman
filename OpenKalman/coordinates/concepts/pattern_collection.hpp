@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates
     struct is_pattern_range : std::false_type {};
 
     template<typename T>
-    struct is_pattern_range<T, std::enable_if_t<pattern<stdcompat::ranges::range_value_t<T>>>>
+    struct is_pattern_range<T, std::enable_if_t<pattern<stdex::ranges::range_value_t<T>>>>
       : std::true_type {};
   }
 #endif
@@ -64,7 +64,7 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool pattern_collection =
     collections::collection<T> and
-    ( (stdcompat::ranges::random_access_range<T> and detail::is_pattern_range<T>::value) or
+    ( (stdex::ranges::random_access_range<T> and detail::is_pattern_range<T>::value) or
       detail::is_pattern_iter<T>::value
     );
 #endif

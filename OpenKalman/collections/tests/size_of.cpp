@@ -32,8 +32,8 @@ TEST(collections, sized)
   static_assert(sized<const std::vector<int>&>);
   static_assert(sized<int(&)[5]>);
   static_assert(sized<const int(&)[6]>);
-  static_assert(sized<stdcompat::ranges::views::all_t<int(&)[7]>>);
-  static_assert(sized<stdcompat::ranges::views::all_t<decltype(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::declval<int(&)[5]>())))>>);
+  static_assert(sized<stdex::ranges::views::all_t<int(&)[7]>>);
+  static_assert(sized<stdex::ranges::views::all_t<decltype(stdex::ranges::views::reverse(stdex::ranges::views::all(std::declval<int(&)[5]>())))>>);
 }
 
 
@@ -69,29 +69,29 @@ TEST(collections, get_size)
   static_assert(not values::fixed<decltype(get_size(v1))>);
   static_assert(not values::fixed<decltype(get_size(std::vector{1,2,3}))>);
 
-  constexpr auto all_arr1 = stdcompat::ranges::views::all(arr1);
-  static_assert(stdcompat::ranges::size(stdcompat::ranges::views::all(arr1)) == 4);
-  static_assert(stdcompat::ranges::size(all_arr1) == 4);
-  static_assert(std::integral_constant<std::size_t, stdcompat::ranges::size(all_arr1)>::value == 4);
+  constexpr auto all_arr1 = stdex::ranges::views::all(arr1);
+  static_assert(stdex::ranges::size(stdex::ranges::views::all(arr1)) == 4);
+  static_assert(stdex::ranges::size(all_arr1) == 4);
+  static_assert(std::integral_constant<std::size_t, stdex::ranges::size(all_arr1)>::value == 4);
 
-  static_assert(get_size(stdcompat::ranges::views::all(std::array{1,2,3,4})) == 4);
-  static_assert(get_size(stdcompat::ranges::views::all(arr1)) == 4);
+  static_assert(get_size(stdex::ranges::views::all(std::array{1,2,3,4})) == 4);
+  static_assert(get_size(stdex::ranges::views::all(arr1)) == 4);
 
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(std::array{1,2,3,4})))>);
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(arr1)))>);
-  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::array{1,2,3,4}))) == 4);
-  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(arr1))) == 4);
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::array{1,2,3,4}))))>);
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(arr1))))>);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::all(std::array{1,2,3,4})))>);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::all(arr1)))>);
+  static_assert(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(std::array{1,2,3,4}))) == 4);
+  static_assert(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(arr1))) == 4);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(std::array{1,2,3,4}))))>);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(arr1))))>);
 
-  static_assert(get_size(stdcompat::ranges::views::all(a1)) == 5);
-  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(a1))) == 5);
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(a1)))>);
-  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(a1))))>);
+  static_assert(get_size(stdex::ranges::views::all(a1)) == 5);
+  static_assert(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(a1))) == 5);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::all(a1)))>);
+  static_assert(values::fixed<decltype(get_size(stdex::ranges::views::reverse(stdex::ranges::views::all(a1))))>);
 
-  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, a1)), 9);
-  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, a1) | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse), 9);
-  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, v1, a1) | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse), 12);
+  EXPECT_EQ(get_size(stdex::ranges::views::concat(arr1, a1)), 9);
+  EXPECT_EQ(get_size(stdex::ranges::views::concat(arr1, a1) | stdex::ranges::views::transform(std::negate{}) | stdex::ranges::views::reverse), 9);
+  EXPECT_EQ(get_size(stdex::ranges::views::concat(arr1, v1, a1) | stdex::ranges::views::transform(std::negate{}) | stdex::ranges::views::reverse), 12);
 }
 
 
@@ -101,8 +101,8 @@ TEST(collections, size_of)
 {
   static_assert(size_of_v<std::tuple<int, double, long double>> == 3);
   static_assert(size_of_v<std::array<double, 5>> == 5);
-  static_assert(size_of_v<std::vector<double>> == dynamic_size);
-  static_assert(size_of_v<std::initializer_list<double>> == dynamic_size);
+  static_assert(size_of_v<std::vector<double>> == stdex::dynamic_extent);
+  static_assert(size_of_v<std::initializer_list<double>> == stdex::dynamic_extent);
   static_assert(size_of_v<int(&)[5]> == 5);
 
   constexpr int a1[5] = {1, 2, 3, 4, 5};
@@ -113,12 +113,12 @@ TEST(collections, size_of)
   static_assert(size_of_v<int(&)[5]> == 5);
   static_assert(size_of_v<const int(&)[6]> == 6);
 
-  static_assert(size_of_v<stdcompat::ranges::views::all_t<std::array<double, 5>>> == 5);
-  static_assert(size_of_v<stdcompat::ranges::views::all_t<int(&)[7]>> == 7);
+  static_assert(size_of_v<stdex::ranges::views::all_t<std::array<double, 5>>> == 5);
+  static_assert(size_of_v<stdex::ranges::views::all_t<int(&)[7]>> == 7);
 
-  static_assert(size_of_v<stdcompat::ranges::empty_view<int>> == 0);
-  static_assert(size_of_v<stdcompat::ranges::single_view<int>> == 1);
+  static_assert(size_of_v<stdex::ranges::empty_view<int>> == 0);
+  static_assert(size_of_v<stdex::ranges::single_view<int>> == 1);
 
-  static_assert(size_of_v<stdcompat::ranges::concat_view<stdcompat::ranges::views::all_t<std::array<double, 5>>, stdcompat::ranges::views::all_t<int(&)[4]>>> == 9);
+  static_assert(size_of_v<stdex::ranges::concat_view<stdex::ranges::views::all_t<std::array<double, 5>>, stdex::ranges::views::all_t<int(&)[4]>>> == 9);
 }
 

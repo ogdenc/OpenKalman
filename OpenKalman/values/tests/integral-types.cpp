@@ -49,7 +49,7 @@ TEST(values, integral)
 
   static_assert(values::size<unsigned>);
   static_assert(values::size<std::size_t>);
-  static_assert(values::size<stdcompat::unreachable_sentinel_t>);
+  static_assert(values::size<values::unbounded_size_t>);
   static_assert(not values::size<int>);
 }
 
@@ -58,19 +58,34 @@ TEST(values, integral)
 TEST(values, size_compares_with)
 {
   static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 7>>);
-  static_assert(values::size_compares_with<std::integral_constant<int, 6>, std::integral_constant<int, 7>, &stdcompat::is_lt>);
-  static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 6>, &stdcompat::is_gt>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 6>, std::integral_constant<int, 7>, &stdex::is_lt>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 6>, &stdex::is_gt>);
 
-  static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdcompat::is_eq, applicability::permitted>);
-  static_assert(values::size_compares_with<std::size_t, std::integral_constant<int, 7>, &stdcompat::is_lt, applicability::permitted>);
-  static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdcompat::is_gt, applicability::permitted>);
-  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 6>, &stdcompat::is_lt, applicability::permitted>);
-  static_assert(not values::size_compares_with<std::integral_constant<int, 6>, std::integral_constant<int, 7>, &stdcompat::is_gt, applicability::permitted>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdex::is_eq>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdex::is_neq>);
+  static_assert(not values::size_compares_with<std::size_t, std::integral_constant<int, 7>, &stdex::is_lt>);
+  static_assert(not values::size_compares_with<std::size_t, std::integral_constant<int, 7>, &stdex::is_gteq>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdex::is_gt>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::size_t, &stdex::is_lteq>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 6>, &stdex::is_gteq>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, std::integral_constant<int, 6>, &stdex::is_lt>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 6>, std::integral_constant<int, 7>, &stdex::is_lteq>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 6>, std::integral_constant<int, 7>, &stdex::is_gt>);
 
-  static_assert(values::size_compares_with<stdcompat::unreachable_sentinel_t, stdcompat::unreachable_sentinel_t>);
-  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, stdcompat::unreachable_sentinel_t, &stdcompat::is_eq, applicability::permitted>);
-  static_assert(not values::size_compares_with<stdcompat::unreachable_sentinel_t, std::integral_constant<int, 7>, &stdcompat::is_eq, applicability::permitted>);
-  static_assert(not values::size_compares_with<std::size_t, stdcompat::unreachable_sentinel_t, &stdcompat::is_eq, applicability::permitted>);
-  static_assert(not values::size_compares_with<stdcompat::unreachable_sentinel_t, std::size_t, &stdcompat::is_eq, applicability::permitted>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 0>, std::size_t, &stdex::is_lteq>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 0>, std::size_t, &stdex::is_gt, applicability::permitted>);
+  static_assert(values::size_compares_with<std::size_t, std::integral_constant<int, 0>, &stdex::is_gteq>);
+  static_assert(not values::size_compares_with<std::size_t, std::integral_constant<int, 0>, &stdex::is_lt, applicability::permitted>);
+
+  static_assert(values::size_compares_with<values::unbounded_size_t, values::unbounded_size_t>);
+  static_assert(not values::size_compares_with<std::integral_constant<int, 7>, values::unbounded_size_t, &stdex::is_eq>);
+  static_assert(values::size_compares_with<std::integral_constant<int, 7>, values::unbounded_size_t, &stdex::is_neq>);
+
+  static_assert(not values::size_compares_with<values::unbounded_size_t, std::integral_constant<int, 7>, &stdex::is_eq>);
+  static_assert(values::size_compares_with<values::unbounded_size_t, std::integral_constant<int, 7>, &stdex::is_neq>);
+  static_assert(not values::size_compares_with<std::size_t, values::unbounded_size_t, &stdex::is_eq>);
+  static_assert(values::size_compares_with<std::size_t, values::unbounded_size_t, &stdex::is_neq>);
+  static_assert(not values::size_compares_with<values::unbounded_size_t, std::size_t, &stdex::is_eq>);
+  static_assert(values::size_compares_with<values::unbounded_size_t, std::size_t, &stdex::is_neq>);
 }
 

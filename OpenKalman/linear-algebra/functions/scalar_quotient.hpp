@@ -27,7 +27,7 @@ namespace OpenKalman
     {
       if constexpr (interface::scalar_quotient_defined_for<Arg, Arg&&, S&&>)
       {
-        return interface::library_interface<std::decay_t<Arg>>::scalar_quotient(std::forward<Arg>(arg), std::forward<S>(s));
+        return interface::library_interface<stdex::remove_cvref_t<Arg>>::scalar_quotient(std::forward<Arg>(arg), std::forward<S>(s));
       }
       else
       {
@@ -59,7 +59,7 @@ namespace OpenKalman
       return make_constant(std::forward<Arg>(arg),
         values::operation(
           std::divides<scalar_type_of_t<Arg>>{},
-          constant_coefficient{arg},
+          constant_value{arg},
           std::forward<S>(s)));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
@@ -67,7 +67,7 @@ namespace OpenKalman
       return to_diagonal(make_constant(diagonal_of(std::forward<Arg>(arg)),
         values::operation(
           std::divides<scalar_type_of_t<Arg>>{},
-          constant_diagonal_coefficient{arg},
+          constant_diagonal_value{arg},
           std::forward<S>(s))));
     }
     else if constexpr (values::fixed_value_compares_with<S, 1>)

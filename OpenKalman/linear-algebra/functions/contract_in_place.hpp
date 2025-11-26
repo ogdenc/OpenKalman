@@ -27,12 +27,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<bool on_the_right = true, square_shaped<applicability::permitted> A, square_shaped<applicability::permitted> B> requires
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
-    (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
+    (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and (index_count_v<B> == stdex::dynamic_extent or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
     square_shaped<A, applicability::permitted> and square_shaped<B, applicability::permitted> and
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of<A>::value == triangle_type_of<A, B>::value) and
-    (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
+    (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and (index_count<B>::value == stdex::dynamic_extent or index_count<B>::value <= 2), int> = 0>
 #endif
   constexpr A&&
   contract_in_place(A&& a, B&& b)
@@ -46,15 +46,15 @@ namespace OpenKalman
     }
     else if constexpr (zero<B> and writable<A>)
     {
-      assign(a, std::forward<B>(b));
+      copy(a, std::forward<B>(b));
     }
     else if constexpr (interface::contract_in_place_defined_for<A, on_the_right, A&, B&&>)
     {
-      return interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
+      return interface::library_interface<stdex::remove_cvref_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
     }
     else
     {
-      assign(a, to_dense_object(contract(a, std::forward<B>(b))));
+      copy(a, to_dense_object(contract(a, std::forward<B>(b))));
     }
     return std::forward<A>(a);
   }

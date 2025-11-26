@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates
 #endif
   to_stat_space(const T& t, R&& data_view)
   {
-    if constexpr (dimension_of_v<T> != dynamic_size and collections::size_of_v<R> != dynamic_size)
+    if constexpr (dimension_of_v<T> != stdex::dynamic_extent and collections::size_of_v<R> != stdex::dynamic_extent)
       static_assert(dimension_of_v<T> == collections::size_of_v<R>);
 
     if constexpr (euclidean_pattern<T>)
@@ -52,12 +52,12 @@ namespace OpenKalman::coordinates
     }
     else
     {
-      using U = std::decay_t<stdcompat::unwrap_ref_decay_t<T>>;
+      using U = std::decay_t<stdex::unwrap_ref_decay_t<T>>;
       using Traits = interface::coordinate_descriptor_traits<U>;
       if constexpr (std::is_same_v<U, T>)
-        return stdcompat::invoke(Traits::to_stat_space, t, std::forward<R>(data_view));
+        return stdex::invoke(Traits::to_stat_space, t, std::forward<R>(data_view));
       else
-        return stdcompat::invoke(Traits::to_stat_space, t.get(), std::forward<R>(data_view));
+        return stdex::invoke(Traits::to_stat_space, t.get(), std::forward<R>(data_view));
     }
   }
 
@@ -70,7 +70,7 @@ namespace OpenKalman::coordinates
     {
       if constexpr (t_i < collections::size_of_v<T>)
       {
-        decltype(auto) t_elem = collections::get(t, std::integral_constant<std::size_t, t_i>{});
+        decltype(auto) t_elem = collections::get<t_i>(t);
         auto dim = get_dimension(t_elem);
         auto data_view_sub = collections::views::slice(data_view, std::integral_constant<std::size_t, data_view_i>{}, dim);
         auto o = collections::views::all(to_stat_space(t_elem, std::move(data_view_sub)));
@@ -101,10 +101,10 @@ namespace OpenKalman::coordinates
 #endif
   to_stat_space(const T& t, R&& data_view)
   {
-    if constexpr (dimension_of_v<T> != dynamic_size and collections::size_of_v<R> != dynamic_size)
+    if constexpr (dimension_of_v<T> != stdex::dynamic_extent and collections::size_of_v<R> != stdex::dynamic_extent)
       static_assert(dimension_of_v<T> == collections::size_of_v<R>);
 
-    if constexpr (dimension_of_v<T> == dynamic_size) 
+    if constexpr (dimension_of_v<T> == stdex::dynamic_extent)
     {
       std::vector<collections::common_collection_type_t<R>> stat_data;
       stat_data.reserve(get_stat_dimension(t));

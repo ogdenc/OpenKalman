@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename DiagVectorType>
-  struct indexible_object_traits<Eigen::DiagonalWrapper<DiagVectorType>>
-    : Eigen3::indexible_object_traits_base<Eigen::DiagonalWrapper<DiagVectorType>>
+  struct object_traits<Eigen::DiagonalWrapper<DiagVectorType>>
+    : Eigen3::object_traits_base<Eigen::DiagonalWrapper<DiagVectorType>>
   {
   private:
 
     using Xpr = Eigen::DiagonalWrapper<DiagVectorType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 
@@ -66,7 +66,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_coefficient {arg.diagonal()};
+      return constant_value {arg.diagonal()};
     }
 
 
@@ -78,8 +78,7 @@ namespace OpenKalman::interface
     static constexpr bool is_square = true;
 
 
-    template<triangle_type t>
-    static constexpr bool is_triangular = true;
+    static constexpr triangle_type triangle_type_value = triangle_type::diagonal;
 
 
     static constexpr bool is_triangular_adapter = false;

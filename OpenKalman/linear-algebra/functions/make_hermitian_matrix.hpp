@@ -58,7 +58,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::make_hermitian_adapter_defined_for<Arg, adapter_type, Arg>)
     {
-      using Traits = interface::library_interface<std::decay_t<Arg>>;
+      using Traits = interface::library_interface<stdex::remove_cvref_t<Arg>>;
       auto new_h {Traits::template make_hermitian_adapter<adapter_type>(std::forward<Arg>(arg))};
       static_assert(hermitian_matrix<decltype(new_h), applicability::permitted>, "make_hermitian_matrix interface must return a hermitian matrix");
       if constexpr (hermitian_matrix<decltype(new_h)>) return new_h;

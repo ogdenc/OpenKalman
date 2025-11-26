@@ -26,7 +26,7 @@ namespace OpenKalman
     struct is_triangular_adapter : std::false_type {};
 
     template<typename T>
-    struct is_triangular_adapter<T, std::enable_if_t<interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_triangular_adapter>>
+    struct is_triangular_adapter<T, std::enable_if_t<interface::object_traits<stdex::remove_cvref_t<T>>::is_triangular_adapter>>
       : std::true_type {};
   }
 #endif
@@ -40,11 +40,14 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept triangular_adapter = interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_triangular_adapter and
-#else
-  constexpr bool triangular_adapter = detail::is_triangular_adapter<T>::value and has_nested_object<T> and
-#endif
+  concept triangular_adapter =
+    interface::object_traits<stdex::remove_cvref_t<T>>::is_triangular_adapter and
     has_nested_object<T>;
+#else
+  constexpr bool triangular_adapter =
+    detail::is_triangular_adapter<T>::value and has_nested_object<T> and
+    has_nested_object<T>;
+#endif
 
 
 }

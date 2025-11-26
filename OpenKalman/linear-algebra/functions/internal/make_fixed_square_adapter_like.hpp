@@ -48,11 +48,11 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<coordinates::pattern D = coordinates::Axis, coordinates::pattern...Ds, square_shaped<applicability::permitted> Arg> requires
-    (index_count_v<Arg> != dynamic_size) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>)
+    (index_count_v<Arg> != stdex::dynamic_extent) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>)
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
     (... and coordinates::pattern<Ds>) and square_shaped<Arg, applicability::permitted> and
-    (index_count_v<Arg> != dynamic_size) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>), int> = 0>
+    (index_count_v<Arg> != stdex::dynamic_extent) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_fixed_square_adapter_like(Arg&& arg)

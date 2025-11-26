@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-  struct indexible_object_traits<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
-    : Eigen3::indexible_object_traits_base<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
+  struct object_traits<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
+    : Eigen3::object_traits_base<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>;
+    using Base = Eigen3::object_traits_base<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>;
 
   public:
 

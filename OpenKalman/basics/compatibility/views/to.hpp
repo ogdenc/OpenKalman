@@ -22,7 +22,7 @@
 #include "range_adaptor_closure.hpp"
 #include "transform.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #if __cpp_lib_ranges_to_container >= 202202L
   using std::ranges::to;
@@ -53,7 +53,7 @@ namespace OpenKalman::stdcompat::ranges
 
     
     template<typename Adaptor, typename...Args>
-    struct Partial : stdcompat::ranges::range_adaptor_closure<Partial<Adaptor, Args...>>
+    struct Partial : stdex::ranges::range_adaptor_closure<Partial<Adaptor, Args...>>
     {
       template<typename...Ts>
 	    constexpr explicit
@@ -98,7 +98,7 @@ namespace OpenKalman::stdcompat::ranges
 
     
     template<typename Adaptor, typename Arg>
-    struct Partial<Adaptor, Arg> : stdcompat::ranges::range_adaptor_closure<Partial<Adaptor, Arg>>
+    struct Partial<Adaptor, Arg> : stdex::ranges::range_adaptor_closure<Partial<Adaptor, Arg>>
     {
       template<typename Tp>
 	    constexpr
@@ -153,28 +153,28 @@ namespace OpenKalman::stdcompat::ranges
     struct reservable_container_impl : std::false_type {};
 
     template<typename T>
-    struct reservable_container_impl<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<stdcompat::ranges::range_size_t<T>>()))>,
+    struct reservable_container_impl<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<stdex::ranges::range_size_t<T>>()))>,
       std::enable_if_t<
-        std::is_same_v<decltype(std::declval<T&>().capacity()), stdcompat::ranges::range_size_t<T>> and
-        std::is_same_v<decltype(std::declval<T&>().max_size()), stdcompat::ranges::range_size_t<T>>>>
+        std::is_same_v<decltype(std::declval<T&>().capacity()), stdex::ranges::range_size_t<T>> and
+        std::is_same_v<decltype(std::declval<T&>().max_size()), stdex::ranges::range_size_t<T>>>>
       : std::true_type {};
 
     template<typename Container>
     inline constexpr bool reservable_container =
-      stdcompat::ranges::sized_range<Container> and reservable_container_impl<Container>::value;
+      stdex::ranges::sized_range<Container> and reservable_container_impl<Container>::value;
 
     template<typename Range, typename = void>
     struct toable1_impl : std::false_type {};
 
     template<typename Cont>
-    struct toable1_impl<Cont, std::enable_if_t<not stdcompat::ranges::input_range<Cont>>> : std::true_type {};
+    struct toable1_impl<Cont, std::enable_if_t<not stdex::ranges::input_range<Cont>>> : std::true_type {};
 
     template<typename Cont, typename Range, typename = void>
     struct toable2_impl : std::false_type {};
 
     template<typename Cont, typename Range>
     struct toable2_impl<Cont, Range, std::enable_if_t<
-      stdcompat::convertible_to<stdcompat::ranges::range_reference_t<Range>, stdcompat::ranges::range_value_t<Cont>>>> : std::true_type {};
+      stdex::convertible_to<stdex::ranges::range_reference_t<Range>, stdex::ranges::range_value_t<Cont>>>> : std::true_type {};
 
     template<typename Cont, typename Range>
     inline constexpr bool toable = toable1_impl<Cont>::value or toable2_impl<Cont, Range>::value;
@@ -209,7 +209,7 @@ namespace OpenKalman::stdcompat::ranges
     template<typename Cont, std::ranges::input_range Rg, typename...Args> requires (not std::ranges::view<Cont>)
 #else
     template<typename Cont, typename Rg, typename...Args, std::enable_if_t<
-      stdcompat::ranges::input_range<Rg> and not stdcompat::ranges::view<Cont>, int> = 0>
+      stdex::ranges::input_range<Rg> and not stdex::ranges::view<Cont>, int> = 0>
 #endif
     constexpr Cont
     to [[nodiscard]] (Rg&& r, Args&&... args)
@@ -219,23 +219,23 @@ namespace OpenKalman::stdcompat::ranges
 
       if constexpr (toable<Cont, Rg>)
       {
-        if constexpr (stdcompat::constructible_from<Cont, Rg, Args...>)
+        if constexpr (stdex::constructible_from<Cont, Rg, Args...>)
         {
           return Cont(std::forward<Rg>(r), std::forward<Args>(args)...);
         }
-        else if constexpr (input_iterator<Rg> and stdcompat::ranges::common_range<Rg> and
-          stdcompat::constructible_from<Cont, stdcompat::ranges::iterator_t<Rg>, stdcompat::ranges::sentinel_t<Rg>, Args...>)
+        else if constexpr (input_iterator<Rg> and stdex::ranges::common_range<Rg> and
+          stdex::constructible_from<Cont, stdex::ranges::iterator_t<Rg>, stdex::ranges::sentinel_t<Rg>, Args...>)
         {
-          return Cont(stdcompat::ranges::begin(r), stdcompat::ranges::end(r), std::forward<Args>(args)...);
+          return Cont(stdex::ranges::begin(r), stdex::ranges::end(r), std::forward<Args>(args)...);
         }
         else
         {
-          static_assert(stdcompat::constructible_from<Cont, Args...>);
+          static_assert(stdex::constructible_from<Cont, Args...>);
           Cont c(std::forward<Args>(args)...);
-          if constexpr (stdcompat::ranges::sized_range<Rg> and reservable_container<Cont>)
-            c.reserve(static_cast<stdcompat::ranges::range_size_t<Cont>>(stdcompat::ranges::size(r)));
-          auto it = stdcompat::ranges::begin(r);
-          const auto sent = stdcompat::ranges::end(r);
+          if constexpr (stdex::ranges::sized_range<Rg> and reservable_container<Cont>)
+            c.reserve(static_cast<stdex::ranges::range_size_t<Cont>>(stdex::ranges::size(r)));
+          auto it = stdex::ranges::begin(r);
+          const auto sent = stdex::ranges::end(r);
           while (it != sent)
           {
 #ifdef __cpp_concepts
@@ -255,9 +255,9 @@ namespace OpenKalman::stdcompat::ranges
       }
       else
       {
-        static_assert(stdcompat::ranges::input_range<stdcompat::ranges::range_reference_t<Rg>>);
-        return to<Cont>(ref_view(r) | stdcompat::ranges::views::transform(
-        [](auto&& elem) { return to<stdcompat::ranges::range_value_t<Cont>>(std::forward<decltype(elem)>(elem)); }), std::forward<Args>(args)...);
+        static_assert(stdex::ranges::input_range<stdex::ranges::range_reference_t<Rg>>);
+        return to<Cont>(ref_view(r) | stdex::ranges::views::transform(
+        [](auto&& elem) { return to<stdex::ranges::range_value_t<Cont>>(std::forward<decltype(elem)>(elem)); }), std::forward<Args>(args)...);
       }
     }
 
@@ -266,10 +266,10 @@ namespace OpenKalman::stdcompat::ranges
     struct InputIter
     {
       using iterator_category = std::input_iterator_tag;
-      using value_type = stdcompat::ranges::range_value_t<Rg>;
+      using value_type = stdex::ranges::range_value_t<Rg>;
       using difference_type = std::ptrdiff_t;
-      using pointer = std::add_pointer_t<stdcompat::ranges::range_reference_t<Rg>>;
-      using reference = stdcompat::ranges::range_reference_t<Rg>;
+      using pointer = std::add_pointer_t<stdex::ranges::range_reference_t<Rg>>;
+      using reference = stdex::ranges::range_reference_t<Rg>;
       reference operator*() const;
       pointer operator->() const;
       InputIter& operator++();
@@ -316,7 +316,7 @@ namespace OpenKalman::stdcompat::ranges
 #ifdef __cpp_concepts
     template<template<typename...> typename Cont, std::ranges::input_range Rg, typename...Args>
 #else
-    template<template<typename...> typename Cont, typename Rg, typename...Args, std::enable_if_t<stdcompat::ranges::input_range<Rg>, int> = 0>
+    template<template<typename...> typename Cont, typename Rg, typename...Args, std::enable_if_t<stdex::ranges::input_range<Rg>, int> = 0>
 #endif
     constexpr auto
     to [[nodiscard]] (Rg&& r, Args&&... args)
@@ -347,9 +347,9 @@ namespace OpenKalman::stdcompat::ranges
 
 
 #ifdef __cpp_concepts
-    template<typename Cont, typename... Args> requires (not stdcompat::ranges::view<Cont>)
+    template<typename Cont, typename... Args> requires (not stdex::ranges::view<Cont>)
 #else
-    template<typename Cont, typename...Args, std::enable_if_t<not stdcompat::ranges::view<Cont>, int> = 0>
+    template<typename Cont, typename...Args, std::enable_if_t<not stdex::ranges::view<Cont>, int> = 0>
 #endif
     constexpr auto
     to [[nodiscard]] (Args&&... args)

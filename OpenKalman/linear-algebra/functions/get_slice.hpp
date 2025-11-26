@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_GET_SLICE_HPP
 #define OPENKALMAN_GET_SLICE_HPP
 
+#include "linear-algebra/concepts/internal/slice_specifier.hpp"
+
 namespace OpenKalman
 {
 
@@ -60,12 +62,12 @@ namespace OpenKalman
 
       if constexpr (constant_matrix<Arg>)
       {
-        return make_constant<Arg>(constant_coefficient{arg}, std::move(slice_descriptors));
+        return make_constant<Arg>(constant_value{arg}, std::move(slice_descriptors));
       }
       else
       {
-        return make_vector_space_adapter(
-          interface::library_interface<std::decay_t<Arg>>::get_slice(std::forward<Arg>(arg), offsets, extents),
+        return attach_pattern(
+          interface::library_interface<stdex::remove_cvref_t<Arg>>::get_slice(std::forward<Arg>(arg), offsets, extents),
           std::move(slice_descriptors));
       }
       // \todo If arg is directly_accessible and the library interface is not defined, extract the block from the raw data.

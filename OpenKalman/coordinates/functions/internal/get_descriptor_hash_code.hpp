@@ -41,7 +41,7 @@ namespace OpenKalman::coordinates::internal
     }
     else
     {
-      using U = std::decay_t<stdcompat::unwrap_reference_t<Arg>>;
+      using U = std::decay_t<stdex::unwrap_reference_t<Arg>>;
       using Traits = interface::coordinate_descriptor_traits<U>;
       if constexpr (std::is_same_v<U, Arg>) return Traits::hash_code(arg);
       else return Traits::hash_code(arg.get());

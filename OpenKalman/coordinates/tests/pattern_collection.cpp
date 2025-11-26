@@ -25,13 +25,6 @@
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 
-using stdcompat::numbers::pi;
-
-namespace
-{
-  constexpr double sqrt3_2 = values::sqrt(3.)/2;
-}
-
 #include "coordinates/concepts/pattern_collection.hpp"
 #include "coordinates/concepts/fixed_pattern_collection.hpp"
 #include "coordinates/concepts/euclidean_pattern_collection.hpp"
@@ -62,7 +55,7 @@ TEST(coordinates, pattern_collection)
   static_assert(fixed_pattern_collection<std::tuple<Axis, Distance, angle::Radians>>);
   static_assert(not fixed_pattern_collection<std::tuple<Axis, int, Distance, angle::Radians>>);
   static_assert(fixed_pattern_collection<std::array<Distance, 5>>);
-  static_assert(not fixed_pattern_collection<std::array<Dimensions<dynamic_size>, 5>>);
+  static_assert(not fixed_pattern_collection<std::array<Dimensions<stdex::dynamic_extent>, 5>>);
   static_assert(not fixed_pattern_collection<std::vector<angle::Radians>>);
   static_assert(not fixed_pattern_collection<std::initializer_list<angle::Radians>>);
   static_assert(not fixed_pattern_collection<std::vector<int>>);
@@ -86,55 +79,55 @@ TEST(coordinates, pattern_collection_compares_with)
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Dimensions<3>>,    std::tuple<Dimensions<>>,  Polar<>, Dimensions<>>,
     std::tuple<std::tuple<Distance, Axis, Axis, Axis>, std::tuple<Dimensions<2>>, Polar<>>,
-    &stdcompat::is_eq, applicability::permitted>);
+    &stdex::is_eq, applicability::permitted>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Dimensions<3>>,    std::tuple<Dimensions<>>,  Polar<>, Axis, Dimensions<>>,
     std::tuple<std::tuple<Distance, Axis, Axis, Axis>, std::tuple<Dimensions<2>>, Polar<>, Dimensions<>>,
-    &stdcompat::is_eq, applicability::permitted>);
+    &stdex::is_eq, applicability::permitted>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>, Dimensions<>>>,
     std::tuple<std::tuple<Distance, Dimensions<3>>,              std::tuple<Axis, Axis>,                   Polar<>>,
-    &stdcompat::is_gt>);
+    &stdex::is_gt>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>, Dimensions<>>, Dimensions<2>>,
     std::tuple<std::tuple<Distance, Dimensions<3>>,              std::tuple<Axis, Axis>,                   Polar<>>,
-    &stdcompat::is_gt>);
+    &stdex::is_gt>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>, Dimensions<>>, Dimensions<0>>,
     std::tuple<std::tuple<Distance, Dimensions<3>>,              std::tuple<Axis, Axis>,                   Polar<>>,
-    &stdcompat::is_gt, applicability::permitted>);
+    &stdex::is_gt, applicability::permitted>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>, Dimensions<>>>,
     std::tuple<std::tuple<Distance, Dimensions<3>>,              std::tuple<Axis, Axis>,                   Polar<>,                                    Dimensions<2>>,
-    &stdcompat::is_gt, applicability::permitted>);
+    &stdex::is_gt, applicability::permitted>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
     std::tuple<std::tuple<Distance, Dimensions<3>>,              std::tuple<Axis, Axis>,                   Polar<>,            Dimensions<>>,
-    &stdcompat::is_gt>);
+    &stdex::is_gt>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
     std::tuple<std::tuple<Any<>, Dimensions<3>>,                 std::tuple<Axis, Axis>,                   Polar<>>,
-    &stdcompat::is_gt>);
+    &stdex::is_gt>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Any<>, Dimensions<3>>,                 std::tuple<Axis, Axis>,                   Polar<>, Dimensions<>, Dimensions<>>,
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
-    &stdcompat::is_lt>);
+    &stdex::is_lt>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Any<>, Dimensions<>>,                  std::tuple<Axis, Axis>,                   Polar<>>,
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
-    &stdcompat::is_lt, applicability::permitted>);
+    &stdex::is_lt, applicability::permitted>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Any<>, Dimensions<3>>,                 std::tuple<Axis, Axis>,                   Polar<>,                      Dimensions<2>>,
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>, Dimensions<3>, Dimensions<>>,
-    &stdcompat::is_lt, applicability::permitted>);
+    &stdex::is_lt, applicability::permitted>);
   static_assert(pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
     std::vector<std::vector<Any<>>>,
-    &stdcompat::is_gt, applicability::permitted>);
+    &stdex::is_gt, applicability::permitted>);
   static_assert(not pattern_collection_compares_with<
     std::tuple<std::tuple<Distance, Axis, Axis, Axis, Distance>, std::tuple<Dimensions<2>, Inclination<>>, std::tuple<Polar<>, Angle<>>>,
     std::tuple<std::vector<Any<>>, Distance, std::vector<Any<>>>,
-    &stdcompat::is_eq, applicability::permitted>);
+    &stdex::is_eq, applicability::permitted>);
 }
 
 
@@ -151,16 +144,16 @@ TEST(coordinates, compare_pattern_collections)
   static_assert(compare_pattern_collections(
     std::tuple {std::tuple<Distance, Dimensions<3>>{},    std::tuple<Axis, Axis>{},    Polar{}},
     std::tuple {std::tuple<Distance, Axis, Axis, Axis>{}, std::tuple<Dimensions<2>>{}, Polar{}, Axis{}}));
-  static_assert(compare_pattern_collections<&stdcompat::is_lteq>(
+  static_assert(compare_pattern_collections<&stdex::is_lteq>(
     std::tuple {std::tuple<Distance, Dimensions<3>>{},          std::tuple<Axis, Axis>{},    Polar{}},
     std::tuple {std::tuple<Distance, Axis, Axis, Axis, Axis>{}, std::tuple<Dimensions<2>>{}, Polar{}}));
-  static_assert(compare_pattern_collections<&stdcompat::is_lt>(
+  static_assert(compare_pattern_collections<&stdex::is_lt>(
     std::tuple {std::tuple<Distance, Dimensions<3>>{},          std::tuple<Axis, Axis>{},          Polar{}},
     std::tuple {std::tuple<Distance, Axis, Axis, Axis, Axis>{}, std::tuple<Dimensions<2>, Axis>{}, std::tuple{Polar{}, Axis{}}}));
-  static_assert(compare_pattern_collections<&stdcompat::is_lt>(
+  static_assert(compare_pattern_collections<&stdex::is_lt>(
     std::tuple {std::tuple<Distance, Dimensions<3>>{},              std::tuple<Axis, Axis>{},                   Polar{}},
     std::tuple {std::tuple<Distance, Axis, Axis, Axis, Distance>{}, std::tuple<Dimensions<2>, Inclination<>>{}, std::tuple{Polar{}, Angle{}}}));
-  static_assert(compare_pattern_collections<&stdcompat::is_gt>(
+  static_assert(compare_pattern_collections<&stdex::is_gt>(
     std::tuple {std::tuple<Distance, Axis, Axis, Axis, Distance>{}, std::tuple<Dimensions<2>, Inclination<>>{}, std::tuple{Polar{}, Angle{}}},
     std::tuple {std::tuple<Distance, Dimensions<3>>{},              std::tuple<Axis, Axis>{},                   Polar{}}));
 
@@ -170,21 +163,21 @@ TEST(coordinates, compare_pattern_collections)
   EXPECT_TRUE(compare_pattern_collections(
     std::tuple {std::vector{Any{Distance{}},                    Any{Dimensions{3}}},       std::vector{Axis{}, Axis{}},  Polar{}},
     std::tuple {std::tuple{Distance{}, Axis{}, Axis{}, Axis{}}, std::tuple{Dimensions{2}}, std::vector{Polar{}}}));
-  EXPECT_TRUE(compare_pattern_collections<&stdcompat::is_lt>(
+  EXPECT_TRUE(compare_pattern_collections<&stdex::is_lt>(
     std::tuple {std::vector{Any{Distance{}}, Any{Dimensions<3>{}}},                                   std::vector{Axis{}, Axis{}},                           Polar{}},
     std::tuple {std::vector{Any{Distance{}}, Any{Axis{}}, Any{Axis{}}, Any{Axis{}}, Any{Distance{}}}, std::vector{Any{Dimensions<2>{}}, Any{Inclination{}}}, std::vector{Any{Polar{}}, Any{Angle{}}}}));
-  EXPECT_TRUE(compare_pattern_collections<&stdcompat::is_lt>(
+  EXPECT_TRUE(compare_pattern_collections<&stdex::is_lt>(
     std::tuple {std::vector{Any{Distance{}}, Any{Dimensions<3>{}}},                                   std::vector{Axis{}, Axis{}},                           Polar{}},
     std::tuple {std::vector{Any{Distance{}}, Any{Axis{}}, Any{Axis{}}, Any{Axis{}}, Any{Distance{}}}, std::vector{Any{Dimensions<2>{}}, Any{Inclination{}}}, std::vector{Any{Polar{}}, Any{Angle{}}}, Dimensions<3>{}}));
 
-  EXPECT_TRUE(compare_pattern_collections<&stdcompat::is_lt>(
+  EXPECT_TRUE(compare_pattern_collections<&stdex::is_lt>(
     std::tuple  {std::vector{Any{Distance{}}, Any{Dimensions<3>{}}},                                   std::vector{Any{Axis{}}, Any{Axis{}}},                 std::vector{Any{Polar{}}}},
     std::vector {std::vector{Any{Distance{}}, Any{Axis{}}, Any{Axis{}}, Any{Axis{}}, Any{Distance{}}}, std::vector{Any{Dimensions<2>{}}, Any{Inclination{}}}, std::vector{Any{Polar{}}, Any{Angle{}}}, std::vector{Any{Dimensions<3>{}}}}));
 
-  EXPECT_TRUE(compare_pattern_collections<&stdcompat::is_lt>(
+  EXPECT_TRUE(compare_pattern_collections<&stdex::is_lt>(
     std::vector {std::vector{Any{Distance{}}, Any{Dimensions<3>{}}},                                   std::vector{Any{Axis{}}, Any{Axis{}}},                 std::vector{Any{Polar{}}}},
     std::tuple  {std::vector{Any{Distance{}}, Any{Axis{}}, Any{Axis{}}, Any{Axis{}}, Any{Distance{}}}, std::vector{Any{Dimensions<2>{}}, Any{Inclination{}}}, std::vector{Any{Polar{}}, Any{Angle{}}}, Dimensions<3>{}}));
-  EXPECT_TRUE(compare_pattern_collections<&stdcompat::is_lt>(
+  EXPECT_TRUE(compare_pattern_collections<&stdex::is_lt>(
     std::vector {std::vector{Any{Distance{}}, Any{Dimensions<3>{}}},                                   std::vector{Any{Axis{}}, Any{Axis{}}},                 std::vector{Any{Polar{}}}},
     std::vector {std::vector{Any{Distance{}}, Any{Axis{}}, Any{Axis{}}, Any{Axis{}}, Any{Distance{}}}, std::vector{Any{Dimensions<2>{}}, Any{Inclination{}}}, std::vector{Any{Polar{}}, Any{Angle{}}}, std::vector{Any{Dimensions<3>{}}}}));
 }
@@ -265,9 +258,9 @@ TEST(coordinates, strip_1D_tail)
   EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(std::vector{Any{Distance{}}, Any{Angle{}}, Any{Dimensions{1}}}), std::tuple{Distance{}, Angle{}}));
 
   static_assert(compare_pattern_collections(strip_1D_tail(collections::views::repeat(Dimensions<1>{}, std::integral_constant<std::size_t, 10>{})), std::tuple{}));
-  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdcompat::ranges::views::repeat(Dimensions<1>{}, 10)), std::tuple{}));
-  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdcompat::ranges::views::repeat(Any{Dimensions<1>{}}, 10)), std::tuple{}));
-  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdcompat::ranges::views::repeat(Distance{}, 10)), stdcompat::ranges::views::repeat(Distance{}, 10)));
+  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdex::ranges::views::repeat(Dimensions<1>{}, 10)), std::tuple{}));
+  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdex::ranges::views::repeat(Any{Dimensions<1>{}}, 10)), std::tuple{}));
+  EXPECT_TRUE(compare_pattern_collections(strip_1D_tail(stdex::ranges::views::repeat(Distance{}, 10)), stdex::ranges::views::repeat(Distance{}, 10)));
 }
 
 
@@ -276,10 +269,10 @@ TEST(coordinates, strip_1D_tail)
 TEST(coordinates, most_fixed_pattern)
 {
   using OpenKalman::coordinates::internal::most_fixed_pattern;
-  static_assert(stdcompat::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Distance{}, Any{Distance{}}}))>, Distance>);
-  static_assert(stdcompat::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Distance{}}))>, Distance>);
-  static_assert(stdcompat::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Any{Distance{}}}))>, Any<>>);
-  static_assert(stdcompat::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Distance{}, Any{Distance{}}}))>, Distance>);
+  static_assert(stdex::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Distance{}, Any{Distance{}}}))>, Distance>);
+  static_assert(stdex::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Distance{}}))>, Distance>);
+  static_assert(stdex::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Any{Distance{}}}))>, Any<>>);
+  static_assert(stdex::same_as<std::decay_t<decltype(most_fixed_pattern(std::tuple{Any{Distance{}}, Distance{}, Any{Distance{}}}))>, Distance>);
 }
 
 

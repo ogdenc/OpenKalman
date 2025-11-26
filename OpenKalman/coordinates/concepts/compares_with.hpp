@@ -30,15 +30,15 @@ namespace OpenKalman::coordinates
     constexpr bool
     do_comps(Ords...ords)
     {
-      if constexpr (op_is_and) return (... and stdcompat::invoke(comp, ords));
-      else return (... or stdcompat::invoke(comp, ords));
+      if constexpr (op_is_and) return (... and stdex::invoke(comp, ords));
+      else return (... or stdex::invoke(comp, ords));
     }
 
 
     constexpr std::size_t
     inc_bank(std::size_t bank, std::size_t inc)
     {
-      return (bank == dynamic_size or inc == dynamic_size) ? dynamic_size : bank + inc;
+      return (bank == stdex::dynamic_extent or inc == stdex::dynamic_extent) ? stdex::dynamic_extent : bank + inc;
     }
 
 
@@ -85,7 +85,7 @@ namespace OpenKalman::coordinates
     constexpr bool
     compares_with_iter()
     {
-      using stdcompat::partial_ordering;
+      using stdex::partial_ordering;
 
       if constexpr (ia < collections::size_of_v<A>)
       {
@@ -110,7 +110,7 @@ namespace OpenKalman::coordinates
           {
             return compares_with_iter<A, B, comp, app, ia, ib + 1, abank, inc_bank(bbank, dim_Bi)>();
           }
-          else if constexpr (abank == dynamic_size or bbank == dynamic_size)
+          else if constexpr (abank == stdex::dynamic_extent or bbank == stdex::dynamic_extent)
           {
             return app == applicability::permitted and do_comps<comp>(partial_ordering::equivalent, partial_ordering::unordered);
           }
@@ -139,13 +139,13 @@ namespace OpenKalman::coordinates
           else if constexpr (do_comps<comp>(partial_ordering::less))
           {
             return app == applicability::permitted and
-              (dim_Ai == dynamic_size or dim_Ai == 0) and
+              (dim_Ai == stdex::dynamic_extent or dim_Ai == 0) and
               compares_with_iter<A, B, comp, app, ia + 1, ib + 1, dim_Ai, dim_Bi>();
           }
           else //if constexpr (do_comps<comp>(partial_ordering::greater))
           {
             return app == applicability::permitted and
-              (dim_Bi == dynamic_size or dim_Bi == 0) and
+              (dim_Bi == stdex::dynamic_extent or dim_Bi == 0) and
               compares_with_iter<A, B, comp, app, ia + 1, ib + 1, dim_Ai, dim_Bi>();
           }
         }
@@ -153,16 +153,16 @@ namespace OpenKalman::coordinates
         {
           return compares_with_iter<A, B, comp, app, ia + 1, ib, inc_bank(abank, dim_Ai), bbank>();
         }
-        else if constexpr (abank == dynamic_size or bbank == dynamic_size)
+        else if constexpr (abank == stdex::dynamic_extent or bbank == stdex::dynamic_extent)
         {
-          return (dim_Ai != dynamic_size and do_comps<comp>(partial_ordering::unordered)) or
-            (app == applicability::permitted and (dim_Ai == dynamic_size or do_comps<comp>(partial_ordering::greater)));
+          return (dim_Ai != stdex::dynamic_extent and do_comps<comp>(partial_ordering::unordered)) or
+            (app == applicability::permitted and (dim_Ai == stdex::dynamic_extent or do_comps<comp>(partial_ordering::greater)));
         }
         else if (abank >= bbank)
         {
           return do_comps<comp>(partial_ordering::greater);
         }
-        else if constexpr (dim_Ai == dynamic_size)
+        else if constexpr (dim_Ai == stdex::dynamic_extent)
         {
           return app == applicability::permitted and
             ( do_comps<comp>(partial_ordering::unordered, partial_ordering::greater, partial_ordering::equivalent) or
@@ -182,16 +182,16 @@ namespace OpenKalman::coordinates
         {
           return compares_with_iter<A, B, comp, app, ia, ib + 1, abank, inc_bank(bbank, dim_Bi)>();
         }
-        else if constexpr (abank == dynamic_size or bbank == dynamic_size)
+        else if constexpr (abank == stdex::dynamic_extent or bbank == stdex::dynamic_extent)
         {
-          return (dim_Bi != dynamic_size and do_comps<comp>(partial_ordering::unordered)) or
-            (app == applicability::permitted and (dim_Bi == dynamic_size or do_comps<comp>(partial_ordering::less)));
+          return (dim_Bi != stdex::dynamic_extent and do_comps<comp>(partial_ordering::unordered)) or
+            (app == applicability::permitted and (dim_Bi == stdex::dynamic_extent or do_comps<comp>(partial_ordering::less)));
         }
         else if (abank <= bbank)
         {
           return do_comps<comp>(partial_ordering::less);
         }
-        else if constexpr (dim_Bi == dynamic_size)
+        else if constexpr (dim_Bi == stdex::dynamic_extent)
         {
           return app == applicability::permitted and
             ( do_comps<comp>(partial_ordering::unordered, partial_ordering::less, partial_ordering::equivalent) or
@@ -202,9 +202,9 @@ namespace OpenKalman::coordinates
           return do_comps<comp>(partial_ordering::unordered);
         }
       }
-      else if constexpr (abank != dynamic_size and bbank != dynamic_size)
+      else if constexpr (abank != stdex::dynamic_extent and bbank != stdex::dynamic_extent)
       {
-        return do_comps<comp>(stdcompat::compare_three_way{}(abank, bbank));
+        return do_comps<comp>(stdex::compare_three_way{}(abank, bbank));
       }
       else if constexpr (abank == 0)
       {
@@ -214,7 +214,7 @@ namespace OpenKalman::coordinates
       {
         return do_comps<comp, app == applicability::guaranteed>(partial_ordering::greater, partial_ordering::equivalent);
       }
-      else if constexpr (abank != dynamic_size or bbank != dynamic_size)
+      else if constexpr (abank != stdex::dynamic_extent or bbank != stdex::dynamic_extent)
       {
         return app == applicability::permitted and do_comps<comp>(partial_ordering::less, partial_ordering::greater, partial_ordering::equivalent);
       }
@@ -235,11 +235,11 @@ namespace OpenKalman::coordinates
 
       if constexpr (descriptor<T>)
       {
-        return compares_with_impl<std::tuple<stdcompat::unwrap_ref_decay_t<T>>, U, comp, a>();
+        return compares_with_impl<std::tuple<stdex::unwrap_ref_decay_t<T>>, U, comp, a>();
       }
       else if constexpr (descriptor<U>)
       {
-        return compares_with_impl<T, std::tuple<stdcompat::unwrap_ref_decay_t<U>>, comp, a>();
+        return compares_with_impl<T, std::tuple<stdex::unwrap_ref_decay_t<U>>, comp, a>();
       }
 
       ///
@@ -248,42 +248,44 @@ namespace OpenKalman::coordinates
 
       else if constexpr (not values::fixed<dimension_of<T>> and not values::fixed<dimension_of<U>>)
       {
-        using DT = stdcompat::ranges::range_value_t<T>;
-        using DU = stdcompat::ranges::range_value_t<U>;
-        if constexpr (euclidean_pattern<DT> and euclidean_pattern<DU>)
-          return detail::do_comps<comp>(stdcompat::partial_ordering::equivalent);
-        else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::equivalent, stdcompat::partial_ordering::unordered))
-          return compares_with_impl<DT, DU, comp, a>();
-        else if constexpr (dimension_of_v<DT> == dynamic_size or dimension_of_v<DU> == dynamic_size)
+        using DT = stdex::ranges::range_value_t<T>;
+        using DU = stdex::ranges::range_value_t<U>;
+        if constexpr ((euclidean_pattern<DT> and euclidean_pattern<DU>))
+          return detail::do_comps<comp>(stdex::partial_ordering::equivalent);
+        else if constexpr (dimension_of_v<DT> == 0 or dimension_of_v<DU> == 0)
+          return values::size_compares_with<dimension_of<DT>, dimension_of<DU>, comp, a>;
+        else if constexpr (dimension_of_v<DT> == stdex::dynamic_extent or dimension_of_v<DU> == stdex::dynamic_extent)
           return a == applicability::permitted;
+        else if constexpr (compares_with_impl<DT, DU, &stdex::is_eq, a>())
+          return detail::do_comps<comp>(stdex::partial_ordering::equivalent);
         else
           return false;
       }
       else if constexpr (not values::fixed<dimension_of<T>>) // and values::fixed<dimension_of<U>>
       {
-        using DT = stdcompat::ranges::range_value_t<T>;
+        using DT = stdex::ranges::range_value_t<T>;
         if constexpr (euclidean_pattern<DT> and euclidean_pattern<U>)
         {
-          return detail::do_comps<comp>(stdcompat::partial_ordering::greater);
+          return detail::do_comps<comp>(stdex::partial_ordering::greater);
         }
         else if constexpr (dimension_of_v<U> == 0)
         {
-          if constexpr (dimension_of_v<DT> == dynamic_size)
+          if constexpr (dimension_of_v<DT> == stdex::dynamic_extent)
             return detail::do_comps<comp, a == applicability::guaranteed>(
-              stdcompat::partial_ordering::greater, stdcompat::partial_ordering::equivalent);
+              stdex::partial_ordering::greater, stdex::partial_ordering::equivalent);
           else
-            return detail::do_comps<comp>(stdcompat::partial_ordering::greater);
+            return detail::do_comps<comp>(stdex::partial_ordering::greater);
         }
-        else if constexpr (dimension_of_v<DT> == dynamic_size)
+        else if constexpr (dimension_of_v<DT> == stdex::dynamic_extent)
         {
           return a == applicability::permitted;
         }
-        else if constexpr (dimension_of_v<U> == dynamic_size)
+        else if constexpr (dimension_of_v<U> == stdex::dynamic_extent)
         {
-          if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+          if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
             return true;
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::greater))
-            return compares_with_impl<DT, stdcompat::ranges::range_value_t<U>, &stdcompat::is_eq, a>();
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::greater))
+            return compares_with_impl<DT, stdex::ranges::range_value_t<U>, &stdex::is_eq, a>();
           else
             return false;
         }
@@ -294,10 +296,10 @@ namespace OpenKalman::coordinates
       }
       else if constexpr (not values::fixed<dimension_of<U>>) // and values::fixed<dimension_of<T>>
       {
-        using DU = stdcompat::ranges::range_value_t<U>;
+        using DU = stdex::ranges::range_value_t<U>;
         if constexpr (euclidean_pattern<T> and euclidean_pattern<DU>)
         {
-          return detail::do_comps<comp>(stdcompat::partial_ordering::less);
+          return detail::do_comps<comp>(stdex::partial_ordering::less);
         }
         else if constexpr (not values::fixed<dimension_of<DU>>)
         {
@@ -305,22 +307,22 @@ namespace OpenKalman::coordinates
         }
         else if constexpr (dimension_of_v<T> == 0)
         {
-          if constexpr (dimension_of_v<DU> == dynamic_size)
+          if constexpr (dimension_of_v<DU> == stdex::dynamic_extent)
             return detail::do_comps<comp, a == applicability::guaranteed>(
-              stdcompat::partial_ordering::less, stdcompat::partial_ordering::equivalent);
+              stdex::partial_ordering::less, stdex::partial_ordering::equivalent);
           else
-            return detail::do_comps<comp>(stdcompat::partial_ordering::less);
+            return detail::do_comps<comp>(stdex::partial_ordering::less);
         }
-        else if constexpr (dimension_of_v<DU> == dynamic_size)
+        else if constexpr (dimension_of_v<DU> == stdex::dynamic_extent)
         {
           return a == applicability::permitted;
         }
-        else if constexpr (dimension_of_v<T> == dynamic_size)
+        else if constexpr (dimension_of_v<T> == stdex::dynamic_extent)
         {
-          if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+          if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
             return true;
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::less))
-            return compares_with_impl<stdcompat::ranges::range_value_t<T>, DU, &stdcompat::is_eq, a>();
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::less))
+            return compares_with_impl<stdex::ranges::range_value_t<T>, DU, &stdex::is_eq, a>();
           else
             return false;
         }
@@ -336,56 +338,56 @@ namespace OpenKalman::coordinates
 
       else if constexpr (dimension_of_v<T> == 0 and dimension_of_v<U> == 0)
       {
-        return detail::do_comps<comp>(stdcompat::partial_ordering::equivalent);
+        return detail::do_comps<comp>(stdex::partial_ordering::equivalent);
       }
-      else if constexpr (dimension_of_v<T> == 0 and collections::size_of_v<U> == dynamic_size)
+      else if constexpr (dimension_of_v<T> == 0 and collections::size_of_v<U> == stdex::dynamic_extent)
       {
-        return detail::do_comps<comp, a == applicability::guaranteed>(stdcompat::partial_ordering::less, stdcompat::partial_ordering::equivalent);
+        return detail::do_comps<comp, a == applicability::guaranteed>(stdex::partial_ordering::less, stdex::partial_ordering::equivalent);
       }
-      else if constexpr (dimension_of_v<U> == 0 and collections::size_of_v<T> == dynamic_size)
+      else if constexpr (dimension_of_v<U> == 0 and collections::size_of_v<T> == stdex::dynamic_extent)
       {
-        return detail::do_comps<comp, a == applicability::guaranteed>(stdcompat::partial_ordering::greater, stdcompat::partial_ordering::equivalent);
+        return detail::do_comps<comp, a == applicability::guaranteed>(stdex::partial_ordering::greater, stdex::partial_ordering::equivalent);
       }
-      else if constexpr (collections::size_of_v<T> != dynamic_size and collections::size_of_v<U> != dynamic_size)
+      else if constexpr (collections::size_of_v<T> != stdex::dynamic_extent and collections::size_of_v<U> != stdex::dynamic_extent)
       {
         if constexpr (collections::size_of<T>::value == 0 and collections::size_of<U>::value == 0)
-          return detail::do_comps<comp>(stdcompat::partial_ordering::equivalent);
+          return detail::do_comps<comp>(stdex::partial_ordering::equivalent);
         else
           return detail::compares_with_iter<T, U, comp, a>();
       }
-      else if constexpr (collections::size_of_v<T> != dynamic_size) // collections::size_of_v<U> == dynamic_size
+      else if constexpr (collections::size_of_v<T> != stdex::dynamic_extent) // collections::size_of_v<U> == stdex::dynamic_extent
       {
-        using DU = stdcompat::ranges::range_value_t<U>;
+        using DU = stdex::ranges::range_value_t<U>;
         if constexpr (dimension_of_v<DU> == 0)
         {
-          return detail::do_comps<comp>(stdcompat::partial_ordering::greater);
+          return detail::do_comps<comp>(stdex::partial_ordering::greater);
         }
-        else if constexpr (dimension_of_v<T> != dynamic_size and dimension_of_v<DU> != dynamic_size)
+        else if constexpr (dimension_of_v<T> != stdex::dynamic_extent and dimension_of_v<DU> != stdex::dynamic_extent)
         {
           if constexpr (euclidean_pattern<T> and euclidean_pattern<DU>)
           {
-            if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+            if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
               return a == applicability::permitted or dimension_of_v<T> % dimension_of_v<DU> != 0;
-            else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::less, stdcompat::partial_ordering::greater))
+            else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::less, stdex::partial_ordering::greater))
               return a == applicability::permitted;
-            else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::equivalent))
+            else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::equivalent))
               return a == applicability::permitted and dimension_of_v<T> % dimension_of_v<DU> == 0;
             else
               return a == applicability::permitted;
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
           {
             return a == applicability::permitted or
               compares_with_impl<T, collections::repeat_tuple_view<collections::size_of_v<T>, DU>, comp, a>();
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::greater))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::greater))
           {
             return a == applicability::permitted;
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::less))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::less))
           {
             return a == applicability::permitted and
-              compares_with_impl<T, collections::repeat_tuple_view<collections::size_of_v<T>, DU>, &stdcompat::is_eq, a>();
+              compares_with_impl<T, collections::repeat_tuple_view<collections::size_of_v<T>, DU>, &stdex::is_eq, a>();
           }
           else
           {
@@ -398,39 +400,39 @@ namespace OpenKalman::coordinates
           return a == applicability::permitted;
         }
       }
-      else if constexpr (collections::size_of_v<U> != dynamic_size) // collections::size_of_v<T> == dynamic_size
+      else if constexpr (collections::size_of_v<U> != stdex::dynamic_extent) // collections::size_of_v<T> == stdex::dynamic_extent
       {
-        using DT = stdcompat::ranges::range_value_t<T>;
+        using DT = stdex::ranges::range_value_t<T>;
         if constexpr (dimension_of_v<DT> == 0)
         {
-          return detail::do_comps<comp>(stdcompat::partial_ordering::less);
+          return detail::do_comps<comp>(stdex::partial_ordering::less);
         }
-        else if constexpr (dimension_of_v<DT> != dynamic_size and dimension_of_v<U> != dynamic_size)
+        else if constexpr (dimension_of_v<DT> != stdex::dynamic_extent and dimension_of_v<U> != stdex::dynamic_extent)
         {
           if constexpr (euclidean_pattern<DT> and euclidean_pattern<U>)
           {
-            if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+            if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
               return a == applicability::permitted or dimension_of_v<U> % dimension_of_v<DT> != 0;
-            else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::less, stdcompat::partial_ordering::greater))
+            else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::less, stdex::partial_ordering::greater))
               return a == applicability::permitted;
-            else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::equivalent))
+            else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::equivalent))
               return a == applicability::permitted and dimension_of_v<U> % dimension_of_v<DT> == 0;
             else
               return a == applicability::permitted;
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::unordered))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::unordered))
           {
             return a == applicability::permitted or
               compares_with_impl<collections::repeat_tuple_view<collections::size_of_v<U>, DT>, U, comp, a>();
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::less))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::less))
           {
             return a == applicability::permitted;
           }
-          else if constexpr (detail::do_comps<comp>(stdcompat::partial_ordering::greater))
+          else if constexpr (detail::do_comps<comp>(stdex::partial_ordering::greater))
           {
             return a == applicability::permitted and
-              compares_with_impl<collections::repeat_tuple_view<collections::size_of_v<U>, DT>, U, &stdcompat::is_eq, a>();
+              compares_with_impl<collections::repeat_tuple_view<collections::size_of_v<U>, DT>, U, &stdex::is_eq, a>();
           }
           else
           {
@@ -443,7 +445,7 @@ namespace OpenKalman::coordinates
           return a == applicability::permitted;
         }
       }
-      else // if constexpr (collections::size_of_v<T> == dynamic_size and collections::size_of_v<U> == dynamic_size)
+      else // if constexpr (collections::size_of_v<T> == stdex::dynamic_extent and collections::size_of_v<U> == stdex::dynamic_extent)
       {
         return a == applicability::permitted;
       }
@@ -453,7 +455,7 @@ namespace OpenKalman::coordinates
 
 
   /**
-   * \brief Specifies that a set of \ref coordinates::pattern objects may be equivalent based on what is known at compile time.
+   * \brief Compares two \ref coordinates::pattern objects.
    * \details Every \ref coordinate_list in the set must be potentially equivalent to every other \ref coordinate_list in the set.
    * Sets of vector space descriptors are equivalent if they are treated functionally the same.
    * - Any \ref coordinate_list is equivalent to itself.
@@ -466,14 +468,14 @@ namespace OpenKalman::coordinates
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Dimensions<>, Direction, angle::Radians&gt;, less_than<>, applicability::permitted&gt;</code>
    * \tparam comp A callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
-  template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
+  template<typename T, typename U, auto comp = &stdex::is_eq, applicability a = applicability::guaranteed>
 #ifdef __cpp_concepts
   concept compares_with =
 #else
   constexpr bool compares_with =
 #endif
     pattern<T> and pattern<U> and
-    std::is_invocable_r_v<bool, decltype(comp), stdcompat::partial_ordering> and
+    std::is_invocable_r_v<bool, decltype(comp), stdex::partial_ordering> and
     detail::compares_with_impl<T, U, comp, a>();
 
 

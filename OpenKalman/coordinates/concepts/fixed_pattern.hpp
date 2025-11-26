@@ -29,7 +29,7 @@ namespace OpenKalman::coordinates
     struct fixed_pattern_impl : std::false_type {};
 
     template<typename T>
-    struct fixed_pattern_impl<T, std::enable_if_t<dimension_of<T>::value != dynamic_size>> : std::true_type {};
+    struct fixed_pattern_impl<T, std::enable_if_t<dimension_of<T>::value != stdex::dynamic_extent>> : std::true_type {};
   }
 #endif
 
@@ -41,7 +41,7 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
   concept fixed_pattern =
     pattern<T> and
-    (dimension_of<T>::value != dynamic_size);
+    (dimension_of<T>::value != stdex::dynamic_extent);
 #else
   constexpr bool fixed_pattern =
     pattern<T> and

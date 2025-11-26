@@ -65,7 +65,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return values::pow(constant_diagonal_coefficient{arg}, values::cast_to<Scalar>(get_index_dimension_of<ix>(arg)))();
+      return values::pow(constant_diagonal_value{arg}, values::cast_to<Scalar>(get_index_dimension_of<ix>(arg)))();
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {
@@ -82,7 +82,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::library_interface<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::determinant(std::forward<Arg>(arg));
     }
   }
 

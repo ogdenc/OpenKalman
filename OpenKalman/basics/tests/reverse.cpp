@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for \ref ranges::reverse_view and \ref ranges::stdcompat::ranges::views::reverse.
+ * \brief Tests for \ref ranges::reverse_view and \ref ranges::stdex::ranges::views::reverse.
  */
 
 #include <vector>
@@ -22,48 +22,48 @@ using namespace OpenKalman;
 
 TEST(basics, reverse_view)
 {
-  using RA5 = stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<int(&)[5]>>;
-  using RCA5 = stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<const int(&)[5]>>;
-  static_assert(stdcompat::ranges::range<RA5>);
-  static_assert(stdcompat::ranges::range<RCA5>);
-  static_assert(stdcompat::ranges::input_range<stdcompat::ranges::reverse_view<stdcompat::ranges::views::all_t<const int(&)[5]>>>);
-  static_assert(stdcompat::ranges::output_range<RA5, int>);
-  static_assert(stdcompat::ranges::forward_range<RA5>);
-  static_assert(stdcompat::ranges::bidirectional_range<RA5>);
-  static_assert(stdcompat::ranges::random_access_range<RA5>);
+  using RA5 = stdex::ranges::reverse_view<stdex::ranges::views::all_t<int(&)[5]>>;
+  using RCA5 = stdex::ranges::reverse_view<stdex::ranges::views::all_t<const int(&)[5]>>;
+  static_assert(stdex::ranges::range<RA5>);
+  static_assert(stdex::ranges::range<RCA5>);
+  static_assert(stdex::ranges::input_range<stdex::ranges::reverse_view<stdex::ranges::views::all_t<const int(&)[5]>>>);
+  static_assert(stdex::ranges::output_range<RA5, int>);
+  static_assert(stdex::ranges::forward_range<RA5>);
+  static_assert(stdex::ranges::bidirectional_range<RA5>);
+  static_assert(stdex::ranges::random_access_range<RA5>);
 
   constexpr int a1[5] = {1, 2, 3, 4, 5};
-  static_assert((stdcompat::ranges::views::reverse(a1)[0_uz]) == 5);
-  static_assert((stdcompat::ranges::views::reverse(a1)[4u]) == 1);
-  static_assert(*stdcompat::ranges::begin(stdcompat::ranges::views::reverse(a1)) == 5);
-  static_assert(*(stdcompat::ranges::end(stdcompat::ranges::views::reverse(a1)) - 1) == 1);
-  static_assert(stdcompat::ranges::views::reverse(a1).size() == 5);
-  static_assert(*stdcompat::ranges::cbegin(stdcompat::ranges::views::reverse(a1)) == 5);
-  static_assert(*(stdcompat::ranges::cend(stdcompat::ranges::views::reverse(a1)) - 1) == 1);
-  static_assert(stdcompat::ranges::size(stdcompat::ranges::views::reverse(a1)) == 5);
-  static_assert(stdcompat::ranges::begin(stdcompat::ranges::views::reverse(a1))[3] == 2);
-  static_assert(stdcompat::ranges::views::reverse(a1).front() == 5);
-  static_assert(stdcompat::ranges::views::reverse(a1).back() == 1);
-  static_assert(not stdcompat::ranges::views::reverse(a1).empty());
+  static_assert((stdex::ranges::views::reverse(a1)[0_uz]) == 5);
+  static_assert((stdex::ranges::views::reverse(a1)[4u]) == 1);
+  static_assert(*stdex::ranges::begin(stdex::ranges::views::reverse(a1)) == 5);
+  static_assert(*(stdex::ranges::end(stdex::ranges::views::reverse(a1)) - 1) == 1);
+  static_assert(stdex::ranges::views::reverse(a1).size() == 5);
+  static_assert(*stdex::ranges::cbegin(stdex::ranges::views::reverse(a1)) == 5);
+  static_assert(*(stdex::ranges::cend(stdex::ranges::views::reverse(a1)) - 1) == 1);
+  static_assert(stdex::ranges::size(stdex::ranges::views::reverse(a1)) == 5);
+  static_assert(stdex::ranges::begin(stdex::ranges::views::reverse(a1))[3] == 2);
+  static_assert(stdex::ranges::views::reverse(a1).front() == 5);
+  static_assert(stdex::ranges::views::reverse(a1).back() == 1);
+  static_assert(not stdex::ranges::views::reverse(a1).empty());
 
-  static_assert(stdcompat::ranges::random_access_range<stdcompat::ranges::reverse_view<stdcompat::ranges::ref_view<std::array<int, 5>>>>);
+  static_assert(stdex::ranges::random_access_range<stdex::ranges::reverse_view<stdex::ranges::ref_view<std::array<int, 5>>>>);
   auto a2 = std::array{3, 4, 5};
-  EXPECT_EQ(*stdcompat::ranges::begin(stdcompat::ranges::views::reverse(a2)), 5);
-  EXPECT_EQ(*--stdcompat::ranges::end(stdcompat::ranges::views::reverse(a2)), 3);
-  EXPECT_EQ(stdcompat::ranges::reverse_view(a2).front(), 5);
-  EXPECT_EQ(stdcompat::ranges::reverse_view {a2}.back(), 3);
-  EXPECT_EQ((stdcompat::ranges::reverse_view {a2}[0u]), 5);
-  EXPECT_EQ((stdcompat::ranges::reverse_view {a2}[1u]), 4);
-  EXPECT_EQ((stdcompat::ranges::reverse_view {a2}[2u]), 3);
+  EXPECT_EQ(*stdex::ranges::begin(stdex::ranges::views::reverse(a2)), 5);
+  EXPECT_EQ(*--stdex::ranges::end(stdex::ranges::views::reverse(a2)), 3);
+  EXPECT_EQ(stdex::ranges::reverse_view(a2).front(), 5);
+  EXPECT_EQ(stdex::ranges::reverse_view {a2}.back(), 3);
+  EXPECT_EQ((stdex::ranges::reverse_view {a2}[0u]), 5);
+  EXPECT_EQ((stdex::ranges::reverse_view {a2}[1u]), 4);
+  EXPECT_EQ((stdex::ranges::reverse_view {a2}[2u]), 3);
 
-  static_assert(stdcompat::ranges::random_access_range<stdcompat::ranges::reverse_view<stdcompat::ranges::ref_view<std::vector<int>>>>);
+  static_assert(stdex::ranges::random_access_range<stdex::ranges::reverse_view<stdex::ranges::ref_view<std::vector<int>>>>);
   auto v1 = std::vector{3, 4, 5};
-  EXPECT_EQ((stdcompat::ranges::views::reverse(v1)[0u]), 5);
-  EXPECT_EQ((stdcompat::ranges::views::reverse(v1)[1u]), 4);
-  EXPECT_EQ((stdcompat::ranges::views::reverse(v1)[2u]), 3);
+  EXPECT_EQ((stdex::ranges::views::reverse(v1)[0u]), 5);
+  EXPECT_EQ((stdex::ranges::views::reverse(v1)[1u]), 4);
+  EXPECT_EQ((stdex::ranges::views::reverse(v1)[2u]), 3);
 
-  EXPECT_EQ((v1 | stdcompat::ranges::views::reverse)[0], 5);
-  EXPECT_EQ((a1 | stdcompat::ranges::views::reverse)[1], 4);
+  EXPECT_EQ((v1 | stdex::ranges::views::reverse)[0], 5);
+  EXPECT_EQ((a1 | stdex::ranges::views::reverse)[1], 4);
 
 }
 

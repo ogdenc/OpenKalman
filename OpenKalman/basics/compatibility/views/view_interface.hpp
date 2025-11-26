@@ -19,7 +19,7 @@
 
 #include "basics/compatibility/ranges/range-concepts.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::view_interface;
@@ -36,7 +36,7 @@ namespace OpenKalman::stdcompat::ranges
     empty()
     {
       auto& derived = static_cast<D&>(*this);
-      if constexpr (sized_range<D>) return stdcompat::ranges::size(derived) == 0;
+      if constexpr (sized_range<D>) return stdex::ranges::size(derived) == 0;
       else return begin(derived) == end(derived);
     }
 
@@ -45,36 +45,36 @@ namespace OpenKalman::stdcompat::ranges
     empty() const
     {
       auto& derived = static_cast<D&>(*this);
-      if constexpr (sized_range<D>) return stdcompat::ranges::size(derived) == 0;
+      if constexpr (sized_range<D>) return stdex::ranges::size(derived) == 0;
       else return begin(derived) == end(derived);
     }
 
 
     template<typename D = Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cbegin() { return stdcompat::ranges::cbegin(static_cast<D&>(*this)); }
+    cbegin() { return stdex::ranges::cbegin(static_cast<D&>(*this)); }
 
     template<typename D = const Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cbegin() const { return stdcompat::ranges::cbegin(static_cast<D&>(*this)); }
+    cbegin() const { return stdex::ranges::cbegin(static_cast<D&>(*this)); }
 
 
     template<typename D = Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cend() { return stdcompat::ranges::cend(static_cast<D&>(*this)); }
+    cend() { return stdex::ranges::cend(static_cast<D&>(*this)); }
 
     template<typename D = const Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cend() const { return stdcompat::ranges::cend(static_cast<D&>(*this)); }
+    cend() const { return stdex::ranges::cend(static_cast<D&>(*this)); }
 
 
-    template<typename D = Derived, typename = std::void_t<decltype(stdcompat::ranges::empty(std::declval<D&>()))>>
+    template<typename D = Derived, typename = std::void_t<decltype(stdex::ranges::empty(std::declval<D&>()))>>
     constexpr explicit
-    operator bool() { return not stdcompat::ranges::empty(static_cast<D&>(*this)); }
+    operator bool() { return not stdex::ranges::empty(static_cast<D&>(*this)); }
 
-    template<typename D = const Derived, typename = std::void_t<decltype(stdcompat::ranges::empty(std::declval<D&>()))>>
+    template<typename D = const Derived, typename = std::void_t<decltype(stdex::ranges::empty(std::declval<D&>()))>>
     constexpr explicit
-    operator bool() const { return not stdcompat::ranges::empty(static_cast<D&>(*this)); }
+    operator bool() const { return not stdex::ranges::empty(static_cast<D&>(*this)); }
 
 
     template<typename D = Derived, std::enable_if_t<forward_range<D>, int> = 0,

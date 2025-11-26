@@ -17,13 +17,14 @@
 #define OPENKALMAN_VALUES_TESTS_HPP
 
 #include <string>
-#include "basics/tests/tests.hpp"
+#include "basics/basics.hpp"
 #include "values/concepts/value.hpp"
 #include "values/functions/to_value_type.hpp"
 #include "values/concepts/complex.hpp"
 #include "values/functions/internal/near.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
+#include "basics/tests/tests.hpp"
 
 namespace OpenKalman::test
 {

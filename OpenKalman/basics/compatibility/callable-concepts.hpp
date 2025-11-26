@@ -18,7 +18,7 @@
 
 #include "invoke.hpp"
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_concepts
   using std::invocable;

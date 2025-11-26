@@ -18,7 +18,7 @@
 
 #include "basics/compatibility/comparison.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::equal_to;
@@ -30,7 +30,7 @@ namespace OpenKalman::stdcompat::ranges
 #else
   struct equal_to
   {
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::equality_comparable_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::equality_comparable_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Tp>() == std::declval<Up>()))
     {
@@ -43,7 +43,7 @@ namespace OpenKalman::stdcompat::ranges
 
   struct not_equal_to
   {
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::equality_comparable_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::equality_comparable_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Up>() == std::declval<Tp>()))
     {
@@ -72,7 +72,7 @@ namespace OpenKalman::stdcompat::ranges
 
   public:
 
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::totally_ordered_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::totally_ordered_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Tp>() < std::declval<Up>()))
     {
@@ -85,7 +85,7 @@ namespace OpenKalman::stdcompat::ranges
 
   struct greater
   {
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::totally_ordered_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::totally_ordered_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Up>() < std::declval<Tp>()))
     {
@@ -98,7 +98,7 @@ namespace OpenKalman::stdcompat::ranges
 
   struct greater_equal
   {
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::totally_ordered_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::totally_ordered_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Tp>() < std::declval<Up>()))
     {
@@ -111,7 +111,7 @@ namespace OpenKalman::stdcompat::ranges
 
   struct less_equal
   {
-    template<typename Tp, typename Up, std::enable_if_t<stdcompat::totally_ordered_with<Tp, Up>, int> = 0>
+    template<typename Tp, typename Up, std::enable_if_t<stdex::totally_ordered_with<Tp, Up>, int> = 0>
     constexpr bool
     operator()(Tp&& t, Up&& u) const noexcept(noexcept(std::declval<Up>() < std::declval<Tp>()))
     {

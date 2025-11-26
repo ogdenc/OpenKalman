@@ -64,7 +64,7 @@ namespace Eigen
 
       // NumDimensions is -1 for variable dim tensors
 
-      static const int NumCoords {OpenKalman::index_count_v<NestedObject> == OpenKalman::dynamic_size ?
+      static const int NumCoords {OpenKalman::index_count_v<NestedObject> == OpenKalman::stdex::dynamic_extent ?
         0 : static_cast<int>(OpenKalman::index_count_v<NestedObject>)};
 
       enum {
@@ -73,7 +73,7 @@ namespace Eigen
         BlockAccess        = false,
         PreferBlockAccess  = false,
         data_layout             = OpenKalman::layout_of_v<NestedObject> == OpenKalman::data_layout::right ? Eigen::RowMajor : Eigen::ColMajor,
-        CoordAccess        = OpenKalman::index_count_v<NestedObject> > 0 and OpenKalman::index_count_v<NestedObject> != OpenKalman::dynamic_size,
+        CoordAccess        = OpenKalman::index_count_v<NestedObject> > 0 and OpenKalman::index_count_v<NestedObject> != OpenKalman::stdex::dynamic_extent,
         RawAccess          = false,
       };
 

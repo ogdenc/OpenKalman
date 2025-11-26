@@ -71,15 +71,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, typename...Ts>
     concept constant_concatenate_arguments =
-      (values::fixed<constant_coefficient<T>> and ... and values::fixed<constant_coefficient<Ts>>) and
-      (values::internal::near(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
+      (values::fixed<constant_value<T>> and ... and values::fixed<constant_value<Ts>>) and
+      (values::internal::near(constant_value_v<T>, constant_value_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>
     struct constant_concatenate_arguments_impl : std::false_type {};
 
     template<typename T, typename...Ts>
     struct constant_concatenate_arguments_impl<T,
-      std::enable_if_t<(values::internal::near(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
+      std::enable_if_t<(values::internal::near(constant_value<T>::value, constant_value<Ts>::value) and ...)>, Ts...>
       : std::true_type {};
 
     template<typename T, typename...Ts>
@@ -212,7 +212,7 @@ namespace OpenKalman
     else if constexpr (sizeof...(indices) == 1 and detail::constant_concatenate_arguments<Arg, Args...>)
     {
       return std::apply([](auto&&...ds){
-        return make_constant<Arg>(constant_coefficient<Arg>{}, std::forward<decltype(ds)>(ds)...);
+        return make_constant<Arg>(constant_value<Arg>{}, std::forward<decltype(ds)>(ds)...);
       }, d_tup);
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and

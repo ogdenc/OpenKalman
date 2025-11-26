@@ -20,13 +20,13 @@ using namespace OpenKalman;
 
 TEST(basics, empty_view)
 {
-  static_assert(stdcompat::ranges::view<stdcompat::ranges::empty_view<int>>);
-  static_assert(stdcompat::ranges::viewable_range<stdcompat::ranges::empty_view<double>>);
-  static constexpr auto e1 = stdcompat::ranges::views::empty<int>;
+  static_assert(stdex::ranges::view<stdex::ranges::empty_view<int>>);
+  static_assert(stdex::ranges::viewable_range<stdex::ranges::empty_view<double>>);
+  static constexpr auto e1 = stdex::ranges::views::empty<int>;
   static_assert(e1.begin() == nullptr);
   static_assert(e1.end() == nullptr);
-  static_assert(stdcompat::ranges::begin(e1) == nullptr);
-  static_assert(stdcompat::ranges::end(e1) == nullptr);
+  static_assert(stdex::ranges::begin(e1) == nullptr);
+  static_assert(stdex::ranges::end(e1) == nullptr);
   static_assert(e1.data() == nullptr);
   static_assert(e1.empty());
 }

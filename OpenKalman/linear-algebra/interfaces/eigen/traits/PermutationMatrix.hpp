@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>
-  struct indexible_object_traits<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
-    : Eigen3::indexible_object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
+  struct object_traits<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
+    : Eigen3::object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>;
+    using Base = Eigen3::object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>;
 
   public:
 

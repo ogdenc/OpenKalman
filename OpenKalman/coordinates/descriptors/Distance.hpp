@@ -17,8 +17,8 @@
 #define OPENKALMAN_DISTANCE_HPP
 
 #include <cmath>
-#include <type_traits>
-#include "collections/functions/get.hpp"
+#include "values/functions/internal/update_real_part.hpp"
+#include "collections/collections.hpp"
 #include "Any.hpp"
 
 namespace OpenKalman::coordinates
@@ -79,7 +79,7 @@ namespace OpenKalman::interface
     static constexpr auto
     to_stat_space = [](const T&, auto&& data_view)
     {
-      decltype(auto) d = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) d = collections::get<0>(std::forward<decltype(data_view)>(data_view));
       // The distance component is wrapped to the non-negative half of the real axis:
       return std::array {values::internal::update_real_part(std::forward<decltype(d)>(d), values::abs(values::real(d)))};
     };
@@ -125,7 +125,7 @@ namespace std
   struct common_type<OpenKalman::coordinates::Distance, T>
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
-      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<>>,
       std::monostate> {};
 }
 

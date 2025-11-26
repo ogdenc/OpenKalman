@@ -29,7 +29,7 @@ namespace OpenKalman
    * \details The matrix is guaranteed to be diagonal.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
-   * indexible_object_traits outside the diagonal are automatically 0.
+   * object_traits outside the diagonal are automatically 0.
    */
 #ifdef __cpp_concepts
   template<vector<0, applicability::permitted> NestedMatrix>
@@ -86,8 +86,8 @@ namespace OpenKalman
       triangular_matrix<NestedMatrix, triangle_type::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
-    (not constant_matrix<NestedMatrix> or values::not_complex<constant_coefficient<NestedMatrix>>) and
-    (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_coefficient<NestedMatrix>>) and
+    (not constant_matrix<NestedMatrix> or values::not_complex<constant_value<NestedMatrix>>) and
+    (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_value<NestedMatrix>>) and
     (not triangular_matrix<NestedMatrix, triangle_type::any> or triangular_matrix<NestedMatrix, static_cast<triangle_type>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =
@@ -168,52 +168,6 @@ namespace OpenKalman
 #else
     constexpr bool triangular_expr = detail::is_triangular_expr<std::decay_t<T>>::value;
 #endif
-  }
-
-
-  // ------------------------------------------ //
-  //  VectorSpaceAdapter; vector_space_adapter  //
-  // ------------------------------------------ //
-
-  /**
-   * \brief An adapter that adds vector space descriptors for each index.
-   * \details Any vector space descriptors associated with NestedObject are overwritten.
-   * \tparam Arg An \ref indexible object.
-   * \taram Vs A set of \ref coordinates::pattern objects
-   */
-#ifdef __cpp_concepts
-  template<indexible NestedObject, pattern_collection Descriptors>
-  requires internal::not_more_fixed_than<NestedObject, Descriptors> and (not internal::less_fixed_than<NestedObject, Descriptors>) and
-    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Descriptors>
-#else
-  template<typename NestedObject, typename Descriptors>
-#endif
-  struct VectorSpaceAdapter;
-
-  namespace internal
-  {
-    namespace detail
-    {
-      template<typename T>
-      struct is_vector_space_adapter : std::false_type {};
-
-      template<typename NestedObject, typename Descriptors>
-      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Descriptors>> : std::true_type {};
-    }
-
-
-    /**
-     * \internal
-     * \brief Specifies that T is a VectorSpaceAdapter.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept vector_space_adapter =
-#else
-    constexpr bool vector_space_adapter =
-#endif
-      detail::is_vector_space_adapter<std::decay_t<T>>::value;
-
   }
 
 

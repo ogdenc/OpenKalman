@@ -16,14 +16,14 @@
 #ifndef OPENKALMAN_INDEX_DIMENSION_OF_HPP
 #define OPENKALMAN_INDEX_DIMENSION_OF_HPP
 
-#include "linear-algebra/traits/get_pattern_collection.hpp"
+#include "linear-algebra/traits/get_index_pattern.hpp"
 
 namespace OpenKalman
 {
   /**
    * \brief The dimension of an index for a matrix, expression, or array.
    * \details The static constexpr <code>value</code> member indicates the size of the object associated with a
-   * particular index. If the dimension is dynamic, <code>value</code> will be \ref dynamic_size.
+   * particular index. If the dimension is dynamic, <code>value</code> will be \ref stdex::dynamic_extent.
    * \tparam N The index
    * \tparam T The matrix, expression, or array
    */
@@ -42,7 +42,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct index_dimension_of<T, N, std::enable_if_t<indexible<T>>>
 #endif
-    : std::integral_constant<std::size_t, coordinates::dimension_of_v<decltype(get_pattern_collection<N>(std::declval<T>()))>> {};
+    : std::integral_constant<std::size_t, coordinates::dimension_of_v<decltype(get_index_pattern<N>(std::declval<T>()))>> {};
 
 
   /**

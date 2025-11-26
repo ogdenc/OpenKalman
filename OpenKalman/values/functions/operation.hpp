@@ -31,7 +31,7 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<typename Operation, fixed...Args> requires
-    std::bool_constant<(stdcompat::invoke(Operation{}, fixed_value_of_v<Args>...), true)>::value
+    std::bool_constant<(stdex::invoke(Operation{}, fixed_value_of_v<Args>...), true)>::value
 #else
   template<typename Operation, typename...Args>
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman::values
   {
     constexpr consteval_operation() = default;
     explicit constexpr consteval_operation(const Operation&, const Args&...) {};
-    static constexpr auto value = stdcompat::invoke(Operation{}, fixed_value_of_v<Args>...);
+    static constexpr auto value = stdex::invoke(Operation{}, fixed_value_of_v<Args>...);
     using value_type = std::decay_t<decltype(value)>;
     using type = consteval_operation;
     constexpr operator value_type() const { return value; }
@@ -69,7 +69,7 @@ namespace OpenKalman::values
     struct operation_consteval_invocable_impl<Op, Args...>
 #else
     template<typename Op, typename...Args>
-    struct operation_consteval_invocable_impl<Op, std::enable_if_t<std::bool_constant<(stdcompat::invoke(Op{}, fixed_value_of<Args>::value...), true)>::value>, Args...>
+    struct operation_consteval_invocable_impl<Op, std::enable_if_t<std::bool_constant<(stdex::invoke(Op{}, fixed_value_of<Args>::value...), true)>::value>, Args...>
 #endif
       : std::true_type{};
 
@@ -103,7 +103,7 @@ namespace OpenKalman::values
     }
     else
     {
-      return stdcompat::invoke(std::forward<Operation>(op), to_value_type(std::forward<Args>(args))...);
+      return stdex::invoke(std::forward<Operation>(op), to_value_type(std::forward<Args>(args))...);
     }
   }
 

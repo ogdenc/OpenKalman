@@ -23,15 +23,15 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   // scalar_real_ref_op
   static_assert(OpenKalman::Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_real_ref_op<double>>);
   static_assert(Eigen3::UnaryFunctorTraits<Eigen::internal::scalar_real_ref_op<double>>::constexpr_operation()(5) == 5);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, decltype(M11::Identity())>> == 1);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Z11>> == 0);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C11_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C22_2>> == 2);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, decltype(M11::Identity())>> == 1);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Z11>> == 0);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C11_2>> == 2);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C22_2>> == 2);
   static_assert(constant_matrix<decltype(cxa.real())>);
-  EXPECT_EQ(constant_coefficient{cxa.real()}(), 1);
+  EXPECT_EQ(constant_value{cxa.real()}(), 1);
   static_assert(constant_matrix<decltype(cxb.real())>);
-  EXPECT_EQ(constant_coefficient{cxb.real()}(), 3);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().real())> == 2);
+  EXPECT_EQ(constant_value{cxb.real()}(), 3);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().real())> == 2);
   static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tlv22>, triangle_type::lower>);
   static_assert(triangular_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, Tuv22>, triangle_type::upper>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<cdouble>, decltype(eigen_matrix_t<cdouble, 2, 2>::Identity())>>);
@@ -45,17 +45,17 @@ TEST(eigen3, Eigen_CwiseUnaryView)
 
   // scalar_imag_ref_op
   static_assert(constant_matrix<decltype(cxa.imag())>);
-  EXPECT_EQ(constant_coefficient{cxa.imag()}(), 2);
+  EXPECT_EQ(constant_value{cxa.imag()}(), 2);
   static_assert(constant_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<cdouble>, decltype(cxb)>>);
-  EXPECT_EQ(constant_coefficient{cxb.imag()}(), 4);
+  EXPECT_EQ(constant_value{cxb.imag()}(), 4);
   static_assert(OpenKalman::Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_imag_ref_op<double>>);
   static_assert(Eigen3::UnaryFunctorTraits<Eigen::internal::scalar_imag_ref_op<double>>::constexpr_operation()(5) == 0);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, decltype(M11::Identity())>> == 0);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, Z11>> == 0);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C11_2>> == 0);
-  static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
-  static_assert(constant_diagonal_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, Cd22_2>> == 0);
-  static_assert(constant_diagonal_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, decltype(M11::Identity())>> == 0);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, Z11>> == 0);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C11_2>> == 0);
+  static_assert(constant_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
+  static_assert(constant_diagonal_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, Cd22_2>> == 0);
+  static_assert(constant_diagonal_value_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<double>, C22_2>> == 0);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().imag()), triangle_type::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().imag()), triangle_type::upper>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<cdouble>, decltype(eigen_matrix_t<cdouble, 2, 2>::Identity().imag())>>);

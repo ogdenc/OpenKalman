@@ -35,11 +35,11 @@ TEST(collections, slice_view)
   static_assert(std::is_same_v<std::tuple_element_t<2, T1>, float&>);
 
   constexpr auto t1 = std::tuple{4, 5., 6.f, 8.l, 7u};
-  static_assert(get(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 0>{}) == 5.);
-  static_assert(get(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 1>{}) == 6.f);
-  static_assert(get(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
-  static_assert(get(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
-  static_assert(get(views::slice(std::move(t1), N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
+  static_assert(get_element(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 0>{}) == 5.);
+  static_assert(get_element(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 1>{}) == 6.f);
+  static_assert(get_element(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
+  static_assert(get_element(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
+  static_assert(get_element(views::slice(std::move(t1), N1{}, N3{}), std::integral_constant<std::size_t, 2>{}) == 8.l);
 
   auto v1 = std::vector {3, 4, 5, 6, 7};
   EXPECT_EQ((slice_view(v1, N1{}, N3{}).size()), 3);
@@ -55,7 +55,7 @@ TEST(collections, slice_view)
   EXPECT_EQ(((v1 | views::slice(2u, 2u))[std::integral_constant<std::size_t, 1>{}]), 6);
   EXPECT_EQ(((t1 | views::slice(std::integral_constant<std::size_t, 1>{}, 2u))[1u]), 6.f);
   EXPECT_EQ(((t1 | views::slice(1u, std::integral_constant<std::size_t, 3>{}))[2u]), 8.l);
-  static_assert(get(std::tuple{7., 8.f, 9} | views::slice(std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 2>{}), std::integral_constant<std::size_t, 1>{}) == 9.f);
+  static_assert(get_element(std::tuple{7., 8.f, 9} | views::slice(std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 2>{}), std::integral_constant<std::size_t, 1>{}) == 9.f);
 #endif
 }
 

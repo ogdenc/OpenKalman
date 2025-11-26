@@ -19,7 +19,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 namespace
 {

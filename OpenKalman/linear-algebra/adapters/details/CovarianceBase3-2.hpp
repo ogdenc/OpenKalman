@@ -34,13 +34,13 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<typename Derived, typename NestedMatrix> requires
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    (not stdcompat::default_initializable<NestedMatrix> or not std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>)
+    (not stdex::default_initializable<NestedMatrix> or not std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>)
   struct CovarianceBase<Derived, NestedMatrix>
 #else
   template<typename Derived, typename NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    (not stdcompat::default_initializable<NestedMatrix> or not std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>>>
+    (not stdex::default_initializable<NestedMatrix> or not std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>>>
 #endif
     : CovarianceBase3Impl<Derived, NestedMatrix>
   {
@@ -78,7 +78,7 @@ namespace OpenKalman::internal
     CovarianceBase(const CovarianceBase& other)
       : Base {
           other.nested_object(),
-          stdcompat::default_initializable<CholeskyNestedMatrix> and other.synch_direction > 0 ?
+          stdex::default_initializable<CholeskyNestedMatrix> and other.synch_direction > 0 ?
             CholeskyNestedMatrix {} :
             CholeskyNestedMatrix {other.cholesky_nested},
           other.synch_direction} {}
@@ -104,7 +104,7 @@ namespace OpenKalman::internal
     CovarianceBase(Arg&& arg)
       : Base {
           to_covariance_nestable<NestedMatrix>(arg),
-          stdcompat::default_initializable<CholeskyNestedMatrix> and arg.synchronization_direction() > 0 ?
+          stdex::default_initializable<CholeskyNestedMatrix> and arg.synchronization_direction() > 0 ?
             CholeskyNestedMatrix {} :
             CholeskyNestedMatrix {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
           arg.synchronization_direction()} {}

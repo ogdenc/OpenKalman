@@ -54,7 +54,7 @@ namespace OpenKalman::collections
       static constexpr auto
       call_table_get(const internal::tuple_wrapper<D>& box) noexcept
       {
-        return static_cast<element_type>(OpenKalman::internal::generalized_std_get<i>(box));
+        return static_cast<element_type>(get<i>(box));
       }
 
       static constexpr std::array
@@ -71,7 +71,7 @@ namespace OpenKalman::collections
 #else
   template<typename Tup>
 #endif
-  struct from_tuple_like : stdcompat::ranges::view_interface<from_tuple_like<Tup>>
+  struct from_tuple_like : stdex::ranges::view_interface<from_tuple_like<Tup>>
   {
   private:
 
@@ -150,7 +150,7 @@ namespace OpenKalman::collections
     constexpr
     from_tuple_like() = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<TupBox>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<TupBox>, int> = 0>
     constexpr
     from_tuple_like() {}
 #endif
@@ -160,9 +160,9 @@ namespace OpenKalman::collections
      * \brief Construct from a \ref viewable_tuple_like object.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::same_as<stdcompat::remove_cvref_t<Arg>, from_tuple_like>)
+    template<typename Arg> requires (not std::same_as<stdex::remove_cvref_t<Arg>, from_tuple_like>)
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_same_v<stdcompat::remove_cvref_t<Arg>, from_tuple_like>), int> = 0>
+    template<typename Arg, std::enable_if_t<(not std::is_same_v<stdex::remove_cvref_t<Arg>, from_tuple_like>), int> = 0>
 #endif
     constexpr explicit 
     from_tuple_like(Arg&& arg) noexcept : tup_ {std::forward<Arg>(arg)} {}
@@ -224,22 +224,22 @@ namespace OpenKalman::collections
      * \returns Returns the initial element.
      */
     constexpr decltype(auto)
-    front() { return OpenKalman::internal::generalized_std_get<0>(tup_); }
+    front() { return collections::get<0>(tup_); }
 
     /// \overload
     constexpr decltype(auto)
-    front() const { return OpenKalman::internal::generalized_std_get<0>(tup_); }
+    front() const { return collections::get<0>(tup_); }
 
 
     /**
      * \returns Returns the final element.
      */
     constexpr decltype(auto)
-    back() { return OpenKalman::internal::generalized_std_get<size() - 1_uz>(tup_); }
+    back() { return collections::get<size() - 1_uz>(tup_); }
 
     /// \overload
     constexpr decltype(auto)
-    back() const { return OpenKalman::internal::generalized_std_get<size() - 1_uz>(tup_); }
+    back() const { return collections::get<size() - 1_uz>(tup_); }
 
 
     /**
@@ -252,7 +252,7 @@ namespace OpenKalman::collections
     operator[](this Self&& self, I i) noexcept
     {
       if constexpr (values::fixed<I>) static_assert(values::fixed_value_of<I>::value < size(), "Index out of range");
-      return collections::get(std::forward<Self>(self), std::move(i));
+      return collections::get_element(std::forward<Self>(self), std::move(i));
     }
 #else
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
@@ -260,7 +260,7 @@ namespace OpenKalman::collections
     operator[](I i) &
     {
       if constexpr (values::fixed<I>) static_assert(values::fixed_value_of<I>::value < size(), "Index out of range");
-      return collections::get(*this, std::move(i));
+      return collections::get_element(*this, std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
@@ -268,7 +268,7 @@ namespace OpenKalman::collections
     operator[](I i) const &
     {
       if constexpr (values::fixed<I>) static_assert(values::fixed_value_of<I>::value < size(), "Index out of range");
-      return collections::get(*this, std::move(i));
+      return collections::get_element(*this, std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
@@ -276,7 +276,7 @@ namespace OpenKalman::collections
     operator[](I i) && noexcept
     {
       if constexpr (values::fixed<I>) static_assert(values::fixed_value_of<I>::value < size(), "Index out of range");
-      return collections::get(std::move(*this), std::move(i));
+      return collections::get_element(std::move(*this), std::move(i));
     }
 
     template<typename I, std::enable_if_t<values::index<I>, int> = 0>
@@ -284,7 +284,7 @@ namespace OpenKalman::collections
     operator[](I i) const && noexcept
     {
       if constexpr (values::fixed<I>) static_assert(values::fixed_value_of<I>::value < size(), "Index out of range");
-      return collections::get(std::move(*this), std::move(i));
+      return collections::get_element(std::move(*this), std::move(i));
     }
 #endif
 
@@ -299,7 +299,7 @@ namespace OpenKalman::collections
     get(this auto&& self) noexcept
     {
       static_assert(i < size_of_v<Tup>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(std::forward<decltype(self)>(self).tup_);
+      return collections::get<i>(std::forward<decltype(self)>(self).tup_);
     }
 #else
     template<std::size_t i>
@@ -307,7 +307,7 @@ namespace OpenKalman::collections
     get() &
     {
       static_assert(i < size_of_v<Tup>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(tup_);
+      return collections::get<i>(tup_);
     }
 
     template<std::size_t i>
@@ -315,7 +315,7 @@ namespace OpenKalman::collections
     get() const &
     {
       static_assert(i < size_of_v<Tup>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(tup_);
+      return collections::get<i>(tup_);
     }
 
     template<std::size_t i>
@@ -323,7 +323,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       static_assert(i < size_of_v<Tup>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(std::move(*this).tup_);
+      return collections::get<i>(std::move(*this).tup_);
     }
 
     template<std::size_t i>
@@ -331,7 +331,7 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       static_assert(i < size_of_v<Tup>, "Index out of range");
-      return OpenKalman::internal::generalized_std_get<i>(std::move(*this).tup_);
+      return collections::get<i>(std::move(*this).tup_);
     }
 #endif
 
@@ -351,12 +351,12 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 #endif
 {
   template<typename Tup>
   constexpr bool enable_borrowed_range<OpenKalman::collections::from_tuple_like<Tup>> =
-    std::is_lvalue_reference_v<Tup> or enable_borrowed_range<OpenKalman::stdcompat::remove_cvref_t<Tup>>;
+    std::is_lvalue_reference_v<Tup> or enable_borrowed_range<OpenKalman::stdex::remove_cvref_t<Tup>>;
 }
 
 

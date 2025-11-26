@@ -18,22 +18,22 @@ using namespace OpenKalman::test;
 TEST(eigen3, Eigen_DiagonalWrapper)
 {
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M31>, 0> == 3);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M3x>, 0> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx1>, 0> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mxx>, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M3x>, 0> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx1>, 0> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mxx>, 0> == stdex::dynamic_extent);
 
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M13>, 0> == 3);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M1x>, 0> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx3>, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M1x>, 0> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx3>, 0> == stdex::dynamic_extent);
 
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M31>, 1> == 3);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M3x>, 1> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx1>, 1> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mxx>, 1> == dynamic_size);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M3x>, 1> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx1>, 1> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mxx>, 1> == stdex::dynamic_extent);
 
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M13>, 1> == 3);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M1x>, 1> == dynamic_size);
-  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx3>, 1> == dynamic_size);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M1x>, 1> == stdex::dynamic_extent);
+  static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx3>, 1> == stdex::dynamic_extent);
 
   static_assert(coordinates::dimension_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
   static_assert(coordinates::dimension_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
@@ -48,13 +48,13 @@ TEST(eigen3, Eigen_DiagonalWrapper)
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<Mx1>>, Mxx>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<Mxx>>, Mxx>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().matrix().asDiagonal())> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>().matrix().asDiagonal())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<C11_2>().matrix().asDiagonal())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<Z21>().matrix().asDiagonal())> == 0);
   static_assert(not constant_matrix<decltype(std::declval<C21_2>().matrix().asDiagonal())>);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().matrix().asDiagonal())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z21>().matrix().asDiagonal())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().matrix().asDiagonal())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_2>().matrix().asDiagonal())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z21>().matrix().asDiagonal())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C21_2>().matrix().asDiagonal())> == 2);
 
   static_assert(not zero<decltype(std::declval<C11_1>())>);
   static_assert(not zero<decltype(std::declval<C11_2>())>);

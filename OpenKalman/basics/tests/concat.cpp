@@ -23,11 +23,11 @@ TEST(basics, concat_view)
 {
   std::vector v1 {3, 4, 5};
   std::vector v2 {6.f, 7.f, 8.f};
-  auto cat1 = stdcompat::ranges::views::concat(v1, v2);
-  static_assert(stdcompat::ranges::random_access_range<decltype(cat1)>);
-  auto itv1 = stdcompat::ranges::begin(cat1);
+  auto cat1 = stdex::ranges::views::concat(v1, v2);
+  static_assert(stdex::ranges::random_access_range<decltype(cat1)>);
+  auto itv1 = stdex::ranges::begin(cat1);
   EXPECT_EQ(*itv1, 3);
-  EXPECT_EQ(*stdcompat::ranges::begin(cat1), 3);
+  EXPECT_EQ(*stdex::ranges::begin(cat1), 3);
   EXPECT_EQ(*++itv1, 4);
   EXPECT_EQ(*++itv1, 5);
   EXPECT_EQ(*++itv1, 6);
@@ -41,12 +41,12 @@ TEST(basics, concat_view)
   EXPECT_EQ((cat1[std::integral_constant<std::size_t, 4>{}]), 7);
   EXPECT_EQ((cat1[std::integral_constant<std::size_t, 5>{}]), 8);
 
-  auto cat2 = stdcompat::ranges::views::concat(std::vector {2, 3, 4}, std::vector {5., 6., 7.});
-  static_assert(stdcompat::ranges::random_access_range<decltype(cat2)>);
+  auto cat2 = stdex::ranges::views::concat(std::vector {2, 3, 4}, std::vector {5., 6., 7.});
+  static_assert(stdex::ranges::random_access_range<decltype(cat2)>);
   static_assert(not std::is_const_v<std::remove_reference_t<decltype(cat2)>>);
-  auto itv2 = stdcompat::ranges::begin(cat2);
+  auto itv2 = stdex::ranges::begin(cat2);
   EXPECT_EQ(*itv2, 2);
-  EXPECT_EQ(*stdcompat::ranges::begin(cat2), 2);
+  EXPECT_EQ(*stdex::ranges::begin(cat2), 2);
   EXPECT_EQ(*++itv2, 3);
   EXPECT_EQ(*++ ++ ++itv2, 6);
   EXPECT_EQ(cat2[0u], 2);
@@ -55,11 +55,11 @@ TEST(basics, concat_view)
   EXPECT_EQ((cat2[std::integral_constant<std::size_t, 5>{}]), 7);
 
   constexpr double a1[3] = {5.3, 5.4, 5.5};
-  auto cat5 = stdcompat::ranges::views::concat(v1, a1, v2);
-  static_assert(stdcompat::ranges::random_access_range<decltype(cat5)>);
-  auto itv5 = stdcompat::ranges::begin(cat5);
+  auto cat5 = stdex::ranges::views::concat(v1, a1, v2);
+  static_assert(stdex::ranges::random_access_range<decltype(cat5)>);
+  auto itv5 = stdex::ranges::begin(cat5);
   EXPECT_EQ(*itv5, 3);
-  EXPECT_EQ(*stdcompat::ranges::begin(cat5), 3);
+  EXPECT_EQ(*stdex::ranges::begin(cat5), 3);
   EXPECT_EQ(*++itv5, 4);
   EXPECT_EQ(itv5[3], 5.4);
   EXPECT_EQ(*++itv5, 5);

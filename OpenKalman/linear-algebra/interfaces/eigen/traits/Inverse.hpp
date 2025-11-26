@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename XprType>
-  struct indexible_object_traits<Eigen::Inverse<XprType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Inverse<XprType>>
+  struct object_traits<Eigen::Inverse<XprType>>
+    : Eigen3::object_traits_base<Eigen::Inverse<XprType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Inverse<XprType>>;
+    using Base = Eigen3::object_traits_base<Eigen::Inverse<XprType>>;
 
   public:
 

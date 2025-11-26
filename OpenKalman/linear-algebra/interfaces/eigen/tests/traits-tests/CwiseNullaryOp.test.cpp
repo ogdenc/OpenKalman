@@ -14,38 +14,38 @@ using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 
 TEST(eigen3, Eigen_CwiseNullaryOp)
 {
   static_assert(eigen_matrix_general<M33::ConstantReturnType, true>);
 
-  static_assert(constant_coefficient_v<C11_1> == 1);
-  static_assert(values::dynamic<constant_coefficient<typename Mxx::ConstantReturnType>>);
-  static_assert(not values::fixed<constant_coefficient<typename Mxx::ConstantReturnType>>);
-  static_assert(constant_coefficient_v<Z11> == 0);
-  static_assert(constant_coefficient_v<Z22> == 0);
+  static_assert(constant_value_v<C11_1> == 1);
+  static_assert(values::dynamic<constant_value<typename Mxx::ConstantReturnType>>);
+  static_assert(not values::fixed<constant_value<typename Mxx::ConstantReturnType>>);
+  static_assert(constant_value_v<Z11> == 0);
+  static_assert(constant_value_v<Z22> == 0);
 
-  EXPECT_EQ(constant_coefficient{M22::Constant(3)}(), 3);
-  EXPECT_EQ(constant_coefficient{M2x::Constant(2, 2, 3)}(), 3);
-  EXPECT_EQ(constant_coefficient{Mx2::Constant(2, 2, 3)}(), 3);
-  EXPECT_EQ(constant_coefficient{Mxx::Constant(2, 2, 3)}(), 3);
-  EXPECT_EQ(constant_coefficient{M1x::Constant(1, 1, 3)}(), 3);
-  EXPECT_EQ(constant_coefficient{Mx1::Constant(1, 1, 3)}(), 3);
-  EXPECT_EQ(constant_coefficient{Mxx::Constant(1, 1, 3)}(), 3);
+  EXPECT_EQ(constant_value{M22::Constant(3)}(), 3);
+  EXPECT_EQ(constant_value{M2x::Constant(2, 2, 3)}(), 3);
+  EXPECT_EQ(constant_value{Mx2::Constant(2, 2, 3)}(), 3);
+  EXPECT_EQ(constant_value{Mxx::Constant(2, 2, 3)}(), 3);
+  EXPECT_EQ(constant_value{M1x::Constant(1, 1, 3)}(), 3);
+  EXPECT_EQ(constant_value{Mx1::Constant(1, 1, 3)}(), 3);
+  EXPECT_EQ(constant_value{Mxx::Constant(1, 1, 3)}(), 3);
 
-  EXPECT_EQ(constant_coefficient{M11::Identity()}(), 1);
+  EXPECT_EQ(constant_value{M11::Identity()}(), 1);
   static_assert(not constant_matrix<decltype(M1x::Identity(1, 1))>);
   static_assert(not constant_matrix<decltype(Mx1::Identity(1, 1))>);
   static_assert(not constant_matrix<decltype(Mxx::Identity(1, 1))>);
 
-  EXPECT_EQ((constant_coefficient{M22{}.NullaryExpr([]{ return 7.; })}()), 7.);
-  EXPECT_EQ((constant_coefficient{M2x{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
-  EXPECT_EQ((constant_coefficient{Mx2{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
-  EXPECT_EQ((constant_coefficient{Mxx{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_value{M22{}.NullaryExpr([]{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_value{M2x{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_value{Mx2{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_value{Mxx{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
 
-  static_assert(constant_coefficient_v<I11> == 1);
+  static_assert(constant_value_v<I11> == 1);
   static_assert(not constant_matrix<I1x> == 1);
   static_assert(not constant_matrix<Ix1> == 1);
   static_assert(not constant_matrix<Ixx> == 1);
@@ -54,38 +54,38 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(zero<Z11>);
   static_assert(zero<Z22>);
 
-  static_assert(constant_diagonal_coefficient_v<I11> == 1);
-  static_assert(constant_diagonal_coefficient_v<I1x> == 1);
-  static_assert(constant_diagonal_coefficient_v<Ix1> == 1);
-  static_assert(constant_diagonal_coefficient_v<Ixx> == 1);
+  static_assert(constant_diagonal_value_v<I11> == 1);
+  static_assert(constant_diagonal_value_v<I1x> == 1);
+  static_assert(constant_diagonal_value_v<Ix1> == 1);
+  static_assert(constant_diagonal_value_v<Ixx> == 1);
 
-  static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
-  static_assert(constant_diagonal_coefficient_v<I22> == 1);
-  static_assert(values::dynamic<constant_diagonal_coefficient<typename M11::ConstantReturnType>>);
+  static_assert(constant_diagonal_value_v<C11_1> == 1);
+  static_assert(constant_diagonal_value_v<I22> == 1);
+  static_assert(values::dynamic<constant_diagonal_value<typename M11::ConstantReturnType>>);
   static_assert(not constant_diagonal_matrix<typename M1x::ConstantReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mx1::ConstantReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType>);
-  static_assert(constant_diagonal_coefficient_v<Z11> == 0);
-  static_assert(constant_diagonal_coefficient_v<Z22> == 0);
+  static_assert(constant_diagonal_value_v<Z11> == 0);
+  static_assert(constant_diagonal_value_v<Z22> == 0);
 
-  static_assert(constant_diagonal_coefficient_v<I11> == 1);
-  static_assert(constant_diagonal_coefficient_v<I1x> == 1);
-  static_assert(constant_diagonal_coefficient_v<Ix1> == 1);
-  static_assert(constant_diagonal_coefficient_v<Ixx> == 1);
+  static_assert(constant_diagonal_value_v<I11> == 1);
+  static_assert(constant_diagonal_value_v<I1x> == 1);
+  static_assert(constant_diagonal_value_v<Ix1> == 1);
+  static_assert(constant_diagonal_value_v<Ixx> == 1);
 
-  static_assert(values::fixed<constant_diagonal_coefficient<typename M33::IdentityReturnType>>);
-  static_assert(values::fixed<constant_diagonal_coefficient<typename M3x::IdentityReturnType>>);
-  static_assert(values::fixed<constant_diagonal_coefficient<typename Mx3::IdentityReturnType>>);
-  static_assert(values::fixed<constant_diagonal_coefficient<typename Mxx::IdentityReturnType>>);
+  static_assert(values::fixed<constant_diagonal_value<typename M33::IdentityReturnType>>);
+  static_assert(values::fixed<constant_diagonal_value<typename M3x::IdentityReturnType>>);
+  static_assert(values::fixed<constant_diagonal_value<typename Mx3::IdentityReturnType>>);
+  static_assert(values::fixed<constant_diagonal_value<typename Mxx::IdentityReturnType>>);
   static_assert(constant_diagonal_matrix<typename M3x::IdentityReturnType>);
   static_assert(constant_diagonal_matrix<typename Mx3::IdentityReturnType>);
   static_assert(constant_diagonal_matrix<typename Mxx::IdentityReturnType>);
 
-  EXPECT_EQ(constant_diagonal_coefficient{M22::Identity()}(), 1);
-  EXPECT_EQ(constant_diagonal_coefficient{M2x::Identity(2, 2)}(), 1);
-  EXPECT_EQ(constant_diagonal_coefficient{Mx2::Identity(2, 2)}(), 1);
-  EXPECT_EQ(constant_diagonal_coefficient{Mxx::Identity(2, 2)}(), 1);
-  EXPECT_EQ(constant_diagonal_coefficient{M11::Constant(3)}(), 3);
+  EXPECT_EQ(constant_diagonal_value{M22::Identity()}(), 1);
+  EXPECT_EQ(constant_diagonal_value{M2x::Identity(2, 2)}(), 1);
+  EXPECT_EQ(constant_diagonal_value{Mx2::Identity(2, 2)}(), 1);
+  EXPECT_EQ(constant_diagonal_value{Mxx::Identity(2, 2)}(), 1);
+  EXPECT_EQ(constant_diagonal_value{M11::Constant(3)}(), 3);
   static_assert(not constant_diagonal_matrix<decltype(M1x::Constant(1, 1, 3))>);
   static_assert(not constant_diagonal_matrix<decltype(Mx1::Constant(1, 1, 3))>);
   static_assert(not constant_diagonal_matrix<decltype(Mxx::Constant(1, 1, 3))>);

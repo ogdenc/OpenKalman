@@ -286,7 +286,7 @@ namespace OpenKalman::Eigen3
     public:
 
       template<std::size_t direction>
-      static constexpr std::size_t factor = efactor<direction> == Eigen::Dynamic ? dynamic_size : efactor<direction>;
+      static constexpr std::size_t factor = efactor<direction> == Eigen::Dynamic ? stdex::dynamic_extent : efactor<direction>;
     };
   }
 
@@ -476,7 +476,7 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
     template<std::size_t size>
-    constexpr auto eigen_index_convert = size == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(size);
+    constexpr auto eigen_index_convert = size == stdex::dynamic_extent ? Eigen::Dynamic : static_cast<Eigen::Index>(size);
   }
 
   /**
@@ -496,10 +496,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename T>
-  struct indexible_object_traits_base;
+  struct object_traits_base;
 #else
   template<typename T, typename = void>
-  struct indexible_object_traits_base;
+  struct object_traits_base;
 #endif
 
 

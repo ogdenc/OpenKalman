@@ -20,7 +20,7 @@
 #include "comparison.hpp"
 #include "common.hpp"
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_concepts
   using std::movable;

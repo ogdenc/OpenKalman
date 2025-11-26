@@ -68,7 +68,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<mean<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      stdcompat::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdex::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     Mean(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -83,7 +83,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      stdcompat::constructible_from<NestedMatrix,
+      stdex::constructible_from<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     Mean(Arg&& arg) : Base {from_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
@@ -112,7 +112,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      stdcompat::constructible_from<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<Arg>()))>, int> = 0>
+      stdex::constructible_from<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<Arg>()))>, int> = 0>
 #endif
     explicit Mean(Arg&& arg) : Base {wrap_angles<RowCoefficients>(std::forward<Arg>(arg))} {}
 
@@ -126,7 +126,7 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == index_dimension_of<NestedMatrix, 0>::value) or
         (sizeof...(Args) == index_dimension_of<NestedMatrix, 0>::value * index_dimension_of<NestedMatrix, 1>::value)) and
-      stdcompat::constructible_from<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<NestedMatrix>()))>,
+      stdex::constructible_from<NestedMatrix, decltype(wrap_angles<RowCoefficients>(std::declval<NestedMatrix>()))>,
         int> = 0>
 #endif
     Mean(Args ... args)
@@ -328,7 +328,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -344,7 +344,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -507,7 +507,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Coeffs, typename NestedMatrix>
-    struct indexible_object_traits<Mean<Coeffs, NestedMatrix>>
+    struct object_traits<Mean<Coeffs, NestedMatrix>>
     {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
@@ -544,7 +544,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        return constant_coefficient{arg.nestedExpression()};
+        return constant_value{arg.nestedExpression()};
       }
 
 
@@ -552,7 +552,7 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<Coeffs>)
-          return constant_diagonal_coefficient {arg.nestedExpression()};
+          return constant_diagonal_value {arg.nestedExpression()};
         else
           return std::monostate {};
       }
@@ -567,7 +567,7 @@ namespace OpenKalman
 
 
       template<triangle_type t>
-      static constexpr bool is_triangular = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool triangle_type_value = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;

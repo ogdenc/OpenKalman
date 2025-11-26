@@ -54,14 +54,14 @@ namespace OpenKalman
       std::multiplies<Scalar> op;
       auto n = values::cast_to<Scalar>(
         internal::smallest_pattern<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return values::operation(op, constant_coefficient{std::forward<Arg>(arg)}, n);
+      return values::operation(op, constant_value{std::forward<Arg>(arg)}, n);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = values::cast_to<Scalar>(
         internal::smallest_pattern<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return values::operation(op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n);
+      return values::operation(op, constant_diagonal_value{std::forward<Arg>(arg)}, n);
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

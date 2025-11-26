@@ -22,15 +22,15 @@ using namespace OpenKalman;
 
 TEST(basics, transform_view)
 {
-  EXPECT_EQ(stdcompat::ranges::transform_view(stdcompat::ranges::iota_view(0u, 5u), [](auto i){ return i; })[3u], 3);
-  static_assert(stdcompat::ranges::transform_view(stdcompat::ranges::iota_view(0u, 5u), [](auto i){ return i; }).size() == 5u);
-  auto r_identity = stdcompat::ranges::transform_view(stdcompat::ranges::iota_view(0u, 5u), [](auto i){ return i; });
+  EXPECT_EQ(stdex::ranges::transform_view(stdex::ranges::iota_view(0u, 5u), [](auto i){ return i; })[3u], 3);
+  static_assert(stdex::ranges::transform_view(stdex::ranges::iota_view(0u, 5u), [](auto i){ return i; }).size() == 5u);
+  auto r_identity = stdex::ranges::transform_view(stdex::ranges::iota_view(0u, 5u), [](auto i){ return i; });
   EXPECT_EQ(r_identity[3u], 3);
   EXPECT_EQ(r_identity.size(), 5_uz);
   std::size_t j = 0;
   for (auto i : r_identity) EXPECT_EQ(i, j++);
 
-  auto r_reverse = stdcompat::ranges::transform_view(stdcompat::ranges::iota_view(0u, 9u), [](auto i){ return 10u - i; });
+  auto r_reverse = stdex::ranges::transform_view(stdex::ranges::iota_view(0u, 9u), [](auto i){ return 10u - i; });
   EXPECT_EQ(r_reverse.size(), 9u);
   j = 10;
   for (auto i : r_reverse) EXPECT_EQ(i, j--);
@@ -55,6 +55,6 @@ TEST(basics, transform_view)
   --ita;
   EXPECT_EQ(*ita, 10);
 
-  EXPECT_EQ((stdcompat::ranges::views::iota(0u, 5u) | stdcompat::ranges::views::transform([](auto i){ return i + 3u; }))[0u], 3u);
-  EXPECT_EQ((stdcompat::ranges::views::iota(0u, 5u) | stdcompat::ranges::views::transform([](auto i){ return i * 2u; }))[3u], 6u);
+  EXPECT_EQ((stdex::ranges::views::iota(0u, 5u) | stdex::ranges::views::transform([](auto i){ return i + 3u; }))[0u], 3u);
+  EXPECT_EQ((stdex::ranges::views::iota(0u, 5u) | stdex::ranges::views::transform([](auto i){ return i * 2u; }))[3u], 6u);
 }

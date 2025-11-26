@@ -19,7 +19,7 @@
 
 #include "core-concepts.hpp"
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #if __cplusplus >= 202002L
   using std::common_reference;
@@ -129,8 +129,8 @@ namespace OpenKalman::stdcompat
   inline constexpr bool
   common_reference_with =
     same_as<common_reference_t<T, U>, common_reference_t<U, T>> and
-    stdcompat::convertible_to<T, common_reference_t<T, U>> and
-    stdcompat::convertible_to<U, common_reference_t<T, U>>;
+    stdex::convertible_to<T, common_reference_t<T, U>> and
+    stdex::convertible_to<U, common_reference_t<T, U>>;
 
   namespace detail
   {
@@ -164,14 +164,14 @@ namespace OpenKalman::stdcompat
   common_with =
     detail::common_with_impl1<T, U>::value and
     detail::common_with_impl2<T, U>::value and
-    stdcompat::common_reference_with<std::add_lvalue_reference_t<const T>, std::add_lvalue_reference_t<const U>> and
+    stdex::common_reference_with<std::add_lvalue_reference_t<const T>, std::add_lvalue_reference_t<const U>> and
     detail::common_with_impl3<T, U>::value;
 
 #endif
 }
 
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_concepts
   using std::assignable_from;
@@ -183,7 +183,7 @@ namespace OpenKalman::stdcompat
 
     template<typename LHS, typename RHS>
     struct assignable_from_impl<LHS, RHS, std::enable_if_t<
-      stdcompat::same_as<decltype(std::declval<LHS>() = std::declval<RHS&&>()), LHS>>> : std::true_type {};
+      stdex::same_as<decltype(std::declval<LHS>() = std::declval<RHS&&>()), LHS>>> : std::true_type {};
   }
 
 
@@ -191,13 +191,13 @@ namespace OpenKalman::stdcompat
   inline constexpr bool
   assignable_from =
     std::is_lvalue_reference_v<LHS> and
-    stdcompat::common_reference_with<const std::remove_reference_t<LHS>&, const std::remove_reference_t<RHS>&> and
+    stdex::common_reference_with<const std::remove_reference_t<LHS>&, const std::remove_reference_t<RHS>&> and
     detail::assignable_from_impl<LHS, RHS>::value;
 #endif
 }
 
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #if __cplusplus >= 202002L
   using std::ranges::swap;
@@ -240,9 +240,9 @@ namespace OpenKalman::stdcompat::ranges
     public:
 
       template<typename Tp, typename Up, std::enable_if_t<adl_swap<Tp, Up> or
-        (stdcompat::same_as<Tp, Up> && std::is_lvalue_reference_v<Tp> and
-            stdcompat::move_constructible<std::remove_reference_t<Tp>> and
-            stdcompat::assignable_from<Tp, std::remove_reference_t<Tp>>), int> = 0>
+        (stdex::same_as<Tp, Up> && std::is_lvalue_reference_v<Tp> and
+            stdex::move_constructible<std::remove_reference_t<Tp>> and
+            stdex::assignable_from<Tp, std::remove_reference_t<Tp>>), int> = 0>
       constexpr void
       operator()(Tp&& t, Up&& u) const noexcept(S_noexcept<Tp, Up>())
       {
@@ -274,7 +274,7 @@ namespace OpenKalman::stdcompat::ranges
 }
 
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #if __cplusplus >= 202002L
   using std::swappable;
@@ -286,13 +286,13 @@ namespace OpenKalman::stdcompat
     struct swappable_impl : std::false_type {};
 
     template<typename T, typename U>
-    struct swappable_impl<T, U, std::void_t<decltype(stdcompat::ranges::swap(std::declval<T&>(), std::declval<U&>()))>> : std::true_type {};
+    struct swappable_impl<T, U, std::void_t<decltype(stdex::ranges::swap(std::declval<T&>(), std::declval<U&>()))>> : std::true_type {};
 
     template<typename T, typename U, typename = void>
     struct swappable_with_impl : std::false_type {};
 
     template<typename T, typename U>
-    struct swappable_with_impl<T, U, std::void_t<decltype(stdcompat::ranges::swap(std::declval<T&&>(), std::declval<U&&>()))>> : std::true_type {};
+    struct swappable_with_impl<T, U, std::void_t<decltype(stdex::ranges::swap(std::declval<T&&>(), std::declval<U&&>()))>> : std::true_type {};
   }
 
 
@@ -302,7 +302,7 @@ namespace OpenKalman::stdcompat
 
   template<typename T, typename U>
   inline constexpr bool swappable_with =
-    stdcompat::common_reference_with<T, U> and
+    stdex::common_reference_with<T, U> and
     detail::swappable_with_impl<T, T>::value and
     detail::swappable_with_impl<U, U>::value and
     detail::swappable_with_impl<T, U>::value and

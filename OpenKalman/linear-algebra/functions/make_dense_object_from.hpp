@@ -33,16 +33,16 @@ namespace OpenKalman
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, internal::layout_mapping_policy layout = stdcompat::layout_right, values::number Scalar = element_type_of_t<T>, coordinates::pattern...Ds, std::convertible_to<const Scalar> ... Args>
-    requires (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and
+  template<indexible T, internal::layout_mapping_policy layout = stdex::layout_right, values::number Scalar = element_type_of_t<T>, coordinates::pattern...Ds, std::convertible_to<const Scalar> ... Args>
+    requires (std::same_as<layout, stdex::layout_right> or std::same_as<layout, stdex::layout_left>) and
     (((coordinates::dimension_of_v<Ds> == 0) or ...) ? sizeof...(Args) == 0 :
       (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : coordinates::dimension_of_v<Ds>) * ... * 1) == 0))
   inline writable auto
 #else
-  template<typename T, typename layout = stdcompat::layout_right, typename Scalar = element_type_of_t<T>, typename...Ds, typename...Args, std::enable_if_t<
+  template<typename T, typename layout = stdex::layout_right, typename Scalar = element_type_of_t<T>, typename...Ds, typename...Args, std::enable_if_t<
     indexible<T> and values::number<Scalar> and (coordinates::pattern<Ds> and ...) and
-    (stdcompat::convertible_to<Args, const Scalar> and ...) and
-    (stdcompat::same_as<layout, stdcompat::layout_right> or stdcompat::same_as<layout, stdcompat::layout_left>) and
+    (stdex::convertible_to<Args, const Scalar> and ...) and
+    (stdex::same_as<layout, stdex::layout_right> or stdex::same_as<layout, stdex::layout_left>) and
     (((coordinates::dimension_of<Ds>::value == 0) or ...) ? sizeof...(Args) == 0 :
       (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : coordinates::dimension_of<Ds>::value) * ... * 1) == 0)), int> = 0>
   inline auto
@@ -101,14 +101,14 @@ namespace OpenKalman
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, internal::layout_mapping_policy layout = stdcompat::layout_right, values::number Scalar = element_type_of_t<T>, std::convertible_to<const Scalar> ... Args>
-    requires (std::same_as<layout, stdcompat::layout_right> or std::same_as<layout, stdcompat::layout_left>) and internal::may_hold_components<T, Args...> and
+  template<indexible T, internal::layout_mapping_policy layout = stdex::layout_right, values::number Scalar = element_type_of_t<T>, std::convertible_to<const Scalar> ... Args>
+    requires (std::same_as<layout, stdex::layout_right> or std::same_as<layout, stdex::layout_left>) and internal::may_hold_components<T, Args...> and
     (dynamic_index_count_v<T> + detail::zero_dimension_count<T>::value <= 1)
   inline writable auto
 #else
   template<typename T, typename layout = std::compat::layout_right, typename Scalar = element_type_of_t<T>, typename ... Args, std::enable_if_t<
-    indexible<T> and values::number<Scalar> and (stdcompat::convertible_to<Args, const Scalar> and ...) and
-    (stdcompat::same_as<layout, stdcompat::layout_right> or stdcompat::same_as<layout, stdcompat::layout_left>) and
+    indexible<T> and values::number<Scalar> and (stdex::convertible_to<Args, const Scalar> and ...) and
+    (stdex::same_as<layout, stdex::layout_right> or stdex::same_as<layout, stdex::layout_left>) and
     internal::may_hold_components<T, Args...> and
     (dynamic_index_count_v<T> + detail::zero_dimension_count<T>::value <= 1), int> = 0>
   inline auto

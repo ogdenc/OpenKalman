@@ -20,13 +20,13 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, template<typename> typename MakePointer>
-  struct indexible_object_traits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+  struct object_traits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
   {
   private:
 
     using Xpr = Eigen::TensorMap<PlainObjectType, Options, MakePointer>;
-    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
+    using Base = Eigen3::object_traits_tensor_base<Xpr>;
     using StorageRefType = typename Xpr::StorageRefType;
     using IndexType = typename Xpr::Index;
 
@@ -45,7 +45,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdex::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
@@ -58,7 +58,7 @@ namespace OpenKalman::interface
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions) and
     std::is_lvalue_reference_v<StorageRefType> and (not std::is_const_v<std::remove_reference_t<StorageRefType>>)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdex::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions) and std::is_lvalue_reference<StorageRefType>::value and
       not std::is_const<typename std::remove_reference<StorageRefType>::type>::value, int> = 0>
 #endif

@@ -28,59 +28,59 @@ using namespace OpenKalman::coordinates;
 
 TEST(coordinates, common_descriptor_type)
 {
-  static_assert(stdcompat::same_as<common_descriptor_type_t<Dimensions<0>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<Dimensions<10>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<Dimensions<>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<unsigned>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Dimensions<1>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Dimensions<10>, Dimensions<1>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Dimensions<1>, Dimensions<1>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Dimensions<>, Dimensions<5>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<Polar<>>, Polar<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<Any<>>, Any<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<Dimensions<0>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<Dimensions<10>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<Dimensions<>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<unsigned>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Dimensions<1>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Dimensions<10>, Dimensions<1>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Dimensions<1>, Dimensions<1>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Dimensions<>, Dimensions<5>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<Polar<>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<Any<>>, Any<>>);
 
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Polar<>, Polar<>>>, Polar<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Polar<>, Dimensions<0>, Polar<>>>, Polar<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Polar<>, Angle<>>>, Any<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::tuple<Polar<>, Dimensions<0>, Angle<>>>, Any<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::array<Dimensions<2>, 10>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::array<Dimensions<0>, 10>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::array<Dimensions<>, 10>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::array<Polar<>, 10>>, Polar<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::array<Any<>, 10>>, Any<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Polar<>, Polar<>>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Polar<>, Dimensions<0>, Polar<>>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Polar<>, Angle<>>>, Any<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::tuple<Polar<>, Dimensions<0>, Angle<>>>, Any<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::array<Dimensions<2>, 10>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::array<Dimensions<0>, 10>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::array<Dimensions<>, 10>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::array<Polar<>, 10>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::array<Any<>, 10>>, Any<>>);
 
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::vector<Dimensions<2>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<std::vector<Polar<>>>, Polar<>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<stdcompat::ranges::repeat_view<Dimensions<>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<stdcompat::ranges::repeat_view<Dimensions<1>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<common_descriptor_type_t<stdcompat::ranges::repeat_view<Polar<>>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::vector<Dimensions<2>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<std::vector<Polar<>>>, Polar<>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<stdex::ranges::repeat_view<Dimensions<>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<stdex::ranges::repeat_view<Dimensions<1>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<common_descriptor_type_t<stdex::ranges::repeat_view<Polar<>>>, Polar<>>);
 }
 
 #include "coordinates/traits/uniform_pattern_type.hpp"
 
 TEST(coordinates, uniform_pattern_type)
 {
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<Dimensions<0>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<Dimensions<1>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<Dimensions<5>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::integral_constant<std::size_t, 5>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<Dimensions<>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::size_t>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<Dimensions<0>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<Dimensions<1>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<Dimensions<5>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::integral_constant<std::size_t, 5>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<Dimensions<>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::size_t>, Axis>);
 
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<Distance>, Distance>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<angle::Radians>, angle::Radians>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<inclination::Radians>, inclination::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<Distance>, Distance>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<angle::Radians>, angle::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<inclination::Radians>, inclination::Radians>);
 
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::tuple<Axis>>, Axis>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::tuple<Axis, Dimensions<0>, Dimensions<4>>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::tuple<Axis>>, Axis>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::tuple<Axis, Dimensions<0>, Dimensions<4>>>, Axis>);
 
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::tuple<angle::Radians, Dimensions<0>, angle::Radians>>, angle::Radians>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::array<angle::Radians, 10>>, angle::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::tuple<angle::Radians, Dimensions<0>, angle::Radians>>, angle::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::array<angle::Radians, 10>>, angle::Radians>);
 
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::vector<angle::Radians>>, angle::Radians>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<std::vector<Dimensions<2>>>, Dimensions<1>>);
-  static_assert(stdcompat::same_as<uniform_pattern_type_t<stdcompat::ranges::repeat_view<angle::Radians>>, angle::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::vector<angle::Radians>>, angle::Radians>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<std::vector<Dimensions<2>>>, Dimensions<1>>);
+  static_assert(stdex::same_as<uniform_pattern_type_t<stdex::ranges::repeat_view<angle::Radians>>, angle::Radians>);
 }
 
 
@@ -132,13 +132,15 @@ TEST(coordinates, get_uniform_pattern_component)
   static_assert(compare(get_uniform_pattern_component(std::tuple{Dimensions<5>{}, Dimensions{5}, Dimensions{5}}).value(), Dimensions<1>{}));
   EXPECT_TRUE(not get_uniform_pattern_component(std::tuple<Distance, Distance, Axis>{}));
   EXPECT_TRUE(not get_uniform_pattern_component(std::tuple{Distance{}, Distance{}, Dimensions{5}}));
+  EXPECT_TRUE(get_uniform_pattern_component(std::tuple{Any{Distance{}}, Any{Distance{}}, Any{Distance{}}}));
   EXPECT_TRUE(compare(get_uniform_pattern_component(std::tuple{Any{Distance{}}, Any{Distance{}}, Any{Distance{}}}).value(), Distance{}));
+  EXPECT_TRUE(get_uniform_pattern_component(std::vector{Any{Distance{}}, Any{Distance{}}, Any{Distance{}}}));
   EXPECT_TRUE(compare(get_uniform_pattern_component(std::vector{Any{Distance{}}, Any{Distance{}}, Any{Distance{}}}).value(), Distance{}));
   EXPECT_TRUE(not get_uniform_pattern_component(std::tuple{Any{Distance{}}, Any{Distance{}}, Any{Angle{}}}));
   EXPECT_TRUE(not get_uniform_pattern_component(std::vector{Any{Distance{}}, Any{Distance{}}, Any{Angle{}}}));
 
-  static_assert(compare(get_uniform_pattern_component(stdcompat::ranges::views::repeat(Dimensions<1>{})).value(), Dimensions<1>{}));
-  static_assert(compare(get_uniform_pattern_component(stdcompat::ranges::views::empty<Dimensions<1>>).value(), Dimensions<1>{}));
+  static_assert(compare(get_uniform_pattern_component(stdex::ranges::views::repeat(Dimensions<1>{})).value(), Dimensions<1>{}));
+  static_assert(compare(get_uniform_pattern_component(stdex::ranges::views::empty<Dimensions<1>>).value(), Dimensions<1>{}));
   static_assert(compare(get_uniform_pattern_component(std::tuple{}).value(), Dimensions<1>{}));
 }
 
@@ -190,12 +192,12 @@ TEST(coordinates, is_uniform_pattern_component_of)
 
   EXPECT_TRUE(is_uniform_pattern_component_of(Any<double>{Axis{}}, Any<float>{Dimensions<2>{}}));
 
-  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdcompat::ranges::views::repeat(Dimensions<1>{})));
-  static_assert(not is_uniform_pattern_component_of(stdcompat::ranges::views::repeat(Dimensions<1>{}), Dimensions<100>{}));
-  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdcompat::ranges::views::empty<Dimensions<1>>));
-  static_assert(not is_uniform_pattern_component_of(stdcompat::ranges::views::empty<Dimensions<1>>, Dimensions<10>{}));
-  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdcompat::ranges::views::single(Dimensions<1>{})));
-  static_assert(is_uniform_pattern_component_of(stdcompat::ranges::views::single(Dimensions<1>{}), Dimensions<100>{}));
+  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdex::ranges::views::repeat(Dimensions<1>{})));
+  EXPECT_TRUE(not is_uniform_pattern_component_of(stdex::ranges::views::repeat(Dimensions<1>{}), Dimensions<100>{}));
+  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdex::ranges::views::empty<Dimensions<1>>));
+  static_assert(not is_uniform_pattern_component_of(stdex::ranges::views::empty<Dimensions<1>>, Dimensions<10>{}));
+  static_assert(is_uniform_pattern_component_of(Dimensions<1>{}, stdex::ranges::views::single(Dimensions<1>{})));
+  static_assert(is_uniform_pattern_component_of(stdex::ranges::views::single(Dimensions<1>{}), Dimensions<100>{}));
 
   EXPECT_TRUE(is_uniform_pattern_component_of(Any{Axis{}}, std::vector{Any{Dimensions<2>{}}, Any{Dimensions<3>{}}}));
   EXPECT_FALSE(is_uniform_pattern_component_of(Any{Dimensions<2>{}}, std::vector{Any{Dimensions<2>{}}, Any{Dimensions<3>{}}}));

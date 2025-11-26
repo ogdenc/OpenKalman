@@ -32,13 +32,13 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<triangle_type t, indexible A, indexible B> requires
-    (t != triangle_type::any) and (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and
+    (t != triangle_type::any) and (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and
     (t != triangle_type::lower or dimension_size_of_index_is<A, 0, index_dimension_of_v<B, 0>, applicability::permitted>) and
     (t != triangle_type::upper or dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 1>, applicability::permitted>) and
     (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == triangle_type::diagonal or diagonal_matrix<B>)
 #else
   template<triangle_type t, typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
-    (t != triangle_type::any) and (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and
+    (t != triangle_type::any) and (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and
     (t != triangle_type::lower or dimension_size_of_index_is<A, 0, index_dimension_of<B, 0>::value, applicability::permitted>) and
     (t != triangle_type::upper or dimension_size_of_index_is<A, 1, index_dimension_of<B, 1>::value, applicability::permitted>) and
     (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == triangle_type::diagonal or diagonal_matrix<B>), int> = 0>
@@ -48,11 +48,11 @@ namespace OpenKalman::internal
   {
     if constexpr (interface::set_triangle_defined_for<A, t, A&&, B&&>)
     {
-      interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
+      interface::library_interface<stdex::remove_cvref_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
     }
     else if constexpr (interface::set_triangle_defined_for<A, t, A&&, decltype(to_native_matrix<A>(std::declval<B&&>()))>)
     {
-      interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
+      interface::library_interface<stdex::remove_cvref_t<A>>::template set_triangle<t>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
     }
     else if constexpr (triangular_adapter<A>)
     {
@@ -68,11 +68,11 @@ namespace OpenKalman::internal
     }
     else if constexpr (diagonal_matrix<A> and internal::has_nested_vector<A, 0>)
     {
-      assign(nested_object(a), diagonal_of(std::forward<B>(b)));
+      copy(nested_object(a), diagonal_of(std::forward<B>(b)));
     }
     else if constexpr (diagonal_matrix<A> and internal::has_nested_vector<A, 1>)
     {
-      assign(nested_object(a), transpose(diagonal_of(std::forward<B>(b))));
+      copy(nested_object(a), transpose(diagonal_of(std::forward<B>(b))));
     }
     else if constexpr (t == triangle_type::upper)
     {

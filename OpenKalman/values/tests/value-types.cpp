@@ -81,7 +81,7 @@ TEST(values, fixed)
   static_assert(values::fixed<decltype(f8)>);
   static_assert(values::fixed<decltype(f8d)>);
 #endif
-  static_assert(not values::fixed<stdcompat::ranges::repeat_view<std::monostate>>);
+  static_assert(not values::fixed<stdex::ranges::repeat_view<std::monostate>>);
 }
 
 #include "values/concepts/dynamic.hpp"
@@ -96,7 +96,7 @@ TEST(values, dynamic)
   static_assert(not values::dynamic<decltype(f8)>);
   static_assert(not values::dynamic<decltype(f8d)>);
 #endif
-  static_assert(values::dynamic<stdcompat::ranges::repeat_view<std::monostate>>);
+  static_assert(values::dynamic<stdex::ranges::repeat_view<std::monostate>>);
 }
 
 #include "values/functions/to_value_type.hpp"
@@ -129,8 +129,21 @@ TEST(values, fixed_value_compares_with)
 {
   static_assert(values::fixed_value_compares_with<std::integral_constant<int, 7>, 7>);
   static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 7>, 6>);
-  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdcompat::is_lt>);
-  static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdcompat::is_gt>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdex::is_lt>);
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<int, 6>, 7, &stdex::is_gt>);
+
+  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 7>, 7, &stdex::is_eq, 0>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<int, 7>, 7, &stdex::is_eq, 1>);
+#if __cpp_nontype_template_args >= 201911L
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f + 5 * std::numeric_limits<float>::epsilon(), &stdex::is_eq, 0>);
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f - 5 * std::numeric_limits<float>::epsilon(), &stdex::is_eq, 0>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f + 5 * std::numeric_limits<float>::epsilon(), &stdex::is_lt, 0>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f - 5 * std::numeric_limits<float>::epsilon(), &stdex::is_gt, 0>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f + 5 * std::numeric_limits<float>::epsilon(), &stdex::is_eq, 6>);
+  static_assert(values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f - 5 * std::numeric_limits<float>::epsilon(), &stdex::is_eq, 6>);
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f + 5 * std::numeric_limits<float>::epsilon(), &stdex::is_lt, 6>);
+  static_assert(not values::fixed_value_compares_with<std::integral_constant<float, 7.f>, 7.f - 5 * std::numeric_limits<float>::epsilon(), &stdex::is_gt, 6>);
+#endif
 }
 
 #include "values/concepts/value.hpp"
@@ -174,10 +187,10 @@ TEST(values, operation)
   static_assert(values::fixed_value_of_v<decltype(values::operation(std::not_equal_to{}, values::fixed_partial_ordering_equivalent{}, values::fixed_partial_ordering_greater{}))>);
   static_assert(values::fixed_value_of_v<decltype(values::operation(std::not_equal_to{}, values::fixed_partial_ordering_equivalent{}, values::fixed_partial_ordering_unordered{}))>);
 
-  static_assert(values::fixed_value_of_v<decltype(values::operation(stdcompat::compare_three_way{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 4>{}))> == stdcompat::partial_ordering::equivalent);
-  static_assert(values::fixed_value_of_v<decltype(values::operation(stdcompat::compare_three_way{}, std::integral_constant<int, 3>{}, std::integral_constant<int, 4>{}))> == stdcompat::partial_ordering::less);
-  static_assert(values::fixed_value_of_v<decltype(values::operation(stdcompat::compare_three_way{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 3>{}))> == stdcompat::partial_ordering::greater);
-  static_assert(values::operation(stdcompat::compare_three_way{}, std::integral_constant<int, 4>{}, 3) == stdcompat::partial_ordering::greater);
+  static_assert(values::fixed_value_of_v<decltype(values::operation(stdex::compare_three_way{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 4>{}))> == stdex::partial_ordering::equivalent);
+  static_assert(values::fixed_value_of_v<decltype(values::operation(stdex::compare_three_way{}, std::integral_constant<int, 3>{}, std::integral_constant<int, 4>{}))> == stdex::partial_ordering::less);
+  static_assert(values::fixed_value_of_v<decltype(values::operation(stdex::compare_three_way{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 3>{}))> == stdex::partial_ordering::greater);
+  static_assert(values::operation(stdex::compare_three_way{}, std::integral_constant<int, 4>{}, 3) == stdex::partial_ordering::greater);
 }
 
 #include "values/traits/value_type_of.hpp"
@@ -196,12 +209,12 @@ TEST(values, fixed_value)
   static_assert(values::fixed_value {std::integral_constant<int, 7>{}}() == 7);
   static_assert(decltype(values::fixed_value{std::integral_constant<int, 7>{}})::value == 7);
   static_assert(values::fixed_value{values::fixed_value<double, 7>{}} == 7);
-  static_assert(stdcompat::same_as<decltype(values::fixed_value{std::integral_constant<int, 7>{}})::value_type, int>);
-  static_assert(stdcompat::same_as<values::fixed_value<int, 3>::value_type, int>);
-  static_assert(stdcompat::same_as<values::fixed_value<double, 3>::value_type, double>);
+  static_assert(stdex::same_as<decltype(values::fixed_value{std::integral_constant<int, 7>{}})::value_type, int>);
+  static_assert(stdex::same_as<values::fixed_value<int, 3>::value_type, int>);
+  static_assert(stdex::same_as<values::fixed_value<double, 3>::value_type, double>);
 
-  static_assert(stdcompat::same_as<values::value_type_of_t<values::fixed_value<double, 3>>, double>);
-  static_assert(stdcompat::same_as<values::value_type_of_t<values::real_type_of_t<values::fixed_value<double, 3>>>, double>);
+  static_assert(stdex::same_as<values::value_type_of_t<values::fixed_value<double, 3>>, double>);
+  static_assert(stdex::same_as<values::value_type_of_t<values::real_type_of_t<values::fixed_value<double, 3>>>, double>);
 }
 
 #include "values/functions/cast_to.hpp"
@@ -209,17 +222,17 @@ TEST(values, fixed_value)
 TEST(values, cast_to)
 {
   static_assert(values::cast_to<double>(std::integral_constant<int, 4>{}) == 4);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<int>(std::integral_constant<int, 4>{}))>::value_type, int>);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<double>(std::integral_constant<int, 4>{}))>::value_type, double>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<int>(std::integral_constant<int, 4>{}))>::value_type, int>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<double>(std::integral_constant<int, 4>{}))>::value_type, double>);
   static_assert(values::cast_to<double>(values::fixed_value<float, 4>{}) == 4);
-  static_assert(stdcompat::same_as<decltype(values::cast_to<double>(values::fixed_value<double, 4>{})), values::fixed_value<double, 4>&&>);
-  static_assert(stdcompat::same_as<typename values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<double, 4>{}))>::value_type, double>);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<int>(values::fixed_value<int, 4>{}))>::value_type, int>);
-  static_assert(stdcompat::same_as<values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<int, 4>{}))>::value_type, double>);
+  static_assert(stdex::same_as<decltype(values::cast_to<double>(values::fixed_value<double, 4>{})), values::fixed_value<double, 4>&&>);
+  static_assert(stdex::same_as<typename values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<double, 4>{}))>::value_type, double>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<int>(values::fixed_value<int, 4>{}))>::value_type, int>);
+  static_assert(stdex::same_as<values::fixed_value_of<decltype(values::cast_to<double>(values::fixed_value<int, 4>{}))>::value_type, double>);
   static_assert(values::cast_to<double>(values::fixed_value<float, 4>{}) == 4);
-  static_assert(stdcompat::same_as<values::value_type_of_t<decltype(values::cast_to<double>(values::fixed_value<float, 4>{}))>, double>);
+  static_assert(stdex::same_as<values::value_type_of_t<decltype(values::cast_to<double>(values::fixed_value<float, 4>{}))>, double>);
 
-  static_assert(values::to_value_type(values::cast_to<stdcompat::partial_ordering>(values::operation(stdcompat::compare_three_way{}, std::integral_constant<int, 3>{}, std::integral_constant<int, 4>{}))) == stdcompat::partial_ordering::less);
+  static_assert(values::to_value_type(values::cast_to<stdex::partial_ordering>(values::operation(stdex::compare_three_way{}, std::integral_constant<int, 3>{}, std::integral_constant<int, 4>{}))) == stdex::partial_ordering::less);
 }
 
 #include "values/functions/internal/near.hpp"

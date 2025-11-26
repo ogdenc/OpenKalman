@@ -30,9 +30,9 @@ namespace OpenKalman::coordinates
     struct is_unbound_fixed_range : std::false_type {};
 
     template<typename T>
-    struct is_unbound_fixed_range<T, std::enable_if_t<stdcompat::ranges::range<T>>>
+    struct is_unbound_fixed_range<T, std::enable_if_t<stdex::ranges::range<T>>>
       : std::bool_constant<values::fixed<decltype(coordinates::internal::get_descriptor_is_euclidean(
-        std::declval<stdcompat::ranges::range_value_t<T>>()))>> {};
+        std::declval<stdex::ranges::range_value_t<T>>()))>> {};
 #endif
 
 
@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates
       {
         return values::operation(
           std::logical_and{},
-          internal::get_descriptor_is_euclidean(collections::get(t, std::integral_constant<std::size_t, i>{})),
+          internal::get_descriptor_is_euclidean(collections::get<i>(t)),
           get_is_euclidean_fixed<i + 1>(t));
       }
       else return std::true_type {};
@@ -56,7 +56,7 @@ namespace OpenKalman::coordinates
    */
 #ifdef __cpp_concepts
   template<pattern Arg> requires descriptor<Arg> or collections::sized<Arg> or
-    values::fixed<decltype(internal::get_descriptor_is_euclidean(std::declval<stdcompat::ranges::range_value_t<Arg>>()))>
+    values::fixed<decltype(internal::get_descriptor_is_euclidean(std::declval<stdex::ranges::range_value_t<Arg>>()))>
 #else
   template<typename Arg, std::enable_if_t<pattern<Arg> and
     (descriptor<Arg> or collections::sized<Arg> or detail::is_unbound_fixed_range<Arg>::value), int> = 0>
@@ -72,9 +72,9 @@ namespace OpenKalman::coordinates
     {
       return std::true_type {};
     }
-    else if constexpr (not collections::sized<Arg> or values::fixed_value_compares_with<collections::size_of<Arg>, dynamic_size>)
+    else if constexpr (not collections::sized<Arg> or values::fixed_value_compares_with<collections::size_of<Arg>, stdex::dynamic_extent>)
     {
-      using C = decltype(internal::get_descriptor_is_euclidean(std::declval<stdcompat::ranges::range_value_t<Arg>>()));
+      using C = decltype(internal::get_descriptor_is_euclidean(std::declval<stdex::ranges::range_value_t<Arg>>()));
       if constexpr (values::fixed<C>)
         return values::fixed_value_of<C>{};
       else

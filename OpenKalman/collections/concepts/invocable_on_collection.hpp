@@ -30,8 +30,8 @@ namespace OpenKalman::collections
     struct is_invocable_on_range : std::false_type {};
 
     template<typename R, typename F, typename...Args>
-    struct is_invocable_on_range<R, F, std::enable_if_t<stdcompat::ranges::range<R>>, Args...>
-      : std::bool_constant<std::is_invocable_v<F, stdcompat::ranges::range_value_t<R>, Args...>> {};
+    struct is_invocable_on_range<R, F, std::enable_if_t<stdex::ranges::range<R>>, Args...>
+      : std::bool_constant<std::is_invocable_v<F, stdex::ranges::range_value_t<R>, Args...>> {};
 
 
     template<typename Tup, typename = void>
@@ -59,14 +59,14 @@ namespace OpenKalman::collections
   template<typename F, typename C, typename...Args>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept invocable_on_collection = collection<C> and
-    (not stdcompat::ranges::range<C> or std::regular_invocable<F, stdcompat::ranges::range_value_t<C>, Args&&...>) and
+    (not stdex::ranges::range<C> or std::regular_invocable<F, stdex::ranges::range_value_t<C>, Args&&...>) and
     (not uniformly_gettable<C> or
       []<std::size_t...i>(std::index_sequence<i...>) {
         return (... and std::regular_invocable<F&, typename collection_element<i, C>::type, Args&&...>);
       } (std::make_index_sequence<size_of_v<C>>{}));
 #else
   constexpr bool invocable_on_collection =
-    (not stdcompat::ranges::range<C> or detail::is_invocable_on_range<C, F, void, Args&&...>::value) and
+    (not stdex::ranges::range<C> or detail::is_invocable_on_range<C, F, void, Args&&...>::value) and
     (not uniformly_gettable<C> or
       detail::is_invocable_on_tuple<C, F, typename detail::is_invocable_on_tuple_sequence<C>::type, Args&&...>::value);
 #endif

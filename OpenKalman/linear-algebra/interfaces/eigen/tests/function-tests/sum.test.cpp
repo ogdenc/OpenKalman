@@ -40,15 +40,15 @@ TEST(eigen3, sum)
 
   // constant
 
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_2>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
+  static_assert(constant_value_v<decltype(sum(std::declval<C22_2>()))> == 2);
+  static_assert(constant_value_v<decltype(sum(std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
+  static_assert(constant_value_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
 
   // constant diagonal
 
-  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Cd22_2>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_3>()))> == 3);
-  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_m2>(), std::declval<Z22>()))> == -2);
+  static_assert(constant_diagonal_value_v<decltype(sum(std::declval<Cd22_2>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_3>()))> == 3);
+  static_assert(constant_diagonal_value_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_m2>(), std::declval<Z22>()))> == -2);
 
   // diagonal
 

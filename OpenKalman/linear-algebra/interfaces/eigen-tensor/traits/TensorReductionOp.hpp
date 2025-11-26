@@ -20,8 +20,8 @@
 namespace OpenKalman::interface
 {
   template<typename Op, typename Dims, typename XprType, template<typename> typename MakePointer>
-  struct indexible_object_traits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
-    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
+  struct object_traits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
+    : Eigen3::object_traits_tensor_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
   {
     template<typename Arg, typename N>
     static constexpr auto get_index_descriptor(const Arg& arg, N n)
@@ -46,7 +46,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg}; /// \todo fix this
+      return constant_value {arg}; /// \todo fix this
     }
 
     // get_constant_diagonal() not defined

@@ -23,7 +23,7 @@
 #include "range_adaptor_closure.hpp"
 #include "all.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::reverse_view;
@@ -36,49 +36,49 @@ namespace OpenKalman::stdcompat::ranges
    * \brief Equivalent to std::ranges::reverse_view.
    */
   template<typename V>
-  struct reverse_view : stdcompat::ranges::view_interface<reverse_view<V>>
+  struct reverse_view : stdex::ranges::view_interface<reverse_view<V>>
   {
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<V>, int> = 0>
     constexpr reverse_view() {}
 
     constexpr reverse_view(V r) : base_ {std::move(r)} {}
 
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::copy_constructible<V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::copy_constructible<V>, int> = 0>
     constexpr V base() const& { return base_; }
 
     constexpr V base() && { return std::move(base_); }
 
 
-    template<bool Enable = true, std::enable_if_t<Enable and not stdcompat::ranges::common_range<V>, int> = 0>
-    constexpr std::reverse_iterator<stdcompat::ranges::iterator_t<V>>
+    template<bool Enable = true, std::enable_if_t<Enable and not stdex::ranges::common_range<V>, int> = 0>
+    constexpr std::reverse_iterator<stdex::ranges::iterator_t<V>>
     begin()
-    { return std::make_reverse_iterator(stdcompat::ranges::next(stdcompat::ranges::begin(base_), stdcompat::ranges::end(base_))); }
+    { return std::make_reverse_iterator(stdex::ranges::next(stdex::ranges::begin(base_), stdex::ranges::end(base_))); }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::common_range<V>, int> = 0>
-    constexpr std::reverse_iterator<stdcompat::ranges::iterator_t<V>>
-    begin() { return std::make_reverse_iterator(stdcompat::ranges::end(base_)); }
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::common_range<V>, int> = 0>
+    constexpr std::reverse_iterator<stdex::ranges::iterator_t<V>>
+    begin() { return std::make_reverse_iterator(stdex::ranges::end(base_)); }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::common_range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::common_range<const V>, int> = 0>
     constexpr auto
-    begin() const { return std::make_reverse_iterator(stdcompat::ranges::end(base_)); }
+    begin() const { return std::make_reverse_iterator(stdex::ranges::end(base_)); }
 
 
-    constexpr std::reverse_iterator<stdcompat::ranges::iterator_t<V>>
-    end() { return std::make_reverse_iterator(stdcompat::ranges::begin(base_)); }
+    constexpr std::reverse_iterator<stdex::ranges::iterator_t<V>>
+    end() { return std::make_reverse_iterator(stdex::ranges::begin(base_)); }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::common_range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::common_range<const V>, int> = 0>
     constexpr auto
-    end() const { return std::make_reverse_iterator(stdcompat::ranges::begin(base_)); }
+    end() const { return std::make_reverse_iterator(stdex::ranges::begin(base_)); }
 
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::sized_range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::sized_range<const V>, int> = 0>
     constexpr auto
-    size() { return stdcompat::ranges::size(base_); }
+    size() { return stdex::ranges::size(base_); }
 
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::ranges::sized_range<const V>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::sized_range<const V>, int> = 0>
     constexpr auto
-    size() const { return stdcompat::ranges::size(base_); }
+    size() const { return stdex::ranges::size(base_); }
 
   private:
 
@@ -101,7 +101,7 @@ namespace OpenKalman::stdcompat::ranges
   {
     namespace detail
     {
-      struct reverse_closure : stdcompat::ranges::range_adaptor_closure<reverse_closure>
+      struct reverse_closure : stdex::ranges::range_adaptor_closure<reverse_closure>
       {
         template<typename R, std::enable_if_t<viewable_range<R>, int> = 0>
         constexpr auto

@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int Direction>
-  struct indexible_object_traits<Eigen::Reverse<MatrixType, Direction>>
-    : Eigen3::indexible_object_traits_base<Eigen::Reverse<MatrixType, Direction>>
+  struct object_traits<Eigen::Reverse<MatrixType, Direction>>
+    : Eigen3::object_traits_base<Eigen::Reverse<MatrixType, Direction>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Reverse<MatrixType, Direction>>;
+    using Base = Eigen3::object_traits_base<Eigen::Reverse<MatrixType, Direction>>;
 
   public:
 
@@ -48,14 +48,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg.nestedExpression()};
+      return constant_value {arg.nestedExpression()};
     }
 
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (Direction == Eigen::BothDirections) return constant_diagonal_coefficient {arg.nestedExpression()};
+      if constexpr (Direction == Eigen::BothDirections) return constant_diagonal_value {arg.nestedExpression()};
       else return std::monostate {};
     }
 
@@ -69,7 +69,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<MatrixType,
+    static constexpr bool triangle_type_value = triangular_matrix<MatrixType,
         t == triangle_type::upper ? triangle_type::lower :
         t == triangle_type::lower ? triangle_type::upper : t> and
       (Direction == Eigen::BothDirections or (Direction == Eigen::Horizontal and vector<MatrixType, 0>) or

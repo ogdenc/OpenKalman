@@ -52,7 +52,7 @@ namespace OpenKalman::values
 
     template<typename Arg, typename T>
     struct value_type_convertible<Arg, T, std::enable_if_t<
-      stdcompat::convertible_to<typename value_type_of<Arg>::type, T>>>
+      stdex::convertible_to<typename value_type_of<Arg>::type, T>>>
       : std::true_type {};
 
 
@@ -69,7 +69,7 @@ namespace OpenKalman::values
 
     template<typename Arg, typename T>
     struct real_types_convertible<Arg, T, std::enable_if_t<
-      stdcompat::convertible_to<typename real_type_of<Arg>::type, typename real_type_of<T>::type> >>
+      stdex::convertible_to<typename real_type_of<Arg>::type, typename real_type_of<T>::type> >>
       : std::true_type {};
   }
 #endif

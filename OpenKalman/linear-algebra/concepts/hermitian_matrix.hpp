@@ -16,6 +16,11 @@
 #ifndef OPENKALMAN_HERMITIAN_MATRIX_HPP
 #define OPENKALMAN_HERMITIAN_MATRIX_HPP
 
+#include "values/values.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
+#include "linear-algebra/concepts/square_shaped.hpp"
+#include "linear-algebra/concepts/diagonal_matrix.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
 
 namespace OpenKalman
 {
@@ -23,33 +28,38 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename = void>
+    struct is_explicitly_hermitian : std::false_type {};
+
+    template<typename T>
+    struct is_explicitly_hermitian<T, std::enable_if_t<interface::object_traits<stdex::remove_cvref_t<T>>::is_hermitian>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
     struct is_inferred_hermitian_matrix : std::false_type {};
 
     template<typename T>
-    struct is_inferred_hermitian_matrix<T, std::enable_if_t<not values::complex<typename scalar_type_of<T>::type> or
-      values::not_complex<constant_coefficient<T>> or values::not_complex<constant_diagonal_coefficient<T>>>>
+    struct is_inferred_hermitian_matrix<T, std::enable_if_t<values::not_complex<typename element_type_of<T>::type>>>
       : std::true_type {};
   };
 #endif
 
 
   /**
-   * \brief Specifies that a type is a hermitian matrix (assuming it is \ref square_shaped).
+   * \brief Specifies that a type is a hermitian matrix.
    * \details For rank >2 tensors, this must be applicable on every rank-2 slice comprising dimensions 0 and 1.
-   * \tparam T A matrix or tensor.
-   * \tparam b Whether T must be known to be a square matrix at compile time.
    */
-  template<typename T, applicability b = applicability::guaranteed>
+  template<typename T>
 #ifdef __cpp_concepts
-  concept hermitian_matrix = indexible<T> and square_shaped<T, b> and
-    (interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::is_hermitian or
-      ((constant_matrix<T> or diagonal_matrix<T>) and
-      (not values::complex<scalar_type_of_t<T>> or
-        values::not_complex<constant_coefficient<T>> or values::not_complex<constant_diagonal_coefficient<T>>)));
+  concept hermitian_matrix =
+    square_shaped<T> and
+    (interface::object_traits<stdex::remove_cvref_t<T>>::is_hermitian or
+      ((constant_object<T> or diagonal_matrix<T>) and values::not_complex<element_type_of_t<T>>));
 #else
-  constexpr bool hermitian_matrix = square_shaped<T, b> and
-    (interface::is_explicitly_hermitian<T>::value or
-      ((constant_matrix<T> or diagonal_matrix<T>) and detail::is_inferred_hermitian_matrix<T>::value));
+  constexpr bool hermitian_matrix =
+    square_shaped<T> and
+    (detail::is_explicitly_hermitian<T>::value or
+      ((constant_object<T> or diagonal_matrix<T>) and detail::is_inferred_hermitian_matrix<T>::value));
 #endif
 
 

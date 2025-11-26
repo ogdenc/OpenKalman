@@ -40,7 +40,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::from_euclidean_defined_for<Arg, Arg&&, const V&>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::from_euclidean(std::forward<Arg>(arg), v);
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::from_euclidean(std::forward<Arg>(arg), v);
     }
     else
     {

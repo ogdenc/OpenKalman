@@ -17,23 +17,19 @@
 #define OPENKALMAN_COLLECTIONS_SETTABLE_HPP
 
 #include "values/values.hpp"
-#include "collections/traits/size_of.hpp"
-#include "sized.hpp"
+#include "collections/functions/get.hpp"
 
 namespace OpenKalman::collections
 {
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<std::size_t i, typename C, typename T, typename = void, typename = void>
+    template<std::size_t i, typename C, typename T, typename = void>
     struct settable_impl : std::false_type {};
 
     template<std::size_t i, typename C, typename T>
     struct settable_impl<i, C, T,
-      std::enable_if_t<not sized<T> or values::fixed_value_compares_with<size_of<T>, i, &stdcompat::is_gt>>,
-      std::void_t<
-        decltype(OpenKalman::internal::generalized_std_get<i>(std::declval<C&>()) = std::declval<T>())
-      >> : std::true_type {};
+      std::void_t<decltype(collections::get<i>(std::declval<C&>()) = std::declval<T>())>> : std::true_type {};
   }
 #endif
 
@@ -45,9 +41,7 @@ namespace OpenKalman::collections
    */
   template<std::size_t i, typename C, typename T>
 #ifdef __cpp_concepts
-  concept settable =
-    (not sized<C> or i < size_of_v<C>) and
-    requires(C& c, T t) { OpenKalman::internal::generalized_std_get<i>(c) = t; };
+  concept settable = requires(C& c, T t) { collections::get<i>(c) = t; };
 #else
   constexpr bool settable = detail::settable_impl<i, C, T>::value;
 #endif

@@ -280,7 +280,7 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const
       {
         using S = std::decay_t<decltype(values::real(arg))>;
-        return values::log(arg) / stdcompat::numbers::ln10_v<S>;
+        return values::log(arg) / stdex::numbers::ln10_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -298,7 +298,7 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const
       {
         using S = std::decay_t<decltype(values::real(arg))>;
-        return values::log(arg) / stdcompat::numbers::ln2_v<S>;
+        return values::log(arg) / stdex::numbers::ln2_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -545,7 +545,7 @@ namespace OpenKalman::Eigen3
       using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstType, XprType>;
       const auto& x = arg.nestedExpression();
       BinaryOpType bin {ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, x, arg.functor()};
-      return constant_coefficient {bin};
+      return constant_value {bin};
     }
 
     template<typename UnaryOp, typename XprType>
@@ -556,7 +556,7 @@ namespace OpenKalman::Eigen3
       using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstType, XprType>;
       const auto& x = arg.nestedExpression();
       BinaryOpType bin {ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, x, arg.functor()};
-      return constant_diagonal_coefficient {bin};
+      return constant_diagonal_value {bin};
     }
   };
 
@@ -576,7 +576,7 @@ namespace OpenKalman::Eigen3
       using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstType>;
       const auto& x = arg.nestedExpression();
       BinaryOpType bin {x, ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, arg.functor()};
-      return constant_coefficient {bin};
+      return constant_value {bin};
     }
 
     template<typename UnaryOp, typename XprType>
@@ -587,7 +587,7 @@ namespace OpenKalman::Eigen3
       using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstType>;
       const auto& x = arg.nestedExpression();
       BinaryOpType bin {x, ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, arg.functor()};
-      return constant_diagonal_coefficient {bin};
+      return constant_diagonal_value {bin};
     }
   };
 

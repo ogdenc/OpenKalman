@@ -61,7 +61,7 @@ namespace OpenKalman::values
         auto yi = values::real(values::imag(y_arg));
         auto xr = values::real(values::real(x_arg));
         auto xi = values::real(values::imag(x_arg));
-        auto pi = stdcompat::numbers::pi_v<R>;
+        auto pi = stdex::numbers::pi_v<R>;
         auto halfpi = static_cast<R>(0.5) * pi;
         if (xr == 0 and xi == 0)
         {

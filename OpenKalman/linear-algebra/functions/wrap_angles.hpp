@@ -33,7 +33,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::wrap_angles_defined_for<Arg, Arg&&>)
     {
-      return interface::library_interface<std::decay_t<Arg>>::wrap_angles(std::forward<Arg>(arg), get_pattern_collection<0>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::wrap_angles(std::forward<Arg>(arg), get_pattern_collection<0>(arg));
     }
     else
     {

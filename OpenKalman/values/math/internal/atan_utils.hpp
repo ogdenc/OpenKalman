@@ -39,12 +39,12 @@ namespace OpenKalman::values::internal
       auto half = static_cast<R>(0.5);
       auto lar = half * values::log1p(ar * ar + 2 * ar + ai * ai);
       auto lai = not std::numeric_limits<R>::is_iec559 and ai == 0 ?
-        values::copysign(values::signbit(ar + 1) ? stdcompat::numbers::pi_v<R> : 0, ai) : atan2_impl(ai, ar + 1);
+        values::copysign(values::signbit(ar + 1) ? stdex::numbers::pi_v<R> : 0, ai) : atan2_impl(ai, ar + 1);
       auto br = xi;
       auto bi = -xr;
       auto lbr = half * values::log1p(br * br + 2 * br + bi * bi);
       auto lbi = not std::numeric_limits<R>::is_iec559 and bi == 0 ?
-        values::copysign(values::signbit(br + 1) ? stdcompat::numbers::pi_v<R> : 0, bi) : atan2_impl(bi, br + 1);
+        values::copysign(values::signbit(br + 1) ? stdex::numbers::pi_v<R> : 0, bi) : atan2_impl(bi, br + 1);
       return values::internal::make_complex_number<T>(half * (lai - lbi), half * (lbr - lar));
     }
     else return atan_impl(x);

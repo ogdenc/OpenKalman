@@ -89,7 +89,7 @@ namespace OpenKalman
     static_assert(dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>,
       "The rows of two operands of the solve function must be the same.");
 
-    using Interface = interface::library_interface<std::decay_t<A>>;
+    using Interface = interface::library_interface<stdex::remove_cvref_t<A>>;
 
     if constexpr (zero<B>)
     {
@@ -131,14 +131,14 @@ namespace OpenKalman
       if constexpr (identity_matrix<A> and square_shaped<A>)
         return internal::make_fixed_size_adapter<V0, V1>(std::forward<B>(b));
       else
-        return internal::make_fixed_size_adapter<V0, V1>(scalar_quotient(std::forward<B>(b), constant_diagonal_coefficient{std::forward<A>(a)}));
+        return internal::make_fixed_size_adapter<V0, V1>(scalar_quotient(std::forward<B>(b), constant_diagonal_value{std::forward<A>(a)}));
     }
     else if constexpr (constant_matrix<A> and (constant_matrix<B>))
     {
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return make_constant<B>(
-        constant_coefficient{b} / (values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}),
+        constant_value{b} / (values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_value{a}),
         get_pattern_collection<1>(a), get_pattern_collection<1>(b));
     }
     else if constexpr (constant_matrix<A> and (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1 or
@@ -147,7 +147,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return detail::wrap_solve_result<A, B>(
-        scalar_quotient(std::forward<B>(b), values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}));
+        scalar_quotient(std::forward<B>(b), values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_value{a}));
     }
     else if constexpr (diagonal_matrix<A> and square_shaped<A>)
     {

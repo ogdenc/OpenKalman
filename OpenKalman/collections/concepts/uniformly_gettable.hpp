@@ -16,7 +16,6 @@
 #ifndef OPENKALMAN_COLLECTIONS_UNIFORMLY_GETTABLE_HPP
 #define OPENKALMAN_COLLECTIONS_UNIFORMLY_GETTABLE_HPP
 
-#include "values/values.hpp"
 #include "gettable.hpp"
 #include "collections/traits/size_of.hpp"
 
@@ -36,7 +35,7 @@ namespace OpenKalman::collections
     struct uniformly_gettable_sized : std::false_type {};
 
     template<typename T>
-    struct uniformly_gettable_sized<T, std::enable_if_t<size_of<T>::value != dynamic_size>>
+    struct uniformly_gettable_sized<T, std::enable_if_t<size_of<T>::value != stdex::dynamic_extent>>
       : uniformly_gettable_sized_impl<T> {};
 
   }
@@ -50,7 +49,7 @@ namespace OpenKalman::collections
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept uniformly_gettable =
     sized<T> and
-    (size_of_v<T> != dynamic_size) and
+    (size_of_v<T> != stdex::dynamic_extent) and
     []<std::size_t...i>(std::index_sequence<i...>) { return (... and gettable<i, T>); } (std::make_index_sequence<size_of_v<T>>{});
 #else
   inline constexpr bool uniformly_gettable =

@@ -17,9 +17,9 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_Transpose)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().transpose())> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().transpose())> == 2);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().transpose())> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().transpose())> == 2);
 
   static_assert(zero<decltype((std::declval<Z23>()).transpose())>);
 

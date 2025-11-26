@@ -102,15 +102,15 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<RhsType> == true) return constant_coefficient {arg.rhs()};
-        else return constant_coefficient {arg.lhs()};
+        if constexpr (constant_value_v<RhsType> == true) return constant_value {arg.rhs()};
+        else return constant_value {arg.lhs()};
       }
-      else if constexpr (values::fixed<constant_coefficient<LhsType>>)
+      else if constexpr (values::fixed<constant_value<LhsType>>)
       {
-        if constexpr (constant_coefficient_v<LhsType> == true) return constant_coefficient {arg.lhs()};
-        else return constant_coefficient {arg.rhs()};
+        if constexpr (constant_value_v<LhsType> == true) return constant_value {arg.lhs()};
+        else return constant_value {arg.rhs()};
       }
       else
       {
@@ -121,21 +121,21 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_diagonal_value<RhsType>>)
       {
-        if constexpr (constant_diagonal_coefficient_v<RhsType> == true and diagonal_matrix<LhsType>)
-          return constant_diagonal_coefficient {arg.rhs()};
-        else if constexpr (constant_diagonal_coefficient_v<RhsType> == false)
-          return constant_diagonal_coefficient {arg.lhs()};
+        if constexpr (constant_diagonal_value_v<RhsType> == true and diagonal_matrix<LhsType>)
+          return constant_diagonal_value {arg.rhs()};
+        else if constexpr (constant_diagonal_value_v<RhsType> == false)
+          return constant_diagonal_value {arg.lhs()};
         else
           return std::monostate{};
       }
-      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_value<LhsType>>)
       {
-        if constexpr (constant_diagonal_coefficient_v<LhsType> == true and diagonal_matrix<RhsType>)
-          return constant_diagonal_coefficient {arg.lhs()};
-        else if constexpr (constant_diagonal_coefficient_v<LhsType> == false)
-          return constant_diagonal_coefficient {arg.rhs()};
+        if constexpr (constant_diagonal_value_v<LhsType> == true and diagonal_matrix<RhsType>)
+          return constant_diagonal_value {arg.lhs()};
+        else if constexpr (constant_diagonal_value_v<LhsType> == false)
+          return constant_diagonal_value {arg.rhs()};
         else
           return std::monostate{};
       }
@@ -244,43 +244,43 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_value<LhsType>> and values::fixed<constant_diagonal_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
-          return constant_coefficient {arg.lhs()};
+        if constexpr (constant_value_v<LhsType> < 0 and constant_value_v<LhsType> < constant_diagonal_value_v<RhsType>)
+          return constant_value {arg.lhs()};
         else return std::monostate{};
       }
-      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_value<LhsType>> and values::fixed<constant_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
-          return constant_coefficient {arg.rhs()};
+        if constexpr (constant_value_v<RhsType> < 0 and constant_value_v<RhsType> < constant_diagonal_value_v<LhsType>)
+          return constant_value {arg.rhs()};
         else return std::monostate{};
       }
       else
       {
-        return values::operation(constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
+        return values::operation(constexpr_operation(), constant_value {arg.lhs()}, constant_value {arg.rhs()});
       }
     }
 
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_value<LhsType>> and values::fixed<constant_diagonal_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
-          return constant_diagonal_coefficient {arg.rhs()};
+        if constexpr (constant_value_v<LhsType> > 0 and constant_value_v<LhsType> > constant_diagonal_value_v<RhsType>)
+          return constant_diagonal_value {arg.rhs()};
         else return std::monostate{};
       }
-      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_value<LhsType>> and values::fixed<constant_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
-          return constant_diagonal_coefficient {arg.lhs()};
+        if constexpr (constant_value_v<RhsType> > 0 and constant_value_v<RhsType> > constant_diagonal_value_v<LhsType>)
+          return constant_diagonal_value {arg.lhs()};
         else return std::monostate{};
       }
       else
       {
         return values::operation(constexpr_operation(),
-          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
+          constant_diagonal_value {arg.lhs()}, constant_diagonal_value {arg.rhs()});
       }
     }
   };
@@ -298,44 +298,44 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_value<LhsType>> and values::fixed<constant_diagonal_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
-          return constant_coefficient {arg.lhs()};
+        if constexpr (constant_value_v<LhsType> > 0 and constant_value_v<LhsType> > constant_diagonal_value_v<RhsType>)
+          return constant_value {arg.lhs()};
         else return std::monostate{};
       }
-      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_value<LhsType>> and values::fixed<constant_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
-          return constant_coefficient {arg.rhs()};
+        if constexpr (constant_value_v<RhsType> > 0 and constant_value_v<RhsType> > constant_diagonal_value_v<LhsType>)
+          return constant_value {arg.rhs()};
         else return std::monostate{};
       }
       else
       {
         return values::operation(constexpr_operation(),
-          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
+          constant_value {arg.lhs()}, constant_value {arg.rhs()});
       }
     }
 
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_value<LhsType>> and values::fixed<constant_diagonal_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
-          return constant_diagonal_coefficient {arg.rhs()};
+        if constexpr (constant_value_v<LhsType> < 0 and constant_value_v<LhsType> < constant_diagonal_value_v<RhsType>)
+          return constant_diagonal_value {arg.rhs()};
         else return std::monostate{};
       }
-      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_value<LhsType>> and values::fixed<constant_value<RhsType>>)
       {
-        if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
-          return constant_diagonal_coefficient {arg.lhs()};
+        if constexpr (constant_value_v<RhsType> < 0 and constant_value_v<RhsType> < constant_diagonal_value_v<LhsType>)
+          return constant_diagonal_value {arg.lhs()};
         else return std::monostate{};
       }
       else
       {
         return values::operation(constexpr_operation(),
-          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
+          constant_diagonal_value {arg.lhs()}, constant_diagonal_value {arg.rhs()});
       }
     }
   };

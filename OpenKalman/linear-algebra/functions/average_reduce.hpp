@@ -26,7 +26,7 @@ namespace OpenKalman
     {
       if constexpr (constant_matrix<Arg>)
       {
-        return make_constant<Arg>(constant_coefficient{arg}, internal::get_reduced_vector_space_descriptor<Ix, indices...>(std::forward<Arg>(arg))...);
+        return make_constant<Arg>(constant_value{arg}, internal::get_reduced_vector_space_descriptor<Ix, indices...>(std::forward<Arg>(arg))...);
       }
       else
       {
@@ -90,21 +90,21 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return constant_coefficient{arg}();
+      return constant_value{arg}();
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // Arg cannot be a zero matrix, so the denominator should never be zero.
       return values::operation(
         std::divides<scalar_type_of_t<Arg>>{},
-        constant_diagonal_coefficient{arg},
+        constant_diagonal_value{arg},
         internal::largest_pattern<scalar_type_of_t<Arg>>(get_pattern_collection<0>(arg), get_pattern_collection<1>(arg)));
     }
     else
     {
       auto r = reduce(std::plus<scalar_type_of_t<Arg>>{}, std::forward<Arg>(arg));
       // Arg cannot be a zero matrix, so the denominator should never be zero.
-      if constexpr (index_count_v<Arg> == dynamic_size)
+      if constexpr (index_count_v<Arg> == stdex::dynamic_extent)
       {
         std::size_t denom = 1;
         for (std::size_t i = 0; i < count_indices(arg); ++i) denom *= get_index_dimension_of(arg, i);

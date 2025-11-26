@@ -64,7 +64,7 @@ namespace OpenKalman::values
       });
 #else
   constexpr bool fixed =
-    stdcompat::default_initializable<std::decay_t<T>> and
+    stdex::default_initializable<std::decay_t<T>> and
     (internal::has_value_member<std::decay_t<T>>::value or
       (internal::call_result_is_defined<std::decay_t<T>>::value and internal::call_result_is_constexpr<std::decay_t<T>>::value));
 #endif

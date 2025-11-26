@@ -16,7 +16,10 @@
 #ifndef OPENKALMAN_GET_MDSPAN_HPP
 #define OPENKALMAN_GET_MDSPAN_HPP
 
-#include "linear-algebra/interfaces/object-traits-defined.hpp"
+#include "linear-algebra/interfaces/object_traits.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/interfaces/stl/mdspan-object.hpp"
+#include "linear-algebra/interfaces/stl/mdspan-library.hpp"
 
 namespace OpenKalman
 {
@@ -24,15 +27,29 @@ namespace OpenKalman
    * \brief Get the \ref coordinates::pattern_collection associated with \ref indexible object T.
    */
 #ifdef __cpp_concepts
-  template<interface::get_mdspan_defined_for T>
+  template<indexible T>
 #else
-  template<typename T, std::enable_if_t<interface::get_mdspan_defined_for<T>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
   constexpr auto
-  get_mdspan(T&& t)
+  get_mdspan(T& t)
   {
-    return stdcompat::invoke(interface::indexible_object_traits<std::remove_reference_t<T>>::get_mdspan, t);
+    using Traits = interface::object_traits<std::remove_cv_t<T>>;
+    return stdex::invoke(Traits::get_mdspan, t);
   }
+
+
+  /**
+   * \overload
+   * \brief If argument is already an mdspan, return it unchanged.
+   */
+  template<typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
+  constexpr auto
+  get_mdspan(stdex::mdspan<T, Extents, LayoutPolicy, AccessorPolicy> m)
+  {
+    return std::move(m);
+  }
+
 
 }
 

@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_DIAGONAL_OF_HPP
 #define OPENKALMAN_DIAGONAL_OF_HPP
 
+#include "linear-algebra/concepts/constant_object.hpp"
 
 namespace OpenKalman
 {
@@ -26,10 +27,10 @@ namespace OpenKalman
    * \todo generalize for higher-rank tensors
    */
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
+  template<indexible Arg> requires (index_count_v<Arg> == stdex::dynamic_extent) or (index_count_v<Arg> <= 2)
   constexpr indexible decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<(index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<(index_count_v<Arg> == stdex::dynamic_extent or index_count_v<Arg> <= 2), int> = 0>
   constexpr decltype(auto)
 #endif
   diagonal_of(Arg&& arg)
@@ -46,37 +47,37 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (constant_object<Arg>)
     {
       auto ds = get_pattern_collection(std::forward<Arg>(arg));
       if constexpr (pattern_collection<decltype(ds)>)
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
-          constant_coefficient {std::forward<Arg>(arg)},
+          constant_value {std::forward<Arg>(arg)},
           std::tuple_cat(ds, std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
       }
       else
       {
-        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_coefficient {std::forward<Arg>(arg)}, ds);
+        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_value {std::forward<Arg>(arg)}, ds);
       }
     }
-    else if constexpr (constant_diagonal_matrix<Arg>)
+    else if constexpr (constant_diagonal_object<Arg>)
     {
       auto ds = get_pattern_collection(std::forward<Arg>(arg));
       if constexpr (pattern_collection<decltype(ds)>)
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
-          constant_diagonal_coefficient {std::forward<Arg>(arg)},
+          constant_diagonal_value {std::forward<Arg>(arg)},
           std::tuple_cat(get_pattern_collection(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
       }
       else
       {
-        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_diagonal_coefficient {std::forward<Arg>(arg)}, ds);
+        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_diagonal_value {std::forward<Arg>(arg)}, ds);
       }
     }
     else
     {
-      return interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
   }
 

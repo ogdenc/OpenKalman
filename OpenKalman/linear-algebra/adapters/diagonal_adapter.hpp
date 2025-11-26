@@ -58,7 +58,7 @@ namespace OpenKalman
     constexpr diagonal_adapter() requires std::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>)
 #else
     template<bool Enable = true, std::enable_if_t<Enable and
-      stdcompat::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
+      stdex::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
     constexpr diagonal_adapter()
 #endif
       : Base {} {}
@@ -72,7 +72,7 @@ namespace OpenKalman
       (not std::is_base_of_v<diagonal_adapter, std::decay_t<Arg>>) and std::constructible_from<NestedObject, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedObject> and
-      (not std::is_base_of_v<diagonal_adapter, std::decay_t<Arg>>) and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
+      (not std::is_base_of_v<diagonal_adapter, std::decay_t<Arg>>) and stdex::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     constexpr explicit diagonal_adapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -85,7 +85,7 @@ namespace OpenKalman
 
     template<typename Arg>
     struct constants_match<Arg, std::enable_if_t<
-      constant_coefficient<NestedObject>::value != constant_diagonal_coefficient<Arg>::value>>
+      constant_value<NestedObject>::value != constant_diagonal_value<Arg>::value>>
         : std::false_type {};
 
   public:
@@ -97,7 +97,7 @@ namespace OpenKalman
     template<diagonal_matrix Arg> requires (not std::is_base_of_v<diagonal_adapter, std::decay_t<Arg>>) and
       vector_space_descriptors_may_match_with<NestedObject, decltype(diagonal_of(std::declval<Arg>()))> and
       (not constant_matrix<NestedObject> or constant_diagonal_matrix<Arg>) and
-      (not requires { requires constant_coefficient<NestedObject>::value != constant_diagonal_coefficient<Arg>::value; }) and
+      (not requires { requires constant_value<NestedObject>::value != constant_diagonal_value<Arg>::value; }) and
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(diagonal_of(std::declval<Arg>()))>
 #else
     template<typename Arg, std::enable_if_t<
@@ -116,7 +116,7 @@ namespace OpenKalman
 
       if constexpr (constant_matrix<NestedObject>)
       {
-        if constexpr (not values::fixed<constant_coefficient<NestedObject>> or not values::fixed<constant_diagonal_coefficient<Arg>>)
+        if constexpr (not values::fixed<constant_value<NestedObject>> or not values::fixed<constant_diagonal_value<Arg>>)
           if (values::to_value_type(this->nested_object()) != values::to_value_type(diagonal_of(std::forward<Arg>(arg))))
             throw std::invalid_argument {"Argument to constant_diagonal diagonal_adapter assignment operator has non-matching constant value."};
       }
@@ -165,7 +165,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -177,7 +177,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -222,7 +222,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, diagonal_adapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
@@ -234,7 +234,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, diagonal_adapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
@@ -246,7 +246,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, diagonal_adapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, diagonal_adapter> and stdex::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
@@ -278,7 +278,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedObject>
-    struct indexible_object_traits<diagonal_adapter<NestedObject>>
+    struct object_traits<diagonal_adapter<NestedObject>>
     {
       using scalar_type = scalar_type_of_t<NestedObject>;
 
@@ -305,7 +305,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        return constant_coefficient {arg.nested_object()};
+        return constant_value {arg.nested_object()};
       }
 
 
@@ -317,8 +317,7 @@ namespace OpenKalman
       static constexpr bool is_square = true;
 
 
-      template<triangle_type t>
-      static constexpr bool is_triangular = true;
+      static constexpr triangle_type triangle_type_value = triangle_type::diagonal;
 
 
       static constexpr bool is_writable = false;

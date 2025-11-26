@@ -61,17 +61,17 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_sum_op)
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<DMx>())>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<Mxx>())>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_3>())> == 5);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() + std::declval<C21_m2>())> == 0);
-  EXPECT_EQ((constant_coefficient{cxa + cxb}()), (std::complex<double>{4, 6}));
-  EXPECT_EQ(constant_coefficient {M22::Constant(2).array() + M22::Constant(3).array()}(), 5);
-  EXPECT_EQ(constant_coefficient {M22::Constant(2).array() + z}(), 2);
-  EXPECT_EQ(constant_coefficient {z + M22::Constant(3).array()}(), 3);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() + std::declval<C21_3>())> == 5);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() + std::declval<C21_m2>())> == 0);
+  EXPECT_EQ((constant_value{cxa + cxb}()), (std::complex<double>{4, 6}));
+  EXPECT_EQ(constant_value {M22::Constant(2).array() + M22::Constant(3).array()}(), 5);
+  EXPECT_EQ(constant_value {M22::Constant(2).array() + z}(), 2);
+  EXPECT_EQ(constant_value {z + M22::Constant(3).array()}(), 3);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() + std::declval<Cd22_3>())> == 5);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>() + std::declval<C22_m2>())> == 0);
-  EXPECT_EQ(constant_diagonal_coefficient {id + id}(), 2);
-  EXPECT_EQ((constant_diagonal_coefficient {I11{1, 1} + M11::Constant(3).array()}()), 4);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>() + std::declval<Cd22_3>())> == 5);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_2>() + std::declval<C22_m2>())> == 0);
+  EXPECT_EQ(constant_diagonal_value {id + id}(), 2);
+  EXPECT_EQ((constant_diagonal_value {I11{1, 1} + M11::Constant(3).array()}()), 4);
 
   static_assert(zero<decltype(std::declval<C22_2>() + std::declval<C22_m2>())>);
   static_assert(zero<decltype(std::declval<C21_2>() + std::declval<C21_m2>())>);
@@ -117,33 +117,33 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_product_op)
   static_assert(constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx::ConstantReturnType, Mxx::ConstantReturnType>>);
   static_assert(not constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx::ConstantReturnType, Mxx>>);
   static_assert(not constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx, Mxx::ConstantReturnType>>);
-  static_assert(values::dynamic<constant_coefficient<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11, M11>>>);
-  static_assert(values::dynamic<constant_coefficient<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11::ConstantReturnType, M11>>>);
-  static_assert(values::dynamic<constant_coefficient<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11, M11::ConstantReturnType>>>);
+  static_assert(values::dynamic<constant_value<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11, M11>>>);
+  static_assert(values::dynamic<constant_value<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11::ConstantReturnType, M11>>>);
+  static_assert(values::dynamic<constant_value<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, M11, M11::ConstantReturnType>>>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() * std::declval<C21_m2>())> == -4);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() * std::declval<Z21>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>() * std::declval<C21_2>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<M21>().array() * std::declval<Z21>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>() * std::declval<M21>().array())> == 0);
-  EXPECT_EQ((constant_coefficient{cxa * cxb}()), (std::complex<double>{-5, 10}));
-  EXPECT_EQ((constant_coefficient{cp2 * cm2}()), -4);
-  EXPECT_EQ(constant_coefficient {M22::Constant(2).array() * M22::Constant(3).array()}(), 6);
-  EXPECT_EQ((constant_coefficient{z * M22::Constant(3).array()}()), 0);
-  EXPECT_EQ((constant_coefficient{M22::Constant(2).array() * z}()), 0);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() * std::declval<C21_m2>())> == -4);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() * std::declval<Z21>())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<Z21>() * std::declval<C21_2>())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<M21>().array() * std::declval<Z21>())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<Z21>() * std::declval<M21>().array())> == 0);
+  EXPECT_EQ((constant_value{cxa * cxb}()), (std::complex<double>{-5, 10}));
+  EXPECT_EQ((constant_value{cp2 * cm2}()), -4);
+  EXPECT_EQ(constant_value {M22::Constant(2).array() * M22::Constant(3).array()}(), 6);
+  EXPECT_EQ((constant_value{z * M22::Constant(3).array()}()), 0);
+  EXPECT_EQ((constant_value{M22::Constant(2).array() * z}()), 0);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() * std::declval<Z22>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>() * std::declval<Cd22_2>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<A22>() * std::declval<Z22>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>() * std::declval<A22>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() * std::declval<Cd22_3>())> == 6); // no conjugate-product test
-  static_assert(values::dynamic<constant_diagonal_coefficient<decltype(cdp2)>>);
-  EXPECT_EQ((constant_diagonal_coefficient{cdp2}()), 2);
-  EXPECT_EQ((constant_diagonal_coefficient{cdp2 * cdm2}()), -4);
-  EXPECT_EQ((constant_diagonal_coefficient{cdp2 * z}()), 0);
-  EXPECT_EQ((constant_diagonal_coefficient{z * cdm2}()), 0);
-  EXPECT_EQ((constant_diagonal_coefficient{cdp2 * id}()), 2);
-  EXPECT_EQ((constant_diagonal_coefficient{id * cdm2}()), -2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>() * std::declval<Z22>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>() * std::declval<Cd22_2>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<A22>() * std::declval<Z22>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>() * std::declval<A22>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>() * std::declval<Cd22_3>())> == 6); // no conjugate-product test
+  static_assert(values::dynamic<constant_diagonal_value<decltype(cdp2)>>);
+  EXPECT_EQ((constant_diagonal_value{cdp2}()), 2);
+  EXPECT_EQ((constant_diagonal_value{cdp2 * cdm2}()), -4);
+  EXPECT_EQ((constant_diagonal_value{cdp2 * z}()), 0);
+  EXPECT_EQ((constant_diagonal_value{z * cdm2}()), 0);
+  EXPECT_EQ((constant_diagonal_value{cdp2 * id}()), 2);
+  EXPECT_EQ((constant_diagonal_value{id * cdm2}()), -2);
 
   static_assert(diagonal_matrix<decltype(std::declval<DW21>() * std::declval<DW21>())>);
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().array() * std::declval<M22>().array())>);
@@ -192,32 +192,32 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_product_op)
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_conj_product_op)
 {
   using CProd = Eigen::internal::scalar_conj_product_op<std::complex<double>, std::complex<double>>;
-  EXPECT_EQ((constant_coefficient{Eigen::CwiseBinaryOp<CProd, decltype(cxa), decltype(cxb)>{cxa, cxb}}()), (std::complex<double>{11, -2}));
-  EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseBinaryOp<CProd, decltype(cxa), decltype(cid)>{cxa, cid}}()), (std::complex<double>{1, -2}));
-  EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseBinaryOp<CProd, decltype(cid), decltype(cxb)>{cid, cxb}}()), (std::complex<double>{3, 4}));
+  EXPECT_EQ((constant_value{Eigen::CwiseBinaryOp<CProd, decltype(cxa), decltype(cxb)>{cxa, cxb}}()), (std::complex<double>{11, -2}));
+  EXPECT_EQ((constant_diagonal_value{Eigen::CwiseBinaryOp<CProd, decltype(cxa), decltype(cid)>{cxa, cid}}()), (std::complex<double>{1, -2}));
+  EXPECT_EQ((constant_diagonal_value{Eigen::CwiseBinaryOp<CProd, decltype(cid), decltype(cxb)>{cid, cxb}}()), (std::complex<double>{3, 4}));
   static_assert(diagonal_matrix<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, Tlv22, Tlv22>, triangle_type::lower>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, Tlv22, M22>, triangle_type::lower>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, Tuv22, Tuv22>, triangle_type::upper>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, M22, Tuv22>, triangle_type::upper>);
   static_assert(hermitian_matrix<Eigen::CwiseBinaryOp<CProd, Sauv22, Salv22>>);
-  static_assert(OpenKalman::interface::indexible_object_traits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
-  static_assert(OpenKalman::interface::indexible_object_traits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::object_traits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::object_traits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
 }
 
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_min_op)
 {
-  static_assert(constant_coefficient_v<decltype(cp2.min(cm2))> == -2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().min(std::declval<C21_m2>()))> == -2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().min(std::declval<Cd22_2>()))> == -2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Cd22_2>().min(std::declval<C22_m2>()))> == -2);
+  static_assert(constant_value_v<decltype(cp2.min(cm2))> == -2);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>().min(std::declval<C21_m2>()))> == -2);
+  static_assert(constant_value_v<decltype(std::declval<C22_m2>().min(std::declval<Cd22_2>()))> == -2);
+  static_assert(constant_value_v<decltype(std::declval<Cd22_2>().min(std::declval<C22_m2>()))> == -2);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().min(std::declval<Cd22_3>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().min(std::declval<Cd22_3>()))> == -2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().min(std::declval<Cd22_m1>()))> == -1);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().min(std::declval<Cd22_m2>()))> == -2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().min(std::declval<C22_2>()))> == -1);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().min(std::declval<Cd22_3>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_m2>().min(std::declval<Cd22_3>()))> == -2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().min(std::declval<Cd22_m1>()))> == -1);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_2>().min(std::declval<Cd22_m2>()))> == -2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_m1>().min(std::declval<C22_2>()))> == -1);
 
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().array().min(std::declval<DW21>().array()))>);
   static_assert(not diagonal_matrix<decltype(std::declval<DW21>().array().min(std::declval<M22>().array()))>);
@@ -229,16 +229,16 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_min_op)
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_max_op)
 {
-  static_assert(constant_coefficient_v<decltype(cp2.max(cm2))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().max(std::declval<C21_m2>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().max(std::declval<Cd22_m2>()))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Cd22_m1>().max(std::declval<C22_2>()))> == 2);
+  static_assert(constant_value_v<decltype(cp2.max(cm2))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>().max(std::declval<C21_m2>()))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().max(std::declval<Cd22_m2>()))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<Cd22_m1>().max(std::declval<C22_2>()))> == 2);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().max(std::declval<Cd22_3>()))> == 3);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().max(std::declval<Cd22_3>()))> == 3);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().max(std::declval<Cd22_m1>()))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_3>().max(std::declval<C22_m2>()))> == 3);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_m2>().max(std::declval<Cd22_2>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().max(std::declval<Cd22_3>()))> == 3);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_m2>().max(std::declval<Cd22_3>()))> == 3);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>().max(std::declval<Cd22_m1>()))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_3>().max(std::declval<C22_m2>()))> == 3);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_m2>().max(std::declval<Cd22_2>()))> == 2);
 
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().array().max(std::declval<DW21>().array()))>);
   static_assert(not diagonal_matrix<decltype(std::declval<DW21>().array().max(std::declval<M22>().array()))>);
@@ -250,12 +250,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_max_op)
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_cmp_op)
 {
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_EQ>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, false));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_LT>, decltype(cm2), decltype(cp2)>{cm2, cp2})>, true));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_LE>, decltype(cp2), decltype(cp2)>{cp2, cp2})>, true));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_GT>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, true));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_GE>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, true));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_NEQ>, decltype(cm2), decltype(cm2)>{cm2, cm2})>, false));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_EQ>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, false));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_LT>, decltype(cm2), decltype(cp2)>{cm2, cp2})>, true));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_LE>, decltype(cp2), decltype(cp2)>{cp2, cp2})>, true));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_GT>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, true));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_GE>, decltype(cp2), decltype(cm2)>{cp2, cm2})>, true));
+  static_assert(values::internal::near(constant_value_v<decltype(Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_NEQ>, decltype(cm2), decltype(cm2)>{cm2, cm2})>, false));
   // No test for Eigen::internal::ComparisonName::cmp_UNORD
   static_assert(not diagonal_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_EQ>, M22, M22>>);
   static_assert(not triangular_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_cmp_op<double, double, Eigen::internal::ComparisonName::cmp_LT>, M22, M22>>);
@@ -265,9 +265,9 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_cmp_op)
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_hypot_op)
 {
   using CWHYP = Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, decltype(cp2), decltype(cm2)>;
-  static_assert(values::internal::near(constant_coefficient_v<decltype(CWHYP{cp2, cm2})>, OpenKalman::values::sqrt(8.)));
-  static_assert(values::internal::near(constant_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, C21_2, C21_m2>>, OpenKalman::values::sqrt(8.)));
-  static_assert(values::internal::near(constant_diagonal_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Cd22_2, Cd22_3>>, OpenKalman::values::sqrt(13.)));
+  static_assert(values::internal::near(constant_value_v<decltype(CWHYP{cp2, cm2})>, OpenKalman::values::sqrt(8.)));
+  static_assert(values::internal::near(constant_value_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, C21_2, C21_m2>>, OpenKalman::values::sqrt(8.)));
+  static_assert(values::internal::near(constant_diagonal_value_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Cd22_2, Cd22_3>>, OpenKalman::values::sqrt(13.)));
   static_assert(diagonal_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, DW21, DW21>>);
   static_assert(not diagonal_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, M22, DW21>>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Tlv22, Tlv22>, triangle_type::lower>);
@@ -280,12 +280,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_pow_op)
 {
   static_assert(not constant_diagonal_matrix<decltype(z.pow(z))>);
   static_assert(not constant_diagonal_matrix<decltype(cdp2.pow(z))>);
-  static_assert(values::internal::near(constant_coefficient_v<decltype(cp2.pow(z))>, 1));
-  static_assert(values::internal::near(constant_coefficient_v<decltype(cp2.pow(cm2))>, 0.25));
+  static_assert(values::internal::near(constant_value_v<decltype(cp2.pow(z))>, 1));
+  static_assert(values::internal::near(constant_value_v<decltype(cp2.pow(cm2))>, 0.25));
   using M11_int = eigen_matrix_t<int, 1, 1>;
   using C11_3_int = decltype(M11_int::Identity() + M11_int::Identity() + M11_int::Identity());
   using C21_3_int = Eigen::Replicate<C11_3_int, 2, 1>;
-  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C21_3_int>().array().pow(std::declval<C21_3_int>().array()))>, 27));
+  static_assert(values::internal::near(constant_value_v<decltype(std::declval<C21_3_int>().array().pow(std::declval<C21_3_int>().array()))>, 27));
   static_assert(not diagonal_matrix<decltype(std::declval<DW21>().array().pow(std::declval<DW21>().array()))>);
   static_assert(not triangular_matrix<decltype(std::declval<Sauv22>().array().pow(std::declval<Sauv22>().array()))>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array().pow(std::declval<Salv22>().array()))>);
@@ -297,12 +297,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_pow_op)
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_difference_op)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_2>())> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() - std::declval<C21_m2>())> == 4);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() - std::declval<C21_2>())> == 0);
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() - std::declval<C21_m2>())> == 4);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>() - std::declval<C22_2>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() - std::declval<Cd22_2>())> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() - std::declval<Cd22_3>())> == -1);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_2>() - std::declval<C22_2>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>() - std::declval<Cd22_2>())> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Cd22_2>() - std::declval<Cd22_3>())> == -1);
 
   static_assert(zero<decltype(std::declval<C22_2>() - std::declval<C22_2>())>);
   static_assert(zero<decltype(std::declval<C21_2>() - std::declval<C21_2>())>);
@@ -330,39 +330,39 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_difference_op)
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
-  EXPECT_EQ((constant_coefficient{cxa - cxb}()), (std::complex<double>{-2, -2}));
+  EXPECT_EQ((constant_value{cxa - cxb}()), (std::complex<double>{-2, -2}));
 }
 
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_quotient_op)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z11>() / std::declval<C11_3>())> == 0);
-  static_assert(not values::fixed<constant_coefficient<decltype(std::declval<C11_3>() / std::declval<Z11>())>>); // divide by zero
-  static_assert(values::dynamic<constant_coefficient<decltype(std::declval<C11_3>() / std::declval<Z11>())>>); // divide by zero, but determined at runtime
-  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() / std::declval<C21_m2>())> == -1);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z21>() / std::declval<C21_m2>())> == 0);
-  static_assert(not values::fixed<constant_coefficient<decltype(std::declval<C21_2>() / std::declval<Z21>())>>); // divide by zero
-  static_assert(values::dynamic<constant_coefficient<decltype(std::declval<C21_2>() / std::declval<Z21>())>>); // divide by zero, but determined at runtime
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z11>() / std::declval<C11_m2>())> == 0);
-  static_assert(values::dynamic<constant_diagonal_coefficient<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array())>>); // divide by zero
+  static_assert(constant_value_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
+  static_assert(constant_value_v<decltype(std::declval<Z11>() / std::declval<C11_3>())> == 0);
+  static_assert(not values::fixed<constant_value<decltype(std::declval<C11_3>() / std::declval<Z11>())>>); // divide by zero
+  static_assert(values::dynamic<constant_value<decltype(std::declval<C11_3>() / std::declval<Z11>())>>); // divide by zero, but determined at runtime
+  static_assert(constant_value_v<decltype(std::declval<C21_2>() / std::declval<C21_m2>())> == -1);
+  static_assert(constant_value_v<decltype(std::declval<Z21>() / std::declval<C21_m2>())> == 0);
+  static_assert(not values::fixed<constant_value<decltype(std::declval<C21_2>() / std::declval<Z21>())>>); // divide by zero
+  static_assert(values::dynamic<constant_value<decltype(std::declval<C21_2>() / std::declval<Z21>())>>); // divide by zero, but determined at runtime
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z11>() / std::declval<C11_m2>())> == 0);
+  static_assert(values::dynamic<constant_diagonal_value<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array())>>); // divide by zero
   static_assert(not diagonal_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);
   static_assert(not triangular_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);
   using CWQ = Eigen::CwiseBinaryOp<Eigen::internal::scalar_quotient_op<std::complex<double>, std::complex<double>>, decltype(cxa), decltype(cxb)>;
-  EXPECT_EQ((constant_coefficient{CWQ{cxa, cxb}}()), (std::complex<double>{11./25, 2./25}));
+  EXPECT_EQ((constant_value{CWQ{cxa, cxb}}()), (std::complex<double>{11./25, 2./25}));
 }
 
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_and_op)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>() and std::declval<B22_true>())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>() and std::declval<B22_false>())> == false);
-  static_assert(constant_coefficient_v<decltype(std::declval<BI22>() and std::declval<B22_false>())> == false);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() and std::declval<BI22>())> == true);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() and std::declval<B22_false>())> == false);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() and std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>() and std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>() and std::declval<B22_false>())> == false);
+  static_assert(constant_value_v<decltype(std::declval<BI22>() and std::declval<B22_false>())> == false);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() and std::declval<BI22>())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() and std::declval<B22_false>())> == false);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() and std::declval<B22_true>())> == true);
   static_assert(diagonal_matrix<decltype(std::declval<DW21>() and std::declval<DW21>())>);
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().array() and std::declval<B22_true>())>);
   static_assert(diagonal_matrix<decltype(std::declval<B22_true>() and std::declval<DW21>().array())>);
@@ -377,17 +377,17 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_and_op)
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_or_op)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>() or std::declval<B22_true>())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>() or std::declval<B22_false>())> == false);
-  static_assert(constant_coefficient_v<decltype(std::declval<BI22>() or std::declval<B22_true>())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22>() or std::declval<B22_true>())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>() or std::declval<B22>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_false>() or std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_false>() or std::declval<B22_false>())> == false);
+  static_assert(constant_value_v<decltype(std::declval<BI22>() or std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22>() or std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>() or std::declval<B22>())> == true);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() or std::declval<BI22>())> == true);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() or std::declval<B22_false>())> == true);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_false>() or std::declval<BI22>())> == true);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() or std::declval<DM2>().array())> == true);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<DM2>().array() or std::declval<BI22>())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() or std::declval<BI22>())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() or std::declval<B22_false>())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_false>() or std::declval<BI22>())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() or std::declval<DM2>().array())> == true);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<DM2>().array() or std::declval<BI22>())> == true);
 
   static_assert(diagonal_matrix<decltype(std::declval<DW21>() or std::declval<DW21>())>);
   static_assert(not (diagonal_matrix<decltype(std::declval<DW21>().array() or std::declval<M22>().array())>));
@@ -399,10 +399,10 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_or_op)
 
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_xor_op)
 {
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_false>() xor std::declval<B22_true>())> == true);
-  static_assert(constant_coefficient_v<decltype(std::declval<B22_true>() xor std::declval<B22_true>())> == false);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<BI22>() xor std::declval<BI22>())> == false);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B22_false>() xor std::declval<BI22>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_false>() xor std::declval<B22_true>())> == true);
+  static_assert(constant_value_v<decltype(std::declval<B22_true>() xor std::declval<B22_true>())> == false);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<BI22>() xor std::declval<BI22>())> == false);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<B22_false>() xor std::declval<BI22>())> == true);
   static_assert(diagonal_matrix<decltype(std::declval<DW21>().array() xor std::declval<DW21>().array())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array() xor std::declval<Tuv22>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array() xor std::declval<Salv22>().array())>);
@@ -413,7 +413,7 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_boolean_xor_op)
 TEST(eigen3, Eigen_CwiseBinaryOp_scalar_absolute_difference_op)
 {
   using AD = Eigen::internal::scalar_absolute_difference_op<double, double>;
-  static_assert(constant_coefficient_v<Eigen::CwiseBinaryOp<AD, C21_2, C21_m2>> == 4);
+  static_assert(constant_value_v<Eigen::CwiseBinaryOp<AD, C21_2, C21_m2>> == 4);
   static_assert(diagonal_matrix<Eigen::CwiseBinaryOp<AD, DW21, DW21>>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<AD, Tlv22, Tlv22>, triangle_type::lower>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<AD, Tuv22, Tuv22>, triangle_type::upper>);

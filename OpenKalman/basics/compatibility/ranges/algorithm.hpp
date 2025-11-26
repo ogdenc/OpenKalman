@@ -20,7 +20,7 @@
 #include "basics/compatibility/iterator.hpp"
 #include "basics/compatibility/ranges/range-concepts.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::in_out_result;
@@ -34,8 +34,8 @@ namespace OpenKalman::stdcompat::ranges
     O out;
 
     template<typename I2, typename O2, std::enable_if_t<
-      stdcompat::convertible_to<const I&, I2> and
-      stdcompat::convertible_to<const O&, O2>, int> = 0>
+      stdex::convertible_to<const I&, I2> and
+      stdex::convertible_to<const O&, O2>, int> = 0>
     constexpr operator
     in_out_result<I2, O2>() const &
     {
@@ -43,8 +43,8 @@ namespace OpenKalman::stdcompat::ranges
     }
 
     template<class I2, class O2, std::enable_if_t<
-      stdcompat::convertible_to<I, I2> and
-      stdcompat::convertible_to<O, O2>, int> = 0>
+      stdex::convertible_to<I, I2> and
+      stdex::convertible_to<O, O2>, int> = 0>
     constexpr operator
     in_out_result<I2, O2>() &&
     {
@@ -62,10 +62,10 @@ namespace OpenKalman::stdcompat::ranges
     struct copy_fn
     {
       template<typename I, typename S, typename O, std::enable_if_t<
-        stdcompat::input_iterator<I> and
-        stdcompat::sentinel_for<I, S> and
-        stdcompat::weakly_incrementable<O> and
-        stdcompat::indirectly_copyable<I, O>, int> = 0>
+        stdex::input_iterator<I> and
+        stdex::sentinel_for<I, S> and
+        stdex::weakly_incrementable<O> and
+        stdex::indirectly_copyable<I, O>, int> = 0>
       constexpr copy_result<I, O>
       operator()(I first, S last, O result) const
       {
@@ -77,7 +77,7 @@ namespace OpenKalman::stdcompat::ranges
 
       template<typename R, typename O, std::enable_if_t<
         input_range<R> and
-        stdcompat::weakly_incrementable<O> and
+        stdex::weakly_incrementable<O> and
         indirectly_copyable<iterator_t<R>, O>, int> = 0>
       constexpr copy_result<borrowed_iterator_t<R>, O>
       operator()(R&& r, O result) const

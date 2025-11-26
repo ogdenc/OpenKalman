@@ -24,7 +24,7 @@
 #include "basics/compatibility/internal/exposition.hpp"
 #include "basics/compatibility/iterator.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::enable_borrowed_range;
@@ -109,12 +109,12 @@ namespace OpenKalman::stdcompat::ranges
     struct end_impl
     {
       template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
-        (stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or end_def<T>::value), int> = 0>
+        (stdex::is_bounded_array_v<std::remove_reference_t<T>> or end_def<T>::value), int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (stdcompat::is_bounded_array_v<stdcompat::remove_cvref_t<T>>)
-          return t + std::extent_v<stdcompat::remove_cvref_t<T>>;
+        if constexpr (stdex::is_bounded_array_v<stdex::remove_cvref_t<T>>)
+          return t + std::extent_v<stdex::remove_cvref_t<T>>;
         else
           return OpenKalman::internal::decay_copy(end(std::forward<T>(t)));
       }
@@ -126,7 +126,7 @@ namespace OpenKalman::stdcompat::ranges
     struct cend_impl
     {
       template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
-        (stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or end_def<CT<T>>::value), int> = 0>
+        (stdex::is_bounded_array_v<std::remove_reference_t<T>> or end_def<CT<T>>::value), int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
@@ -246,13 +246,13 @@ namespace OpenKalman::stdcompat::ranges
 
     public:
 
-      template<typename T, std::enable_if_t<stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or
+      template<typename T, std::enable_if_t<stdex::is_bounded_array_v<std::remove_reference_t<T>> or
         member_size_def<T>::value or atd_size_def<T>::value, int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (stdcompat::is_bounded_array_v<stdcompat::remove_cvref_t<T>>)
-          return OpenKalman::internal::decay_copy(std::extent_v<stdcompat::remove_cvref_t<T>>);
+        if constexpr (stdex::is_bounded_array_v<stdex::remove_cvref_t<T>>)
+          return OpenKalman::internal::decay_copy(std::extent_v<stdex::remove_cvref_t<T>>);
         else if constexpr (member_size_def<T>::value)
           return OpenKalman::internal::decay_copy(std::forward<T>(t).size());
         else if constexpr (atd_size_def<T>::value)
@@ -282,10 +282,10 @@ namespace OpenKalman::stdcompat::ranges
       template<typename T> struct member_empty_def<T, std::void_t<decltype(bool(std::declval<T&&>().empty()))>> : std::true_type {};
 
       template<typename T, typename = void> struct ranges_size_compares_zero : std::false_type {};
-      template<typename T> struct ranges_size_compares_zero<T, std::void_t<decltype(stdcompat::ranges::size(std::declval<T&&>()) == 0)>> : std::true_type {};
+      template<typename T> struct ranges_size_compares_zero<T, std::void_t<decltype(stdex::ranges::size(std::declval<T&&>()) == 0)>> : std::true_type {};
 
       template<typename T, typename = void> struct begin_at_end : std::false_type {};
-      template<typename T> struct begin_at_end<T, std::void_t<decltype(bool(stdcompat::ranges::begin(std::declval<T&&>()) == stdcompat::ranges::end(std::declval<T&&>())))>> : std::true_type {};
+      template<typename T> struct begin_at_end<T, std::void_t<decltype(bool(stdex::ranges::begin(std::declval<T&&>()) == stdex::ranges::end(std::declval<T&&>())))>> : std::true_type {};
 
     public:
 
@@ -296,9 +296,9 @@ namespace OpenKalman::stdcompat::ranges
         if constexpr (member_empty_def<T>::value)
           return bool(std::forward<T>(t).empty());
         else if constexpr (ranges_size_compares_zero<T>::value)
-          return stdcompat::ranges::size(std::forward<T>(t)) == 0;
+          return stdex::ranges::size(std::forward<T>(t)) == 0;
         else
-          return bool(stdcompat::ranges::begin(std::forward<T>(t)) == stdcompat::ranges::end(std::forward<T>(t)));
+          return bool(stdex::ranges::begin(std::forward<T>(t)) == stdex::ranges::end(std::forward<T>(t)));
       }
     };
   }
@@ -406,21 +406,21 @@ namespace OpenKalman::stdcompat::ranges
       template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
       constexpr I operator()(I i, iter_difference_t<I> n) const
       {
-        stdcompat::ranges::advance(i, n);
+        stdex::ranges::advance(i, n);
         return i;
       }
 
       template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
       constexpr I operator()(I i, S bound) const
       {
-        stdcompat::ranges::advance(i, bound);
+        stdex::ranges::advance(i, bound);
         return i;
       }
 
       template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
       constexpr I operator()(I i, iter_difference_t<I> n, S bound) const
       {
-        stdcompat::ranges::advance(i, n, bound);
+        stdex::ranges::advance(i, n, bound);
         return i;
       }
     };
@@ -434,17 +434,17 @@ namespace OpenKalman::stdcompat::ranges
   // ---
 
   template<typename R>
-  using iterator_t = decltype(stdcompat::ranges::begin(std::declval<R&>()));
+  using iterator_t = decltype(stdex::ranges::begin(std::declval<R&>()));
 
   template<typename R>
-  using const_iterator_t = decltype(stdcompat::ranges::cbegin(std::declval<R&>()));
+  using const_iterator_t = decltype(stdex::ranges::cbegin(std::declval<R&>()));
 
 
   template<typename R>
-  using sentinel_t = decltype(stdcompat::ranges::end(std::declval<R&>()));
+  using sentinel_t = decltype(stdex::ranges::end(std::declval<R&>()));
 
   template<typename R>
-  using const_sentinel_t = decltype(stdcompat::ranges::cend(std::declval<R&>()));
+  using const_sentinel_t = decltype(stdex::ranges::cend(std::declval<R&>()));
 #endif
 }
 

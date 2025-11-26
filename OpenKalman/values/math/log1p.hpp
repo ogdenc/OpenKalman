@@ -74,7 +74,7 @@ namespace OpenKalman::values
       auto a = static_cast<R>(0.5) * values::log1p(re * re + 2 * re + im * im);
       if constexpr (not std::numeric_limits<values::real_type_of_t<Arg>>::is_iec559) if (values::imag(arg) == 0)
         return values::internal::make_complex_number<Return>(a,
-          values::copysign(values::signbit(values::real(arg) + 1) ? stdcompat::numbers::pi_v<R> : 0, values::imag(arg)));
+          values::copysign(values::signbit(values::real(arg) + 1) ? stdex::numbers::pi_v<R> : 0, values::imag(arg)));
       return values::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re + 1));
     }
     else

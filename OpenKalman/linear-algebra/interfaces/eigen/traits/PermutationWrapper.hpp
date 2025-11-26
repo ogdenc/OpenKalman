@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename IndicesType>
-  struct indexible_object_traits<Eigen::PermutationWrapper<IndicesType>>
-    : Eigen3::indexible_object_traits_base<Eigen::PermutationWrapper<IndicesType>>
+  struct object_traits<Eigen::PermutationWrapper<IndicesType>>
+    : Eigen3::object_traits_base<Eigen::PermutationWrapper<IndicesType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::PermutationWrapper<IndicesType>>;
+    using Base = Eigen3::object_traits_base<Eigen::PermutationWrapper<IndicesType>>;
 
   public:
 

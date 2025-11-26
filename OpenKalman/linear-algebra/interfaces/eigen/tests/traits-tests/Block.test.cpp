@@ -21,14 +21,14 @@ TEST(eigen3, Eigen_Block)
   static_assert(eigen_array_general<decltype(std::declval<C22_2>().block<2,1>(0, 0)), true>);
   static_assert(not eigen_matrix_general<decltype(std::declval<C22_2>().block<2,1>(0, 0)), true>);
 
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().block<2, 1>(0, 0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().block(2, 1, 0, 0))> == 2);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 2>(0, 0))> == 0);
-  static_assert(constant_coefficient_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().block<2, 1>(0, 0))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<C22_2>().block(2, 1, 0, 0))> == 2);
+  static_assert(constant_value_v<decltype(std::declval<Z22>().block<1, 2>(0, 0))> == 0);
+  static_assert(constant_value_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
 
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().block<1, 1>(0, 0))> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().block<2, 2>(0, 0))> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<C22_2>().block<1, 1>(0, 0))> == 2);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().block<1, 1>(0, 0))> == 0);
+  static_assert(constant_diagonal_value_v<decltype(std::declval<Z22>().block<2, 2>(0, 0))> == 0);
 
   static_assert(zero<decltype(std::declval<Z22>().block<2, 1>(0, 0))>);
   static_assert(zero<decltype(std::declval<Z22>().block(2, 1, 0, 0))>);

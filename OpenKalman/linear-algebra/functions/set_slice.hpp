@@ -64,11 +64,11 @@ namespace OpenKalman
 
     if constexpr (interface::set_slice_defined_for<Arg, Arg&, Block&&, const Begin&...>)
     {
-      interface::library_interface<std::decay_t<Arg>>::set_slice(arg, std::forward<Block>(block), begin...);
+      interface::library_interface<stdex::remove_cvref_t<Arg>>::set_slice(arg, std::forward<Block>(block), begin...);
     }
     else if constexpr (interface::set_slice_defined_for<Arg, Arg&, decltype(to_native_matrix<Arg>(std::declval<Block&&>())), const Begin&...>)
     {
-      interface::library_interface<std::decay_t<Arg>>::set_slice(arg, to_native_matrix<Arg>(std::forward<Block>(block)), begin...);;
+      interface::library_interface<stdex::remove_cvref_t<Arg>>::set_slice(arg, to_native_matrix<Arg>(std::forward<Block>(block)), begin...);;
     }
     // \todo If arg is directly_accessible and the library interface is not defined, set the block based on the raw data.
     else

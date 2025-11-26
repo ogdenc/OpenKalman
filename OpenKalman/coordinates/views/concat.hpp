@@ -10,13 +10,16 @@
 
 /**
  * \file
- * \brief Definition of \ref coordinates::concat_tuple_view and \ref coordinates::views::concat.
+ * \brief Definition of \ref coordinates::views::concat.
  */
 
 #ifndef OPENKALMAN_COORDINATES_VIEWS_CONCAT_HPP
 #define OPENKALMAN_COORDINATES_VIEWS_CONCAT_HPP
 
 #include "collections/collections.hpp"
+#include "coordinates/concepts/pattern.hpp"
+#include "coordinates/concepts/euclidean_pattern.hpp"
+#include "coordinates/functions/get_dimension.hpp"
 
 namespace OpenKalman::coordinates::views
 {

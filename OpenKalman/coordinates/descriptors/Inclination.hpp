@@ -16,9 +16,7 @@
 #ifndef OPENKALMAN_INCLINATION_HPP
 #define OPENKALMAN_INCLINATION_HPP
 
-#include <type_traits>
-#include <cmath>
-#include <array>
+#include "values/functions/internal/update_real_part.hpp"
 #include "collections/collections.hpp"
 #include "coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "coordinates/descriptors/Any.hpp"
@@ -45,7 +43,7 @@ namespace OpenKalman::coordinates
     static_assert(values::fixed<Down>);
     static_assert(not values::complex<Down>);
     static_assert(values::fixed_value_of_v<Down> > 0);
-    static_assert(stdcompat::convertible_to<values::value_type_of_t<Down>, float>);
+    static_assert(stdex::convertible_to<values::value_type_of_t<Down>, float>);
 #endif
   };
 
@@ -146,11 +144,11 @@ namespace OpenKalman::interface
     static constexpr auto
     to_stat_space = [](const T&, auto&& data_view)
     {
-      decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) i = collections::get<0>(std::forward<decltype(data_view)>(data_view));
       using R = values::real_type_of_t<values::real_type_of_t<decltype(i)>>;
       auto theta = [](auto&& i)
       {
-        if constexpr (down == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
+        if constexpr (down == stdex::numbers::pi_v<R>) //< Avoid scaling, if possible.
         {
           return std::forward<decltype(i)>(i);
         }
@@ -174,11 +172,11 @@ namespace OpenKalman::interface
     static constexpr auto
     from_stat_space = [](const T&, auto&& data_view)
     {
-      decltype(auto) z = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
-      decltype(auto) w = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 1>{});
+      decltype(auto) z = collections::get<0>(std::forward<decltype(data_view)>(data_view));
+      decltype(auto) w = collections::get<1>(std::forward<decltype(data_view)>(data_view));
       using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
       auto pos_w = values::internal::update_real_part(std::forward<decltype(w)>(w), values::abs(values::real(w)));
-      if constexpr (down == stdcompat::numbers::pi_v<R>) //< avoid scaling, if possible
+      if constexpr (down == stdex::numbers::pi_v<R>) //< avoid scaling, if possible
       {
         return std::array {values::atan2(std::move(pos_w), std::forward<decltype(z)>(z))};
       }
@@ -212,7 +210,7 @@ namespace OpenKalman::interface
     static constexpr auto
     wrap = [](const T&, auto&& data_view)
     {
-      decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) i = collections::get<0>(std::forward<decltype(data_view)>(data_view));
       return std::array {values::internal::update_real_part(std::forward<decltype(i)>(i),
         values::operation(wrap_theta{}, values::real(values::real(i))))};
     };
@@ -242,7 +240,7 @@ namespace std
   struct common_type<OpenKalman::coordinates::Inclination<Down>, T>
     : std::conditional_t<
       OpenKalman::coordinates::descriptor<T>,
-      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      OpenKalman::stdex::type_identity<OpenKalman::coordinates::Any<>>,
       std::monostate> {};
 }
 

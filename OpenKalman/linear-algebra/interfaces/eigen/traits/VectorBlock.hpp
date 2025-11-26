@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename VectorType, int Size>
-  struct indexible_object_traits<Eigen::VectorBlock<VectorType, Size>>
-    : Eigen3::indexible_object_traits_base<Eigen::VectorBlock<VectorType, Size>>
+  struct object_traits<Eigen::VectorBlock<VectorType, Size>>
+    : Eigen3::object_traits_base<Eigen::VectorBlock<VectorType, Size>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::VectorBlock<VectorType, Size>>;
+    using Base = Eigen3::object_traits_base<Eigen::VectorBlock<VectorType, Size>>;
 
   public:
 
@@ -53,7 +53,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg.nestedExpression()};
+      return constant_value {arg.nestedExpression()};
     }
   };
 

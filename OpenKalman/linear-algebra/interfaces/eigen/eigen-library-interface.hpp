@@ -91,8 +91,8 @@ namespace OpenKalman::interface
     static constexpr std::tuple<Eigen::Index, Eigen::Index>
     extract_indices(const Indices& indices)
     {
-      auto it = stdcompat::ranges::begin(indices);
-      auto e = stdcompat::ranges::end(indices);
+      auto it = stdex::ranges::begin(indices);
+      auto e = stdex::ranges::end(indices);
       if (it == e) return {0, 0};
       auto i = static_cast<std::size_t>(*it);
       if (++it == e) return {i, 0};
@@ -106,11 +106,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
   template<typename Arg, std::ranges::input_range Indices> requires 
     std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
-    (collections::size_of_v<Indices> == dynamic_size or collections::size_of_v<Indices> <= 2)
+    (collections::size_of_v<Indices> == stdex::dynamic_extent or collections::size_of_v<Indices> <= 2)
   static constexpr values::scalar decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    (collections::size_of_v<Indices> == dynamic_size or collections::size_of_v<Indices> <= 2), int> = 0>
+    (collections::size_of_v<Indices> == stdex::dynamic_extent or collections::size_of_v<Indices> <= 2), int> = 0>
   static constexpr decltype(auto)
 #endif
     get_component(Arg&& arg, const Indices& indices)
@@ -142,13 +142,13 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
     template<typename Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index> and
-      (collections::size_of_v<Indices> == dynamic_size or collections::size_of_v<Indices> <= 2) and
+      (collections::size_of_v<Indices> == stdex::dynamic_extent or collections::size_of_v<Indices> <= 2) and
       std::assignable_from<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0) and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<(not std::is_const_v<Arg>) and
-      (collections::size_of_v<Indices> == dynamic_size or collections::size_of_v<Indices> <= 2) and
+      (collections::size_of_v<Indices> == stdex::dynamic_extent or collections::size_of_v<Indices> <= 2) and
       std::is_assignable<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&>::value and
       (Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0 and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>), int> = 0>
@@ -299,8 +299,8 @@ namespace OpenKalman::interface
 
     template<typename Scalar, std::size_t rows, std::size_t cols, auto options>
     using writable_type = dense_type<Scalar,
-      (rows == dynamic_size ? Eigen::Dynamic : static_cast<int>(rows)),
-      (cols == dynamic_size ? Eigen::Dynamic : static_cast<int>(cols)), options>;
+      (rows == stdex::dynamic_extent ? Eigen::Dynamic : static_cast<int>(rows)),
+      (cols == stdex::dynamic_extent ? Eigen::Dynamic : static_cast<int>(cols)), options>;
 
   public:
 
@@ -309,7 +309,7 @@ namespace OpenKalman::interface
 #else
     template<typename To, typename From, std::enable_if_t<Eigen3::eigen_general<From> and std::is_assignable_v<To&, From&&>, int> = 0>
 #endif
-    static void assign(To& a, From&& b)
+    static void copy(To& a, From&& b)
     {
       if constexpr (Eigen3::eigen_DiagonalWrapper<From>)
       {
@@ -340,8 +340,8 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto it = stdcompat::ranges::begin(descriptors);
-        auto e = stdcompat::ranges::end(descriptors);
+        auto it = stdex::ranges::begin(descriptors);
+        auto e = stdex::ranges::end(descriptors);
         if (it == e) return std::tuple {coordinates::Axis{}, coordinates::Axis{}};
         auto i = *it;
         if (++it == e) return std::tuple {i, coordinates::Axis{}};
@@ -400,7 +400,7 @@ namespace OpenKalman::interface
 
         using M = writable_type<Scalar, dim0, dim1, options>;
 
-        if constexpr (dim0 == dynamic_size or dim1 == dynamic_size)
+        if constexpr (dim0 == stdex::dynamic_extent or dim1 == stdex::dynamic_extent)
           return M {static_cast<IndexType>(get_dimension(d0)), static_cast<IndexType>(get_dimension(d1))};
         else
           return M {};
@@ -428,12 +428,12 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_lib_ranges
     template<values::dynamic C, coordinates::euclidean_pattern_collection Ds> requires
-      (collections::size_of_v<Ds> != dynamic_size) and (collections::size_of_v<Ds> <= 2)
+      (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)
     static constexpr constant_matrix auto
 #else
     template<typename C, typename Ds, std::enable_if_t<values::dynamic<C> and
       coordinates::euclidean_pattern_collection<Ds> and
-      (collections::size_of_v<Ds> != dynamic_size) and (collections::size_of_v<Ds> <= 2)), int> = 0>
+      (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)), int> = 0>
     static constexpr auto
 #endif
     make_constant(C&& c, Ds&& ds)
@@ -459,11 +459,11 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<typename Scalar, coordinates::euclidean_pattern_collection Ds> requires
-      (collections::size_of_v<Ds> != dynamic_size) and (collections::size_of_v<Ds> <= 2)
+      (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)
     static constexpr identity_matrix auto
 #else
     template<typename Scalar, typename...Ds, std::enable_if_t<coordinates::euclidean_pattern_collection<Ds> and
-      (collections::size_of_v<Ds> != dynamic_size) and (collections::size_of_v<Ds> <= 2), int> = 0>
+      (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2), int> = 0>
     static constexpr auto
 #endif
     make_identity_matrix(Ds&& ds)
@@ -637,8 +637,8 @@ namespace OpenKalman::interface
     set_triangle(A&& a, B&& b)
     {
       // A SelfAdjointView won't always be a hermitian_adapter
-      if constexpr ((t == triangle_type::lower and interface::indexible_object_traits<T>::hermitian_adapter_type == HermitianAdapterType::upper) or
-          (t == triangle_type::upper and interface::indexible_object_traits<T>::hermitian_adapter_type == HermitianAdapterType::lower))
+      if constexpr ((t == triangle_type::lower and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::upper) or
+          (t == triangle_type::upper and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::lower))
         internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), OpenKalman::adjoint(std::forward<B>(b)));
       else
         internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
@@ -657,7 +657,7 @@ namespace OpenKalman::interface
     static void
     set_triangle(A&& a, B&& b)
     {
-      assign(OpenKalman::diagonal_of(std::forward<A>(a)), OpenKalman::diagonal_of(std::forward<B>(b)));
+      copy(OpenKalman::diagonal_of(std::forward<A>(a)), OpenKalman::diagonal_of(std::forward<B>(b)));
     }
 
 
@@ -1217,7 +1217,7 @@ namespace OpenKalman::interface
       {
         // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
 
-        auto s = constant_coefficient {a};
+        auto s = constant_value {a};
 
         if (values::to_value_type(s) < Scalar(0))
         {
@@ -1235,7 +1235,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto col0 = make_constant<A>(values::sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
-          return make_vector_space_adapter(OpenKalman::make_triangular_matrix<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
+          return attach_pattern(OpenKalman::make_triangular_matrix<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
         else
         {
@@ -1243,7 +1243,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto row0 = make_constant<A>(values::sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
-          return make_vector_space_adapter(OpenKalman::make_triangular_matrix<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
+          return attach_pattern(OpenKalman::make_triangular_matrix<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
         }
       }
       else
@@ -1449,7 +1449,7 @@ namespace OpenKalman::interface
 
             if (rt_rows < rt_cols)
               ret << QR.matrixQR().topRows(rt_rows),
-                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rt_rows, rt_cols);
+                Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(rt_cols - rt_rows, rt_cols);
             else
               ret = QR.matrixQR().topRows(rt_cols);
           }
@@ -1457,7 +1457,7 @@ namespace OpenKalman::interface
           {
             if (rows < rt_cols)
               ret << QR.matrixQR().template topRows<rows>(),
-                Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(rt_cols - rows, rt_cols);
+                Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(rt_cols - rows, rt_cols);
             else
               ret = QR.matrixQR().topRows(rt_cols);
           }
@@ -1474,7 +1474,7 @@ namespace OpenKalman::interface
 
             if (rt_rows < cols)
               ret << QR.matrixQR().topRows(rt_rows),
-              Eigen3::eigen_matrix_t<Scalar, dynamic_size, dynamic_size>::Zero(cols - rt_rows, cols);
+              Eigen3::eigen_matrix_t<Scalar, stdex::dynamic_extent, stdex::dynamic_extent>::Zero(cols - rt_rows, cols);
             else
               ret = QR.matrixQR().template topRows<cols>();
           }

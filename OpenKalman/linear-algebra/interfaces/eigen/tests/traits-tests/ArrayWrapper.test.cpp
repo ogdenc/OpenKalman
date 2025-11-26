@@ -23,15 +23,15 @@ TEST(eigen3, Eigen_ArrayWrapper)
   static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::ArrayWrapper<M32>>()))>);
   static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::ArrayWrapper<I22>>()))>);
 
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C22_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<C2x_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<Cx2_2>> == 2);
-  static_assert(constant_coefficient_v<Eigen::ArrayWrapper<Cxx_2>> == 2);
+  static_assert(constant_value_v<Eigen::ArrayWrapper<C22_2>> == 2);
+  static_assert(constant_value_v<Eigen::ArrayWrapper<C2x_2>> == 2);
+  static_assert(constant_value_v<Eigen::ArrayWrapper<Cx2_2>> == 2);
+  static_assert(constant_value_v<Eigen::ArrayWrapper<Cxx_2>> == 2);
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<Cd22_2>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<Cd2x_2>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<Cdx2_2>> == 2);
-  static_assert(constant_diagonal_coefficient_v<Eigen::ArrayWrapper<Cdxx_2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::ArrayWrapper<Cd22_2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::ArrayWrapper<Cd2x_2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::ArrayWrapper<Cdx2_2>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::ArrayWrapper<Cdxx_2>> == 2);
 
   static_assert(zero<Eigen::ArrayWrapper<Z22>>);
   static_assert(zero<Eigen::ArrayWrapper<Z21>>);

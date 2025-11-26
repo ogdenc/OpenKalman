@@ -70,7 +70,7 @@ namespace OpenKalman
       not euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      stdcompat::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdex::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -85,7 +85,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      stdcompat::constructible_from<NestedMatrix,
+      stdex::constructible_from<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     Matrix(Arg&& arg)
@@ -101,7 +101,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      stdcompat::constructible_from<NestedMatrix, Arg&&>, int> = 0>
+      stdex::constructible_from<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit Matrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -116,7 +116,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
-      stdcompat::constructible_from<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
+      stdex::constructible_from<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {to_dense_object(std::forward<Arg>(arg))} {}
 
@@ -340,7 +340,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
-    struct indexible_object_traits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+    struct object_traits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
     {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
@@ -371,7 +371,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        return constant_coefficient{arg.nestedExpression()};
+        return constant_value{arg.nestedExpression()};
       }
 
 
@@ -379,7 +379,7 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         if constexpr (coordinates::euclidean_pattern<RowCoeffs> and coordinates::euclidean_pattern<ColCoeffs>)
-          return constant_diagonal_coefficient {arg.nestedExpression()};
+          return constant_diagonal_value {arg.nestedExpression()};
         else
           return std::monostate {};
       }
@@ -394,7 +394,7 @@ namespace OpenKalman
 
 
       template<triangle_type t>
-      static constexpr bool is_triangular = compares_with<RowCoeffs, ColCoeffs>and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool triangle_type_value = compares_with<RowCoeffs, ColCoeffs>and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;

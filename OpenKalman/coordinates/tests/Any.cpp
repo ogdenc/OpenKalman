@@ -32,7 +32,7 @@
 
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 namespace
 {
@@ -51,8 +51,8 @@ TEST(coordinates, Any)
   static_assert(not euclidean_pattern<Any<double>>);
   static_assert(descriptor<Any<double>>);
 
-  static_assert(dimension_of_v<Any<double>> == dynamic_size);
-  static_assert(stat_dimension_of_v<Any<float>> == dynamic_size);
+  static_assert(dimension_of_v<Any<double>> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<Any<float>> == stdex::dynamic_extent);
   EXPECT_EQ(get_dimension(Any<double> {Dimensions{5}}), 5);
   EXPECT_EQ(get_dimension(Any<double> {Dimensions<3>{}}), 3);
   EXPECT_EQ(get_stat_dimension(Any<double> {std::integral_constant<int, 7>{}}), 7);
@@ -94,9 +94,9 @@ TEST(coordinates, Any)
   EXPECT_TRUE(test::is_near(wrap(Any{Spherical<inclination::Degrees, angle::Radians, Distance>{}}, std::vector{-240., pi/6, 2.}), std::array{120., pi/6, 2.}, 1e-6));
 
   auto a = Any{angle::Circle{}};
-  auto crefa = stdcompat::cref(a);
-  static_assert(dimension_of_v<stdcompat::reference_wrapper<Any<double>>> == dynamic_size);
-  static_assert(stat_dimension_of_v<stdcompat::reference_wrapper<Any<float>>> == dynamic_size);
+  auto crefa = stdex::cref(a);
+  static_assert(dimension_of_v<stdex::reference_wrapper<Any<double>>> == stdex::dynamic_extent);
+  static_assert(stat_dimension_of_v<stdex::reference_wrapper<Any<float>>> == stdex::dynamic_extent);
   EXPECT_EQ(get_dimension(crefa), 1);
   EXPECT_EQ(get_stat_dimension(crefa), 2);
   EXPECT_FALSE(get_is_euclidean(crefa));

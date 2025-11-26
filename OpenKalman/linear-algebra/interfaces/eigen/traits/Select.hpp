@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
-  struct indexible_object_traits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
+  struct object_traits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
+    : Eigen3::object_traits_base<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
   {
   private:
 
     using Xpr = Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 
@@ -59,15 +59,15 @@ namespace OpenKalman::interface
     {
       if constexpr (constant_matrix<ConditionMatrixType>)
       {
-        if constexpr (static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
-          return constant_coefficient{arg.thenMatrix()};
+        if constexpr (static_cast<bool>(constant_value_v<ConditionMatrixType>))
+          return constant_value{arg.thenMatrix()};
         else
-          return constant_coefficient{arg.elseMatrix()};
+          return constant_value{arg.elseMatrix()};
       }
       else if constexpr (constant_matrix<ThenMatrixType> and constant_matrix<ElseMatrixType>)
       {
-        if constexpr (constant_coefficient_v<ThenMatrixType> == constant_coefficient_v<ElseMatrixType>)
-          return constant_coefficient{arg.thenMatrix()};
+        if constexpr (constant_value_v<ThenMatrixType> == constant_value_v<ElseMatrixType>)
+          return constant_value{arg.thenMatrix()};
         else return std::monostate{};
       }
       else return std::monostate{};
@@ -79,15 +79,15 @@ namespace OpenKalman::interface
     {
       if constexpr (constant_matrix<ConditionMatrixType>)
       {
-        if constexpr (static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
-          return constant_diagonal_coefficient{arg.thenMatrix()};
+        if constexpr (static_cast<bool>(constant_value_v<ConditionMatrixType>))
+          return constant_diagonal_value{arg.thenMatrix()};
         else
-          return constant_diagonal_coefficient{arg.elseMatrix()};
+          return constant_diagonal_value{arg.elseMatrix()};
       }
       else if constexpr (constant_diagonal_matrix<ThenMatrixType> and constant_diagonal_matrix<ElseMatrixType>)
       {
-        if constexpr (constant_diagonal_coefficient_v<ThenMatrixType> == constant_diagonal_coefficient_v<ElseMatrixType>)
-          return constant_diagonal_coefficient{arg.thenMatrix()};
+        if constexpr (constant_diagonal_value_v<ThenMatrixType> == constant_diagonal_value_v<ElseMatrixType>)
+          return constant_diagonal_value{arg.thenMatrix()};
         else return std::monostate{};
       }
       else return std::monostate{};
@@ -119,10 +119,10 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular =
+    static constexpr bool triangle_type_value =
       [](){
         if constexpr (constant_matrix<ConditionMatrixType>)
-          return triangular_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
+          return triangular_matrix<std::conditional_t<static_cast<bool>(constant_value_v<ConditionMatrixType>),
             ThenMatrixType, ElseMatrixType>, t>;
         else return false;
       }();
@@ -132,16 +132,16 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian =
-      (values::fixed<constant_coefficient<ConditionMatrixType>> and
+      (values::fixed<constant_value<ConditionMatrixType>> and
         [](){
           if constexpr (constant_matrix<ConditionMatrixType>)
-            return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
+            return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_value_v<ConditionMatrixType>),
               ThenMatrixType, ElseMatrixType>, applicability::permitted>;
           else return false;
         }()) or
       (hermitian_matrix<ConditionMatrixType, applicability::permitted> and hermitian_matrix<ThenMatrixType, applicability::permitted> and
         hermitian_matrix<ElseMatrixType, applicability::permitted> and
-        (not values::fixed<constant_coefficient<ConditionMatrixType>>));
+        (not values::fixed<constant_value<ConditionMatrixType>>));
   };
 
 

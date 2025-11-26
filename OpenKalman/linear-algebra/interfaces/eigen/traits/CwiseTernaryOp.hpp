@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct indexible_object_traits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-    : Eigen3::indexible_object_traits_base<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+  struct object_traits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+    : Eigen3::object_traits_base<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
   {
   private:
 
     using Xpr = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 
@@ -94,7 +94,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t>;
+    static constexpr bool triangle_type_value = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template triangle_type_value<t>;
 
     static constexpr bool is_triangular_adapter = false;
 

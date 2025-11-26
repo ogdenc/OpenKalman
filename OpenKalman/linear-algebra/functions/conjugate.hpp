@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,50 +16,63 @@
 #ifndef OPENKALMAN_CONJUGATE_HPP
 #define OPENKALMAN_CONJUGATE_HPP
 
-#include<complex>
-
+#include "values/values.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/get_mdspan.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
+#include "linear-algebra/concepts/zero.hpp"
+#include "linear-algebra/concepts/diagonal_matrix.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
+#include "linear-algebra/concepts/constant_diagonal_object.hpp"
+#include "linear-algebra/traits/constant_value_of.hpp"
+#include "linear-algebra/concepts/identity_matrix.hpp"
+#include "make_constant.hpp"
+//#include "to_diagonal.hpp"
 
 namespace OpenKalman
 {
   /**
-   * \brief Take the conjugate of a matrix
-   * \tparam Arg The matrix
+   * \brief Take the complex conjugate of an \ref indexible object
+   * \details The resulting object has every element substituted with its complex conjugate.
    */
 #ifdef __cpp_concepts
   template<indexible Arg>
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
 #endif
-  constexpr decltype(auto) conjugate(Arg&& arg)
+  constexpr decltype(auto)
+  conjugate(Arg&& arg)
   {
-    if constexpr (not values::complex<scalar_type_of_t<Arg>> or zero<Arg> or identity_matrix<Arg>)
+    if constexpr (not values::complex<element_type_of_t<Arg>> or values::not_complex<constant_value_of<Arg>>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (interface::conjugate_defined_for<Arg&&>)
     {
-      if constexpr (values::not_complex<constant_coefficient<Arg>>)
-        return std::forward<Arg>(arg);
-      else
-        return make_constant(values::conj(constant_coefficient{arg}), std::forward<Arg>(arg));
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::conjugate(std::forward<Arg>(arg));
     }
-    else if constexpr (constant_diagonal_matrix<Arg>)
+    else if constexpr (std::is_lvalue_reference_v<Arg>)
     {
-      if constexpr (values::not_complex<constant_diagonal_coefficient<Arg>>)
-        return std::forward<Arg>(arg);
-      else
-        return to_diagonal(make_constant(values::conj(constant_diagonal_coefficient{arg}),
-          diagonal_of(std::forward<Arg>(arg))));
+      return conjugate(get_mdspan(arg));
+    }
+    else if constexpr (constant_object<Arg>)
+    {
+      return make_constant(values::conj(constant_value(arg)), get_pattern_collection(std::forward<Arg>(arg)));
+    }
+    else if constexpr (constant_diagonal_object<Arg>)
+    {
+      return to_diagonal(make_constant(values::conj(constant_value(arg)), get_pattern_collection(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return to_diagonal(conjugate(diagonal_of(std::forward<Arg>(arg))));
+      //return to_diagonal(conjugate(diagonal_of(std::forward<Arg>(arg))));
     }
     else
     {
-      return interface::library_interface<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
+      static_assert(interface::conjugate_defined_for<Arg&&>, "Interface not defined");
     }
   }
+
 
 }
 

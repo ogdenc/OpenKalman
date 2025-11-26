@@ -17,7 +17,8 @@
 #ifndef OPENKALMAN_LIBRARY_BASE_HPP
 #define OPENKALMAN_LIBRARY_BASE_HPP
 
-#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
+#include <variant> // for std::monostate
+#include "linear-algebra/interfaces/interfaces-defined.hpp"
 
 namespace OpenKalman::internal
 {
@@ -52,7 +53,7 @@ namespace OpenKalman::internal
     interface::library_base_defined_for<Derived, std::decay_t<LibraryObject>>>>
 #endif
   {
-    using type = typename interface::library_interface<std::decay_t<LibraryObject>>::template library_base<std::decay_t<Derived>>;
+    using type = typename interface::library_interface<stdex::remove_cvref_t<LibraryObject>>::template library_base<std::decay_t<Derived>>;
   };
 
 

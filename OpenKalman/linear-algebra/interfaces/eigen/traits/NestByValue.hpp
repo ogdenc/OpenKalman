@@ -22,12 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename ExpressionType>
-  struct indexible_object_traits<Eigen::NestByValue<ExpressionType>>
-    : Eigen3::indexible_object_traits_base<Eigen::NestByValue<ExpressionType>>
+  struct object_traits<Eigen::NestByValue<ExpressionType>>
+    : Eigen3::object_traits_base<Eigen::NestByValue<ExpressionType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::NestByValue<ExpressionType>>;
+    using Base = Eigen3::object_traits_base<Eigen::NestByValue<ExpressionType>>;
 
   public:
 
@@ -48,14 +48,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg.nestedExpression()};
+      return constant_value {arg.nestedExpression()};
     }
 
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_diagonal_coefficient {arg.nestedExpression()};
+      return constant_diagonal_value {arg.nestedExpression()};
     }
 
 
@@ -68,7 +68,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = triangular_matrix<ExpressionType, t>;
+    static constexpr bool triangle_type_value = triangular_matrix<ExpressionType, t>;
 
 
     static constexpr bool is_triangular_adapter = false;

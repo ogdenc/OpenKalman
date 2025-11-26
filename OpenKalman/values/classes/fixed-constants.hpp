@@ -27,14 +27,14 @@ namespace OpenKalman::values
    */
 #if __cpp_nontype_template_args >= 201911L
   template<number T>
-  using fixed_pi = fixed_value<T, stdcompat::numbers::pi_v<T>>;
+  using fixed_pi = fixed_value<T, stdex::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_pi
   {
     static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {stdcompat::numbers::pi_v<value_type>};
+    static constexpr value_type value {stdex::numbers::pi_v<value_type>};
     using type = fixed_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -47,14 +47,14 @@ namespace OpenKalman::values
    */
 #if __cpp_nontype_template_args >= 201911L
   template<number T>
-  using fixed_minus_pi = fixed_value<T, -stdcompat::numbers::pi_v<T>>;
+  using fixed_minus_pi = fixed_value<T, -stdex::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_pi
   {
     static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {-stdcompat::numbers::pi_v<value_type>};
+    static constexpr value_type value {-stdex::numbers::pi_v<value_type>};
     using type = fixed_minus_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -67,14 +67,14 @@ namespace OpenKalman::values
    */
 #if __cpp_nontype_template_args >= 201911L
   template<number T>
-  using fixed_2pi = fixed_value<T, 2 * stdcompat::numbers::pi_v<T>>;
+  using fixed_2pi = fixed_value<T, 2 * stdex::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_2pi
   {
     static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {2 * stdcompat::numbers::pi_v<value_type>};
+    static constexpr value_type value {2 * stdex::numbers::pi_v<value_type>};
     using type = fixed_2pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -87,14 +87,14 @@ namespace OpenKalman::values
    */
 #if __cpp_nontype_template_args >= 201911L
   template<number T>
-  using fixed_half_pi = fixed_value<T, static_cast<T>(0.5) * stdcompat::numbers::pi_v<T>>;
+  using fixed_half_pi = fixed_value<T, static_cast<T>(0.5) * stdex::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_half_pi
   {
     static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {static_cast<value_type>(0.5) * stdcompat::numbers::pi_v<value_type>};
+    static constexpr value_type value {static_cast<value_type>(0.5) * stdex::numbers::pi_v<value_type>};
     using type = fixed_half_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -107,14 +107,14 @@ namespace OpenKalman::values
    */
 #if __cpp_nontype_template_args >= 201911L
   template<number T>
-  using fixed_minus_half_pi = fixed_value<T, static_cast<T>(-0.5) * stdcompat::numbers::pi_v<T>>;
+  using fixed_minus_half_pi = fixed_value<T, static_cast<T>(-0.5) * stdex::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_half_pi
   {
     static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {static_cast<value_type>(-0.5) * stdcompat::numbers::pi_v<value_type>};
+    static constexpr value_type value {static_cast<value_type>(-0.5) * stdex::numbers::pi_v<value_type>};
     using type = fixed_minus_half_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -127,7 +127,7 @@ namespace OpenKalman::values
    */
   struct fixed_partial_ordering_equivalent
   {
-    using value_type = stdcompat::partial_ordering;
+    using value_type = stdex::partial_ordering;
     static constexpr auto value = value_type::equivalent;
     using type = fixed_partial_ordering_equivalent;
     constexpr operator value_type () const { return value; }
@@ -140,7 +140,7 @@ namespace OpenKalman::values
    */
   struct fixed_partial_ordering_less
   {
-    using value_type = stdcompat::partial_ordering;
+    using value_type = stdex::partial_ordering;
     static constexpr auto value = value_type::less;
     using type = fixed_partial_ordering_equivalent;
     constexpr operator value_type () const { return value; }
@@ -153,7 +153,7 @@ namespace OpenKalman::values
    */
   struct fixed_partial_ordering_greater
   {
-    using value_type = stdcompat::partial_ordering;
+    using value_type = stdex::partial_ordering;
     static constexpr auto value = value_type::greater;
     using type = fixed_partial_ordering_equivalent;
     constexpr operator value_type () const { return value; }
@@ -166,7 +166,7 @@ namespace OpenKalman::values
    */
   struct fixed_partial_ordering_unordered
   {
-    using value_type = stdcompat::partial_ordering;
+    using value_type = stdex::partial_ordering;
     static constexpr auto value = value_type::unordered;
     using type = fixed_partial_ordering_equivalent;
     constexpr operator value_type () const { return value; }

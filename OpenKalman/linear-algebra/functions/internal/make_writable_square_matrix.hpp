@@ -34,7 +34,7 @@ namespace OpenKalman::internal
     {
       return std::forward<A>(a);
     }
-    else if constexpr (not has_dynamic_dimensions<A> or dim == dynamic_size)
+    else if constexpr (not has_dynamic_dimensions<A> or dim == stdex::dynamic_extent)
     {
       return to_dense_object(std::forward<A>(a));
     }

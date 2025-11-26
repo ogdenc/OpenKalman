@@ -24,7 +24,7 @@
 #include "internal/exposition.hpp"
 #include "common.hpp"
 
-namespace OpenKalman::stdcompat
+namespace OpenKalman::stdex
 {
 #ifdef __cpp_lib_ranges
   using std::indirectly_readable_traits;
@@ -216,8 +216,8 @@ namespace OpenKalman::stdcompat
     template<typename T>
     struct legacy_iterator<T,
       std::enable_if_t<
-        stdcompat::copyable<T> and
-        stdcompat::same_as<decltype(++std::declval<T>()), T&>>,
+        stdex::copyable<T> and
+        stdex::same_as<decltype(++std::declval<T>()), T&>>,
       std::void_t<
         decltype(*std::declval<T>())&,
         decltype(*std::declval<T>()++)&>>
@@ -229,13 +229,13 @@ namespace OpenKalman::stdcompat
 
     template<typename T>
     struct legacy_input_iterator<T,
-      std::enable_if_t<stdcompat::signed_integral<typename stdcompat::incrementable_traits<T>::difference_type>>,
+      std::enable_if_t<stdex::signed_integral<typename stdex::incrementable_traits<T>::difference_type>>,
       std::void_t<
-        typename stdcompat::incrementable_traits<T>::difference_type,
-        typename stdcompat::indirectly_readable_traits<T>::value_type,
-        typename stdcompat::common_reference<decltype(*std::declval<T&>())&&, typename stdcompat::indirectly_readable_traits<T>::value_type&>::type,
+        typename stdex::incrementable_traits<T>::difference_type,
+        typename stdex::indirectly_readable_traits<T>::value_type,
+        typename stdex::common_reference<decltype(*std::declval<T&>())&&, typename stdex::indirectly_readable_traits<T>::value_type&>::type,
         decltype(*std::declval<T>()++),
-        typename stdcompat::common_reference<decltype(*std::declval<T>()++)&&, typename stdcompat::indirectly_readable_traits<T>::value_type&>::type>>
+        typename stdex::common_reference<decltype(*std::declval<T>()++)&&, typename stdex::indirectly_readable_traits<T>::value_type&>::type>>
       : std::true_type {};
 
 
@@ -244,9 +244,9 @@ namespace OpenKalman::stdcompat
 
     template<typename T>
     struct inherit_incrementable_traits_difference_if_exists<T,
-      std::void_t<typename stdcompat::incrementable_traits<T>::difference_type>>
+      std::void_t<typename stdex::incrementable_traits<T>::difference_type>>
     {
-      using type = typename stdcompat::incrementable_traits<T>::difference_type;
+      using type = typename stdex::incrementable_traits<T>::difference_type;
     };
   }
 
@@ -271,8 +271,8 @@ namespace OpenKalman::stdcompat
     detail::legacy_input_iterator<Iter>::value>>
     : detail::inherit_incrementable_traits_difference_if_exists<Iter>
   {
-    using difference_type   = typename stdcompat::incrementable_traits<Iter>::difference_type;
-    using value_type        = typename stdcompat::indirectly_readable_traits<Iter>::value_type;
+    using difference_type   = typename stdex::incrementable_traits<Iter>::difference_type;
+    using value_type        = typename stdex::indirectly_readable_traits<Iter>::value_type;
     using pointer           = std::conditional_t<
                                 detail::iterator_traits_pointer_defined<Iter>::value,
                                 typename Iter::pointer,
@@ -298,7 +298,7 @@ namespace OpenKalman::stdcompat
     using pointer           = void;
     using reference         = void;
     using iterator_category = std::output_iterator_tag;
-    using iterator_concept  = stdcompat::contiguous_iterator_tag;
+    using iterator_concept  = stdex::contiguous_iterator_tag;
   };
 
   template<typename T>
@@ -309,7 +309,7 @@ namespace OpenKalman::stdcompat
     using pointer           = T*;
     using reference         = T&;
     using iterator_category = std::random_access_iterator_tag;
-    using iterator_concept  = stdcompat::contiguous_iterator_tag;
+    using iterator_concept  = stdex::contiguous_iterator_tag;
   };
 
 
@@ -323,25 +323,25 @@ namespace OpenKalman::stdcompat
     struct iter_value_impl : indirectly_readable_traits<T> {};
 
     template<typename T>
-    struct iter_value_impl<T, std::void_t<typename stdcompat::iterator_traits<T>::value_type>> : stdcompat::iterator_traits<T> {};
+    struct iter_value_impl<T, std::void_t<typename stdex::iterator_traits<T>::value_type>> : stdex::iterator_traits<T> {};
 
 
     template<typename T, typename = void>
     struct iter_difference_impl : incrementable_traits<T> {};
 
     template<typename T>
-    struct iter_difference_impl<T, std::void_t<typename stdcompat::iterator_traits<T>::difference_type>> : stdcompat::iterator_traits<T> {};
+    struct iter_difference_impl<T, std::void_t<typename stdex::iterator_traits<T>::difference_type>> : stdex::iterator_traits<T> {};
   }
 
 
   template<typename I>
-  using iter_value_t = typename detail::iter_value_impl<stdcompat::remove_cvref_t<I>>::value_type;
+  using iter_value_t = typename detail::iter_value_impl<stdex::remove_cvref_t<I>>::value_type;
 
   template<typename I>
   using iter_reference_t = decltype(*std::declval<I&>());
 
   template<typename I>
-  using iter_difference_t = typename detail::iter_difference_impl<stdcompat::remove_cvref_t<I>>::difference_type;
+  using iter_difference_t = typename detail::iter_difference_impl<stdex::remove_cvref_t<I>>::difference_type;
 
   template<typename I>
   using iter_rvalue_reference_t = decltype(std::move(*std::declval<I&>()));
@@ -364,18 +364,18 @@ namespace OpenKalman::stdcompat
 
 
   template<typename I>
-  inline constexpr bool indirectly_readable = detail::is_indirectly_readable<stdcompat::remove_cvref_t<I>>::value;
+  inline constexpr bool indirectly_readable = detail::is_indirectly_readable<stdex::remove_cvref_t<I>>::value;
 
 
   template<typename T, std::enable_if_t<indirectly_readable<T>, int > = 0>
-  using iter_common_reference_t = stdcompat::common_reference_t<iter_reference_t<T>, iter_value_t<T>&>;
+  using iter_common_reference_t = stdex::common_reference_t<iter_reference_t<T>, iter_value_t<T>&>;
 
 #endif
 
 
 #if __cplusplus < 202302L
   template<typename T, std::enable_if_t<indirectly_readable<T>, int > = 0>
-  using iter_const_reference_t = stdcompat::common_reference_t<const iter_value_t<T>&&, iter_reference_t<T>>;
+  using iter_const_reference_t = stdex::common_reference_t<const iter_value_t<T>&&, iter_reference_t<T>>;
 #endif
 
 
@@ -490,7 +490,7 @@ namespace OpenKalman::stdcompat
 
   template<typename I>
   inline constexpr bool incrementable =
-    stdcompat::copy_constructible<I> and
+    stdex::copy_constructible<I> and
     std::is_object_v<I> and
     std::is_move_constructible_v<I> and
     std::is_assignable_v<I&, I> and
@@ -523,8 +523,8 @@ namespace OpenKalman::stdcompat
 
     template<typename I>
     struct is_bidirectional_iterator<I, std::enable_if_t<
-      stdcompat::same_as<decltype(--std::declval<I&>()), I&> and
-      stdcompat::same_as<decltype(std::declval<I&>()--), I>>> : std::true_type {};
+      stdex::same_as<decltype(--std::declval<I&>()), I&> and
+      stdex::same_as<decltype(std::declval<I&>()--), I>>> : std::true_type {};
   }
 
 
@@ -545,8 +545,8 @@ namespace OpenKalman::stdcompat
 
     template<typename I, typename S>
     struct subtractable<I, S, std::enable_if_t<
-      stdcompat::same_as<decltype(std::declval<const S&>() - std::declval<const I&>()), iter_difference_t<I>> and
-      stdcompat::same_as<decltype(std::declval<const I&>() - std::declval<const S&>()), iter_difference_t<I>>
+      stdex::same_as<decltype(std::declval<const S&>() - std::declval<const I&>()), iter_difference_t<I>> and
+      stdex::same_as<decltype(std::declval<const I&>() - std::declval<const S&>()), iter_difference_t<I>>
     >> : std::true_type {};
 
   }
@@ -554,7 +554,7 @@ namespace OpenKalman::stdcompat
 
   template<typename S, typename I>
   inline constexpr bool sentinel_for =
-    stdcompat::semiregular<S> and input_or_output_iterator<I> and OpenKalman::internal::WeaklyEqualityComparableWith<S, I>;
+    stdex::semiregular<S> and input_or_output_iterator<I> and OpenKalman::internal::WeaklyEqualityComparableWith<S, I>;
 
 
   template<typename S, typename I>
@@ -574,12 +574,12 @@ namespace OpenKalman::stdcompat
 
     template<typename I>
     struct is_random_access_iterator<I, std::enable_if_t<
-      stdcompat::same_as<decltype(std::declval<I&>() += std::declval<iter_difference_t<I>>()), I&> and
-      stdcompat::same_as<decltype(std::declval<const I&>() + std::declval<iter_difference_t<I>>()), I> and
-      stdcompat::same_as<decltype(std::declval<iter_difference_t<I>>() + std::declval<const I&>()), I> and
-      stdcompat::same_as<decltype(std::declval<I&>() -= std::declval<iter_difference_t<I>>()), I&> and
-      stdcompat::same_as<decltype(std::declval<const I&>() - std::declval<iter_difference_t<I>>()), I> and
-      stdcompat::same_as<decltype(std::declval<const I&>()[std::declval<iter_difference_t<I>>()]), iter_reference_t<I>>
+      stdex::same_as<decltype(std::declval<I&>() += std::declval<iter_difference_t<I>>()), I&> and
+      stdex::same_as<decltype(std::declval<const I&>() + std::declval<iter_difference_t<I>>()), I> and
+      stdex::same_as<decltype(std::declval<iter_difference_t<I>>() + std::declval<const I&>()), I> and
+      stdex::same_as<decltype(std::declval<I&>() -= std::declval<iter_difference_t<I>>()), I&> and
+      stdex::same_as<decltype(std::declval<const I&>() - std::declval<iter_difference_t<I>>()), I> and
+      stdex::same_as<decltype(std::declval<const I&>()[std::declval<iter_difference_t<I>>()]), iter_reference_t<I>>
     >> : std::true_type {};
   }
 
@@ -587,8 +587,8 @@ namespace OpenKalman::stdcompat
   template<typename I>
   inline constexpr bool random_access_iterator =
     bidirectional_iterator<I> and
-    stdcompat::totally_ordered<I> and
-    stdcompat::sized_sentinel_for<I, I> and
+    stdex::totally_ordered<I> and
+    stdex::sized_sentinel_for<I, I> and
     detail::is_random_access_iterator<I>::value;
 
 

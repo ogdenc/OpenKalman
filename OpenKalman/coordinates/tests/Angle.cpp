@@ -27,7 +27,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 
-using OpenKalman::stdcompat::numbers::pi;
+using OpenKalman::stdex::numbers::pi;
 
 TEST(coordinates, Angle)
 {
@@ -42,7 +42,7 @@ TEST(coordinates, Angle)
   static_assert(dimension_of_v<angle::Radians> == 1);
   static_assert(stat_dimension_of_v<angle::Radians> == 2);
 
-  using ARef = stdcompat::reference_wrapper<angle::Radians>;
+  using ARef = stdex::reference_wrapper<angle::Radians>;
   static_assert(dimension_of_v<ARef> == 1);
   static_assert(stat_dimension_of_v<ARef> == 2);
   static_assert(not euclidean_pattern<ARef>);
@@ -117,8 +117,8 @@ TEST(coordinates, Angle_transformations)
   EXPECT_TRUE(test::is_near(wrap(angle::Circle{}, std::vector{-0.2}), std::array{0.8}, 1e-6));
 
   static constexpr auto c = angle::Circle{};
-  EXPECT_TRUE(values::internal::near(to_stat_space(stdcompat::cref(c), std::array{-13./12})[1U], -0.5, 1e-6));
-  EXPECT_TRUE(values::internal::near(from_stat_space(stdcompat::cref(c), std::array{0.5, -sqrt3_2})[0U], 5./6, 1e-6));
-  EXPECT_TRUE(values::internal::near(wrap(stdcompat::cref(c), std::array{-0.2})[0U], 0.8, 1e-6));
+  EXPECT_TRUE(values::internal::near(to_stat_space(stdex::cref(c), std::array{-13./12})[1U], -0.5, 1e-6));
+  EXPECT_TRUE(values::internal::near(from_stat_space(stdex::cref(c), std::array{0.5, -sqrt3_2})[0U], 5./6, 1e-6));
+  EXPECT_TRUE(values::internal::near(wrap(stdex::cref(c), std::array{-0.2})[0U], 0.8, 1e-6));
 }
 

@@ -57,7 +57,7 @@ namespace OpenKalman
     }
     else if constexpr (interface::make_triangular_matrix_defined_for<Arg, t, Arg&&>)
     {
-      using Traits = interface::library_interface<std::decay_t<Arg>>;
+      using Traits = interface::library_interface<stdex::remove_cvref_t<Arg>>;
       return Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg));
     }
     else // Default behavior if interface function not defined:

@@ -59,9 +59,9 @@ TEST(coordinates, fixed_concatenation)
 
   static constexpr auto d0 = Distance{};
   EXPECT_TRUE(compare(concat(std::tuple{Dimensions<0>{}, d0}, std::tuple{d0, Dimensions<0>{}}), std::tuple<Distance, Distance>{}));
-  EXPECT_TRUE(compare(concat(stdcompat::cref(d0), std::tuple{d0, Dimensions<0>{}}), std::tuple<Distance, Distance>{}));
-  EXPECT_TRUE(compare(concat(std::tuple{Dimensions<0>{}, d0}, stdcompat::cref(d0)), std::tuple<Distance, Distance>{}));
-  EXPECT_TRUE(compare(concat(stdcompat::cref(d0), stdcompat::cref(d0)), std::tuple<Distance, Distance>{}));
+  EXPECT_TRUE(compare(concat(stdex::cref(d0), std::tuple{d0, Dimensions<0>{}}), std::tuple<Distance, Distance>{}));
+  EXPECT_TRUE(compare(concat(std::tuple{Dimensions<0>{}, d0}, stdex::cref(d0)), std::tuple<Distance, Distance>{}));
+  EXPECT_TRUE(compare(concat(stdex::cref(d0), stdex::cref(d0)), std::tuple<Distance, Distance>{}));
 }
 
 
@@ -112,18 +112,24 @@ TEST(coordinates, dynamic_concatenation)
     std::vector {Any{Axis{}}, Any{angle::Radians{}}, Any{angle::Degrees{}}, Any{Axis{}}}));
 }
 
-
 #include "coordinates/views/replicate.hpp"
 
 TEST(coordinates, replicate)
 {
   using coordinates::views::replicate;
+
+  static_assert(coordinates::dimension_of_v<decltype(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 4>{}))> == 12);
+  static_assert(coordinates::get_dimension(replicate(Dimensions<3>{}, 4u))== 12);
+  static_assert(coordinates::get_dimension(replicate(Dimensions{3}, std::integral_constant<std::size_t, 4>{})) == 12);
+  static_assert(coordinates::get_dimension(replicate(Dimensions{3}, 4_uz)) == 12);
+  static_assert(coordinates::get_dimension(replicate(Dimensions{3}, 4u)) == 12);
+
   static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 4>{}), Dimensions<12>{}));
   static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 8>{}), Dimensions<24>{}));
   static_assert(compare(replicate(collections::views::all(std::tuple{}), std::integral_constant<std::size_t, 4>{}), Dimensions<0>{}));
   static_assert(compare(replicate(Dimensions<3>{}, std::integral_constant<std::size_t, 0>{}), Dimensions<0>{}));
 
-  static_assert(compare(replicate(Distance{}, std::integral_constant<std::size_t, 1>{}), Distance{}));
+  EXPECT_TRUE(compare(replicate(Distance{}, std::integral_constant<std::size_t, 1>{}), Distance{}));
   static_assert(compare(replicate(Distance{}, std::integral_constant<std::size_t, 2>{}), std::array<Distance, 2>{}));
   static_assert(compare(replicate(std::tuple<Distance, angle::Radians>{}, std::integral_constant<std::size_t, 2>{}), std::tuple<Distance, angle::Radians, Distance, angle::Radians>{}));
 
@@ -131,23 +137,65 @@ TEST(coordinates, replicate)
   static_assert(compare(replicate(std::tuple<Axis, Distance, Axis>{}, std::integral_constant<std::size_t, 2>{}), std::tuple<Axis, Distance, Dimensions<2>, Distance, Axis>{}));
   static_assert(compare(replicate(std::tuple<Axis, Distance, Axis>{}, std::integral_constant<std::size_t, 3>{}), std::tuple<Axis, Distance, Dimensions<2>, Distance, Dimensions<2>, Distance, Axis>{}));
   static_assert(compare(replicate(std::tuple<Axis, Distance, Dimensions<2>>{}, std::integral_constant<std::size_t, 4>{}), std::tuple<Axis, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<2>>{}));
-}
 
-
-TEST(coordinates, dynamic_replication)
-{
-  using coordinates::views::replicate;
   static_assert(compare(replicate(Dimensions<3>{}, 4u), Dimensions{12}));
   static_assert(compare(replicate(Dimensions<3>{}, 8u), Dimensions{24}));
   static_assert(compare(replicate(collections::views::all(std::tuple<>{}), 4u), Dimensions{0}));
   static_assert(compare(replicate(Dimensions<3>{}, 0u), Dimensions{0}));
 
-  EXPECT_TRUE(compare(replicate(Dimensions{3}, 4u), Dimensions{12}));
-  EXPECT_TRUE(compare(replicate(Dimensions{3}, 8u), Dimensions{24}));
-  EXPECT_TRUE(compare(replicate(Dimensions{0}, 4u), Dimensions{0}));
-  EXPECT_TRUE(compare(replicate(Dimensions{3}, 0u), Dimensions{0}));
+  static_assert(compare(replicate(Dimensions{3}, 4u), Dimensions{12}));
+  static_assert(compare(replicate(Dimensions{3}, 8u), Dimensions{24}));
+  static_assert(compare(replicate(Dimensions{0}, 4u), Dimensions{0}));
+  static_assert(compare(replicate(Dimensions{3}, 0u), Dimensions{0}));
 
   EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}}, std::integral_constant<std::size_t, 2>{}), std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
   EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}}, 2u), std::vector {Any{Axis{}}, Any{Distance{}}, Any{Axis{}}, Any{Distance{}}}));
   EXPECT_TRUE(compare(replicate(std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}}, 2u), std::vector {Any{Axis{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Dimensions<2>{}}, Any{Distance{}}, Any{angle::Degrees{}}, Any{Axis{}}}));
+}
+
+#include "coordinates/views/dimensions.hpp"
+
+TEST(coordinates, views_dimensions)
+{
+  using N0 = std::integral_constant<std::size_t, 0>;
+  using N1 = std::integral_constant<std::size_t, 1>;
+  using N2 = std::integral_constant<std::size_t, 2>;
+  using N3 = std::integral_constant<std::size_t, 3>;
+  using N4 = std::integral_constant<std::size_t, 4>;
+  using coordinates::views::dimensions;
+  using collections::compare_indices;
+
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<3>{}}), N0{}) == 3);
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<4>{}}), 0U) == 4);
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<5>{}, Dimensions<6>{}}), N0{}) == 5);
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<5>{}, Dimensions<6>{}}), N1{}) == 6);
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<5>{}, Dimensions<6>{}}), 0U) == 5);
+  static_assert(collections::get_element(dimensions(std::tuple{Dimensions<5>{}, Dimensions<6>{}}), 1U) == 6);
+
+  static_assert(collections::get_element(dimensions(std::array{3U}), N0{}) == 3);
+  static_assert(collections::get_element(dimensions(std::array{4U}), 0U) == 4);
+  static_assert(collections::get_element(dimensions(std::array{5U, 6U}), N0{}) == 5);
+  static_assert(collections::get_element(dimensions(std::array{5U, 6U}), N1{}) == 6);
+  static_assert(collections::get_element(dimensions(std::array{5U, 6U}), 0U) == 5);
+  static_assert(collections::get_element(dimensions(std::array{5U, 6U}), 1U) == 6);
+
+  static_assert(compare_indices(dimensions(std::tuple{Dimensions<3>{}}), std::tuple{N3{}}));
+  static_assert(compare_indices(dimensions(std::tuple{Dimensions<3>{}}), std::array{3U}));
+  EXPECT_TRUE(compare_indices(dimensions(std::tuple{Dimensions<3>{}}), std::vector{3U}));
+  static_assert(compare_indices(dimensions(std::tuple{Dimensions<3>{}, Dimensions<4>{}}), std::tuple{N3{}, N4{}}));
+  static_assert(compare_indices<&stdex::is_neq>(dimensions(std::tuple{Dimensions<2>{}, Dimensions<5>{}}), std::tuple{N3{}, N4{}}));
+  static_assert(compare_indices(dimensions(collections::views::all(std::tuple{})), std::tuple{}));
+  static_assert(compare_indices(dimensions(std::tuple{Angle{}}), std::tuple{N1{}}));
+  static_assert(compare_indices(dimensions(std::tuple{Angle{}, Inclination{}, Polar{}}), std::tuple{N1{}, N1{}, N2{}}));
+  EXPECT_TRUE(compare_indices(dimensions(std::tuple{Angle{}, Inclination{}, Polar{}}), std::vector{1U, 1U, 2U}));
+
+  static_assert(compare_indices(dimensions(std::tuple{Dimensions<3>{}}), std::tuple{N3{}, N1{}}));
+  static_assert(compare_indices(std::tuple{N2{}, N1{}, N1{}}, dimensions(std::tuple{Polar{}})));
+  static_assert(compare_indices<&stdex::is_lt>(std::tuple{N1{}, N2{}, N0{}, N0{}}, dimensions(std::tuple{Polar{}, Spherical{}, Inclination{}})));
+  static_assert(compare_indices<&stdex::is_lt>(std::tuple{1U, 2U, 0U, 0U}, dimensions(std::tuple{Polar{}, Spherical{}, Inclination{}})));
+  static_assert(not compare_indices<&stdex::is_lt>(std::tuple{1U, 3U, 0U, 0U}, dimensions(std::tuple{Polar{}, Spherical{}, Inclination{}})));
+  EXPECT_TRUE(compare_indices<&stdex::is_lt>(std::vector{1U, 2U, 0U, 0U}, dimensions(std::tuple{Polar{}, Spherical{}, Inclination{}})));
+  EXPECT_TRUE(compare_indices<&stdex::is_lt>(std::vector{1U, 2U, 0U, 0U}, dimensions(std::vector{Any{Polar{}}, Any{Spherical{}}, Any{Inclination{}}})));
+
+  EXPECT_TRUE(compare_indices<&stdex::is_lt>(std::vector{2U, 2U, 0U, 0U}, dimensions(std::tuple{std::tuple{Polar{}, Distance{}}, Any{Spherical{}}, Any{Inclination{}}})));
 }

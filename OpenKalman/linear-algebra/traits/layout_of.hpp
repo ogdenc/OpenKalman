@@ -17,6 +17,7 @@
 #define OPENKALMAN_LAYOUT_OF_HPP
 
 #include "linear-algebra/traits/get_mdspan.hpp"
+#include "linear-algebra/concepts/internal/layout_mapping_policy.hpp"
 
 namespace OpenKalman
 {
@@ -43,11 +44,12 @@ namespace OpenKalman
 #endif
   {
     using type = typename std::decay_t<decltype(get_mdspan(std::declval<T&>()))>::layout_type;
+    static_assert(internal::layout_mapping_policy<type>);
   };
 
 
   /**
-   * \brief helper template for \ref element_type_of.
+   * \brief helper template for \ref layout_of.
    */
   template<typename T>
   using layout_of_t = typename layout_of<T>::type;

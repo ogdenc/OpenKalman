@@ -22,7 +22,7 @@
 #include "view_interface.hpp"
 #include "all.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #if __cpp_lib_ranges_concat >= 202403L
   using std::ranges::concat_view;
@@ -67,7 +67,7 @@ namespace OpenKalman::stdcompat::ranges
       {
         std::vector<std::size_t> table;
         auto it = std::back_inserter(table);
-        (std::fill_n(it, stdcompat::ranges::size(std::get<cs>(tup)), cs), ...);
+        (std::fill_n(it, stdex::ranges::size(std::get<cs>(tup)), cs), ...);
         return table;
       }
 
@@ -95,7 +95,7 @@ namespace OpenKalman::stdcompat::ranges
       {
         if constexpr (i < sizeof...(Views))
         {
-          std::size_t next_loc = currloc + stdcompat::ranges::size(std::get<i>(tup));
+          std::size_t next_loc = currloc + stdex::ranges::size(std::get<i>(tup));
           return make_start_table<i + 1>(tup, next_loc, locs..., currloc);
         }
         else
@@ -157,13 +157,13 @@ namespace OpenKalman::stdcompat::ranges
       constexpr iterator() = default;
 
       constexpr iterator(iterator<not Const> it) requires Const and
-        (... and std::convertible_to<stdcompat::ranges::iterator_t<Views>, stdcompat::ranges::iterator_t<const Views>>)
+        (... and std::convertible_to<stdex::ranges::iterator_t<Views>, stdex::ranges::iterator_t<const Views>>)
         : parent(it.parent), current(it.current) {}
 #else
       constexpr iterator() : parent{nullptr} {};
 
       template<bool C = Const, std::enable_if_t<C and
-        (... and stdcompat::convertible_to<iterator_t<Views>, iterator_t<const Views>>), int> = 0>
+        (... and stdex::convertible_to<iterator_t<Views>, iterator_t<const Views>>), int> = 0>
       constexpr iterator(iterator<not C> it) : parent(it.parent), current(it.current) {}
 #endif
 
@@ -252,7 +252,7 @@ namespace OpenKalman::stdcompat::ranges
 #ifdef __cpp_concepts
     constexpr concat_view() = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and (... and stdcompat::default_initializable<Views>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (... and stdex::default_initializable<Views>), int> = 0>
     constexpr concat_view() {}
 #endif
 
@@ -294,7 +294,7 @@ namespace OpenKalman::stdcompat::ranges
     {
       return std::apply([&f](auto&&...args)
       {
-        return std::tuple<std::invoke_result_t<F&, decltype(args)>...>(stdcompat::invoke(f, std::forward<decltype(args)>(args))...);
+        return std::tuple<std::invoke_result_t<F&, decltype(args)>...>(stdex::invoke(f, std::forward<decltype(args)>(args))...);
       }, std::forward<Tuple>(tuple));
 
     }
@@ -309,7 +309,7 @@ namespace OpenKalman::stdcompat::ranges
 #endif
     {
       return std::apply([](auto...sizes) { return (... + static_cast<std::size_t>(sizes)); },
-        tuple_transform(stdcompat::ranges::size, views_tup));
+        tuple_transform(stdex::ranges::size, views_tup));
     }
 
   private:

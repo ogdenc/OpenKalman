@@ -16,45 +16,54 @@
 #ifndef OPENKALMAN_IS_ONE_DIMENSIONAL_HPP
 #define OPENKALMAN_IS_ONE_DIMENSIONAL_HPP
 
+#include "linear-algebra/traits/count_indices.hpp"
+#include "linear-algebra/traits/index_count.hpp"
+#include "linear-algebra/traits/get_index_extent.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<std::size_t I, std::size_t...Is, typename T>
-    constexpr bool is_one_dimensional_impl(std::index_sequence<I, Is...>, const T& t)
+    template<std::size_t i = 0, typename T>
+    constexpr bool is_one_dimensional_impl(const T& t)
     {
-      return get_index_extent<I>(t) == 1_uz and
-        (... and (get_pattern_collection<I>(t) == get_pattern_collection<Is>(t)));
+      if constexpr (i < index_count_v<T>)
+      {
+        return values::operation(
+          std::logical_and{},
+          values::operation(std::equal_to{}, get_index_extent<i>(t), std::integral_constant<std::size_t, 1>{}),
+          is_one_dimensional_impl<i + 1>(t));
+      }
+      else
+      {
+        return std::true_type {};
+      }
     }
   }
 
 
   /**
-   * \brief Return true if T is a \ref one_dimensional at runtime.
-   * \details Each index also must have an equivalent \ref coordinates::pattern object.
-   * \tparam T A tensor or matrix
+   * \brief Determine whether T is one_dimensional, meaning that every index has a dimension of 1.
+   * \details Each index need not have an equivalent \ref coordinates::pattern.
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T>
+  template<indexible T>
+  constexpr internal::boolean_testable auto is_one_dimensional(const T& t)
 #else
-  template<typename T, std::enable_if_t<interface::count_indices_defined_for<T>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
+  constexpr auto is_one_dimensional(const T& t)
 #endif
-  constexpr bool is_one_dimensional(const T& t)
   {
-    if constexpr (values::fixed<decltype(count_indices(t))>)
+    if constexpr (index_count_v<T> == stdex::dynamic_extent)
     {
-      constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
-      if constexpr (count == 0) return true;
-      else return detail::is_one_dimensional_impl(std::make_index_sequence<count>{}, t);
+      for (std::size_t i = 1; i < count_indices(t); ++i) if (get_index_extent(t, i) != 1) return false;
+      return true;
     }
     else
     {
-      auto d0 = get_pattern_collection<0>(t);
-      if (get_dimension(d0) != 1_uz) return false;
-      else for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_pattern_collection(t, i)) return false;
-      return true;
+      return detail::is_one_dimensional_impl(t);
     }
+
   }
 
 }

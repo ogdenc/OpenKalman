@@ -31,7 +31,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 
-using OpenKalman::stdcompat::numbers::pi;
+using OpenKalman::stdex::numbers::pi;
 
 TEST(coordinates, Spherical)
 {

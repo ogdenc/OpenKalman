@@ -42,7 +42,7 @@ namespace OpenKalman
   template<typename A, typename U, std::enable_if_t<triangular_matrix<A, triangle_type::any> and indexible<U> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, applicability::permitted> and
-    stdcompat::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
+    stdex::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
   inline decltype(auto)
 # endif
   rank_update_triangular(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)
@@ -109,7 +109,7 @@ namespace OpenKalman
       }(std::forward<A>(a));
 
       auto&& aw = internal::make_writable_square_matrix<U>(std::forward<decltype(an)>(an));
-      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
     }

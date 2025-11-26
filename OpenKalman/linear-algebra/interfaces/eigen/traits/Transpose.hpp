@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType>
-  struct indexible_object_traits<Eigen::Transpose<MatrixType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Transpose<MatrixType>>
+  struct object_traits<Eigen::Transpose<MatrixType>>
+    : Eigen3::object_traits_base<Eigen::Transpose<MatrixType>>
   {
   private:
 
     using Xpr = Eigen::Transpose<MatrixType>;
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Transpose<MatrixType>>;
+    using Base = Eigen3::object_traits_base<Eigen::Transpose<MatrixType>>;
 
   public:
 
@@ -42,14 +42,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient{arg.nestedExpression()};
+      return constant_value{arg.nestedExpression()};
     }
 
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_diagonal_coefficient {arg.nestedExpression()};
+      return constant_diagonal_value {arg.nestedExpression()};
     }
 
 
@@ -62,7 +62,7 @@ namespace OpenKalman::interface
 
 
     template<triangle_type t>
-    static constexpr bool is_triangular = diagonal_matrix<MatrixType> or
+    static constexpr bool triangle_type_value = diagonal_matrix<MatrixType> or
       (t == triangle_type::lower and triangular_matrix<MatrixType, triangle_type::upper>) or
       (t == triangle_type::upper and triangular_matrix<MatrixType, triangle_type::lower>);
 

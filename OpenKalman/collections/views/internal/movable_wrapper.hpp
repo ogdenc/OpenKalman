@@ -36,7 +36,7 @@ namespace OpenKalman::collections::internal
   {
   private:
 
-    static_assert(stdcompat::move_constructible<T> and std::is_object_v<T>);
+    static_assert(stdex::move_constructible<T> and std::is_object_v<T>);
 
     using T_ = OpenKalman::internal::movable_box<T>;
 
@@ -97,7 +97,7 @@ namespace OpenKalman::collections::internal
     constexpr std::invoke_result_t<T&, ArgTypes...>
     operator () (ArgTypes&&...args) & noexcept(std::is_nothrow_invocable_v<T&, ArgTypes...>)
     {
-      return stdcompat::invoke(t_.operator*(), std::forward<ArgTypes>(args)...);
+      return stdex::invoke(t_.operator*(), std::forward<ArgTypes>(args)...);
     }
 
     /// \overload
@@ -105,7 +105,7 @@ namespace OpenKalman::collections::internal
     std::invoke_result_t<const T&, ArgTypes...>
     constexpr operator () (ArgTypes&&...args) const & noexcept(std::is_nothrow_invocable_v<const T&, ArgTypes...>)
     {
-      return stdcompat::invoke(t_.operator*(), std::forward<ArgTypes>(args)...);
+      return stdex::invoke(t_.operator*(), std::forward<ArgTypes>(args)...);
     }
 
     /// \overload
@@ -113,7 +113,7 @@ namespace OpenKalman::collections::internal
     std::invoke_result_t<T&&, ArgTypes...>
     constexpr operator () (ArgTypes&&...args) && noexcept(std::is_nothrow_invocable_v<T&&, ArgTypes...>)
     {
-      return stdcompat::invoke(std::move(t_.operator*()), std::forward<ArgTypes>(args)...);
+      return stdex::invoke(std::move(t_.operator*()), std::forward<ArgTypes>(args)...);
     }
 
     /// \overload
@@ -121,7 +121,7 @@ namespace OpenKalman::collections::internal
     std::invoke_result_t<const T&&, ArgTypes...>
     constexpr operator () (ArgTypes&&...args) const && noexcept(std::is_nothrow_invocable_v<const T&&, ArgTypes...>)
     {
-      return stdcompat::invoke(std::move(t_.operator*()), std::forward<ArgTypes>(args)...);
+      return stdex::invoke(std::move(t_.operator*()), std::forward<ArgTypes>(args)...);
     }
 
   private:
@@ -141,7 +141,7 @@ namespace OpenKalman::collections::internal
   {
   private:
 
-    using T_ = stdcompat::reference_wrapper<std::remove_reference_t<T>>;
+    using T_ = stdex::reference_wrapper<std::remove_reference_t<T>>;
 
   public:
 
@@ -177,7 +177,7 @@ namespace OpenKalman::collections::internal
     constexpr std::invoke_result_t<T&, ArgTypes...>
     operator () (ArgTypes&&...args) const noexcept(std::is_nothrow_invocable_v<T&, ArgTypes...>)
     {
-      return stdcompat::invoke(t_, std::forward<ArgTypes>(args)...);
+      return stdex::invoke(t_, std::forward<ArgTypes>(args)...);
     }
 
   private:
@@ -416,8 +416,8 @@ constexpr bool operator>=(const movable_wrapper<T>& lhs, const movable_wrapper<T
   template<typename R, typename T, typename RQ, typename TQ>
   concept movable_wrapper_common_reference_exists_with =
     detail::is_movable_wrapper_ref<R> and
-    requires { typename stdcompat::common_reference_t<typename R::type, TQ>; } and
-    std::convertible_to<RQ, stdcompat::common_reference_t<typename R::type, TQ>>
+    requires { typename stdex::common_reference_t<typename R::type, TQ>; } and
+    std::convertible_to<RQ, stdex::common_reference_t<typename R::type, TQ>>
   ;
 #endif
 

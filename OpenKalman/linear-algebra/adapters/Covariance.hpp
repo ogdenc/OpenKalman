@@ -97,7 +97,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     Covariance() requires std::default_initializable<Base>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<Base>, int> = 0>
     Covariance()
 #endif
       : Base {} {}
@@ -111,7 +111,7 @@ namespace OpenKalman
       requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
     template<typename M, std::enable_if_t<self_adjoint_covariance<M> and
-      (not std::is_base_of_v<Covariance, std::decay_t<M>>) and stdcompat::constructible_from<Base, M&&>, int> = 0>
+      (not std::is_base_of_v<Covariance, std::decay_t<M>>) and stdex::constructible_from<Base, M&&>, int> = 0>
 #endif
     Covariance(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -122,7 +122,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<covariance_nestable M> requires requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
-    template<typename M, std::enable_if_t<covariance_nestable<M> and stdcompat::constructible_from<Base, M&&>, int> = 0>
+    template<typename M, std::enable_if_t<covariance_nestable<M> and stdex::constructible_from<Base, M&&>, int> = 0>
 #endif
     explicit Covariance(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -141,7 +141,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<typed_matrix<M> and
       (square_shaped<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
-      stdcompat::constructible_from<Base,
+      stdex::constructible_from<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit Covariance(M&& m)
@@ -162,7 +162,7 @@ namespace OpenKalman
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and (not covariance_nestable<M>) and
       (square_shaped<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
-      stdcompat::constructible_from<Base,
+      stdex::constructible_from<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit Covariance(M&& m)
@@ -181,9 +181,9 @@ namespace OpenKalman
       requires(Args ... args) { Base {make_dense_object_from<NestedSelfAdjoint>(static_cast<const Scalar>(args)...)};
       }
 #else
-    template<typename ... Args, std::enable_if_t<(stdcompat::convertible_to<Args, const Scalar> and ...) and
+    template<typename ... Args, std::enable_if_t<(stdex::convertible_to<Args, const Scalar> and ...) and
       ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == dim) or
-        (sizeof...(Args) == dim * dim)) and stdcompat::constructible_from<Base, NestedSelfAdjoint&&>, int> = 0>
+        (sizeof...(Args) == dim * dim)) and stdex::constructible_from<Base, NestedSelfAdjoint&&>, int> = 0>
 #endif
     Covariance(Args ... args)
       : Base {make_dense_object_from<NestedSelfAdjoint>(static_cast<const Scalar>(args)...)} {}
@@ -385,7 +385,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator*=(const S s)
@@ -430,7 +430,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator/=(const S s)
@@ -471,7 +471,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& scale(const S s)
@@ -494,7 +494,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
+    template<typename S, std::enable_if_t<stdex::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& inverse_scale(const S s)
@@ -1072,8 +1072,10 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Coeffs, typename NestedMatrix>
-    struct indexible_object_traits<Covariance<Coeffs, NestedMatrix>>
+    struct object_traits<Covariance<Coeffs, NestedMatrix>>
     {
+     static const bool is_specialized = true;
+
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
       template<typename Arg>
@@ -1100,7 +1102,7 @@ namespace OpenKalman
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (hermitian_matrix<NestedMatrix>)
-          return constant_coefficient{arg.nestedExpression()};
+          return constant_value{arg.nestedExpression()};
         else
           return std::monostate {};
       }
@@ -1109,7 +1111,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        return constant_diagonal_coefficient {arg.nestedExpression()};
+        return constant_diagonal_value {arg.nestedExpression()};
       }
 
 
@@ -1122,7 +1124,7 @@ namespace OpenKalman
 
 
       template<triangle_type t>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, triangle_type::diagonal>;
+      static constexpr bool triangle_type_value = triangular_matrix<NestedMatrix, triangle_type::diagonal>;
 
 
       static constexpr bool is_triangular_adapter = false;

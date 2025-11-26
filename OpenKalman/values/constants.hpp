@@ -25,20 +25,6 @@
 namespace OpenKalman
 {
   /**
-   * \brief A constant indicating that a size or index is dynamic.
-   * \details A dynamic size or index can be set, or change, during runtime and is not known at compile time.
-   */
-  inline constexpr std::size_t dynamic_size = stdcompat::dynamic_extent;
-
-
-  /**
-   * \brief A constant indicating that a difference in sizes or indices is dynamic.
-   * \details A dynamic difference can be set, or change, during runtime and is not known at compile time.
-   */
-  inline constexpr std::ptrdiff_t dynamic_difference = std::numeric_limits<std::ptrdiff_t>::max();
-
-
-  /**
    * \brief The applicability of a concept, trait, or restraint.
    * \details Determines whether something is necessarily applicable, or alternatively just permissible, at compile time.
    * Examples:

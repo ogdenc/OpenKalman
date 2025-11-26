@@ -22,13 +22,13 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int MapOptions, typename StrideType>
-  struct indexible_object_traits<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+  struct object_traits<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    : Eigen3::object_traits_base<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
   {
   private:
 
     using Xpr = Eigen::Map<PlainObjectType, MapOptions, StrideType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::object_traits_base<Xpr>;
 
   public:
 

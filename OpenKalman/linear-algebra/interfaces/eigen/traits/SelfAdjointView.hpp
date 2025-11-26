@@ -24,7 +24,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename MatrixType, unsigned int UpLo>
-    struct indexible_object_traits<Eigen::SelfAdjointView<MatrixType, UpLo>>
+    struct object_traits<Eigen::SelfAdjointView<MatrixType, UpLo>>
     {
     private:
 
@@ -58,11 +58,11 @@ namespace OpenKalman
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (not values::complex<scalar_type_of_t<MatrixType>>)
-          return constant_coefficient{arg.nestedExpression()};
-        else if constexpr (values::fixed<constant_coefficient<MatrixType>>)
+          return constant_value{arg.nestedExpression()};
+        else if constexpr (values::fixed<constant_value<MatrixType>>)
         {
-          if constexpr (values::not_complex<constant_coefficient<MatrixType>>)
-            return constant_coefficient{arg.nestedExpression()};
+          if constexpr (values::not_complex<constant_value<MatrixType>>)
+            return constant_value{arg.nestedExpression()};
           else return std::monostate{};
         }
         else return std::monostate{};
@@ -72,7 +72,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        return constant_diagonal_coefficient {arg.nestedExpression()};
+        return constant_diagonal_value {arg.nestedExpression()};
       }
 
 
@@ -85,7 +85,7 @@ namespace OpenKalman
 
 
       template<triangle_type t>
-      static constexpr bool is_triangular = diagonal_matrix<MatrixType>;
+      static constexpr bool triangle_type_value = diagonal_matrix<MatrixType>;
 
 
       static constexpr bool is_triangular_adapter = false;
@@ -93,8 +93,8 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian =
         (not values::complex<typename Eigen::internal::traits<MatrixType>::Scalar>) or
-        values::not_complex<constant_coefficient<MatrixType>> or
-        values::not_complex<constant_diagonal_coefficient<MatrixType>>;
+        values::not_complex<constant_value<MatrixType>> or
+        values::not_complex<constant_diagonal_value<MatrixType>>;
 
 
       static constexpr HermitianAdapterType hermitian_adapter_type =

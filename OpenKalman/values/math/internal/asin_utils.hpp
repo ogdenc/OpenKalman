@@ -34,8 +34,8 @@ namespace OpenKalman::values::internal
  constexpr T asin_impl(const T& x)
  {
   T half = static_cast<T>(0.5);
-  T pi2 = stdcompat::numbers::pi_v<T> * half;
-  T invsq2 = stdcompat::numbers::sqrt2_v<T> * half;
+  T pi2 = stdex::numbers::pi_v<T> * half;
+  T invsq2 = stdex::numbers::sqrt2_v<T> * half;
   if (-invsq2 <= x and x <= invsq2) return asin_series<T>(3, x, x, half*x*x*x);
   if (invsq2 < x and x < 1) return pi2 - asin_impl(values::sqrt(1 - x*x));
   if (-1 < x and x < -invsq2) return -pi2 + asin_impl(values::sqrt(1 - x*x));

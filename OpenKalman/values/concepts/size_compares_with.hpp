@@ -21,59 +21,85 @@
 #include "fixed.hpp"
 #include "size.hpp"
 #include "values/traits/fixed_value_of.hpp"
+#include "fixed_value_compares_with.hpp"
 
 namespace OpenKalman::values
 {
-#if not defined(__cpp_concepts) or not defined(__cpp_impl_three_way_comparison)
   namespace detail
   {
-    template<typename T, typename U, auto comp, applicability a, typename = void>
-    struct size_compares_with_impl1 : std::false_type {};
+    template<auto comp, bool op_is_and = false, typename...Ords>
+    constexpr bool
+    do_comps(Ords...ords)
+    {
+      if constexpr (op_is_and) return (... and stdex::invoke(comp, ords));
+      else return (... or stdex::invoke(comp, ords));
+    }
+
 
     template<typename T, typename U, auto comp, applicability a>
-    struct size_compares_with_impl1<T, U, comp, a, std::enable_if_t<
-      fixed_value_of<T>::value != dynamic_size and fixed_value_of<U>::value != dynamic_size>>
-      : std::true_type {};
+    constexpr bool
+    size_compares_with_impl()
+    {
+      constexpr bool unbt = not index<T>;
+      constexpr bool unbu = not index<U>;
+      constexpr bool ft = fixed_value_compares_with<T, stdex::dynamic_extent, &stdex::is_neq>;
+      constexpr bool fu = fixed_value_compares_with<U, stdex::dynamic_extent, &stdex::is_neq>;
 
-
-    template<typename T, typename U, auto comp, applicability a, typename = void>
-    struct size_compares_with_impl2 : std::false_type {};
-
-    template<typename T, typename U, auto comp, applicability a>
-    struct size_compares_with_impl2<T, U, comp, a, std::enable_if_t<
-      fixed_value_of<T>::value == dynamic_size or
-      fixed_value_of<U>::value == dynamic_size or
-      stdcompat::invoke(comp, stdcompat::compare_three_way{}(fixed_value_of<T>::value, fixed_value_of<U>::value))>>
-      : std::true_type {};
-  }
+      if constexpr (unbt and unbu)
+      {
+        return do_comps<comp>(stdex::partial_ordering::equivalent);
+      }
+      else if constexpr (unbu)
+      {
+        return do_comps<comp>(stdex::partial_ordering::less);
+      }
+      else if constexpr (unbt)
+      {
+        return do_comps<comp>(stdex::partial_ordering::greater);
+      }
+      else if constexpr (ft and fu)
+      {
+#ifdef __cpp_impl_three_way_comparison
+        return stdex::invoke(comp, fixed_value_of_v<T> <=> fixed_value_of_v<U>);
+#else
+        return stdex::invoke(comp, stdex::compare_three_way{}(fixed_value_of_v<T>, fixed_value_of_v<U>));
 #endif
+      }
+      else if constexpr (ft)
+      {
+        if constexpr (fixed_value_compares_with<T, 0>)
+          return do_comps<comp, a == applicability::guaranteed>(stdex::partial_ordering::less, stdex::partial_ordering::equivalent);
+        else
+          return a == applicability::permitted;
+      }
+      else if constexpr (fu)
+      {
+        if constexpr (fixed_value_compares_with<U, 0>)
+          return do_comps<comp, a == applicability::guaranteed>(stdex::partial_ordering::greater, stdex::partial_ordering::equivalent);
+        else
+          return a == applicability::permitted;
+      }
+      else
+      {
+        return a == applicability::permitted;
+      }
+    }
+  }
 
 
   /**
    * \brief T and U are sizes that compare in a particular way based on parameter comp.
    * \tparam comp A consteval-callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
-  template<typename T, typename U, auto comp = &stdcompat::is_eq, applicability a = applicability::guaranteed>
-#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
+  template<typename T, typename U, auto comp = &stdex::is_eq, applicability a = applicability::guaranteed>
+#ifdef __cpp_concepts
   concept size_compares_with =
-    size<T> and
-    size<U> and
-    (a != applicability::guaranteed or not index<T> or not index<U> or
-      (fixed<T> and fixed<U> and fixed_value_of_v<T> != dynamic_size and fixed_value_of_v<U> != dynamic_size)) and
-    (not fixed<T> or fixed_value_of_v<T> == dynamic_size or
-      not fixed<U> or fixed_value_of_v<U> == dynamic_size or
-      stdcompat::invoke(comp, fixed_value_of_v<T> <=> fixed_value_of_v<U>)) and
-    (std::same_as<std::decay_t<T>, stdcompat::unreachable_sentinel_t> ==
-      std::same_as<std::decay_t<U>, stdcompat::unreachable_sentinel_t>);
 #else
   constexpr bool size_compares_with =
+#endif
     size<T> and
     size<U> and
-    (a != applicability::guaranteed or not index<T> or not index<U> or detail::size_compares_with_impl1<T, U, comp, a>::value) and
-    (not fixed<T> or not fixed<U> or detail::size_compares_with_impl2<T, U, comp, a>::value) and
-    (stdcompat::same_as<std::decay_t<T>, stdcompat::unreachable_sentinel_t> ==
-      stdcompat::same_as<std::decay_t<U>, stdcompat::unreachable_sentinel_t>);
-#endif
+    detail::size_compares_with_impl<T, U, comp, a>();
 
 }
 

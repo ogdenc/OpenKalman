@@ -32,7 +32,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_concepts
     constexpr repeat_tuple_view() requires std::default_initializable<T> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<T>, int> = 0>
     constexpr repeat_tuple_view() {};
 #endif
 
@@ -40,7 +40,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_concepts
     template<typename Arg> requires std::constructible_from<T, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<stdcompat::constructible_from<T, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<stdex::constructible_from<T, Arg&&>, int> = 0>
 #endif
     explicit constexpr repeat_tuple_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
 
@@ -54,31 +54,34 @@ namespace OpenKalman::collections
     /**
      * \brief Get element i of a \ref repeat_tuple_view
      */
-  #ifdef __cpp_concepts
-    template<std::size_t i> requires (i < N)
-  #else
-    template<std::size_t i, std::enable_if_t<i < N, int> = 0>
-  #endif
-    friend constexpr T
-    get(const repeat_tuple_view& v)
+#ifdef __cpp_explicit_this_parameter
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get(this auto&& self) noexcept
     {
-      return v.t;
+      static_assert(i < N, "Index out of range");
+      return std::forward<decltype(self)>(self).t;
     }
+#else
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() & { static_assert(i < N, "Index out of range"); return t; }
 
+    /// \overload
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const & { static_assert(i < N, "Index out of range"); return t; }
 
-    /**
-    * \brief Get element i of a \ref repeat_tuple_view
-    */
-  #ifdef __cpp_concepts
-    template<size_t i> requires (i < N)
-  #else
-    template<size_t i, std::enable_if_t<i < N, int> = 0>
-  #endif
-    friend constexpr T
-    get(repeat_tuple_view&& v)
-    {
-      return std::move(v).t;
-    }
+    /// \overload
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() && noexcept { static_assert(i < N, "Index out of range"); return std::move(*this).t; }
+
+    /// \overload
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const && noexcept { static_assert(i < N, "Index out of range"); return std::move(*this).t; }
+#endif
 
   private:
 
@@ -110,28 +113,30 @@ namespace OpenKalman::collections::views
     struct repeat_adaptor
     {
 #ifdef __cpp_lib_ranges
-      template<std::move_constructible W, values::size Bound = stdcompat::unreachable_sentinel_t> requires
-        (OpenKalman::internal::is_signed_integer_like<values::value_type_of_t<Bound>> or
-        (OpenKalman::internal::is_integer_like<values::value_type_of_t<Bound>> and stdcompat::weakly_incrementable<values::value_type_of_t<Bound>> or
-        std::same_as<Bound, std::unreachable_sentinel_t>))
+      template<std::move_constructible W, values::size Bound = values::unbounded_size_t>
 #else
-      template<typename W, typename Bound = stdcompat::unreachable_sentinel_t, typename = void>
+      template<typename W, typename Bound = values::unbounded_size_t, typename = void>
 #endif
       constexpr auto
       operator() [[nodiscard]] (W&& value, Bound&& bound = {}) const
       {
-        if constexpr (std::is_same_v<Bound, stdcompat::unreachable_sentinel_t>)
-          return stdcompat::ranges::views::repeat(std::forward<W>(value)) | all;
+        if constexpr (stdex::same_as<Bound, values::unbounded_size_t>)
+        {
+          return stdex::ranges::views::repeat(std::forward<W>(value)) | all;
+        }
         else if constexpr (values::fixed<Bound>)
         {
           if constexpr (values::fixed_value_of_v<Bound> == 1)
-            return stdcompat::ranges::views::single(std::forward<W>(value)) | all;
+            return stdex::ranges::views::single(std::forward<W>(value)) | all;
           else
             return repeat_tuple_view<values::fixed_value_of_v<Bound>, W> {std::forward<W>(value)} | all;
         }
         else
-          return stdcompat::ranges::views::repeat(std::forward<W>(value), values::to_value_type(std::forward<Bound>(bound))) | all;
+        {
+          return stdex::ranges::views::repeat(std::forward<W>(value), std::forward<Bound>(bound)) | all;
+        }
       }
+
     };
 
   }

@@ -41,7 +41,7 @@ namespace OpenKalman::coordinates::internal
       constexpr decltype(auto)
       operator()(D&& d, Ds&&...ds)
       {
-        static_assert((... and compares_with<D, Ds, &stdcompat::is_eq, applicability::permitted>),
+        static_assert((... and compares_with<D, Ds, &stdex::is_eq, applicability::permitted>),
           "In most_fixed_pattern, elements of pattern_collection argument are not compatible");
         return impl(std::forward<D>(d), std::forward<Ds>(ds)...);
       }
@@ -57,7 +57,7 @@ namespace OpenKalman::coordinates::internal
   template<pattern_collection P> requires values::fixed_value_compares_with<collections::size_of<P>, 0, &std::is_gt>
   constexpr pattern decltype(auto)
 #else
-  template<typename P, std::enable_if_t<values::fixed_value_compares_with<collections::size_of<P>, 0, &stdcompat::is_gt>, int> = 0>
+  template<typename P, std::enable_if_t<values::fixed_value_compares_with<collections::size_of<P>, 0, &stdex::is_gt>, int> = 0>
   constexpr decltype(auto)
 #endif
   most_fixed_pattern(P&& p)

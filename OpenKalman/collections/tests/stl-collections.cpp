@@ -91,14 +91,14 @@ using namespace OpenKalman::collections;
 
 TEST(collections, collection_element)
 {
-  static_assert(stdcompat::same_as<collection_element_t<0, std::tuple<double, int&>>, double>);
-  static_assert(stdcompat::same_as<collection_element_t<1, std::tuple<double, int&>>, int&>);
-  static_assert(stdcompat::same_as<collection_element_t<0, std::array<double, 5>>, double>);
-  static_assert(stdcompat::same_as<collection_element_t<4, std::array<double, 5>>, double>);
-  static_assert(stdcompat::same_as<collection_element_t<0, C1::C1>, int>);
-  static_assert(stdcompat::same_as<collection_element_t<0, C2>, std::size_t>);
-  static_assert(stdcompat::same_as<collection_element_t<0, C3::C3>, int&>);
-  static_assert(stdcompat::same_as<collection_element_t<0, C4>, std::size_t&>);
+  static_assert(stdex::same_as<collection_element_t<0, std::tuple<double, int&>>, double>);
+  static_assert(stdex::same_as<collection_element_t<1, std::tuple<double, int&>>, int&>);
+  static_assert(stdex::same_as<collection_element_t<0, std::array<double, 5>>, double>);
+  static_assert(stdex::same_as<collection_element_t<4, std::array<double, 5>>, double>);
+  static_assert(stdex::same_as<collection_element_t<0, C1::C1>, int>);
+  static_assert(stdex::same_as<collection_element_t<0, C2>, std::size_t>);
+  static_assert(stdex::same_as<collection_element_t<0, C3::C3>, int&>);
+  static_assert(stdex::same_as<collection_element_t<0, C4>, std::size_t&>);
 }
 
 
@@ -135,16 +135,16 @@ TEST(collections, tuple_like)
 }
 
 
-#include "collections/concepts/sized_random_access_range.hpp"
+#include "collections/concepts/sized.hpp"
 
 TEST(collections, size_random_access_range)
 {
-  static_assert(sized_random_access_range<int[5]>);
-  static_assert(not sized_random_access_range<int*>);
-  static_assert(not sized_random_access_range<std::tuple<int, double, long double>>);
-  static_assert(sized_random_access_range<std::array<double, 5>>);
-  static_assert(sized_random_access_range<std::vector<double>>);
-  static_assert(sized_random_access_range<std::initializer_list<double>>);
+  static_assert(sized<int[5]>);
+  static_assert(not sized<int*>);
+  static_assert(sized<std::tuple<int, double, long double>>);
+  static_assert(sized<std::array<double, 5>>);
+  static_assert(sized<std::vector<double>>);
+  static_assert(sized<std::initializer_list<double>>);
 }
 
 

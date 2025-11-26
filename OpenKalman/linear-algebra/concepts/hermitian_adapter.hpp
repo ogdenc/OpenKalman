@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_HERMITIAN_ADAPTER_HPP
 #define OPENKALMAN_HERMITIAN_ADAPTER_HPP
 
+#include "linear-algebra/enumerations.hpp"
 
 namespace OpenKalman
 {
@@ -28,9 +29,9 @@ namespace OpenKalman
     template<typename T, HermitianAdapterType t>
     struct hermitian_adapter_impl<T, t, std::enable_if_t<
       (t == HermitianAdapterType::any ?
-       interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::lower or
-         interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::upper :
-       interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == t)>> : std::true_type {};
+       interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::lower or
+         interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::upper :
+       interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == t)>> : std::true_type {};
   };
 #endif
 
@@ -45,14 +46,13 @@ namespace OpenKalman
    */
   template<typename T, HermitianAdapterType t = HermitianAdapterType::any>
 #ifdef __cpp_concepts
-  concept hermitian_adapter = hermitian_matrix<T, applicability::permitted> and has_nested_object<T> and
+  concept hermitian_adapter = hermitian_matrix<T> and
     (t == HermitianAdapterType::any ?
-     interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::lower or
-       interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::upper :
-     interface::indexible_object_traits<stdcompat::remove_cvref_t<T>>::hermitian_adapter_type == t);
+     interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::lower or
+       interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == HermitianAdapterType::upper :
+     interface::object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type == t);
 #else
-  constexpr bool hermitian_adapter = hermitian_matrix<T, applicability::permitted> and has_nested_object<T> and
-    detail::hermitian_adapter_impl<std::decay_t<T>, t>::value;
+  constexpr bool hermitian_adapter = hermitian_matrix<T> and detail::hermitian_adapter_impl<std::decay_t<T>, t>::value;
 #endif
 
 

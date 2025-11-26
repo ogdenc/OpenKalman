@@ -34,19 +34,19 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M2x, Eigen::Lower>>>);
   static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M2x, Eigen::Upper>>>);
 
-  static_assert(constant_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C22_2>, Eigen::Upper>> == 2);
+  static_assert(constant_value_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C22_2>, Eigen::Upper>> == 2);
 
   static_assert(constant_matrix<C11_1cx>);
-  static_assert(std::real(constant_coefficient_v<C11_1cx>) == 1);
-  static_assert(std::imag(constant_coefficient_v<C11_1cx>) == 0);
+  static_assert(std::real(constant_value_v<C11_1cx>) == 1);
+  static_assert(std::imag(constant_value_v<C11_1cx>) == 0);
   static_assert(constant_matrix<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C11_1cx>, Eigen::Lower>>);
 
   static_assert(constant_matrix<C11_2cx>);
-  EXPECT_EQ(std::real(constant_coefficient{CM11::Identity() + CM11::Identity()}()), 2);
-  EXPECT_EQ(std::imag(constant_coefficient{CM11::Identity() + CM11::Identity()}()), 0);
+  EXPECT_EQ(std::real(constant_value{CM11::Identity() + CM11::Identity()}()), 2);
+  EXPECT_EQ(std::imag(constant_value{CM11::Identity() + CM11::Identity()}()), 0);
   static_assert(constant_matrix<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C11_2cx>, Eigen::Lower>>);
 
-  static_assert(constant_diagonal_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Upper>> == 2);
+  static_assert(constant_diagonal_value_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Upper>> == 2);
 
   static_assert(zero<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Z22>, Eigen::Upper>>);
 

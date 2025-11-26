@@ -20,7 +20,7 @@
 #include "basics/compatibility/internal/exposition.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::stdcompat::ranges
+namespace OpenKalman::stdex::ranges
 {
 #ifdef __cpp_lib_ranges
   using std::ranges::owning_view;
@@ -40,7 +40,7 @@ namespace OpenKalman::stdcompat::ranges
     /**
      * \brief Default constructor.
      */
-    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<R>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<R>, int> = 0>
     constexpr
     owning_view() {}
 
@@ -88,43 +88,43 @@ namespace OpenKalman::stdcompat::ranges
     /**
      * \returns An iterator at the beginning, if the base object is a range.
      */
-    constexpr auto begin() { return stdcompat::ranges::begin(my_r); }
+    constexpr auto begin() { return stdex::ranges::begin(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and range<const R>, int> = 0>
-    constexpr auto begin() const { return stdcompat::ranges::begin(my_r); }
+    constexpr auto begin() const { return stdex::ranges::begin(my_r); }
 
 
     /**
      * \returns An iterator at the end, if the base object is a range.
      */
-    constexpr auto end() { return stdcompat::ranges::end(my_r); }
+    constexpr auto end() { return stdex::ranges::end(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and range<const R>, int> = 0>
-    constexpr auto end() const { return stdcompat::ranges::end(my_r); }
+    constexpr auto end() const { return stdex::ranges::end(my_r); }
 
 
     /**
      * \brief Indicates whether the view is empty
      */
-    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdcompat::ranges::empty(std::declval<R>()))>>
-    constexpr auto empty() { return stdcompat::ranges::empty(my_r); }
+    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdex::ranges::empty(std::declval<R>()))>>
+    constexpr auto empty() { return stdex::ranges::empty(my_r); }
 
     /// \overload
-    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdcompat::ranges::empty(std::declval<const R>()))>>
-    constexpr auto empty() const { return stdcompat::ranges::empty(my_r); }
+    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdex::ranges::empty(std::declval<const R>()))>>
+    constexpr auto empty() const { return stdex::ranges::empty(my_r); }
 
 
     /**
      * \brief The size of the object.
      */
     template<bool Enable = true, std::enable_if_t<Enable and sized_range<R>, int> = 0>
-    constexpr auto size() noexcept { return stdcompat::ranges::size(my_r); }
+    constexpr auto size() noexcept { return stdex::ranges::size(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and sized_range<const R>, int> = 0>
-    constexpr auto size() const noexcept { return stdcompat::ranges::size(my_r); }
+    constexpr auto size() const noexcept { return stdex::ranges::size(my_r); }
 
   private:
 

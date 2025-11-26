@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-using stdcompat::numbers::pi;
+using stdex::numbers::pi;
 
 namespace
 {
@@ -34,12 +34,12 @@ TEST(eigen_tensor, nullary_operations)
   static_assert(self_contained<decltype(a232.constant(7))>);
   using T2 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,2>>;
   using I2 = Eigen::TensorCwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, T2>;
-  static_assert(constant_diagonal_coefficient_v<I2> == 1);
+  static_assert(constant_diagonal_value_v<I2> == 1);
   using T2d = Eigen::Tensor<double, 2>;
   using I2d = Eigen::TensorCwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, T2d>;
-  static_assert(constant_diagonal_coefficient_v<I2d> == 1);
-  EXPECT_EQ(constant_coefficient {a232.constant(7)}(), 7);
-  EXPECT_EQ(constant_coefficient {a232.nullaryExpr([]{ return 7.; })}(), 7.);
+  static_assert(constant_diagonal_value_v<I2d> == 1);
+  EXPECT_EQ(constant_value {a232.constant(7)}(), 7);
+  EXPECT_EQ(constant_value {a232.nullaryExpr([]{ return 7.; })}(), 7.);
 
   auto b3 = make_dense_object<A232>(3);
   using B3 = decltype(b3);
