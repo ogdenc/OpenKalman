@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_HAS_UNTYPED_INDEX_HPP
 #define OPENKALMAN_HAS_UNTYPED_INDEX_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
@@ -32,7 +32,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    coordinates::euclidean_pattern<decltype(get_pattern_collection(std::declval<T>(), std::integral_constant<std::size_t, N>{}))>;
+    patterns::euclidean_pattern<decltype(get_pattern_collection(std::declval<T>(), std::integral_constant<std::size_t, N>{}))>;
 
 
 }

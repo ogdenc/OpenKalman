@@ -19,22 +19,22 @@
 namespace OpenKalman
 {
   /**
-   * \brief Project the Euclidean vector space associated with index 0 to \ref coordinates::pattern v after applying directional statistics
+   * \brief Project the Euclidean vector space associated with index 0 to \ref patterns::pattern v after applying directional statistics
    * \tparam Arg A matrix or tensor.
-   * \tparam V The new \ref coordinate_list of index 0.
+   * \tparam V The new \ref patterns::pattern of index 0.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, coordinates::pattern V> requires
-    coordinates::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>
+  template<indexible Arg, patterns::pattern V> requires
+    patterns::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>
   constexpr indexible decltype(auto)
 #else
   template<typename Arg, typename V, std::enable_if_t<
-    coordinates::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>> and coordinates::pattern<V>, int> = 0>
+    patterns::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>> and patterns::pattern<V>, int> = 0>
   constexpr decltype(auto)
 #endif
   from_euclidean(Arg&& arg, const V& v)
   {
-    if constexpr (coordinates::euclidean_pattern<V>)
+    if constexpr (patterns::euclidean_pattern<V>)
     {
       return std::forward<Arg>(arg);
     }

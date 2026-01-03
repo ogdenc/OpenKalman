@@ -334,17 +334,17 @@ namespace OpenKalman::interface
       {
         constexpr auto dim = collections::size_of_v<Descriptors>;
         static_assert(dim <= 2);
-        if constexpr (dim == 0) return std::tuple {coordinates::Axis{}, coordinates::Axis{}};
-        else if constexpr (dim == 1) return std::tuple {std::get<0>(std::forward<Descriptors>(descriptors)), coordinates::Axis{}};
+        if constexpr (dim == 0) return std::tuple {patterns::Axis{}, patterns::Axis{}};
+        else if constexpr (dim == 1) return std::tuple {std::get<0>(std::forward<Descriptors>(descriptors)), patterns::Axis{}};
         else return std::forward<Descriptors>(descriptors);
       }
       else
       {
         auto it = stdex::ranges::begin(descriptors);
         auto e = stdex::ranges::end(descriptors);
-        if (it == e) return std::tuple {coordinates::Axis{}, coordinates::Axis{}};
+        if (it == e) return std::tuple {patterns::Axis{}, patterns::Axis{}};
         auto i = *it;
-        if (++it == e) return std::tuple {i, coordinates::Axis{}};
+        if (++it == e) return std::tuple {i, patterns::Axis{}};
         auto j = *it;
         if (++it == e) return std::tuple {i, j};
         throw std::logic_error("Wrong number of vector space descriptors");
@@ -354,10 +354,10 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_concepts
-    template<data_layout layout, values::number Scalar, coordinates::euclidean_pattern_collection Ds>
+    template<data_layout layout, values::number Scalar, patterns::euclidean_pattern_collection Ds>
 #else
     template<data_layout layout, typename Scalar, typename Ds, std::enable_if_t<values::number<Scalar> and
-      coordinates::euclidean_pattern_collection<Ds>, int> = 0>
+      patterns::euclidean_pattern_collection<Ds>, int> = 0>
 #endif
     static auto make_default(Ds&& ds)
     {
@@ -370,7 +370,7 @@ namespace OpenKalman::interface
         if constexpr (fixed_pattern_collection<Ds>)
         {
           auto sizes = std::apply([](auto&&...d){
-            return Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<decltype(d)>)...> {};
+            return Eigen::Sizes<static_cast<std::ptrdiff_t>(patterns::dimension_of_v<decltype(d)>)...> {};
           }, std::forward<Ds>(ds));
 
           return Eigen::TensorFixedSize<Scalar, decltype(sizes), options, IndexType> {};
@@ -386,8 +386,8 @@ namespace OpenKalman::interface
       else
       {
         auto [d0, d1] = extract_descriptors(std::forward<Ds>(ds));
-        constexpr auto dim0 = coordinates::dimension_of_v<decltype(d0)>;
-        constexpr auto dim1 = coordinates::dimension_of_v<decltype(d1)>;
+        constexpr auto dim0 = patterns::dimension_of_v<decltype(d0)>;
+        constexpr auto dim1 = patterns::dimension_of_v<decltype(d1)>;
 
         static_assert(layout != data_layout::right or dim0 == 1 or dim1 != 1,
           "Eigen does not allow creation of a row-major column vector.");
@@ -427,20 +427,20 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_ranges
-    template<values::dynamic C, coordinates::euclidean_pattern_collection Ds> requires
+    template<values::dynamic C, patterns::euclidean_pattern_collection Ds> requires
       (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)
     static constexpr constant_matrix auto
 #else
     template<typename C, typename Ds, std::enable_if_t<values::dynamic<C> and
-      coordinates::euclidean_pattern_collection<Ds> and
+      patterns::euclidean_pattern_collection<Ds> and
       (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)), int> = 0>
     static constexpr auto
 #endif
     make_constant(C&& c, Ds&& ds)
     {
       auto [d0, d1] = extract_descriptors(std::forward<Ds>(ds));
-      constexpr auto dim0 = coordinates::dimension_of_v<decltype(d0)>;
-      constexpr auto dim1 = coordinates::dimension_of_v<decltype(d1)>;
+      constexpr auto dim0 = patterns::dimension_of_v<decltype(d0)>;
+      constexpr auto dim1 = patterns::dimension_of_v<decltype(d1)>;
 
       auto value = values::to_value_type(std::forward<C>(c));
       using Scalar = std::decay_t<decltype(value)>;
@@ -458,19 +458,19 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Scalar, coordinates::euclidean_pattern_collection Ds> requires
+    template<typename Scalar, patterns::euclidean_pattern_collection Ds> requires
       (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2)
     static constexpr identity_matrix auto
 #else
-    template<typename Scalar, typename...Ds, std::enable_if_t<coordinates::euclidean_pattern_collection<Ds> and
+    template<typename Scalar, typename...Ds, std::enable_if_t<patterns::euclidean_pattern_collection<Ds> and
       (collections::size_of_v<Ds> != stdex::dynamic_extent) and (collections::size_of_v<Ds> <= 2), int> = 0>
     static constexpr auto
 #endif
     make_identity_matrix(Ds&& ds)
     {
       auto [d0, d1] = extract_descriptors(std::forward<Ds>(ds));
-      constexpr auto dim0 = coordinates::dimension_of_v<decltype(d0)>;
-      constexpr auto dim1 = coordinates::dimension_of_v<decltype(d1)>;
+      constexpr auto dim0 = patterns::dimension_of_v<decltype(d0)>;
+      constexpr auto dim1 = patterns::dimension_of_v<decltype(d1)>;
 
       constexpr auto options = (dim0 == 1 and dim1 != 1) ? Eigen::RowMajor : Eigen::ColMajor;
       using M = writable_type<Scalar, dim0, dim1, options>;
@@ -867,7 +867,7 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_concepts
-    template<coordinates::pattern...Ds, typename Operation, indexible...Args> requires
+    template<patterns::pattern...Ds, typename Operation, indexible...Args> requires
       (sizeof...(Ds) <= 2) and (sizeof...(Args) <= 3) and
       (values::number<std::invoke_result_t<Operation, scalar_type_of_t<Args>...>> or
       (sizeof...(Args) == 0 and
@@ -875,7 +875,7 @@ namespace OpenKalman::interface
         values::number<std::invoke_result_t<Operation, std::size_t>>)))
 #else
     template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<sizeof...(Ds) <= 2 and sizeof...(Args) <= 3 and
-      (coordinates::pattern<Ds> and ...) and (indexible<Args> and ...) and
+      (patterns::pattern<Ds> and ...) and (indexible<Args> and ...) and
       (values::number<typename std::invoke_result<Operation, typename scalar_type_of<Args>::type...>::type> or
         (sizeof...(Args) == 0 and
           (values::number<typename std::invoke_result<Operation, std::conditional_t<true, std::size_t, Ds>...>::type> or

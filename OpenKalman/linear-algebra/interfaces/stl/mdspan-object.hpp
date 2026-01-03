@@ -17,8 +17,10 @@
 #define OPENKALMAN_INTERFACES_MDSPAN_OBJECT_TRAITS_HPP
 
 #include "basics/basics.hpp"
+#include "linear-algebra/enumerations.hpp"
 #include "linear-algebra/interfaces/object_traits.hpp"
-#include "linear-algebra/functions/internal/constant_mdspan_policies.hpp"
+#include "to_diagonal_mdspan_policies.hpp"
+#include "constant_mdspan_policies.hpp"
 
 namespace OpenKalman::interface
 {
@@ -29,24 +31,63 @@ namespace OpenKalman::interface
   template<typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
   struct object_traits<stdex::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>>
   {
+  private:
+
+    template<typename>
+    struct is_diagonal_layout : std::false_type {};
+
+    template<typename N>
+    struct is_diagonal_layout<layout_to_diagonal<N>> : std::true_type {};
+
+    template<typename>
+    struct is_constant_accessor : std::false_type {};
+
+    template<typename E>
+    struct is_constant_accessor<constant_accessor<E>> : std::true_type {};
+
+    template<typename>
+    struct is_constant_diagonal_accessor : std::false_type {};
+
+    template<typename E>
+    struct is_constant_diagonal_accessor<to_diagonal_accessor<constant_accessor<E>>> : std::true_type {};
+
+  public:
+
     static const bool is_specialized = true;
 
-    // An identity function for get_mdspan is not necessary because it will never be called.
+
+    template<typename M>
+    static constexpr auto
+    get_mdspan(M&& m)
+    {
+      return std::forward<M>(m);
+    };
+
+
+    static constexpr triangle_type
+    triangle_type_value = is_diagonal_layout<LayoutPolicy>::value ? triangle_type::diagonal : triangle_type::none;
 
 
     /**
      * \brief If AccessorPolicy indicates that the mdspan is constant, return the constant value.
      */
-    static constexpr auto
 #ifdef __cpp_concepts
-    get_constant = [](const auto& m) requires std::same_as<AccessorPolicy, internal::accessor_constant<T>>
+    template<typename M> requires
+      is_constant_accessor<typename M::accessor_type>::value or
+      is_constant_diagonal_accessor<typename M::accessor_type>::value
 #else
-    get_constant = [](const auto& m,
-      std::enable_if_t<stdex::same_as<typename std::decay_t<decltype(m)>::accessor_type, internal::accessor_constant<T>>, int> = 0)
+    template<typename M, std::enable_if_t<
+      is_constant_accessor<typename M::accessor_type>::value or
+      is_constant_diagonal_accessor<typename M::accessor_type>::value, int> = 0>
 #endif
+    static constexpr auto
+    get_constant(const M& m)
     {
-      return *(m.accessor().data_handle());
-    };
+      if constexpr (is_constant_accessor<typename M::accessor_type>::value)
+        return *(m.accessor().data_handle());
+      else
+        return *(m.accessor().nested_accessor().data_handle());
+    }
 
   };
 

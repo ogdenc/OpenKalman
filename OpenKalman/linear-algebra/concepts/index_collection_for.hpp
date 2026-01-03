@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_INDEX_COLLECTION_FOR_HPP
 #define OPENKALMAN_INDEX_COLLECTION_FOR_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/traits/index_count.hpp"
 #include "linear-algebra/traits/index_dimension_of.hpp"
 

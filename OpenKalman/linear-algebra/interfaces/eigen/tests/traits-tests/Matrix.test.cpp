@@ -11,7 +11,7 @@
 #include "linear-algebra/interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinates;
+using namespace OpenKalman::patterns;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
@@ -197,28 +197,28 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(one_dimensional<M11>);
   static_assert(not one_dimensional<M1x>);
-  static_assert(one_dimensional<M1x, applicability::permitted>);
+  static_assert(one_dimensional<M1x, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<M00>);
   static_assert(not one_dimensional<M01>);
   static_assert(not one_dimensional<M10>);
-  static_assert(not one_dimensional<M00, applicability::permitted>);
-  static_assert(not one_dimensional<Mx0, applicability::permitted>);
-  static_assert(not one_dimensional<M0x, applicability::permitted>);
+  static_assert(not one_dimensional<M00, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Mx0, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<M0x, values::unbounded_size, applicability::permitted>);
 
-  static_assert(square_shaped<M00, applicability::permitted>);
-  static_assert(square_shaped<M0x, applicability::permitted>);
-  static_assert(square_shaped<Mx0, applicability::permitted>);
-  static_assert(square_shaped<M11, applicability::permitted>);
-  static_assert(square_shaped<M22, applicability::permitted>);
-  static_assert(not square_shaped<M32, applicability::permitted>);
-  static_assert(square_shaped<M2x, applicability::permitted>);
-  static_assert(square_shaped<Mx2, applicability::permitted>);
-  static_assert(square_shaped<Mxx, applicability::permitted>);
-  static_assert(square_shaped<CM22, applicability::permitted>);
-  static_assert(not square_shaped<CM32, applicability::permitted>);
-  static_assert(square_shaped<CM2x, applicability::permitted>);
-  static_assert(square_shaped<CMx2, applicability::permitted>);
-  static_assert(square_shaped<CMxx, applicability::permitted>);
+  static_assert(square_shaped<M00, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<M0x, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Mx0, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<M11, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<M22, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<M32, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<M2x, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Mx2, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Mxx, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<CM22, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<CM32, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<CM2x, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<CMx2, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<CMxx, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<M00>);
   static_assert(not square_shaped<M0x>);

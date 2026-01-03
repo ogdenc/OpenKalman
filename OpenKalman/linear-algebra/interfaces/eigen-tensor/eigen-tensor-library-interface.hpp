@@ -210,7 +210,7 @@ namespace OpenKalman::interface
       if constexpr (((dynamic_pattern<D>) or ...))
         return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_dimension(d))...);
       else
-        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<D>)...>, options, IndexType> {};
+        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(patterns::dimension_of_v<D>)...>, options, IndexType> {};
     }
 
 
@@ -490,13 +490,13 @@ namespace OpenKalman::interface
     replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
     {
       using R = Eigen::Replicate<std::decay_t<Arg>,
-        (coordinates::dimension_of_v<Ds> == stdex::dynamic_extent or coordinates::dimension_of_v<ArgDs> == stdex::dynamic_extent ?
-        Eigen::Dynamic : static_cast<IndexType>(coordinates::dimension_of_v<Ds> / coordinates::dimension_of_v<ArgDs>))...>;
+        (patterns::dimension_of_v<Ds> == stdex::dynamic_extent or patterns::dimension_of_v<ArgDs> == stdex::dynamic_extent ?
+        Eigen::Dynamic : static_cast<IndexType>(patterns::dimension_of_v<Ds> / patterns::dimension_of_v<ArgDs>))...>;
 
-      if constexpr (((coordinates::dimension_of_v<Ds> != stdex::dynamic_extent) and ...) and
-        ((coordinates::dimension_of_v<ArgDs> != stdex::dynamic_extent) and ...))
+      if constexpr (((patterns::dimension_of_v<Ds> != stdex::dynamic_extent) and ...) and
+        ((patterns::dimension_of_v<ArgDs> != stdex::dynamic_extent) and ...))
       {
-        if constexpr (((coordinates::dimension_of_v<Ds> == coordinates::dimension_of_v<ArgDs>) and ...))
+        if constexpr (((patterns::dimension_of_v<Ds> == patterns::dimension_of_v<ArgDs>) and ...))
           return std::forward<Arg>(arg);
         else
           return R {std::forward<Arg>(arg)};

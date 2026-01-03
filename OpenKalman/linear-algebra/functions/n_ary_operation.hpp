@@ -30,7 +30,7 @@ namespace OpenKalman
   namespace detail
   {
 
-    // Check that dimensions of arguments Args are compatible with \ref coordinates::pattern Ds.
+    // Check that dimensions of arguments Args are compatible with \ref patterns::pattern Ds.
     template<std::size_t...ixs, typename DTup, typename...Args>
     constexpr void check_n_ary_dims(std::index_sequence<ixs...>, const DTup& d_tup, const Args&...args)
     {
@@ -38,13 +38,13 @@ namespace OpenKalman
         constexpr auto ix = ixs;
         return ([](const DTup& d_tup, const auto& arg){
           using Arg = decltype(arg);
-          if constexpr (dynamic_dimension<Arg, ix> or coordinates::dynamic_pattern<collections::collection_element_t<ix, DTup>>)
+          if constexpr (dynamic_dimension<Arg, ix> or patterns::dynamic_pattern<collections::collection_element_t<ix, DTup>>)
           {
             auto arg_d = get_pattern_collection<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
             auto dim_arg_d = get_dimension(arg_d);
             auto dim_tup_d = get_dimension(tup_d);
-            if (not (arg_d == tup_d) and not coordinates::is_uniform_pattern_component_of(arg_d, tup_d))
+            if (not (arg_d == tup_d) and not patterns::is_uniform_pattern_component_of(arg_d, tup_d))
               throw std::logic_error {"In an argument to n_ary_operation, the dimension of index " +
                 std::to_string(ix) + " is " + std::to_string(dim_arg_d) + ", but should be 1 " +
                 (dim_tup_d == 1 ? "" : "or " + std::to_string(dim_tup_d)) +
@@ -54,8 +54,8 @@ namespace OpenKalman
           {
             using D_Arg = std::decay_t<decltype(get_index_pattern(arg, std::integral_constant<std::size_t, ix>{}))>;
             using D = collections::collection_element_t<ix, DTup>;
-            static_assert(coordinates::compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
-              (ix >= index_count_v<Arg> and coordinates::uniform_pattern<D>),
+            static_assert(patterns::compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
+              (ix >= index_count_v<Arg> and patterns::uniform_pattern<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -224,7 +224,7 @@ namespace OpenKalman
         using Scalar = std::decay_t<typename n_ary_operator_traits<Op, sizeof...(Ds),
           std::add_lvalue_reference_t<element_type_of_t<Args>>...>::type>;
 
-        if constexpr (((coordinates::dimension_of_v<Ds> == 1) and ...))
+        if constexpr (((patterns::dimension_of_v<Ds> == 1) and ...))
         {
           // one-by-one matrix
           auto e = op(access(std::forward<Args>(args))...);
@@ -305,7 +305,7 @@ namespace OpenKalman
    *     13, 16,
    *     21, 24
    *   \endcode
-   * \tparam Ds \ref coordinates::pattern objects defining the size of the result.
+   * \tparam Ds \ref patterns::pattern objects defining the size of the result.
    * \tparam Operation The n-ary operation taking n arguments and, optionally, a set of indices indicating the location
    * within the result. The operation must return a scalar value.
    * \tparam Args The arguments
@@ -313,13 +313,13 @@ namespace OpenKalman
    * from each of the arguments, in the order specified.
    */
 #ifdef __cpp_concepts
-  template<coordinates::pattern...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (coordinates::dimension_of_v<Ds> != 0))
+  template<patterns::pattern...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (patterns::dimension_of_v<Ds> != 0))
   constexpr compares_with_pattern_collection<std::tuple<Ds...>> auto
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
-    (coordinates::pattern<Ds> and ...) and (indexible<Args> and ...) and (sizeof...(Args) > 0) and
-    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (coordinates::dimension_of_v<Ds> != 0)), int> = 0>
+    (patterns::pattern<Ds> and ...) and (indexible<Args> and ...) and (sizeof...(Args) > 0) and
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (patterns::dimension_of_v<Ds> != 0)), int> = 0>
   constexpr auto
 #endif
   n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation, Args&&...args)
@@ -338,7 +338,7 @@ namespace OpenKalman
       if constexpr (sizeof...(Args) == 0)
       {
         auto ret = get_pattern_collection<ix>(arg);
-        if constexpr (coordinates::dynamic_pattern<decltype(ret)>)
+        if constexpr (patterns::dynamic_pattern<decltype(ret)>)
         {
           if (get_dimension(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
             "to n_ary_operation is zero for at least index " + std::to_string(ix) + "."};
@@ -354,24 +354,24 @@ namespace OpenKalman
 
         if constexpr (fixed_pattern<Arg_D> and fixed_pattern<Max_D>)
         {
-          constexpr auto dim_arg_d = coordinates::dimension_of_v<Arg_D>;
+          constexpr auto dim_arg_d = patterns::dimension_of_v<Arg_D>;
           if constexpr (compares_with<Arg_D, Max_D>or (dim_arg_d == 1 and equivalent_to_uniform_pattern_component_of<Arg_D, Max_D>))
           {
             return max_d;
           }
           else
           {
-            constexpr auto dim_max_d = coordinates::dimension_of_v<Max_D>;
+            constexpr auto dim_max_d = patterns::dimension_of_v<Max_D>;
             static_assert(dim_max_d != 1 or not equivalent_to_uniform_pattern_component_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
             return get_pattern_collection<ix>(arg);
           }
         }
-        else if constexpr (coordinates::euclidean_pattern<Arg_D> and coordinates::euclidean_pattern<Max_D>)
+        else if constexpr (patterns::euclidean_pattern<Arg_D> and patterns::euclidean_pattern<Max_D>)
         {
           if constexpr (fixed_pattern<Arg_D>)
           {
-            constexpr std::size_t a = coordinates::dimension_of_v<Arg_D>;
+            constexpr std::size_t a = patterns::dimension_of_v<Arg_D>;
             std::size_t m = get_dimension(max_d);
             if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
                 "are not compatible with each other for at least index " + std::to_string(ix) + "."};
@@ -383,7 +383,7 @@ namespace OpenKalman
           {
             auto arg_d = get_pattern_collection<ix>(arg);
             std::size_t a = get_dimension(arg_d);
-            constexpr std::size_t m = coordinates::dimension_of_v<Max_D>;
+            constexpr std::size_t m = patterns::dimension_of_v<Max_D>;
             if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
                 "are not compatible with each other for at least index " + std::to_string(ix) + "."};
 
@@ -404,13 +404,13 @@ namespace OpenKalman
         {
           auto arg_d = get_pattern_collection<ix>(arg);
           //using Scalar = element_type_of_t<Arg>;
-          if (coordinates::is_uniform_pattern_component_of(arg_d, max_d))
+          if (patterns::is_uniform_pattern_component_of(arg_d, max_d))
           {
             //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {max_d};
             //else return DynamicDescriptor<Scalar> {max_d};
             return max_d;
           }
-          else if (coordinates::is_uniform_pattern_component_of(max_d, arg_d))
+          else if (patterns::is_uniform_pattern_component_of(max_d, arg_d))
           {
             //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {arg_d};
             //else return DynamicDescriptor<Scalar> {arg_d};
@@ -546,7 +546,7 @@ namespace OpenKalman
       UniqueIndicesSeq unique_indices_seq, AllDsSeq all_ds_seq, std::index_sequence<Ks...>, std::index_sequence<Js...>,
       J_seqs...j_seqs)
     {
-      constexpr std::size_t new_factor = factor / coordinates::dimension_of_v<collections::collection_element_t<index, Vs_tuple>>;
+      constexpr std::size_t new_factor = factor / patterns::dimension_of_v<collections::collection_element_t<index, Vs_tuple>>;
 
       (nullary_iterate<CurrentOpIndex + new_factor * Js, new_factor, indices...>(
         m, op_tup, ds_tup, unique_indices_seq, all_ds_seq, std::index_sequence<Ks..., Js>{}, j_seqs...),...);
@@ -615,7 +615,7 @@ namespace OpenKalman
    * \tparam PatternMatrix A matrix or array corresponding to the result type. Its purpose is to indicate the
    * library from which to create a resulting matrix, and its dimensions need not match the specified dimensions Ds
    * \tparam indices The indices, if any, along which there will be a different operator for each element along that index.
-   * \tparam Ds \ref coordinates::pattern objects for each index of the result. \ref coordinates::pattern objects corresponding to indices must be
+   * \tparam Ds \ref patterns::pattern objects for each index of the result. \ref patterns::pattern objects corresponding to indices must be
    * of a \ref fixed_pattern type.
    * \tparam Operations The nullary operations. The number of operations must equal the product of each dimension Ds
    * corresponding to indices. The order of the operations depends on the order of indices, with the left-most index
@@ -623,22 +623,22 @@ namespace OpenKalman
    * are {0, 1} for a matrix result, the operations must be in row-major order. If the indices are {1, 0}, the
    * operations must be in column-major order.
    * Each operation may be invocable with no arguments or invocable with as many indices
-   * as there are \ref coordinates::pattern Ds. (If the index corresponds to one of designaged <code>indices</code>, then the
+   * as there are \ref patterns::pattern Ds. (If the index corresponds to one of designaged <code>indices</code>, then the
    * operation will be called with <code>std::integral_constant<std::size_t, _index_>{}</code> for that index,
    * instead of <code>std::size_t</code>.))
    * \return A matrix or array in which each component is the result of calling Operation and which has
    * dimensions corresponding to Ds
    */
   #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, coordinates::pattern...Ds, typename...Operations>
+  template<indexible PatternMatrix, std::size_t...indices, patterns::pattern...Ds, typename...Operations>
   requires ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>)) and
+    (sizeof...(Operations) == (1 * ... * patterns::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...)
   #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
-    indexible<PatternMatrix> and (coordinates::pattern<Ds> and ...) and
+    indexible<PatternMatrix> and (patterns::pattern<Ds> and ...) and
     ((fixed_pattern<collections::collection_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * coordinates::dimension_of<collections::collection_element_t<indices, std::tuple<Ds...>>>::value)) and
+    (sizeof...(Operations) == (1 * ... * patterns::dimension_of<collections::collection_element_t<indices, std::tuple<Ds...>>>::value)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...), int> = 0>
   #endif
   constexpr auto
@@ -653,7 +653,7 @@ namespace OpenKalman
     }
     // One operation for each element, and the operations are not invocable with indices:
     else if constexpr (((not dynamic_pattern<Ds>) and ...) and
-      sizeof...(operations) == (coordinates::dimension_of_v<Ds> * ...) and
+      sizeof...(operations) == (patterns::dimension_of_v<Ds> * ...) and
       not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<sizeof...(Ds)> {}) or ...))
     {
       return make_dense_object_from<PatternMatrix, layout_of_t<PatternMatrix>, Scalar>(d_tup, operations()...);
@@ -669,7 +669,7 @@ namespace OpenKalman
         std::index_sequence<indices...> {},
         std::index_sequence_for<Ds...> {},
         std::index_sequence<> {},
-        std::make_index_sequence<coordinates::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>> {}...);
+        std::make_index_sequence<patterns::dimension_of_v<collections::collection_element_t<indices, std::tuple<Ds...>>>> {}...);
       return m;
     }
   }
@@ -726,12 +726,12 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, coordinates::pattern...Ds, typename...Operations>
+  template<indexible PatternMatrix, std::size_t...indices, patterns::pattern...Ds, typename...Operations>
   requires ((not dynamic_dimension<PatternMatrix, indices>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of_v<PatternMatrix, indices>))
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
-    indexible<PatternMatrix> and (coordinates::pattern<Ds> and ...) and
+    indexible<PatternMatrix> and (patterns::pattern<Ds> and ...) and
     ((not dynamic_dimension<PatternMatrix, indices>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of<PatternMatrix, indices>::value)), int> = 0>
 #endif

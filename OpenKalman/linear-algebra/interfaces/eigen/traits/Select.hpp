@@ -96,9 +96,9 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<ConditionMatrixType, applicability::permitted> and
-      OpenKalman::one_dimensional<ThenMatrixType, applicability::permitted> and
-      OpenKalman::one_dimensional<ElseMatrixType, applicability::permitted> and
+      OpenKalman::one_dimensional<ConditionMatrixType, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<ThenMatrixType, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<ElseMatrixType, values::unbounded_size, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<ConditionMatrixType> or
@@ -108,14 +108,14 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool is_square =
-      square_shaped<ConditionMatrixType, applicability::permitted> and
-      square_shaped<ThenMatrixType, applicability::permitted> and
-      square_shaped<ElseMatrixType, applicability::permitted> and
+      square_shaped<ConditionMatrixType, 2, applicability::permitted> and
+      square_shaped<ThenMatrixType, 2, applicability::permitted> and
+      square_shaped<ElseMatrixType, 2, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
-        square_shaped<ConditionMatrixType, b> or
-        square_shaped<ThenMatrixType, b> or
-        square_shaped<ElseMatrixType, b>);
+        square_shaped<ConditionMatrixType, 2, b> or
+        square_shaped<ThenMatrixType, 2, b> or
+        square_shaped<ElseMatrixType, 2, b>);
 
 
     template<triangle_type t>

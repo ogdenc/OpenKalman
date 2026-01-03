@@ -59,7 +59,7 @@ namespace OpenKalman::interface
      * \brief Return a std::mdspan as a view to the array.
      */
     static constexpr auto
-    get_mdspan = [](auto&& t)
+    get_mdspan = [](auto& t)
     {
       using scalar = std::remove_all_extents_t<std::remove_reference_t<decltype(t)>>;
       using ext = typename mdspan_extents<>::type;

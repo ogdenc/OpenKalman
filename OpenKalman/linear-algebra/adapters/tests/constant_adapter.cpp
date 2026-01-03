@@ -23,7 +23,7 @@
 #include "linear-algebra/interfaces/stl/mdspan-library.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinates;
+using namespace OpenKalman::patterns;
 using namespace OpenKalman::test;
 
 using stdex::numbers::pi;
@@ -103,19 +103,19 @@ TEST(adapters, constant_adapter_traits)
   static_assert(triangular_matrix<zero_adapter<double[3][3]>, triangle_type::lower>);
   static_assert(triangular_matrix<zero_adapter<double[3][1]>, triangle_type::lower>);
 
-  static_assert(square_shaped<constant_adapter<F0, double[2][2]>, applicability::permitted>);
-  static_assert(not square_shaped<constant_adapter<F5, double[3][4]>, applicability::permitted>);
+  static_assert(square_shaped<constant_adapter<F0, double[2][2]>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<constant_adapter<F5, double[3][4]>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<constant_adapter<F0, double[2][2]>>);
   static_assert(square_shaped<constant_adapter<F5, double[2][2]>>);
   static_assert(not square_shaped<constant_adapter<F5, double[3][4]>>);
 
-  static_assert(not square_shaped<zero_adapter<double[3][1]>, applicability::permitted>);
+  static_assert(not square_shaped<zero_adapter<double[3][1]>, values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<zero_adapter<double[3][3]>>);
 
   static_assert(one_dimensional<constant_adapter<F5, double[1][1]>>);
 
-  static_assert(not one_dimensional<zero_adapter<double[3][1]>, applicability::permitted>);
+  static_assert(not one_dimensional<zero_adapter<double[3][1]>, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<zero_adapter<double[1][1]>>);
 
   static_assert(element_gettable<constant_adapter<F2, double, 3>[2][2]>);
@@ -486,9 +486,9 @@ TEST(adapters, diagonal_of_constant)
   static_assert(not one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1)))>);
-  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
 
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M11::Identity()))>);
   static_assert(has_dynamic_dimensions<decltype(diagonal_of(M1x::Identity(1, 1)))>);

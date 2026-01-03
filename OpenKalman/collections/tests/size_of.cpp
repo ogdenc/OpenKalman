@@ -21,22 +21,6 @@
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
 
-TEST(collections, sized)
-{
-  static_assert(sized<std::tuple<int, double>>);
-  static_assert(sized<const std::tuple<int, double>>);
-  static_assert(sized<std::tuple<>>);
-  static_assert(sized<std::array<int, 7>>);
-  static_assert(sized<const std::array<int, 7>&>);
-  static_assert(sized<std::vector<int>>);
-  static_assert(sized<const std::vector<int>&>);
-  static_assert(sized<int(&)[5]>);
-  static_assert(sized<const int(&)[6]>);
-  static_assert(sized<stdex::ranges::views::all_t<int(&)[7]>>);
-  static_assert(sized<stdex::ranges::views::all_t<decltype(stdex::ranges::views::reverse(stdex::ranges::views::all(std::declval<int(&)[5]>())))>>);
-}
-
-
 #include "collections/functions/get_size.hpp"
 
 TEST(collections, get_size)
@@ -120,5 +104,21 @@ TEST(collections, size_of)
   static_assert(size_of_v<stdex::ranges::single_view<int>> == 1);
 
   static_assert(size_of_v<stdex::ranges::concat_view<stdex::ranges::views::all_t<std::array<double, 5>>, stdex::ranges::views::all_t<int(&)[4]>>> == 9);
+}
+
+
+TEST(collections, sized)
+{
+  static_assert(sized<std::tuple<int, double>>);
+  static_assert(sized<const std::tuple<int, double>>);
+  static_assert(sized<std::tuple<>>);
+  static_assert(sized<std::array<int, 7>>);
+  static_assert(sized<const std::array<int, 7>&>);
+  static_assert(sized<std::vector<int>>);
+  static_assert(sized<const std::vector<int>&>);
+  static_assert(sized<int(&)[5]>);
+  static_assert(sized<const int(&)[6]>);
+  static_assert(sized<stdex::ranges::views::all_t<int(&)[7]>>);
+  static_assert(sized<stdex::ranges::views::all_t<decltype(stdex::ranges::views::reverse(stdex::ranges::views::all(std::declval<int(&)[5]>())))>>);
 }
 

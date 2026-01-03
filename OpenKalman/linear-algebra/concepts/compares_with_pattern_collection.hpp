@@ -16,25 +16,40 @@
 #ifndef OPENKALMAN_COMPARES_WITH_PATTERN_COLLECTION_HPP
 #define OPENKALMAN_COMPARES_WITH_PATTERN_COLLECTION_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/pattern_collection_type_of.hpp"
 
 namespace OpenKalman
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename P, auto comp, applicabilty a, typename = void>
+    struct compares_with_pattern_collection_impl : std::false_type {};
+
+    template<typename T, typename P, auto comp, applicabilty a>
+    struct compares_with_pattern_collection_impl<T, N, b, std::enable_if_t<
+      patterns::collection_compares_with<typename pattern_collection_type_of<T>::type, P, comp, a>
+      > : std::true_type {};
+  }
+#endif
+
+
   /**
    * \brief Compares the associated pattern collection of \ref indexible T with \ref pattern_collection D.
    * \tparam T An \ref indexible object
-   * \tparam D A \ref pattern_collection
+   * \tparam P A \ref pattern_collection
    */
-  template<typename T, typename D, auto comp = &stdex::is_eq, applicability a = applicability::permitted>
+  template<typename T, typename P, auto comp = &stdex::is_eq, applicability a = applicability::permitted>
 #ifdef __cpp_concepts
   concept compares_with_pattern_collection =
+    indexible<T> and
+    patterns::collection_compares_with<pattern_collection_type_of_t<T>, P, comp, a>;
 #else
   constexpr bool compares_with_pattern_collection =
+    detail::compares_with_pattern_collection_impl<T, P, comp, a>;
 #endif
-    indexible<T> and
-    coordinates::pattern_collection<D> and
-    coordinates::pattern_collection_compares_with<decltype(get_pattern_collection(std::declval<T>())), D, comp, a>;
 
 }
 

@@ -17,7 +17,7 @@
 #define OPENKALMAN_LIBRARY_INTERFACE_HPP
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/enumerations.hpp"
 #include "linear-algebra/traits/element_type_of.hpp"
 #include "linear-algebra/concepts/internal/layout_mapping_policy.hpp"
@@ -68,29 +68,30 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create a \ref constant_object of a given shape (optional).
-     * \details Takes a \ref coordinates::euclidean_pattern_collection that specifies the dimensions of the resulting object
-     * \param c A \ref values::scalar (either static or dynamic)
-     * \param d A \ref coordinates::euclidean_pattern_collection
-     * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type constant_adapter.
+     * \brief Convert a column vector (or any other array with a 1D second index) into a \ref diagonal_matrix (optional).
+     * \returns An \ref indexible_object with one higher rank than the argument
      */
     static constexpr auto
-    make_constant = [](const values::scalar auto& c, coordinates::euclidean_pattern_collection auto&& d)
-      -> constexpr_matrix auto
+    to_diagonal = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
+      (Arg&& arg) -> diagonal_matrix auto
     {
       // ...
     };
 
 
     /**
-     * \brief Convert a column vector (or column slice for rank 2+ tensors) into a diagonal matrix (optional).
-     * \note If this is not defined, calls to <code>OpenKalman::to_diagonal</code> will construct a \ref diagonal_adapter.
-     * \details An interface need not deal with an object known to be \ref one_dimensional at compile time.
-     * \tparam Arg An \ref indexible object with one higher rank than the argument
+     * \brief Extract a column vector (or column slice for rank > 2 arrays) comprising the diagonal elements.
+     * \details The argument need not be a square matrix.
+     * An interface need not deal with the following situations, which are already handled by the
+     * global \ref OpenKalman::diagonal_of "diagonal_of" function:
+     * - an identity matrix
+     * - a zero matrix
+     * - a constant matrix or constant-diagonal matrix
+     * \param arg An \ref indexible object with one lower rank than the argument (unless the rank is already 0)
      */
     static constexpr auto
-    to_diagonal = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
-      (Arg&& arg) -> diagonal_matrix auto
+    diagonal_of = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
+      (Arg&& arg) -> indexible auto
     {
       // ...
     };
@@ -178,11 +179,11 @@ namespace OpenKalman::interface
      * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
      * \note If not defined, an identity matrix is a \ref diagonal_adapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
-     * \param d A \ref coordinates::pattern object defining the size
+     * \param d A \ref patterns::pattern object defining the size
      */
     template<values::number Scalar>
     static constexpr auto
-    make_identity_matrix = [](coordinates::euclidean_pattern_collection auto&& d) -> identity_matrix auto
+    make_identity_matrix = [](patterns::euclidean_pattern_collection auto&& d) -> identity_matrix auto
     {
       // ...
     };
@@ -224,7 +225,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief Make a default, potentially uninitialized, dense, writable matrix or array within the library.
-     * \details Takes a \ref coordinates::euclidean_pattern_collection that specifies the dimensions of the resulting object
+     * \details Takes a \ref patterns::euclidean_pattern_collection that specifies the dimensions of the resulting object
      * \tparam layout the \ref layout_mapping_policy of the result, which may be either std::layout_left or std::layout_right.
      * \tparam Scalar The scalar value of the result.
      * \return A default, potentially uninitialized, dense, writable object.
@@ -233,7 +234,7 @@ namespace OpenKalman::interface
     //template<internal::layout_mapping_policy layout, values::number Scalar> requires
     //  std::same_as<layout, stdex::layout_left> or std::same_as<layout, stdex::layout_right>
     //static constexpr auto
-    //make_default = [](const coordinates::euclidean_pattern_collection auto& descriptors) -> indexible auto
+    //make_default = [](const patterns::euclidean_pattern_collection auto& descriptors) -> indexible auto
     //{
     //  // ...
     //};
@@ -271,8 +272,8 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Project the Euclidean vector space associated with index 0 to \ref coordinates::pattern v after applying directional statistics
-      * \param v The new \ref coordinates::pattern for index 0.
+      * \brief Project the Euclidean vector space associated with index 0 to \ref patterns::pattern v after applying directional statistics
+      * \param v The new \ref patterns::pattern for index 0.
       * \note This is optional.
       * If not defined, the \ref OpenKalman::from_euclidean "from_euclidean" function will construct a FromEuclideanExpr object.
       * In this case, the library should be able to accept FromEuclideanExpr object as native.
@@ -286,7 +287,7 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Wrap Arg based on \ref coordinates::pattern V.
+      * \brief Wrap Arg based on \ref patterns::pattern V.
       * \note This is optional. If not defined, the public \ref OpenKalman::wrap_angles "wrap_angles" function
       * will call <code>from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_pattern_collection<0>(arg))</code>.
       */
@@ -346,24 +347,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
-     * \details The argument need not be a square matrix.
-     * An interface need not deal with the following situations, which are already handled by the
-     * global \ref OpenKalman::diagonal_of "diagonal_of" function:
-     * - an identity matrix
-     * - a zero matrix
-     * - a constant matrix or constant-diagonal matrix
-     * \param arg An \ref indexible object with one lower rank than the argument (unless the rank is already 0)
-     */
-    static constexpr auto
-    diagonal_of = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
-      (Arg&& arg) -> indexible auto
-    {
-      // ...
-    };
-
-
-    /**
      * \brief Broadcast an object by replicating it by factors specified for each index.
      * \details The operation may increase the order of the object by specifying factors beyond the order of the argument.
      * \param arg The object.
@@ -380,10 +363,10 @@ namespace OpenKalman::interface
 
     /**
      * \brief Perform an n-ary array operation on a set of n arguments.
-     * \details The \ref coordinates::pattern tuple d_tup defines the size of the resulting matrix.
+     * \details The \ref patterns::pattern tuple d_tup defines the size of the resulting matrix.
      * \note This is optional and should be left undefined to the extent the native library does not provide this
      * functionality.
-     * \param patterns A collection of \ref coordinates::pattern objects defining the resulting tensor
+     * \param patterns A collection of \ref patterns::pattern objects defining the resulting tensor
      * \tparam Operation The n-ary operation taking an optional collection of indices and n scalar arguments.
      * Examples:
      * - <code>template<values::number...X> operation(const X&...)</code>
@@ -393,7 +376,7 @@ namespace OpenKalman::interface
      * \return An object with size and shape defined by <code>patterns</code> and with elements defined by the operation
      */
     static constexpr auto
-    n_ary_operation = []<coordinates::pattern_collection Patterns, typename Operation,
+    n_ary_operation = []<patterns::pattern_collection Patterns, typename Operation,
         compares_with_pattern_collection<Patterns>...Args>
       requires
         std::invocable<Operation&&, element_type_of_t<Args>...> or
@@ -432,7 +415,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as T.
      */
     static constexpr auto
-    determinant = [] requires square_shaped<T, applicability::permitted>
+    determinant = [] requires square_shaped<T, 2, applicability::permitted>
       (const T& t) -> std::convertible_to<element_type_of_t<T>> auto
     {
       // ...

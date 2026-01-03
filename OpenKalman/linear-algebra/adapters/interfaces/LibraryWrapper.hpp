@@ -374,7 +374,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinates::pattern...IDs, typename Operation, indexible...Args> requires
+    template<patterns::pattern...IDs, typename Operation, indexible...Args> requires
       interface::n_ary_operation_defined_for<LibraryInterface, const std::tuple<IDs...>&, Operation&&>
     static indexible auto
 #else
@@ -389,7 +389,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinates::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
+    template<patterns::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -440,7 +440,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, coordinates::pattern V> requires
+    template<indexible Arg, patterns::pattern V> requires
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&> or
       interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>
     static constexpr indexible auto

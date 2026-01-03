@@ -104,39 +104,39 @@ TEST(eigen3, constant_adapter_traits)
   static_assert(triangular_matrix<ZA31, triangle_type::lower>);
   static_assert(triangular_matrix<ZA00, triangle_type::lower>);
 
-  static_assert(square_shaped<constant_adapter<M22, double, 0>, applicability::permitted>);
-  static_assert(not square_shaped<constant_adapter<M34, double, 5>, applicability::permitted>);
-  static_assert(square_shaped<constant_adapter<M3x, double, 5>, applicability::permitted>);
-  static_assert(square_shaped<constant_adapter<Mxx, double, 5>, applicability::permitted>);
+  static_assert(square_shaped<constant_adapter<M22, double, 0>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<constant_adapter<M34, double, 5>, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<constant_adapter<M3x, double, 5>, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<constant_adapter<Mxx, double, 5>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<constant_adapter<M22, double, 0>>);
   static_assert(square_shaped<constant_adapter<M22, double, 5>>);
   static_assert(not square_shaped<constant_adapter<Mxx, double, 5>>);
   static_assert(not square_shaped<constant_adapter<M34, double, 5>>);
 
-  static_assert(not square_shaped<ZA31, applicability::permitted>);
+  static_assert(not square_shaped<ZA31, values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<ZA33>);
   static_assert(not square_shaped<ZA30>);
-  static_assert(square_shaped<ZA30, applicability::permitted>);
+  static_assert(square_shaped<ZA30, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<ZA03>);
-  static_assert(square_shaped<ZA03, applicability::permitted>);
+  static_assert(square_shaped<ZA03, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<ZA00>);
-  static_assert(square_shaped<ZA00, applicability::permitted>);
+  static_assert(square_shaped<ZA00, values::unbounded_size, applicability::permitted>);
 
   static_assert(one_dimensional<constant_adapter<M11, double, 5>>);
-  static_assert(one_dimensional<constant_adapter<M1x, double, 5>, applicability::permitted>);
+  static_assert(one_dimensional<constant_adapter<M1x, double, 5>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<constant_adapter<M1x, double, 5>>);
-  static_assert(one_dimensional<constant_adapter<Mxx, double, 5>, applicability::permitted>);
+  static_assert(one_dimensional<constant_adapter<Mxx, double, 5>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<constant_adapter<Mxx, double, 5>>);
 
-  static_assert(not one_dimensional<ZA31, applicability::permitted>);
+  static_assert(not one_dimensional<ZA31, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<ZA11>);
   static_assert(not one_dimensional<ZA10>);
-  static_assert(one_dimensional<ZA10, applicability::permitted>);
+  static_assert(one_dimensional<ZA10, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<ZA01>);
-  static_assert(one_dimensional<ZA01, applicability::permitted>);
+  static_assert(one_dimensional<ZA01, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<ZA00>);
-  static_assert(one_dimensional<ZA00, applicability::permitted>);
+  static_assert(one_dimensional<ZA00, values::unbounded_size, applicability::permitted>);
 
   static_assert(element_gettable<constant_adapter<M22, double, 3>, 2>);
   static_assert(element_gettable<constant_adapter<M2x, double, 3>, 2>);
@@ -623,9 +623,9 @@ TEST(eigen3, diagonal_of_constant)
   static_assert(not one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1)))>);
-  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
 
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M11::Identity()))>);
   static_assert(has_dynamic_dimensions<decltype(diagonal_of(M1x::Identity(1, 1)))>);

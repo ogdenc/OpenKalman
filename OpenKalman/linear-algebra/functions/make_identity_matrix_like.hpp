@@ -19,10 +19,10 @@
 namespace OpenKalman
 {
   /**
-   * \brief Make an \ref identity_matrix with a particular set of \ref coordinates::pattern objects.
+   * \brief Make an \ref identity_matrix with a particular set of \ref patterns::pattern objects.
    * \tparam T Any matrix or tensor within the relevant library.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param Ds A set of \ref coordinates::pattern items defining the dimensions of each index.
+   * \param Ds A set of \ref patterns::pattern items defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
   template<indexible T, values::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
@@ -34,11 +34,11 @@ namespace OpenKalman
 #endif
   make_identity_matrix_like(Descriptors&& descriptors)
   {
-    decltype(auto) d = coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
+    decltype(auto) d = patterns::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
     using D = decltype(d);
     using Trait = interface::library_interface<stdex::remove_cvref_t<T>>;
 
-    if constexpr (coordinates::euclidean_pattern_collection<D> and interface::make_identity_matrix_defined_for<T, Scalar, D>)
+    if constexpr (patterns::euclidean_pattern_collection<D> and interface::make_identity_matrix_defined_for<T, Scalar, D>)
     {
       return Trait::template make_identity_matrix<Scalar>(std::forward<D>(d));
     }
@@ -56,14 +56,14 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief \ref coordinates::pattern objects are passed as arguments.
+   * \brief \ref patterns::pattern objects are passed as arguments.
    */
 #ifdef __cpp_concepts
-    template<indexible T, values::number Scalar = scalar_type_of_t<T>, coordinates::pattern...Ds>
+    template<indexible T, values::number Scalar = scalar_type_of_t<T>, patterns::pattern...Ds>
     constexpr identity_matrix auto
 #else
     template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename...Ds, std::enable_if_t<
-      indexible<T> and values::number<Scalar> and (... and coordinates::pattern<Ds>), int> = 0>
+      indexible<T> and values::number<Scalar> and (... and patterns::pattern<Ds>), int> = 0>
     constexpr auto
 #endif
     make_identity_matrix_like(Ds&&...ds)

@@ -168,17 +168,18 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsXprType, applicability::permitted> and OpenKalman::one_dimensional<RhsXprType, applicability::permitted> and
+      OpenKalman::one_dimensional<LhsXprType, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<RhsXprType, values::unbounded_size, applicability::permitted> and
       (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
-        (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
-        ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
+        (square_shaped<LhsXprType, 2, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
+        ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, 2, b>));
 
 
     template<applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsXprType, applicability::permitted> and square_shaped<RhsXprType, applicability::permitted> and
+      square_shaped<LhsXprType, 2, applicability::permitted> and square_shaped<RhsXprType, 2, applicability::permitted> and
       (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
-        square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
+        square_shaped<LhsXprType, 2, b> or square_shaped<RhsXprType, 2, b>);
 
 
     static constexpr bool is_triangular_adapter = false;

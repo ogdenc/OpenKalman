@@ -44,7 +44,7 @@ namespace OpenKalman
       if constexpr (((I == indices) or ...))
       {
         auto f = [](auto&& dtup){
-          if constexpr (I >= collections::size_of_v<decltype(dtup)>) return coordinates::Axis {};
+          if constexpr (I >= collections::size_of_v<decltype(dtup)>) return patterns::Axis {};
           else return std::get<I>(std::forward<decltype(dtup)>(dtup));
         };
         return (f(std::forward<DTup>(d_tup)) + ... + f(std::forward<DTups>(d_tups)));

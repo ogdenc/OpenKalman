@@ -17,7 +17,7 @@
 #define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
 #include "basics/basics.hpp"
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/identity_matrix.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 #include "../traits/count_indices.hpp"
@@ -131,8 +131,8 @@ template<indexible Arg>
         }
         else
         {
-          using Desc = coordinates::DynamicDescriptor<element_type_of<Arg>>;
-          if (n == 0) return Desc {coordinates::Axis};
+          using Desc = patterns::DynamicDescriptor<element_type_of<Arg>>;
+          if (n == 0) return Desc {patterns::Axis};
           else return Desc {OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
@@ -256,7 +256,7 @@ template<indexible Arg>
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return access(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return coordinates::to_stat_space(get_pattern_collection<0>(arg), g, i);
+          return patterns::to_stat_space(get_pattern_collection<0>(arg), g, i);
         }
       }
 

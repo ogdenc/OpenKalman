@@ -11,7 +11,7 @@
 #include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinates;
+using namespace OpenKalman::patterns;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
@@ -689,7 +689,7 @@ TEST(covariance_tests, Covariance_make)
   static_assert(triangular_matrix<decltype(make_covariance<C, triangle_type::lower>().get_triangular_nested_matrix()), triangle_type::lower>);
   static_assert(triangular_matrix<decltype(make_covariance<C, triangle_type::upper>().get_triangular_nested_matrix()), triangle_type::upper>);
   static_assert(hermitian_adapter<decltype(make_covariance<C>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
-  static_assert(coordinates::dimension_of_v<vector_space_descriptor_of_t<decltype(make_covariance<C>()), 0>> == 2);
+  static_assert(patterns::dimension_of_v<vector_space_descriptor_of_t<decltype(make_covariance<C>()), 0>> == 2);
 }
 
 

@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
 #define OPENKALMAN_FORWARD_CLASS_DECLARATIONS_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 
 namespace OpenKalman
 {
@@ -179,11 +179,11 @@ namespace OpenKalman
    * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
    * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   * \tparam RowDescriptor The \ref coordinates::pattern of the first index.
+   * \tparam RowDescriptor The \ref patterns::pattern of the first index.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, coordinates::pattern RowDescriptor> requires
-    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinates::Dimensions<coordinates::stat_dimension_of_v<RowDescriptor>>, equal_to<>, applicability::permitted>
+  template<indexible NestedObject, patterns::pattern RowDescriptor> requires
+    compares_with<vector_space_descriptor_of<NestedObject, 0>, patterns::Dimensions<patterns::stat_dimension_of_v<RowDescriptor>>, equal_to<>, applicability::permitted>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif
@@ -281,8 +281,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients, fixed_pattern ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
-    (coordinates::dimension_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
+  requires (patterns::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::dimension_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
     (dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
@@ -313,7 +313,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  (patterns::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -342,7 +342,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (coordinates::stat_dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  (patterns::stat_dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
 #endif
@@ -367,7 +367,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
-    (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -395,7 +395,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
-    (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>

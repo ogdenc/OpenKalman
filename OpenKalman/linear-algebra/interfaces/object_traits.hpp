@@ -17,7 +17,7 @@
 #define OPENKALMAN_OBJECT_TRAITS_HPP
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/enumerations.hpp"
 #endif
 
@@ -54,12 +54,12 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Get the \ref coordinates::pattern_collection associated with the object.
+     * \brief Get the \ref patterns::pattern_collection associated with the object.
      * \note Optional. If omitted, T will be associated with a Euclidean pattern derived from the extents of the mdspan.
      */
     static constexpr auto
     get_pattern_collection = [](std::convertible_to<const T&> auto&&)
-      -> coordinates::pattern_collection decltype(auto) { return std::tuple{}; };
+      -> patterns::pattern_collection decltype(auto) { return std::tuple{}; };
 
 
     /**
@@ -85,18 +85,7 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Gets the nested object for T, if it exists.
-     * /detail This should only be defined if T has a nested matrix.
-     * \note Optional. If T has no nested object, this must be omitted.
-     * \sa OpenKalman::nested_object
-     */
-    static constexpr auto
-    nested_object = [](std::convertible_to<const T&> auto&& t)
-      -> indexible decltype(auto) { return std::forward<decltype(t)>(t); };
-
-
-    /**
-     * \brief Whether all dimensions of T are the same and type-equivalent (optional).
+     * \brief Whether all dimensions of T are the same and type-equivalent.
      * \note: Optional.
      * \details This is only necessary if the object is known to be square but the specific dimension is
      * unknown at compile time.

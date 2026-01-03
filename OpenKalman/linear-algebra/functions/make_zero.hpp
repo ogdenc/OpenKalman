@@ -23,96 +23,61 @@ namespace OpenKalman
   /**
    * \brief Make an \ref indexible object in which every element is 0.
    * \returns An mdspan returning the constant value at every set of indices.
-   * \param extents An std::extents object defining the extents.
+   * \tparam C The value type
+   * \param p a \ref patterns::pattern_collection (e.g., and std::extents object).
    */
 #ifdef __cpp_concepts
-  template<values::value C = double, values::integral IndexType, std::size_t...Extents>
-  constexpr constant_object auto
+  template<values::value C, patterns::pattern_collection P> requires values::fixed<collections::size_of<P>>
+  constexpr zero auto
 #else
-  template<typename C = double, typename IndexType, std::size_t...Extents, std::enable_if_t<values::value<C>, int> = 0>
+  template<typename C, typename P, std::enable_if_t<values::value<C> and
+    patterns::pattern_collection<P> and values::fixed<collections::size_of<P>>, int> = 0>
   constexpr auto
 #endif
-  make_zero(stdex::extents<IndexType, Extents...> extents)
+  make_zero(P&& p)
   {
-    return make_constant(values::fixed_value<C, 0>{}, std::move(extents));
+    return make_constant(values::fixed_value<C, 0>{}, std::forward<P>(p));
   }
 
 
   /**
-   * \brief Make a \ref zero associated with a particular library.
-   * \tparam T An \indexible object (matrix or tensor) from a particular library. Its shape and contents are irrelevant.
-   * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param Descriptors A \ref pattern_collection defining the dimensions of each index.
-   * If none are provided and T has no dynamic dimensions, the function takes \ref coordinates::pattern from T.
+   * \overload
+   * \brief The \ref patterns::pattern_collection "pattern_collection" is constructed from a list of \ref patterns::patterns "patterns".
    */
-/*#ifdef __cpp_concepts
-  template<indexible T, values::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
-  constexpr zero auto
+#ifdef __cpp_concepts
+  template<values::value C, patterns::pattern...Ps>
+  constexpr constant_object auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    values::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
+  template<typename C, typename...Ps, std::enable_if_t<values::value<C> and (... and patterns::pattern<Ps>), int> = 0>
   constexpr auto
 #endif
-  make_zero(Descriptors&& descriptors)
-  {
-    return make_constant<T, Scalar, 0>(std::forward<Descriptors>(descriptors));
-  }*/
+  make_zero(Ps&&...ps)
+    {
+      return make_zero<C>(std::tuple{std::forward<Ps>(ps)...});
+    }
 
 
   /**
    * \overload
-   * \brief Specify \ref coordinates::pattern objects as arguments.
+   * \brief \ref Make a \ref zero based on a default-initializable \ref patterns::pattern_collection "pattern_collection".
    */
-/*#ifdef __cpp_concepts
-  template<indexible T, values::number Scalar = scalar_type_of_t<T>, coordinates::pattern...Ds>
-  constexpr zero auto
+#ifdef __cpp_concepts
+  template<values::value C, patterns::pattern_collection P> requires
+    std::default_initializable<P> and
+    values::fixed<collections::size_of<P>>
+  constexpr constant_object auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    values::number<Scalar> and (... and coordinates::pattern<Ds>), int> = 0>
+  template<typename C, typename P, std::enable_if_t<
+    patterns::pattern_collection<P> and
+    values::value<C> and
+    values::fixed<collections::size_of<P>>, int> = 0>
   constexpr auto
 #endif
-  make_zero(Ds&&...ds)
+  make_zero()
   {
-    return make_zero<T, Scalar>(std::tuple {std::forward<Ds>(ds)...});
-  }*/
+    return make_zero<C>(P{});
+  }
 
-
-  /**
-   * \overload
-   * \brief Make a \ref zero based on an argument.
-   * \tparam T The matrix or array on which the new zero matrix is patterned.
-   * \tparam Scalar A scalar type for the new matrix.
-   */
-/*#ifdef __cpp_concepts
-  template<values::number Scalar, indexible T>
-  constexpr zero auto
-#else
-  template<typename Scalar, typename T, std::enable_if_t<values::number<Scalar> and indexible<T>, int> = 0>
-  constexpr auto
-#endif
-  make_zero(const T& t)
-  {
-    return make_constant<Scalar, 0>(t);
-  }*/
-
-
-
-  /**
-   * \overload
-   * \brief Make a zero matrix based on T.
-   * \details The new scalar type is also derived from T.
-   */
-/*#ifdef __cpp_concepts
-  template<indexible T>
-  constexpr zero auto
-#else
-  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
-  constexpr auto
-#endif
-  make_zero(const T& t)
-  {
-    return make_constant<scalar_type_of_t<T>, 0>(t);
-  }*/
 
 
 }

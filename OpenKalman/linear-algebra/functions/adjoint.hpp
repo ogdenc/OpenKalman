@@ -55,13 +55,9 @@ namespace OpenKalman
     {
       return interface::library_interface<stdex::remove_cvref_t<Arg>>::template adjoint<indexa, indexb>(std::forward<Arg>(arg));
     }
-    else if constexpr (std::is_lvalue_reference_v<Arg> and index_count_v<Arg> <= 2)
-    {
-      return adjoint(get_mdspan(arg));
-    }
     else
     {
-      return transpose(conjugate(std::forward<Arg>(arg)));
+      return conjugate(transpose(std::forward<Arg>(arg)));
     }
   }
 

@@ -43,6 +43,12 @@ namespace OpenKalman::values
 #endif
     friend constexpr bool operator==(const T&, unbounded_size_t) noexcept { return false; }
 #endif
+
+
+#ifndef __cpp_concepts
+    // So that unbounded_size can be used in an auto template parameter
+    constexpr operator std::size_t() const { return stdex::dynamic_extent; }
+#endif
   };
 
 

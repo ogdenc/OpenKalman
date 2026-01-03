@@ -52,12 +52,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_sum_op)
   static_assert(one_dimensional<decltype(std::declval<M1x>() + std::declval<DMx>())>);
   static_assert(one_dimensional<decltype(std::declval<Mx1>() + std::declval<DMx>())>);
   static_assert(one_dimensional<decltype(std::declval<Axx>() + std::declval<A11>())>);
-  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), applicability::permitted>);
+  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>())>);
 
   static_assert(square_shaped<decltype(std::declval<M2x>() + std::declval<Mx2>())>);
   static_assert(not square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>())>);
-  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), applicability::permitted>);
+  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<DMx>())>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<Mxx>())>);
 

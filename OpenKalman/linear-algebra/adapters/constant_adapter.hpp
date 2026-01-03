@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_CONSTANT_ADAPTER_HPP
 #define OPENKALMAN_CONSTANT_ADAPTER_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/concepts/constant_object.hpp"
 #include "linear-algebra/concepts/index_collection_for.hpp"
@@ -58,10 +58,10 @@ namespace OpenKalman
   public:
   
     /**
-     * \brief Construct from \ref values::value "value" and a \ref coordinates::pattern_collection "pattern_collection"
+     * \brief Construct from \ref values::value "value" and a \ref patterns::pattern_collection "pattern_collection"
      */
 #ifdef __cpp_lib_ranges
-    template<values::value V, coordinates::pattern_collection P> requires
+    template<values::value V, patterns::pattern_collection P> requires
       std::constructible_from<Value, V&&> and
       std::constructible_from<Pattern, P&&>
 #else
@@ -96,10 +96,10 @@ namespace OpenKalman
 #ifdef __cpp_lib_ranges
     template<values::value V> requires
       std::constructible_from<Value, V&&> and
-      coordinates::fixed_pattern_collection<Pattern>
+      patterns::fixed_pattern_collection<Pattern>
 #else
     template<typename V, typename S, std::enable_if_t<values::value<V> and
-      stdex::constructible_from<Value, V&&> and coordinates::fixed_pattern_collection<Pattern>, int> = 0>
+      stdex::constructible_from<Value, V&&> and patterns::fixed_pattern_collection<Pattern>, int> = 0>
 #endif
     explicit constexpr constant_adapter(V&& v)
       : value_ {std::forward<V>(v)}, pattern_ {} {}
@@ -111,9 +111,9 @@ namespace OpenKalman
      */
 #ifdef __cpp_lib_ranges
     explicit constexpr constant_adapter()
-    requires values::fixed<Value> and coordinates::fixed_pattern_collection<Pattern>
+    requires values::fixed<Value> and patterns::fixed_pattern_collection<Pattern>
 #else
-    template<bool Enable, std::enable_if_t<Enable and values::fixed<Value> and coordinates::fixed_pattern_collection<Pattern>, int> = 0>
+    template<bool Enable, std::enable_if_t<Enable and values::fixed<Value> and patterns::fixed_pattern_collection<Pattern>, int> = 0>
     explicit constexpr constant_adapter()
 #endif
       : value_ {}, pattern_ {} {}

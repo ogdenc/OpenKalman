@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_TENSOR_ORDER_HPP
 #define OPENKALMAN_TENSOR_ORDER_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/traits/count_indices.hpp"
 #include "linear-algebra/traits/get_index_extent.hpp"
 

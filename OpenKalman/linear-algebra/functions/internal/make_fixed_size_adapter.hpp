@@ -54,7 +54,7 @@ namespace OpenKalman::internal
     }
     else if constexpr (internal::less_fixed_than<Arg, Descriptors>)
     {
-      using DTup = std::decay_t<decltype(coordinates::internal::strip_1D_tail(std::declval<Descriptors>()))>;
+      using DTup = std::decay_t<decltype(patterns::internal::strip_1D_tail(std::declval<Descriptors>()))>;
       std::make_index_sequence<collections::size_of_v<DTup>> seq {};
       return detail::make_fixed_size_adapter_impl<DTup>(std::forward<Arg>(arg), seq);
     }
@@ -69,9 +69,9 @@ namespace OpenKalman::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<coordinates::pattern...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
+  template<patterns::pattern...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
 #else
-  template<typename...Ds, typename Arg, std::enable_if_t<(... and coordinates::pattern<Ds>) and
+  template<typename...Ds, typename Arg, std::enable_if_t<(... and patterns::pattern<Ds>) and
     compatible_with_vector_space_descriptor_collection<Arg, std::tuple<Ds...>>, int> = 0>
 #endif
   constexpr decltype(auto)

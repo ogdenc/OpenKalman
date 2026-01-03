@@ -42,7 +42,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   struct index_dimension_of<T, N, std::enable_if_t<indexible<T>>>
 #endif
-    : std::integral_constant<std::size_t, coordinates::dimension_of_v<decltype(get_index_pattern<N>(std::declval<T>()))>> {};
+    : std::integral_constant<std::size_t, patterns::dimension_of_v<decltype(get_index_pattern<N>(std::declval<T>()))>> {};
 
 
   /**

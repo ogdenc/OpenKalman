@@ -152,7 +152,7 @@ TEST(stl_interfaces, array_mdspan_derived_traits)
 
 TEST(stl_interfaces, array_extents_and_patterns)
 {
-  using namespace OpenKalman::coordinates;
+  using namespace OpenKalman::patterns;
 
   static_assert(compare_pattern_collections(get_pattern_collection(a3), std::array{3U}));
   static_assert(compare_pattern_collections(get_pattern_collection(a3c), std::array{3U}));
@@ -243,7 +243,7 @@ TEST(stl_interfaces, array_extents_and_patterns)
 
 TEST(stl_interfaces, array_shapes)
 {
-  using namespace OpenKalman::coordinates;
+  using namespace OpenKalman::patterns;
 
   static_assert(patterns_match(a23, a23c));
   static_assert(patterns_match(a23, a23c, a23));
@@ -278,13 +278,13 @@ TEST(stl_interfaces, array_shapes)
   double a222[2][2][2] {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
   static_assert(compare(*is_square_shaped(a222), Dimensions<2>{}));
 
-  static_assert(not square_shaped<A3, applicability::permitted>);
-  static_assert(not square_shaped<A23, applicability::permitted>);
-  static_assert(not square_shaped<A234, applicability::permitted>);
+  static_assert(not square_shaped<A3, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<A23, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<A234, values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<double[1]>);
   static_assert(square_shaped<double[2][2]>);
   static_assert(square_shaped<double[2][2][2]>);
-  static_assert(not square_shaped<double[2][1][2], applicability::permitted>);
+  static_assert(not square_shaped<double[2][1][2], values::unbounded_size, applicability::permitted>);
 
   static_assert(not is_one_dimensional(a3));
   static_assert(not is_one_dimensional(a23));
@@ -295,13 +295,13 @@ TEST(stl_interfaces, array_shapes)
   static_assert(not is_one_dimensional(a22));
   static_assert(not is_one_dimensional(a222));
 
-  static_assert(not one_dimensional<A3, applicability::permitted>);
-  static_assert(not one_dimensional<A23, applicability::permitted>);
-  static_assert(not one_dimensional<A234, applicability::permitted>);
+  static_assert(not one_dimensional<A3, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<A23, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<A234, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<double[1]>);
   static_assert(one_dimensional<double[1][1]>);
   static_assert(one_dimensional<double[1][1][1]>);
-  static_assert(not one_dimensional<double[1][2][1], applicability::permitted>);
+  static_assert(not one_dimensional<double[1][2][1], values::unbounded_size, applicability::permitted>);
 
   // no tests for empty_object, given that a legacy c++ array cannot have zero dimension.
 

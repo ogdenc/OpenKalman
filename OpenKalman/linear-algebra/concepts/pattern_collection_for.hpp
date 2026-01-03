@@ -16,54 +16,43 @@
 #ifndef OPENKALMAN_COMPATIBLE_SHAPE_WITH_HPP
 #define OPENKALMAN_COMPATIBLE_SHAPE_WITH_HPP
 
-#include "coordinates/coordinates.hpp"
-#include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/traits/index_dimension_of.hpp"
+#include "patterns/patterns.hpp"
+#include "compares_with_pattern_collection.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<typename P, typename T, applicability a, typename = std::make_index_sequence<collections::size_of<P>::value>>
-    struct compatible_shape_with_impl : std::false_type {};
-
-    template<typename P, typename T, applicability a, std::size_t...i>
-    struct compatible_shape_with_impl<P, T, a, std::index_sequence<i...>>
-      : std::bool_constant<(... and
-        (coordinates::dimension_of_v<collections::collection_element_t<i, P>> == index_dimension_of_v<T, i> and
-          (i < index_count_v<T> or
-            coordinates::compares_with<collections::collection_element_t<i, P>, coordinates::Dimensions<1>>)))> {};
-
 #ifndef __cpp_concepts
     template<typename P, typename T, applicability a, typename = void>
-    struct compatible_shape_with_impl_cpp17 : std::false_type{};
+    struct pattern_collection_for_impl : std::false_type{};
 
     template<typename P, typename T, applicability a>
-      struct compatible_shape_with_impl_cpp17<P, T, a, std::enable_if_t<
-        coordinates::pattern_collection<P> and
-        indexible<T> and
-        collections::size_of<P>::value != stdex::dynamic_extent>>
+      struct pattern_collection_for_impl<P, T, a, std::enable_if_t<
+        patterns::collection_compares_with<
+          decltype(patterns::to_extents(std::declval<P>())),
+          decltype(get_pattern_collection(get_mdspan(std::declval<std::add_lvalue_reference_t<T>>()))),
+          &stdex::is_eq, a>>>
           : compatible_shape_with_impl<P, T, a> {};
 #endif
   }
 
 
   /**
-   * \brief \ref coordinates::pattern_collection "pattern collection" P is compatible with \ref indexible T.
-   * \details If one or the other is dynamic, both must be dynamic, otherwise, the static dimensions must match.
-   * Any trailing patterns in P must be equivalent to Dimensions<1>.
-   * \tparam P a \ref coordinates::pattern_collection
+   * \brief \ref patterns::pattern_collection "pattern collection" P has a shape that is attachable to \ref indexible T.
+   * \tparam P a \ref patterns::pattern_collection
    * \tparam T an \ref indexible object
+   * \sa attach_pattern
    */
   template<typename P, typename T, applicability a = applicability::permitted>
 #ifdef __cpp_concepts
   concept pattern_collection_for =
-    coordinates::pattern_collection<P> and
-    indexible<T> and
-    values::fixed_value_compares_with<collections::size_of<P>, std::dynamic_extent, &std::is_neq> and
-    detail::compatible_shape_with_impl<P, T, a>::value;
+    patterns::collection_compares_with<
+      decltype(patterns::to_extents(std::declval<P>())),
+      decltype(get_pattern_collection(get_mdspan(std::declval<std::add_lvalue_reference_t<T>>()))),
+      &stdex::is_eq, a>;
 #else
-  constexpr bool pattern_collection_for = detail::compatible_shape_with_impl_cpp17<P, T, a>::value;
+  constexpr bool pattern_collection_for = pattern_collection_for_impl<P, T, a>::value;
 #endif
 
 

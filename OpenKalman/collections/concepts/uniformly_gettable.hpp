@@ -18,6 +18,7 @@
 
 #include "gettable.hpp"
 #include "collections/traits/size_of.hpp"
+#include "collections/concepts/sized.hpp"
 
 namespace OpenKalman::collections
 {

@@ -43,9 +43,9 @@ namespace OpenKalman
 
 #include "values/values.hpp"
 
-#include "concepts/sized.hpp"
 #include "functions/get_size.hpp"
 #include "traits/size_of.hpp"
+#include "concepts/sized.hpp"
 
 #include "functions/get_element.hpp"
 #include "functions/get.hpp"
@@ -82,6 +82,8 @@ namespace OpenKalman
 #include "views/iota.hpp"
 #include "views/repeat.hpp"
 #include "views/concat.hpp"
+
+#include "traits/std-extents.hpp"
 
 
 #endif

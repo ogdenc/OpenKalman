@@ -33,7 +33,7 @@ namespace OpenKalman
       if constexpr (fixed_pattern<Best_d>)
       {
         if constexpr (fixed_pattern<D>)
-          static_assert(coordinates::dimension_of_v<D> == coordinates::dimension_of_v<Best_d>,
+          static_assert(patterns::dimension_of_v<D> == patterns::dimension_of_v<Best_d>,
             "Arguments to chipwise_operation must have matching vector space descriptors.");
         else
           if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};

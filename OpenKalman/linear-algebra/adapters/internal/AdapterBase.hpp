@@ -18,6 +18,7 @@
 #define OPENKALMAN_ADAPTERBASE_HPP
 
 #include "linear-algebra/traits/internal/library_base.hpp"
+#include "linear-algebra/traits/access.hpp"
 
 namespace OpenKalman::internal
 {
@@ -83,6 +84,51 @@ namespace OpenKalman::internal
 
     /// \overload
     constexpr const Nested&& nested_object() const && { return std::move(*this).nested_; }
+#endif
+
+
+    /**
+     * \brief Access a component using a collection or pack of indices.
+     */
+#ifdef __cpp_explicit_this_parameter
+    template<typename Self, typename...I> requires
+      requires(Self&& s, I&&...i) { access(std::forward<Self>(s), std::forward<I>(i)...); }
+    constexpr values::value decltype(auto)
+    operator[](this Self&& self, I&&...i)
+    {
+      return access(std::forward<Self>(self), std::forward<I>(i)...);
+    }
+#else
+    template<typename...I, std::enable_if_t<
+      values::value<decltype(access(std::declval<Derived&>(), std::declval<I>()...))>, int> = 0>
+    constexpr decltype(auto) operator[](I&&...i) &
+    {
+      return access(static_cast<Derived&>(*this), std::forward<I>(i)...);
+    }
+
+    /// \overload
+    template<typename...I, std::enable_if_t<
+      values::value<decltype(access(std::declval<const Derived&>(), std::declval<I>()...))>, int> = 0>
+    constexpr decltype(auto) operator[](I&&...i) const &
+    {
+      return access(static_cast<const Derived&>(*this), std::forward<I>(i)...);
+    }
+
+    /// \overload
+    template<typename...I, std::enable_if_t<
+      values::value<decltype(access(std::declval<Derived&&>(), std::declval<I>()...))>, int> = 0>
+    constexpr decltype(auto) operator[](I&&...i) &&
+    {
+      return access(static_cast<Derived&&>(*this), std::forward<I>(i)...);
+    }
+
+    /// \overload
+    template<typename...I, std::enable_if_t<
+      values::value<decltype(access(std::declval<const Derived&&>(), std::declval<I>()...))>, int> = 0>
+    constexpr decltype(auto) operator[](I&&...i) const &&
+    {
+      return access(static_cast<const Derived&&>(*this), std::forward<I>(i)...);
+    }
 #endif
 
   private:

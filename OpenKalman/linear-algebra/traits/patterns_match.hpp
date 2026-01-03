@@ -33,7 +33,7 @@ namespace OpenKalman
     {
       return ([](auto I_const, const T& t, const Ts&...ts){
         constexpr std::size_t I = decltype(I_const)::value;
-        return ((coordinates::compare(get_index_pattern<I>(t), get_index_pattern<I>(ts))) and ...);
+        return ((patterns::compare(get_index_pattern<I>(t), get_index_pattern<I>(ts))) and ...);
       }(std::integral_constant<std::size_t, Is>{}, t, ts...) and ...);
     }
 
@@ -45,14 +45,14 @@ namespace OpenKalman
     {
       auto count = std::max({static_cast<std::size_t>(count_indices(t)), static_cast<std::size_t>(count_indices(ts))...});
       for (std::size_t i = 0; i < count; ++i)
-        if (((coordinates::compare<&stdex::is_neq>(get_index_pattern(t, i), get_index_pattern(ts, i))) or ...)) return false;
+        if (((patterns::compare<&stdex::is_neq>(get_index_pattern(t, i), get_index_pattern(ts, i))) or ...)) return false;
       return true;
     }
   }
 
 
   /**
-   * \brief Return true if every set of \ref coordinates::pattern of a set of objects are equivalent.
+   * \brief Return true if every set of \ref patterns::pattern of a set of objects are equivalent.
    * \tparam Ts A set of tensors or matrices
    * \sa patterns_match_with
    * \sa patterns_may_match_with

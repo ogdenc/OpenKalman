@@ -23,14 +23,14 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(index_dimension_of_v<Eigen::Reverse<Mx2, Eigen::BothDirections>, 1> == 2);
 
   static_assert(one_dimensional<Eigen::Reverse<M11, Eigen::Vertical>>);
-  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, applicability::permitted>);
-  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reverse<M22, Eigen::BothDirections>>);
-  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, applicability::permitted>);
-  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, applicability::permitted>);
-  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, values::unbounded_size, applicability::permitted>);
 
   static_assert(constant_value_v<decltype(std::declval<C22_2>().reverse())> == 2);
   static_assert(constant_value_v<decltype(std::declval<C21_2>().reverse())> == 2);

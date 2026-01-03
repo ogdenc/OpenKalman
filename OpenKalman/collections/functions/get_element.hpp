@@ -18,6 +18,8 @@
 
 #include "values/values.hpp"
 #include "collections/traits/size_of.hpp"
+#include "collections/traits/std-extents.hpp"
+
 
 namespace OpenKalman::collections
 {
@@ -126,5 +128,6 @@ namespace OpenKalman::collections
 
 
 }
+
 
 #endif

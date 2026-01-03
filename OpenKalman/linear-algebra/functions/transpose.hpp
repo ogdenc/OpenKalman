@@ -35,118 +35,6 @@ namespace OpenKalman
       return make_constant<Arg>(std::forward<C>(c),
         get_pattern_collection<1>(arg), get_pattern_collection<0>(arg), get_pattern_collection<Is + 2>(arg)...);
     }
-
-
-    template<typename NestedLayout, std::size_t indexa, std::size_t indexb>
-    struct transpose_layout
-    {
-      template<class Extents>
-      struct mapping {
-        using extents_type = Extents;
-        using index_type = typename extents_type::index_type;
-        using size_type = typename extents_type::size_type;
-        using rank_type = typename extents_type::rank_type;
-        using layout_type = transpose_layout;
-
-      private:
-
-        template<typename = std::make_index_sequence<Extents::rank()>>
-        struct transposed_extents {};
-
-        template<std::size_t...i>
-        struct transposed_extents<std::index_sequence<i...>>
-        {
-          using type = stdex::extents<index_type, (Extents::static_extent(
-            i == indexa ? indexb : i == indexb ? indexa : i))...>;
-        };
-
-        template<std::size_t...i>
-        constexpr typename transposed_extents<Extents>::type
-        transpose_extents(const stdex::extents<index_type, i...>& e)
-        {
-          return {e.extent(i == indexa ? indexb : i == indexb ? indexa : i)...};
-        }
-
-        using nested_mapping_type = typename NestedLayout::template mapping<typename transposed_extents<Extents>::type>;
-
-      public:
-
-        constexpr explicit
-        mapping(const nested_mapping_type& map)
-          : nested_mapping_(map), extents_(transpose_extents(map.extents()))
-        {}
-
-        constexpr const extents_type&
-        extents() const noexcept
-        {
-          return extents_;
-        }
-
-#ifdef __cpp_concepts
-        template<std::convertible_to<index_type> IndexType0, std::convertible_to<index_type> IndexType1,
-          std::convertible_to<index_type>...IndexTypes>
-#else
-        template<typename IndexType0, typename IndexType1, typename...IndexTypes, std::enable_if_t<
-          std::is-convertible_v<IndexType0, index_type> and std::is-convertible_v<IndexType1, index_type> and
-          (... and std::is_convertible_v<IndexTypes, index_type>), int> = 0>
-#endif
-        index_type
-        operator() (IndexType0 i, IndexType1 j, IndexTypes...ks) const
-        {
-          return nested_mapping_(j, i, ks...);
-        }
-
-        constexpr index_type
-        required_span_size() const noexcept(noexcept(nested_mapping_.required_span_size()))
-        {
-          return nested_mapping_.required_span_size();
-        }
-
-        const nested_mapping_type&
-        nested_mapping() const { return nested_mapping_; }
-
-        static constexpr bool
-        is_always_unique() noexcept { return nested_mapping_type::is_always_unique(); }
-
-        static constexpr bool
-        is_always_exhaustive() noexcept { return nested_mapping_type::is_always_contiguous(); }
-
-        static constexpr bool
-        is_always_strided() noexcept { return nested_mapping_type::is_always_strided(); }
-
-        constexpr bool
-        is_unique() const { return nested_mapping_.is_unique(); }
-
-        constexpr bool
-        is_exhaustive() const { return nested_mapping_.is_exhaustive(); }
-
-        constexpr bool
-        is_strided() const { return nested_mapping_.is_strided(); }
-
-        constexpr index_type
-        stride(size_t r) const
-        {
-          assert(this->is_strided());
-          assert(r < extents_type::rank());
-          return nested_mapping_.stride(r == indexa ? indexb : r == indexb ? indexa : r);
-        }
-
-        template<class OtherExtents>
-        friend constexpr bool
-        operator==(const mapping& lhs, const mapping<OtherExtents>& rhs) noexcept
-        {
-          return lhs.nested_mapping_ == rhs.nested_mapping_;
-        }
-
-      private:
-
-        nested_mapping_type nested_mapping_;
-        extents_type extents_;
-
-      };
-    };
-
-
   }
 
 
@@ -179,10 +67,6 @@ namespace OpenKalman
     {
       return interface::library_interface<stdex::remove_cvref_t<Arg>>::template transpose<indexa, indexb>(std::forward<Arg>(arg));
     }
-    else if constexpr (std::is_lvalue_reference_v<Arg> and index_count_v<Arg> <= 2)
-    {
-      return transpose(get_mdspan(arg));
-    }
     else if constexpr (constant_object<Arg>)
     {
       constexpr std::make_index_sequence<std::max({index_count_v<Arg>, 2_uz}) - 2_uz> seq;
@@ -194,12 +78,7 @@ namespace OpenKalman
     }
     else if constexpr (std::is_lvalue_reference_v<Arg>)
     {
-      auto m = get_mdspan(arg);
-      using layout_type = detail::transpose_layout<typename std::decay_t<decltype(m)>::layout_type, indexa, indexb>;
-
-      auto mapping = layout_type::mapping(m.mapping());
-      auto n = stdex::mdspan(m.data_handle(), mapping, m.accessor());
-      return attach_pattern(std::move(n), get_pattern_collection(std::forward<Arg>(arg)));
+      return attach_pattern(transpose(get_mdspan(arg)), get_pattern_collection(std::forward<Arg>(arg)));
     }
     else if (indexb == 1)
     {

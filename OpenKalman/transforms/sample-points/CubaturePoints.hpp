@@ -135,11 +135,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
-      (index_dimension_of_v<YMeans, 0> == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of_v<YMeans, 0> == patterns::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
       (index_dimension_of_v<YMeans, 1> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
-      (index_dimension_of<YMeans, 0>::value == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of<YMeans, 0>::value == patterns::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
       (index_dimension_of_v<YMeans, 1> == dim * 2), int> = 0>
 #endif
     static auto

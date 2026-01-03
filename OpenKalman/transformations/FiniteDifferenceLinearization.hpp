@@ -34,7 +34,7 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (coordinates::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
+    ((sizeof...(PsDelta) == 0) or (patterns::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
       vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
@@ -62,7 +62,7 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (coordinates::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
+    ((sizeof...(PsDelta) == 0) or (patterns::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
       vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
@@ -79,7 +79,7 @@ namespace OpenKalman
       "For finite difference linearization, the tests function cannot return a wrapped matrix.");
     static_assert(not std::is_reference_v<InDelta>);
     static_assert(((not std::is_reference_v<PsDelta>) and ...));
-    static_assert((sizeof...(PsDelta) == 0) or (coordinates::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
+    static_assert((sizeof...(PsDelta) == 0) or (patterns::compares_with<vector_space_descriptor_of_t<PsDelta, 0>,
       vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...));
 #endif
 
@@ -217,14 +217,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
       requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
-        (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+        (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
           vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
-        (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+        (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
           vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const
@@ -237,14 +237,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
-      (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+      (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
         vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
-        (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+        (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
           vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto jacobian(In&& in, Perturbations&&...ps) const
@@ -260,14 +260,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
-      (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+      (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
         vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
       transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
-        (coordinates::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
+        (patterns::compares_with<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
           vector_space_descriptor_of_t<collections::collection_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto hessian(In&& in, Perturbations&&...ps) const

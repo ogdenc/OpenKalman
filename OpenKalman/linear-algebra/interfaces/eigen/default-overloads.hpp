@@ -33,20 +33,20 @@ namespace OpenKalman
    * \tparam RowCoefficients The coefficient types corresponding to the rows.
    * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must equal coordinates::dimension_of_v<RowCoefficients> * coordinates::dimension_of_v<ColumnCoefficients>.
+   * must equal patterns::dimension_of_v<RowCoefficients> * patterns::dimension_of_v<ColumnCoefficients>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients, fixed_pattern ColumnCoefficients = RowCoefficients, values::number ... Args>
-  requires (sizeof...(Args) > 0) and (coordinates::dimension_of_v<RowCoefficients> * coordinates::dimension_of_v<ColumnCoefficients> == sizeof...(Args))
+  requires (sizeof...(Args) > 0) and (patterns::dimension_of_v<RowCoefficients> * patterns::dimension_of_v<ColumnCoefficients> == sizeof...(Args))
 #else
   template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
   std::enable_if_t<(sizeof...(Args) > 0) and (values::number<Args> and ...) and
-    (coordinates::dimension_of_v<RowCoefficients> * coordinates::dimension_of_v<ColumnCoefficients> == sizeof...(Args)), int> = 0>
+    (patterns::dimension_of_v<RowCoefficients> * patterns::dimension_of_v<ColumnCoefficients> == sizeof...(Args)), int> = 0>
 #endif
   auto make_matrix(const Args...args)
   {
     using Scalar = std::common_type_t<Args...>;
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<RowCoefficients>, coordinates::dimension_of_v<ColumnCoefficients>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<RowCoefficients>, patterns::dimension_of_v<ColumnCoefficients>>;
     return Matrix<RowCoefficients, ColumnCoefficients, Mat>(make_dense_object_from<Mat>(static_cast<const Scalar>(args)...));
   }
 
@@ -87,7 +87,7 @@ namespace OpenKalman
 #endif
   auto make_matrix()
   {
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<RowCoefficients>, coordinates::dimension_of_v<ColumnCoefficients>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<RowCoefficients>, patterns::dimension_of_v<ColumnCoefficients>>;
     return Matrix<RowCoefficients, ColumnCoefficients, Mat>();
   }
 
@@ -98,20 +98,20 @@ namespace OpenKalman
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must be divisible by coordinates::dimension_of_v<StaticDescriptor>.
+   * must be divisible by patterns::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, values::number ... Args> requires
-    (sizeof...(Args) > 0) and (sizeof...(Args) % coordinates::dimension_of_v<StaticDescriptor> == 0)
+    (sizeof...(Args) > 0) and (sizeof...(Args) % patterns::dimension_of_v<StaticDescriptor> == 0)
 #else
   template<typename StaticDescriptor, typename ... Args, std::enable_if_t<fixed_pattern<StaticDescriptor> and
     (sizeof...(Args) > 0) and (values::number<Args> and ...) and
-    (sizeof...(Args) % coordinates::dimension_of_v<StaticDescriptor> == 0), int> = 0>
+    (sizeof...(Args) % patterns::dimension_of_v<StaticDescriptor> == 0), int> = 0>
 #endif
   auto make_mean(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
-    constexpr std::size_t dim = coordinates::dimension_of_v<StaticDescriptor>;
+    constexpr std::size_t dim = patterns::dimension_of_v<StaticDescriptor>;
     constexpr std::size_t cols = sizeof...(Args) / dim;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
     return Mean<StaticDescriptor, Mat>(make_dense_object_from<Mat>(static_cast<const Scalar>(args)...));
@@ -152,7 +152,7 @@ namespace OpenKalman
 #endif
   auto make_mean()
   {
-    return Mean<StaticDescriptor, Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, cols>>();
+    return Mean<StaticDescriptor, Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, cols>>();
   }
 
 
@@ -162,20 +162,20 @@ namespace OpenKalman
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must be divisible by coordinates::stat_dimension_of_v<StaticDescriptor>.
+   * must be divisible by patterns::stat_dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, values::number ... Args> requires
-  (sizeof...(Args) > 0) and (sizeof...(Args) % coordinates::stat_dimension_of_v<StaticDescriptor> == 0)
+  (sizeof...(Args) > 0) and (sizeof...(Args) % patterns::stat_dimension_of_v<StaticDescriptor> == 0)
 #else
   template<typename StaticDescriptor, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (values::number<Args> and ...) and
-    (sizeof...(Args) % coordinates::stat_dimension_of_v<StaticDescriptor> == 0), int> = 0>
+    (sizeof...(Args) % patterns::stat_dimension_of_v<StaticDescriptor> == 0), int> = 0>
 #endif
   auto make_euclidean_mean(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
-    constexpr std::size_t dim = coordinates::stat_dimension_of_v<StaticDescriptor>;
+    constexpr std::size_t dim = patterns::stat_dimension_of_v<StaticDescriptor>;
     constexpr std::size_t cols = sizeof...(Args) / dim;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
     return EuclideanMean<StaticDescriptor, Mat>(make_dense_object_from<Mat>(static_cast<const Scalar>(args)...));
@@ -216,7 +216,7 @@ namespace OpenKalman
 #endif
   auto make_euclidean_mean()
   {
-    return EuclideanMean<StaticDescriptor,  Eigen3::eigen_matrix_t<Scalar, coordinates::stat_dimension_of_v<StaticDescriptor>, cols>>();
+    return EuclideanMean<StaticDescriptor,  Eigen3::eigen_matrix_t<Scalar, patterns::stat_dimension_of_v<StaticDescriptor>, cols>>();
   }
 
 
@@ -227,22 +227,22 @@ namespace OpenKalman
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
    * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must equal coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>.
+   * must equal patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, triangle_type tri, values::number ... Args> requires
   (tri == triangle_type::lower or tri == triangle_type::upper) and
-  (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>)
+  (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>)
 #else
   template<typename StaticDescriptor, triangle_type tri, typename ... Args, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and (values::number<Args> and ...) and
     (tri == triangle_type::lower or tri == triangle_type::upper) and
-    (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
+    (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     using T = TriangularAdapter<Mat, tri>;
     using SA = HermitianAdapter<Mat, tri == triangle_type::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
     return Covariance<StaticDescriptor, T>(SA {make_dense_object_from<Mat>(static_cast<const Scalar>(args)...)});
@@ -255,20 +255,20 @@ namespace OpenKalman
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must equal coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>.
+   * must equal patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, values::number ... Args> requires
-  (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>)
+  (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>)
 #else
   template<typename StaticDescriptor, typename ... Args, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and (values::number<Args> and ...) and
-    (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
+    (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     auto mat = make_dense_object_from<Mat>(static_cast<const Scalar>(args)...);
     using SA = HermitianAdapter<Mat>;
     return Covariance<StaticDescriptor, SA>(SA {mat});
@@ -342,7 +342,7 @@ namespace OpenKalman
 #endif
   auto make_covariance()
   {
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     using T = TriangularAdapter<Mat, tri>;
     return Covariance<StaticDescriptor, T>();
   }
@@ -363,7 +363,7 @@ namespace OpenKalman
 #endif
   auto make_covariance()
   {
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     using SA = HermitianAdapter<Mat>;
     return Covariance<StaticDescriptor, SA>();
   }
@@ -377,22 +377,22 @@ namespace OpenKalman
    * \tparam StaticDescriptor The coefficient types corresponding to the rows and columns.
    * \tparam triangle_type The type of the nested triangular matrix (upper, lower).
    * \tparam Args A list of numerical coefficients (either integral or floating-point). The number of coefficients
-   * must equal coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>.
+   * must equal patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>.
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, triangle_type tri = triangle_type::lower, values::number ... Args>
   requires (tri == triangle_type::lower or tri == triangle_type::upper) and
-    (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>)
+    (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>)
 #else
   template<typename StaticDescriptor, triangle_type tri = triangle_type::lower, typename ... Args,
     std::enable_if_t<fixed_pattern<StaticDescriptor> and (values::number<Args> and ...) and
       (tri == triangle_type::lower or tri == triangle_type::upper) and
-      (sizeof...(Args) > 0) and (sizeof...(Args) == coordinates::dimension_of_v<StaticDescriptor> * coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
+      (sizeof...(Args) > 0) and (sizeof...(Args) == patterns::dimension_of_v<StaticDescriptor> * patterns::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   auto make_square_root_covariance(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
-    using Mat = Eigen3::eigen_matrix_t<Scalar, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     auto mat = make_dense_object_from<Mat>(static_cast<const Scalar>(args)...);
     using Tri = TriangularAdapter<Mat, tri>;
     auto tri = Tri {mat};
@@ -445,7 +445,7 @@ namespace OpenKalman
 #endif
   auto make_square_root_covariance()
   {
-    using Mat = Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>;
+    using Mat = Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     using T = TriangularAdapter<Mat, tri>;
     return SquareRootCovariance<StaticDescriptor, T>();
   }
@@ -474,10 +474,10 @@ namespace OpenKalman
     fixed_pattern RowCoefficients,
     fixed_pattern ColumnCoefficients = RowCoefficients,
     typed_matrix_nestable NestedMatrix =
-      Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<RowCoefficients>, coordinates::dimension_of_v<ColumnCoefficients>>>
+      Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<RowCoefficients>, patterns::dimension_of_v<ColumnCoefficients>>>
   requires
-    (coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
-    (coordinates::dimension_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
+    (patterns::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::dimension_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
     (dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
@@ -485,7 +485,7 @@ namespace OpenKalman
   template<
     typename RowCoefficients,
     typename ColumnCoefficients = RowCoefficients,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<RowCoefficients>, coordinates::dimension_of_v<ColumnCoefficients>>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<RowCoefficients>, patterns::dimension_of_v<ColumnCoefficients>>>
 #endif
   struct Matrix;
 
@@ -507,12 +507,12 @@ namespace OpenKalman
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the StaticDescriptor.
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients,
-    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<RowCoefficients>, 1>>
-  requires (coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<RowCoefficients>, 1>>
+  requires (patterns::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<RowCoefficients>, 1>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<RowCoefficients>, 1>>
 #endif
   struct Mean;
 
@@ -534,13 +534,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<
     fixed_pattern StaticDescriptor,
-    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, coordinates::stat_dimension_of_v<StaticDescriptor>, 1>>
+    typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, patterns::stat_dimension_of_v<StaticDescriptor>, 1>>
   requires
-    (coordinates::stat_dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::stat_dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename StaticDescriptor,
-    typename NestedMatrix = Eigen3::eigen_matrix_t<double, coordinates::stat_dimension_of_v<StaticDescriptor>, 1>>
+    typename NestedMatrix = Eigen3::eigen_matrix_t<double, patterns::stat_dimension_of_v<StaticDescriptor>, 1>>
 #endif
   struct EuclideanMean;
 
@@ -561,12 +561,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>>>
-  requires (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+  requires (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename StaticDescriptor, typename NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>>>
+    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
 #endif
   struct Covariance;
 
@@ -592,12 +592,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable NestedMatrix =
-  HermitianAdapter<Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>>>
-    requires (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+    requires (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
       (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename StaticDescriptor, typename NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, coordinates::dimension_of_v<StaticDescriptor>, coordinates::dimension_of_v<StaticDescriptor>>>>
+    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
 #endif
   struct SquareRootCovariance;
 

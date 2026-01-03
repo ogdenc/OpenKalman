@@ -111,7 +111,7 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool one_dimensional =
-      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, applicability::permitted>) or
+      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, values::unbounded_size, applicability::permitted>) or
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
 

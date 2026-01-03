@@ -44,7 +44,7 @@ namespace OpenKalman
 
   /**
    * \brief Determine whether T is one_dimensional, meaning that every index has a dimension of 1.
-   * \details Each index need not have an equivalent \ref coordinates::pattern.
+   * \details Each index need not have an equivalent \ref patterns::pattern.
    */
 #ifdef __cpp_concepts
   template<indexible T>

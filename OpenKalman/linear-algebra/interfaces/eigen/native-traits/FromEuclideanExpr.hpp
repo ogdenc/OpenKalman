@@ -32,12 +32,12 @@ namespace OpenKalman::Eigen3::internal
     static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedObject>>::Flags;
     enum
     {
-      Flags = OpenKalman::coordinates::euclidean_pattern<V0> ? BaseFlags :
+      Flags = OpenKalman::patterns::euclidean_pattern<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
               ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
           if constexpr (OpenKalman::dynamic_pattern<V0>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::coordinates::dimension_of_v<V0>);
+          else return static_cast<Eigen::Index>(OpenKalman::patterns::dimension_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -57,12 +57,12 @@ namespace OpenKalman::Eigen3::internal
     static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedObject>>::Flags;
     enum
     {
-      Flags = OpenKalman::coordinates::euclidean_pattern<V0> ? BaseFlags :
+      Flags = OpenKalman::patterns::euclidean_pattern<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
               ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
           if constexpr (OpenKalman::dynamic_pattern<V0>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::coordinates::dimension_of_v<V0>);
+          else return static_cast<Eigen::Index>(OpenKalman::patterns::dimension_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };

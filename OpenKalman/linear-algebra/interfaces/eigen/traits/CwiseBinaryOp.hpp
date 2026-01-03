@@ -170,8 +170,8 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsType, applicability::permitted> and
-      OpenKalman::one_dimensional<RhsType, applicability::permitted> and
+      OpenKalman::one_dimensional<LhsType, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<RhsType, values::unbounded_size, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<LhsType, b> or
@@ -180,8 +180,8 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsType, applicability::permitted> and
-      square_shaped<RhsType, applicability::permitted> and
+      square_shaped<LhsType, 2, applicability::permitted> and
+      square_shaped<RhsType, 2, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<LhsType, b> or

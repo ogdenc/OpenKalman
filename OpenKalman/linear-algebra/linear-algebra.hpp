@@ -20,7 +20,7 @@
 #ifndef OPENKALMAN_LINEAR_ALGEBRA_HPP
 #define OPENKALMAN_LINEAR_ALGEBRA_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 
 #include "enumerations.hpp"
 
@@ -45,6 +45,8 @@
 // extents and patterns
 
 #include "traits/get_pattern_collection.hpp"
+#include "traits/pattern_collection_type_of.hpp"
+
 #include "traits/get_index_pattern.hpp"
 #include "traits/get_index_extent.hpp"
 #include "traits/index_dimension_of.hpp"
@@ -108,11 +110,12 @@
 #include "adapters/pattern_adapter.hpp"
 #include "functions/attach_pattern.hpp"
 
-#include "functions/to_diagonal.hpp"
-
 #include "functions/make_constant.hpp"
 #include "functions/make_zero.hpp"
+
+#include "functions/to_diagonal.hpp"
 #include "functions/make_constant_diagonal.hpp"
+#include "functions/diagonal_of.hpp"
 
 #include "functions/conjugate.hpp"
 #include "functions/transpose.hpp"
@@ -136,8 +139,6 @@
 
 #include "functions/internal/make_constant_diagonal_from_descriptors.hpp"
 #include "functions/make_identity_matrix_like.hpp"
-
-#include "functions/diagonal_of.hpp"
 
 #include "functions/make_triangular_matrix.hpp"
 #include "functions/make_hermitian_matrix.hpp"

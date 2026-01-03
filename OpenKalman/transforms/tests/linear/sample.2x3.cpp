@@ -11,7 +11,7 @@
 #include "linear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinates;
+using namespace OpenKalman::patterns;
 using namespace OpenKalman::test;
 
 inline namespace

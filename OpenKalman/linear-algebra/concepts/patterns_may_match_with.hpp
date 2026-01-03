@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_PATTERNS_MAY_MATCH_WITH_HPP
 #define OPENKALMAN_PATTERNS_MAY_MATCH_WITH_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
@@ -28,7 +28,7 @@ namespace OpenKalman
 
     template<typename P, typename...Ps>
     struct patterns_may_match_with_impl<P, Ps...>
-      : std::bool_constant<(... and (coordinates::pattern_collection_compares_with<P, Ps, &stdex::is_eq, applicability::permitted>))> {};
+      : std::bool_constant<(... and (patterns::collection_compares_with<P, Ps, &stdex::is_eq, applicability::permitted>))> {};
 
 #ifndef __cpp_concepts
     template<typename = void, typename...Ts>
@@ -44,7 +44,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that \ref indexible objects Ts may have equivalent dimensions and vector-space types.
-   * \details Two dimensions are considered the same if their \ref coordinates::pattern are equivalent.
+   * \details Two dimensions are considered the same if their \ref patterns::pattern are equivalent.
    * \sa patterns_match_with
    * \sa patterns_match
    */

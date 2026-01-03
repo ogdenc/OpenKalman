@@ -17,9 +17,9 @@
 #ifndef OPENKALMAN_MAKE_FIXED_SQUARE_ADAPTER_LIKE_HPP
 #define OPENKALMAN_MAKE_FIXED_SQUARE_ADAPTER_LIKE_HPP
 
-#include "coordinates/concepts/pattern.hpp"
-#include "coordinates/concepts/compares_with.hpp"
-#include "coordinates/descriptors/Dimensions.hpp"
+#include "patterns/concepts/pattern.hpp"
+#include "patterns/concepts/compares_with.hpp"
+#include "patterns/descriptors/Dimensions.hpp"
 
 namespace OpenKalman::internal
 {
@@ -47,12 +47,12 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<coordinates::pattern D = coordinates::Axis, coordinates::pattern...Ds, square_shaped<applicability::permitted> Arg> requires
-    (index_count_v<Arg> != stdex::dynamic_extent) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>)
+  template<patterns::pattern D = patterns::Axis, patterns::pattern...Ds, square_shaped<values::unbounded_size, applicability::permitted> Arg> requires
+    (index_count_v<Arg> != stdex::dynamic_extent) and (... and patterns::compares_with<D, Ds, equal_to<>, applicability::permitted>)
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    (... and coordinates::pattern<Ds>) and square_shaped<Arg, applicability::permitted> and
-    (index_count_v<Arg> != stdex::dynamic_extent) and (... and coordinates::compares_with<D, Ds, equal_to<>, applicability::permitted>), int> = 0>
+    (... and patterns::pattern<Ds>) and square_shaped<Arg, values::unbounded_size, applicability::permitted> and
+    (index_count_v<Arg> != stdex::dynamic_extent) and (... and patterns::compares_with<D, Ds, equal_to<>, applicability::permitted>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_fixed_square_adapter_like(Arg&& arg)

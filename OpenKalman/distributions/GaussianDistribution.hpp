@@ -53,7 +53,7 @@ namespace OpenKalman
 
   protected:
 
-    static constexpr auto dim = coordinates::dimension_of_v<StaticDescriptor>;
+    static constexpr auto dim = patterns::dimension_of_v<StaticDescriptor>;
     using Mean = Mean<StaticDescriptor, MeanNestedMatrix>;
     using Covariance = Covariance<StaticDescriptor, CovarianceNestedMatrix>;
     using Scalar = scalar_type_of_t<Mean>;
@@ -196,7 +196,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M, typename Cov> requires vector<M> and
       (index_dimension_of_v<M, 0> == dim) and (covariance<Cov> or typed_matrix<Cov>) and
-      coordinates::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
+      patterns::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and vector<M> and
       (index_dimension_of<M, 0>::value == dim) and (covariance<Cov> or typed_matrix<Cov>) and
@@ -226,7 +226,7 @@ namespace OpenKalman
     /// Construct with only a \ref covariance or \ref square_shaped "square" \ref typed_matrix (mean is set to zero).
 #ifdef __cpp_concepts
     template<typename Cov> requires (covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
-      coordinates::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
+      patterns::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
 #else
     template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
       compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
@@ -254,7 +254,7 @@ namespace OpenKalman
     /// Assign from another compatible distribution.
 #ifdef __cpp_concepts
     template<gaussian_distribution Arg> requires
-      coordinates::compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
+      patterns::compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
 #else
     template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
       compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>, int> = 0>
@@ -405,7 +405,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typed_matrix M, typed_matrix C> requires
-    coordinates::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
+    patterns::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
 #else
   template<typename M, typename C, std::enable_if_t<
     typed_matrix<M> and typed_matrix<C> and
@@ -453,7 +453,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M, typed_matrix C> requires
-    coordinates::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
+    patterns::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
 #else
   template<typename M, typename C, std::enable_if_t<typed_matrix_nestable<M> and typed_matrix<C> and
     compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>, int> = 0>
@@ -642,7 +642,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov, std::uniform_random_bit_generator re = std::mt19937> requires
   vector<M> and has_untyped_index<M, 1> and
-    coordinates::compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>
+    patterns::compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
     typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and covariance<Cov> and
@@ -910,11 +910,11 @@ namespace OpenKalman
   /// Split distribution.
 #ifdef __cpp_concepts
   template<fixed_pattern ... Cs, gaussian_distribution D> requires
-    coordinates::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>
+    patterns::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>
 #else
   template<typename ... Cs, typename D, std::enable_if_t<
     (fixed_pattern<Cs> and ...) and gaussian_distribution<D> and
-    coordinates::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>, int> = 0>
+    patterns::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>, int> = 0>
 #endif
   inline auto
   split(D&& d)
@@ -953,11 +953,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
-    coordinates::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
+    patterns::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
 #else
   template<typename Dist1, typename Dist2, std::enable_if_t<
     gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-    coordinates::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
+    patterns::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
       typename DistributionTraits<Dist2>::StaticDescriptor>, int> = 0>
 #endif
   inline auto
@@ -972,11 +972,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
-    coordinates::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
+    patterns::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
 #else
   template<typename Dist1, typename Dist2, std::enable_if_t<
     gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-    coordinates::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
+    patterns::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
       typename DistributionTraits<Dist2>::StaticDescriptor>, int> = 0>
 #endif
   inline auto

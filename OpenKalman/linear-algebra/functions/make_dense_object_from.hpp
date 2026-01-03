@@ -28,23 +28,23 @@ namespace OpenKalman
    * \tparam T Any dummy type from the relevant library. Its characteristics are ignored.
    * \tparam layout The \ref layout_mapping_policy of Args and the resulting object (std::layout_right by default).
    * \tparam Scalar An scalar type for the new matrix. By default, it is the same as T.
-   * \tparam Ds \ref coordinates::pattern objects describing the size of the resulting object.
-   * \param d_tup A tuple of \ref coordinates::pattern Ds
+   * \tparam Ds \ref patterns::pattern objects describing the size of the resulting object.
+   * \param d_tup A tuple of \ref patterns::pattern Ds
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, internal::layout_mapping_policy layout = stdex::layout_right, values::number Scalar = element_type_of_t<T>, coordinates::pattern...Ds, std::convertible_to<const Scalar> ... Args>
+  template<indexible T, internal::layout_mapping_policy layout = stdex::layout_right, values::number Scalar = element_type_of_t<T>, patterns::pattern...Ds, std::convertible_to<const Scalar> ... Args>
     requires (std::same_as<layout, stdex::layout_right> or std::same_as<layout, stdex::layout_left>) and
-    (((coordinates::dimension_of_v<Ds> == 0) or ...) ? sizeof...(Args) == 0 :
-      (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : coordinates::dimension_of_v<Ds>) * ... * 1) == 0))
+    (((patterns::dimension_of_v<Ds> == 0) or ...) ? sizeof...(Args) == 0 :
+      (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : patterns::dimension_of_v<Ds>) * ... * 1) == 0))
   inline writable auto
 #else
   template<typename T, typename layout = stdex::layout_right, typename Scalar = element_type_of_t<T>, typename...Ds, typename...Args, std::enable_if_t<
-    indexible<T> and values::number<Scalar> and (coordinates::pattern<Ds> and ...) and
+    indexible<T> and values::number<Scalar> and (patterns::pattern<Ds> and ...) and
     (stdex::convertible_to<Args, const Scalar> and ...) and
     (stdex::same_as<layout, stdex::layout_right> or stdex::same_as<layout, stdex::layout_left>) and
-    (((coordinates::dimension_of<Ds>::value == 0) or ...) ? sizeof...(Args) == 0 :
-      (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : coordinates::dimension_of<Ds>::value) * ... * 1) == 0)), int> = 0>
+    (((patterns::dimension_of<Ds>::value == 0) or ...) ? sizeof...(Args) == 0 :
+      (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : patterns::dimension_of<Ds>::value) * ... * 1) == 0)), int> = 0>
   inline auto
 #endif
   make_dense_object_from(const std::tuple<Ds...>& d_tup, Args...args)
@@ -79,8 +79,8 @@ namespace OpenKalman
           if constexpr (dynamic_dimension<T, I>) // There will be only one dynamic dimension, at most.
           {
             constexpr auto dims = ((dynamic_dimension<T, I> ? 1 : index_dimension_of_v<T, I>) * ... * 1);
-            if constexpr (dims == 0) return coordinates::Dimensions<0>{};
-            else return coordinates::Dimensions<sizeof...(Args) / dims>{};
+            if constexpr (dims == 0) return patterns::Dimensions<0>{};
+            else return patterns::Dimensions<sizeof...(Args) / dims>{};
           }
           else return std::decay_t<decltype(get_pattern_collection(std::declval<T>(), std::integral_constant<std::size_t, I>{}))> {};
         }()...};
@@ -93,7 +93,7 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Create a dense, writable matrix from a set of components, with size and shape inferred from dummy type T.
-   * \details The \ref coordinates::pattern of the result must be unambiguously inferrable from T and the number of indices.
+   * \details The \ref patterns::pattern of the result must be unambiguously inferrable from T and the number of indices.
    * \tparam T The matrix or array on which the new matrix is patterned.
    * \tparam layout The \ref layout_mapping_policy of Args and the resulting object
    * layout of the resulting object is unspecified).

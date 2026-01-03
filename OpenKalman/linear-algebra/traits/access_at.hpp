@@ -46,7 +46,7 @@ namespace OpenKalman
 #endif
   access_at(Arg&& arg, const Indices& indices)
   {
-    bool in_bounds = collections::compare_indices<&stdex::is_lt>(indices, coordinates::views::dimensions(get_pattern_collection(arg)));
+    bool in_bounds = collections::compare_indices<&stdex::is_lt>(indices, patterns::views::dimensions(get_pattern_collection(arg)));
     if (not in_bounds) throw std::out_of_range {"One or more indices out of range."};
     return access(std::forward<Arg>(arg), indices);
   }

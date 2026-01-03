@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,38 +23,35 @@ namespace OpenKalman
   /**
    * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
    * \tparam Arg An \ref indexible object, which can have any rank and may or may not be square
-   * \returns Arg A column vector whose \ref coordinates::pattern corresponds to the smallest-dimension index.
-   * \todo generalize for higher-rank tensors
+   * \returns A column vector or slice corresponding to the diagonal.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (index_count_v<Arg> == stdex::dynamic_extent) or (index_count_v<Arg> <= 2)
+  template<indexible Arg>
   constexpr indexible decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<(index_count_v<Arg> == stdex::dynamic_extent or index_count_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   diagonal_of(Arg&& arg)
   {
-    if constexpr (diagonal_matrix<Arg> and internal::has_nested_vector<Arg>)
-    {
-      return nested_object(std::forward<Arg>(arg));
-    }
-    else if constexpr (diagonal_matrix<Arg> and internal::has_nested_vector<Arg, 1>)
-    {
-      return transpose(nested_object(std::forward<Arg>(arg)));
-    }
-    else if constexpr (one_dimensional<Arg>)
+    if constexpr (one_dimensional<Arg>)
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr (interface::diagonal_of_defined_for<Arg&&>)
+    {
+      return interface::library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+    }
     else if constexpr (constant_object<Arg>)
     {
+
+
       auto ds = get_pattern_collection(std::forward<Arg>(arg));
       if constexpr (pattern_collection<decltype(ds)>)
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_value {std::forward<Arg>(arg)},
-          std::tuple_cat(ds, std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
+          std::tuple_cat(ds, std::tuple{patterns::Axis{}, patterns::Axis{}}));
       }
       else
       {
@@ -68,7 +65,7 @@ namespace OpenKalman
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_diagonal_value {std::forward<Arg>(arg)},
-          std::tuple_cat(get_pattern_collection(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
+          std::tuple_cat(get_pattern_collection(std::forward<Arg>(arg)), std::tuple{patterns::Axis{}, patterns::Axis{}}));
       }
       else
       {

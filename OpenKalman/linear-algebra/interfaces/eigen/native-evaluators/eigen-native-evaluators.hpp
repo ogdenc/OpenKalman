@@ -35,7 +35,7 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::coordinates::pattern V0, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::patterns::pattern V0, typename XprType, typename Nested, typename NestedEvaluator>
 #else
     template<typename V0, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
@@ -59,12 +59,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::coordinates::euclidean_pattern V0, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::patterns::euclidean_pattern V0, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>
 #else
     template<typename V0, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::coordinates::euclidean_pattern<V0>>>
+      std::enable_if_t<OpenKalman::patterns::euclidean_pattern<V0>>>
 #endif
       : NestedEvaluator
     {
@@ -101,7 +101,7 @@ namespace Eigen::internal
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        OpenKalman::coordinates::euclidean_pattern<V0> ? 0 :
+        OpenKalman::patterns::euclidean_pattern<V0> ? 0 :
         (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
@@ -110,27 +110,27 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row, col);
       }
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return coordinates::to_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
+        return patterns::to_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row);
       }
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return coordinates::to_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
+        return patterns::to_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -163,7 +163,7 @@ namespace Eigen::internal
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        OpenKalman::coordinates::euclidean_pattern<V0> ? 0 :
+        OpenKalman::patterns::euclidean_pattern<V0> ? 0 :
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
@@ -171,7 +171,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row, col);
       }
@@ -184,14 +184,14 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row);
       }
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return coordinates::from_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
+        return patterns::from_stat_space(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
   };
@@ -229,27 +229,27 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row, col);
       }
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return coordinates::wrap(i_vector_space_descriptor, g, (std::size_t) row);
+        return patterns::wrap(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::coordinates::euclidean_pattern<V0>)
+      if constexpr (OpenKalman::patterns::euclidean_pattern<V0>)
       {
         return Base::coeff(row);
       }
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return coordinates::wrap(i_vector_space_descriptor, g, (std::size_t) row);
+        return patterns::wrap(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
   };
@@ -296,7 +296,7 @@ namespace Eigen::internal
     using Base = evaluator<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (OpenKalman::coordinates::euclidean_pattern<StaticDescriptor> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (OpenKalman::patterns::euclidean_pattern<StaticDescriptor> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
     explicit evaluator(const XprType& m) : Base(m.nested_object()) {}
   };

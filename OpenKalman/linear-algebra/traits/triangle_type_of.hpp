@@ -18,7 +18,7 @@
 
 #include "linear-algebra/enumerations.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"
-#include "../interfaces/object_traits.hpp"
+#include "linear-algebra/interfaces/object_traits.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 
@@ -32,7 +32,7 @@ namespace OpenKalman
     template<typename T, typename = void>
 #endif
     struct triangle_type_of_impl
-      : std::integral_constant<triangle_type, zero<T> or one_dimensional<T> ? triangle_type::diagonal : triangle_type::none> {};
+      : std::integral_constant<triangle_type, zero<T> or one_dimensional<T, 2> ? triangle_type::diagonal : triangle_type::none> {};
 
 
 #ifdef __cpp_concepts
@@ -43,7 +43,10 @@ namespace OpenKalman
     template<typename T>
     struct triangle_type_of_impl<T, std::void_t<decltype(interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value)>>
 #endif
-      : std::integral_constant<triangle_type, interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value>
+      : std::integral_constant<
+        triangle_type, zero<T> or one_dimensional<T, 2> ?
+        triangle_type::diagonal :
+        interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value>
     {
       static_assert(interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value != triangle_type::any,
         "triangle_type_value interface member cannot be triangle_type::any");

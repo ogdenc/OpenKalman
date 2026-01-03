@@ -8,7 +8,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/tests/tests.hpp"
 #include "linear-algebra/interfaces/stl/mdspan-object.hpp"
 
@@ -154,7 +154,6 @@ namespace
 TEST(stl_interfaces, mdspan_interface_properties_defined)
 {
   static_assert(not interface::get_constant_defined_for<M23>);
-  static_assert(not interface::nested_object_defined_for<M23>);
   static_assert(not interface::is_square_defined_for<M23>);
   static_assert(not interface::is_triangular_adapter_defined_for<M23>);
   static_assert(not interface::is_hermitian_defined_for<M23>);
@@ -302,7 +301,7 @@ TEST(stl_interfaces, mdspan_derived_traits)
 
 TEST(stl_interfaces, mdspan_extents_and_patterns)
 {
-  using namespace OpenKalman::coordinates;
+  using namespace OpenKalman::patterns;
 
   static_assert(compare_pattern_collections(get_pattern_collection(m3c), std::array{3U}));
   static_assert(compare_pattern_collections(get_pattern_collection(m3), std::array{3U}));
@@ -473,7 +472,7 @@ TEST(stl_interfaces, mdspan_extents_and_patterns)
 
 TEST(stl_interfaces, mdspan_shapes)
 {
-  using namespace OpenKalman::coordinates;
+  using namespace OpenKalman::patterns;
 
   static_assert(patterns_match(m23, m23c));
   static_assert(patterns_match(m23, m23c, m23l));
@@ -504,19 +503,19 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(compares_with_pattern_collection<M03, std::tuple<Dimensions<0>, Dimensions<3>>>);
   static_assert(compares_with_pattern_collection<M03, std::tuple<Dimensions<0>, Dimensions<3>, Dimensions<1>>>);
 
-  static_assert(pattern_collection_for<std::tuple<Dimensions<2>, Dimensions<3>>, M23>);
-  static_assert(pattern_collection_for<std::tuple<Polar<>, Spherical<>>, M23>);
-  static_assert(pattern_collection_for<std::tuple<Dimensions<2>, Dimensions<3>, Dimensions<1>>, M23>);
-  static_assert(pattern_collection_for<std::tuple<Polar<>, Spherical<>, Dimensions<1>>, M23>);
-  static_assert(not pattern_collection_for<std::tuple<Polar<>, Spherical<>, Angle<>>, M23>);
+  static_assert(pattern_collection_for<std::tuple<Dimensions<2>, Dimensions<3>>, M23, applicability::guaranteed>);
+  static_assert(pattern_collection_for<std::tuple<Polar<>, Spherical<>>, M23, applicability::guaranteed>);
+  static_assert(pattern_collection_for<std::tuple<Dimensions<2>, Dimensions<3>, Dimensions<1>>, M23, applicability::guaranteed>);
+  static_assert(pattern_collection_for<std::tuple<Polar<>, Spherical<>, Dimensions<1>>, M23, applicability::guaranteed>);
+  static_assert(pattern_collection_for<std::tuple<Polar<>, Spherical<>, Angle<>>, M23, applicability::guaranteed>);
   static_assert(not pattern_collection_for<std::tuple<Dimensions<3>, Dimensions<4>, Dimensions<2>>, M23>);
   static_assert(not pattern_collection_for<std::tuple<Dimensions<1>, Dimensions<2>>, M23>);
-  static_assert(not pattern_collection_for<std::tuple<std::size_t, std::size_t>, M23>);
-  static_assert(not pattern_collection_for<std::array<std::size_t, 2>, M23>);
+  static_assert(pattern_collection_for<std::tuple<std::size_t, std::size_t>, M23>);
+  static_assert(pattern_collection_for<std::array<std::size_t, 2>, M23>);
   static_assert(pattern_collection_for<std::tuple<std::size_t, std::size_t>, Mxx>);
   static_assert(pattern_collection_for<std::tuple<std::size_t, std::size_t, Dimensions<1>>, Mxx>);
   static_assert(pattern_collection_for<std::array<std::size_t, 2>, Mxx>);
-  static_assert(not pattern_collection_for<std::array<std::size_t, 3>, Mxx>);
+  static_assert(pattern_collection_for<std::array<std::size_t, 3>, Mxx>);
   static_assert(pattern_collection_for<std::tuple<std::size_t, Dimensions<3>>, Mx3>);
   static_assert(pattern_collection_for<std::tuple<std::size_t, Dimensions<3>, Dimensions<1>>, Mx3>);
   static_assert(pattern_collection_for<std::tuple<Dimensions<2>, std::size_t>, M2x>);
@@ -537,9 +536,9 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(compare(*is_square_shaped(mx2_2), Dimensions<2>{}));
   static_assert(compare(*is_square_shaped(m222), Dimensions<2>{}));
 
-  static_assert(not square_shaped<M3, applicability::permitted>);
-  static_assert(not square_shaped<M23, applicability::permitted>);
-  static_assert(not square_shaped<M234, applicability::permitted>);
+  static_assert(not square_shaped<M3, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<M23, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<M234, values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<M1>);
   static_assert(square_shaped<M11>);
   static_assert(square_shaped<M111>);
@@ -547,11 +546,11 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(not square_shaped<Mxx>);
   static_assert(not square_shaped<M2x>);
   static_assert(not square_shaped<Mx2>);
-  static_assert(square_shaped<Mxx, applicability::permitted>);
-  static_assert(square_shaped<M2x, applicability::permitted>);
-  static_assert(square_shaped<Mx2, applicability::permitted>);
+  static_assert(square_shaped<Mxx, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<M2x, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Mx2, values::unbounded_size, applicability::permitted>);
   static_assert(square_shaped<M222>);
-  static_assert(not square_shaped<M234, applicability::permitted>);
+  static_assert(not square_shaped<M234, values::unbounded_size, applicability::permitted>);
 
   static_assert(not is_one_dimensional(m3));
   static_assert(not is_one_dimensional(m23));
@@ -562,17 +561,17 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(not is_one_dimensional(m22));
   static_assert(not is_one_dimensional(m222));
 
-  static_assert(not one_dimensional<M3, applicability::permitted>);
-  static_assert(not one_dimensional<M23, applicability::permitted>);
-  static_assert(not one_dimensional<M234, applicability::permitted>);
+  static_assert(not one_dimensional<M3, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<M23, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<M234, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<M1>);
   static_assert(one_dimensional<M11>);
   static_assert(one_dimensional<M111>);
   static_assert(not one_dimensional<Mx>);
-  static_assert(one_dimensional<Mx, applicability::permitted>);
+  static_assert(one_dimensional<Mx, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Mxx>);
-  static_assert(one_dimensional<Mxx, applicability::permitted>);
-  static_assert(not one_dimensional<M2x, applicability::permitted>);
+  static_assert(one_dimensional<Mxx, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<M2x, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<Z1>);
   static_assert(one_dimensional<Z11>);
   static_assert(one_dimensional<Z111>);
@@ -971,52 +970,4 @@ TEST(stl_interfaces, mdspan_constants)
   static_assert(identity_matrix<I111>);
   static_assert(not identity_matrix<Z11>);
   static_assert(not identity_matrix<M11>);
-}
-
-#include "linear-algebra/functions/make_constant.hpp"
-#include "linear-algebra/functions/make_zero.hpp"
-
-TEST(stl_interfaces, constant_traits)
-{
-  auto c7 = make_constant(7.5, stdex::extents<std::size_t, 2, 3>{});
-  EXPECT_EQ((c7[std::array{0U, 0U}]), 7.5);
-  EXPECT_EQ((c7[std::array{0U, 1U}]), 7.5);
-  EXPECT_EQ((c7[std::array{0U, 2U}]), 7.5);
-  EXPECT_EQ((c7[std::array{1U, 0U}]), 7.5);
-  EXPECT_EQ((c7[std::array{1U, 1U}]), 7.5);
-  EXPECT_EQ((c7[std::array{1U, 2U}]), 7.5);
-  static_assert(constant_object<decltype(c7)>);
-  EXPECT_EQ(constant_value(c7), 7.5);
-
-  auto c8 = make_constant(8.5, stdex::extents<std::size_t, 2, 3, 4>{});
-  EXPECT_EQ((c8[std::array{0U, 0U, 0U}]), 8.5);
-  EXPECT_EQ((c8[std::array{0U, 1U, 1U}]), 8.5);
-  EXPECT_EQ((c8[std::array{0U, 2U, 2U}]), 8.5);
-  EXPECT_EQ((c8[std::array{1U, 0U, 3U}]), 8.5);
-  EXPECT_EQ((c8[std::array{1U, 1U, 0U}]), 8.5);
-  EXPECT_EQ((c8[std::array{1U, 2U, 1U}]), 8.5);
-  static_assert(constant_object<decltype(c8)>);
-  EXPECT_EQ(constant_value(c8), 8.5);
-
-  auto c5 = make_constant(F5{}, stdex::extents<std::size_t, 2, 3>{});
-  EXPECT_EQ((c5[std::array{0U, 0U}]), 5);
-  EXPECT_EQ((c5[std::array{0U, 1U}]), 5);
-  EXPECT_EQ((c5[std::array{0U, 2U}]), 5);
-  EXPECT_EQ((c5[std::array{1U, 0U}]), 5);
-  EXPECT_EQ((c5[std::array{1U, 1U}]), 5);
-  EXPECT_EQ((c5[std::array{1U, 2U}]), 5);
-  static_assert(constant_object<decltype(c5)>);
-  EXPECT_EQ(constant_value(c5), 5);
-  static_assert(values::fixed_value_of_v<decltype(constant_value(c5))> == 5);
-
-  auto c0 = make_zero<double>(stdex::extents<std::size_t, 2, 3>{});
-  EXPECT_EQ((c0[std::array{0U, 0U}]), 0);
-  EXPECT_EQ((c0[std::array{0U, 1U}]), 0);
-  EXPECT_EQ((c0[std::array{0U, 2U}]), 0);
-  EXPECT_EQ((c0[std::array{1U, 0U}]), 0);
-  EXPECT_EQ((c0[std::array{1U, 1U}]), 0);
-  EXPECT_EQ((c0[std::array{1U, 2U}]), 0);
-  static_assert(zero<decltype(c0)>);
-  EXPECT_EQ(constant_value(c0), 0);
-  static_assert(values::fixed_value_of_v<decltype(constant_value(c0))> == 0);
 }

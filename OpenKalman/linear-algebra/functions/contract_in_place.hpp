@@ -25,19 +25,19 @@ namespace OpenKalman
    * \result Either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<bool on_the_right = true, square_shaped<applicability::permitted> A, square_shaped<applicability::permitted> B> requires
+  template<bool on_the_right = true, square_shaped<2, applicability::permitted> A, square_shaped<2, applicability::permitted> B> requires
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and (index_count_v<B> == stdex::dynamic_extent or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
-    square_shaped<A, applicability::permitted> and square_shaped<B, applicability::permitted> and
+    square_shaped<A, 2, applicability::permitted> and square_shaped<B, 2, applicability::permitted> and
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of<A>::value == triangle_type_of<A, B>::value) and
     (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and (index_count<B>::value == stdex::dynamic_extent or index_count<B>::value <= 2), int> = 0>
 #endif
   constexpr A&&
   contract_in_place(A&& a, B&& b)
   {
-    if constexpr (not square_shaped<A> or not square_shaped<B> or not vector_space_descriptors_match_with<A, B>) if (not vector_space_descriptors_match(a, b))
+    if constexpr (not square_shaped<A, 2> or not square_shaped<B, 2> or not vector_space_descriptors_match_with<A, B>) if (not vector_space_descriptors_match(a, b))
       throw std::invalid_argument {"Arguments to contract_in_place must match in size and be square matrices"};
 
     if constexpr (zero<A> or identity_matrix<B>)

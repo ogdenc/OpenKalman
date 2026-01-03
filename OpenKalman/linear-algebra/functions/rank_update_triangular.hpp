@@ -77,7 +77,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret {make_dense_object_from<A>(std::tuple{coordinates::Axis{}, coordinates::Axis{}}, e)};
+        auto ret {make_dense_object_from<A>(std::tuple{patterns::Axis{}, patterns::Axis{}}, e)};
         if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
         {
           a = std::move(ret);

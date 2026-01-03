@@ -12,7 +12,7 @@
 #include <complex>
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinates;
+using namespace OpenKalman::patterns;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 

@@ -325,7 +325,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>);
+    static_assert(patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
@@ -340,7 +340,7 @@ namespace OpenKalman
   split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(coordinates::compares_with<static_concatenate_t<Cs...>, CC, less_equal<>>);
+    static_assert(patterns::compares_with<static_concatenate_t<Cs...>, CC, less_equal<>>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
@@ -355,7 +355,7 @@ namespace OpenKalman
   split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(coordinates::compares_with<static_concatenate_t<Cs...>, RC, less_equal<>>);
+    static_assert(patterns::compares_with<static_concatenate_t<Cs...>, RC, less_equal<>>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 

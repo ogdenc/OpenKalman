@@ -33,12 +33,12 @@ namespace OpenKalman::Eigen3::internal
 	using V0 = vector_space_descriptor_of<NestedObject, 0>; 
     enum
     {
-      Flags = OpenKalman::coordinates::euclidean_pattern<V0> ? BaseFlags :
+      Flags = OpenKalman::patterns::euclidean_pattern<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
               ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
           if constexpr (OpenKalman::dynamic_pattern<V0>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::coordinates::stat_dimension_of_v<V0>);
+          else return static_cast<Eigen::Index>(OpenKalman::patterns::stat_dimension_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };

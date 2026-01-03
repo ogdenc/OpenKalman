@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_PATTERNS_MATCH_WITH_HPP
 #define OPENKALMAN_PATTERNS_MATCH_WITH_HPP
 
-#include "coordinates/coordinates.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
@@ -28,7 +28,7 @@ namespace OpenKalman
 
     template<typename P, typename...Ps>
     struct patterns_match_with_impl<P, Ps...>
-      : std::bool_constant<(... and (coordinates::pattern_collection_compares_with<P, Ps>))> {};
+      : std::bool_constant<(... and (patterns::collection_compares_with<P, Ps>))> {};
 
 #ifndef __cpp_concepts
     template<typename = void, typename...Ts>

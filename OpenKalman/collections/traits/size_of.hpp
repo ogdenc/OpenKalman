@@ -17,7 +17,6 @@
 #define OPENKALMAN_COLLECTIONS_SIZE_OF_HPP
 
 #include "values/values.hpp"
-#include "collections/concepts/sized.hpp"
 #include "collections/functions/get_size.hpp"
 
 namespace OpenKalman::collections
@@ -34,21 +33,21 @@ namespace OpenKalman::collections
 
 
 #ifdef __cpp_concepts
-  template<sized T>
+  template<typename T> requires (not values::fixed<decltype(collections::get_size(std::declval<T>()))>)
   struct size_of<T>
 #else
   template<typename T>
-  struct size_of<T, std::enable_if_t<sized<T> and not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
+  struct size_of<T, std::enable_if_t<not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
-    : std::integral_constant<std::size_t, stdex::dynamic_extent> {};
+  : std::integral_constant<std::size_t, stdex::dynamic_extent> {};
 
 
 #ifdef __cpp_concepts
-  template<sized T> requires values::fixed<decltype(collections::get_size(std::declval<T>()))>
+  template<typename T> requires values::fixed<decltype(collections::get_size(std::declval<T>()))>
   struct size_of<T>
 #else
   template<typename T>
-  struct size_of<T, std::enable_if_t<sized<T> and values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
+  struct size_of<T, std::enable_if_t<values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
     : values::fixed_value_of<decltype(collections::get_size(std::declval<T>()))> {};
 

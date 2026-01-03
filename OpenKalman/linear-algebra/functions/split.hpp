@@ -35,7 +35,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(coordinates::compares_with<std::tuple<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>, less_equal<>>,
+        static_assert(patterns::compares_with<std::tuple<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>, less_equal<>>,
           "Concatenated vector space descriptors provided to split function must be a prefix of the argument's vector space descriptor");
       }
     }
@@ -73,13 +73,13 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds A set of \ref coordinates::pattern (the same for for each of indices)
+   * \tparam Ds A set of \ref patterns::pattern (the same for for each of indices)
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, indexible Arg, coordinates::pattern...Ds> requires (sizeof...(indices) > 0)
+  template<std::size_t...indices, indexible Arg, patterns::pattern...Ds> requires (sizeof...(indices) > 0)
 #else
   template<std::size_t...indices, typename Arg, typename...Ds, std::enable_if_t<indexible<Arg> and
-    (coordinates::pattern<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
+    (patterns::pattern<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
 #endif
   inline auto
   split(Arg&& arg, Ds&&...ds)
@@ -135,7 +135,7 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds_tups A set of tuples of \ref coordinates::pattern objects, each tuple having <code>sizeof...(indices)</code> elements
+   * \tparam Ds_tups A set of tuples of \ref patterns::pattern objects, each tuple having <code>sizeof...(indices)</code> elements
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, typename...Ds_tups> requires

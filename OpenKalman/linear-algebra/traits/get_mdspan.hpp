@@ -24,7 +24,7 @@
 namespace OpenKalman
 {
   /**
-   * \brief Get the \ref coordinates::pattern_collection associated with \ref indexible object T.
+   * \brief Get the mdspan associated with \ref indexible object T.
    */
 #ifdef __cpp_concepts
   template<indexible T>
@@ -32,22 +32,9 @@ namespace OpenKalman
   template<typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
   constexpr auto
-  get_mdspan(T& t)
+  get_mdspan(T&& t)
   {
-    using Traits = interface::object_traits<std::remove_cv_t<T>>;
-    return stdex::invoke(Traits::get_mdspan, t);
-  }
-
-
-  /**
-   * \overload
-   * \brief If argument is already an mdspan, return it unchanged.
-   */
-  template<typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
-  constexpr auto
-  get_mdspan(stdex::mdspan<T, Extents, LayoutPolicy, AccessorPolicy> m)
-  {
-    return std::move(m);
+    return interface::object_traits<stdex::remove_cvref_t<T>>::get_mdspan(std::forward<T>(t));
   }
 
 

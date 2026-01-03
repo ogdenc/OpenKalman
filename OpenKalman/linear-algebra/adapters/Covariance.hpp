@@ -22,7 +22,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable NestedMatrix> requires
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename StaticDescriptor, typename NestedMatrix>
@@ -33,7 +33,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(fixed_pattern<StaticDescriptor>);
     static_assert(covariance_nestable<NestedMatrix>);
-    static_assert(coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>);
+    static_assert(patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
     static_assert(values::number<scalar_type_of_t<NestedMatrix>>);
 #endif
@@ -282,7 +282,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_shaped<Arg>)) and
-        coordinates::compares_with<vector_space_descriptor_of_t<Arg, 0>, StaticDescriptor>
+        patterns::compares_with<vector_space_descriptor_of_t<Arg, 0>, StaticDescriptor>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_shaped<Arg>)) and
@@ -338,7 +338,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_shaped<Arg>)) and
-      coordinates::compares_with<vector_space_descriptor_of_t<Arg, 0>, StaticDescriptor>
+      patterns::compares_with<vector_space_descriptor_of_t<Arg, 0>, StaticDescriptor>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       (self_adjoint_covariance<Arg> or (typed_matrix<Arg> and square_shaped<Arg>)) and
@@ -617,7 +617,7 @@ namespace OpenKalman
      * \brief Perform a rank update.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix U> requires coordinates::compares_with<vector_space_descriptor_of_t<U, 0>, StaticDescriptor>
+    template<typed_matrix U> requires patterns::compares_with<vector_space_descriptor_of_t<U, 0>, StaticDescriptor>
 #else
     template<typename U, std::enable_if_t<typed_matrix<U> and
       compares_with<vector_space_descriptor_of_t<U, 0>, StaticDescriptor>, int> = 0>
@@ -656,7 +656,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<fixed_pattern C, covariance_nestable N> requires
-    (coordinates::dimension_of_v<C> == index_dimension_of_v<N, 0>) and (not std::is_rvalue_reference_v<N>)
+    (patterns::dimension_of_v<C> == index_dimension_of_v<N, 0>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -665,7 +665,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<fixed_pattern C, covariance_nestable N> requires
-      (coordinates::dimension_of_v<C> == index_dimension_of_v<N, 0>) and (not std::is_rvalue_reference_v<N>)
+      (patterns::dimension_of_v<C> == index_dimension_of_v<N, 0>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
 #endif
@@ -726,10 +726,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable Arg> requires
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>)
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>)
 #else
   template<typename StaticDescriptor, typename Arg, std::enable_if_t<fixed_pattern<StaticDescriptor> and
-    covariance_nestable<Arg> and (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value), int> = 0>
+    covariance_nestable<Arg> and (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
@@ -746,14 +746,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, triangle_type tri, covariance_nestable Arg> requires
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and
     (tri != triangle_type::lower or triangular_matrix<Arg, triangle_type::lower>) and
     (tri != triangle_type::upper or triangular_matrix<Arg, triangle_type::upper>) and
     (tri != triangle_type::diagonal or diagonal_matrix<Arg>)
 #else
   template<typename StaticDescriptor, triangle_type tri, typename Arg, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and covariance_nestable<Arg> and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
     (tri != triangle_type::lower or triangular_matrix<Arg, triangle_type::lower>) and
     (tri != triangle_type::upper or triangular_matrix<Arg, triangle_type::upper>) and
     (tri != triangle_type::diagonal or diagonal_matrix<Arg>), int> = 0>
@@ -795,13 +795,13 @@ namespace OpenKalman
   template<fixed_pattern StaticDescriptor, triangle_type tri, typed_matrix_nestable Arg> requires
     (not covariance_nestable<Arg>) and
     (tri == triangle_type::lower or tri == triangle_type::upper) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 1>)
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 1>)
 #else
   template<typename StaticDescriptor, triangle_type tri, typename Arg, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (tri == triangle_type::lower or tri == triangle_type::upper) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)
@@ -819,12 +819,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 1>)
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 0>) and (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<Arg, 1>)
 #else
   template<typename StaticDescriptor, typename Arg, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
-    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 0>::value) and
+    (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
   make_covariance(Arg&& arg)

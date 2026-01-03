@@ -106,7 +106,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<mean Arg>
 #else
-    template<typename Arg, std::enable_if_t<mean<Arg> and coordinates::pattern<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<mean<Arg> and patterns::pattern<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     to_euclidean(Arg&& arg)
@@ -263,7 +263,7 @@ namespace OpenKalman
     (compares_with<vector_space_descriptor_of_t<V, 1>, vector_space_descriptor_of_t<Vs, 1>>and ...)
 #else
   template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
-    ((sizeof...(Vs) == 0) or (coordinates::compares_with<vector_space_descriptor_of_t<V, 1>,
+    ((sizeof...(Vs) == 0) or (patterns::compares_with<vector_space_descriptor_of_t<V, 1>,
       vector_space_descriptor_of_t<Vs, 1>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
@@ -301,7 +301,7 @@ template<typed_matrix V, typed_matrix ... Vs> requires (sizeof...(Vs) == 0) or
     (compares_with<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>>and ...)
 #else
 template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
-    ((sizeof...(Vs) == 0) or (coordinates::compares_with<vector_space_descriptor_of_t<V, 0>,
+    ((sizeof...(Vs) == 0) or (patterns::compares_with<vector_space_descriptor_of_t<V, 0>,
       vector_space_descriptor_of_t<Vs, 0>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
@@ -313,7 +313,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       using CC = static_concatenate_t<vector_space_descriptor_of_t<V, 1>,
       vector_space_descriptor_of_t<Vs, 1>...>;
       auto cat = concatenate_horizontal(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...);
-      if constexpr(coordinates::euclidean_pattern<CC>)
+      if constexpr(patterns::euclidean_pattern<CC>)
       {
         return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(std::move(cat));
       }
@@ -394,10 +394,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
   template<fixed_pattern ... Cs, typed_matrix M> requires
-    coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>
+    patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>, int> = 0>
+    patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m)
@@ -411,10 +411,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
   template<fixed_pattern ... Cs, typed_matrix M> requires
-    coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>, less_equal<>>
+    patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>, less_equal<>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>, less_equal<>>, int> = 0>
+    patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>, less_equal<>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m)
@@ -449,7 +449,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(coordinates::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>);
+    static_assert(patterns::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>);
     static_assert(compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
@@ -536,7 +536,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
     using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
     using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
-    static_assert(coordinates::dimension_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(patterns::dimension_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = replicate_static_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
     using RC = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f](auto&& col) -> auto {
@@ -565,7 +565,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
     using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
     using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
-    static_assert(coordinates::dimension_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(patterns::dimension_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using ResCC = replicate_static_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = vector_space_descriptor_of_t<Arg, 0>;
@@ -593,7 +593,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function>;
     using RC = vector_space_descriptor_of_t<ResultType, 0>;
     using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
-    static_assert(coordinates::dimension_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(patterns::dimension_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = replicate_static_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
@@ -616,7 +616,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     using RC = vector_space_descriptor_of_t<ResultType, 0>;
     using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
-    static_assert(coordinates::dimension_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
+    static_assert(patterns::dimension_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = replicate_static_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }

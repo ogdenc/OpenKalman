@@ -117,15 +117,15 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(square_shaped<Z11>);
   static_assert(square_shaped<C11_1>);
 
-  static_assert(square_shaped<Z11, applicability::permitted>);
-  static_assert(square_shaped<Z2x, applicability::permitted>);
-  static_assert(not square_shaped<Z21, applicability::permitted>);
-  static_assert(square_shaped<C22_1, applicability::permitted>);
-  static_assert(not square_shaped<C21_1, applicability::permitted>);
+  static_assert(square_shaped<Z11, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Z2x, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Z21, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<C22_1, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<C21_1, values::unbounded_size, applicability::permitted>);
 
   static_assert(one_dimensional<Z11>);
-  static_assert(one_dimensional<Z1x, applicability::permitted>);
-  static_assert(one_dimensional<Zx1, applicability::permitted>);
+  static_assert(one_dimensional<Z1x, values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<Zx1, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<C11_1>);
 
   static_assert(not writable<Mx2::ConstantReturnType>);

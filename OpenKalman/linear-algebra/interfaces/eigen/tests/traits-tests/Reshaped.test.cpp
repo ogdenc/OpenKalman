@@ -40,81 +40,81 @@ TEST(eigen3, Eigen_Reshaped)
 
   static_assert(one_dimensional<Eigen::Reshaped<M1x, 1, 1>>);
   static_assert(not one_dimensional<Eigen::Reshaped<M1x, 1, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<M1x, 1, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<M1x, 1, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, 1>>);
-  static_assert(one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, 1>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<M1x, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(one_dimensional<Eigen::Reshaped<Mx1, 1, 1>>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mx1, 1, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mx1, 1, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mx1, 1, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, 1>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, 1>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mx1, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(one_dimensional<Eigen::Reshaped<Mxx, 1, 1>>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mxx, 1, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mxx, 1, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mxx, 1, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, 1>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, 1>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
-  static_assert(not one_dimensional<Eigen::Reshaped<Mxx, 2, 2>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, 1, 1>, applicability::permitted>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, 1>, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mxx, 2, 2>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, 1, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, 1>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reshaped<M11, 1, 1>>);
   static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, 4, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, 4>>);
-  static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 9>, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<M5x, 2, 2>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx5, 2, 2>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<M2x, 1, 1>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, 1>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<M21, Eigen::Dynamic, 1>, applicability::permitted>);
-  static_assert(not square_shaped<Eigen::Reshaped<M21, 2, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 9>, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<M5x, 2, 2>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx5, 2, 2>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<M2x, 1, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<M21, Eigen::Dynamic, 1>, values::unbounded_size, applicability::permitted>);
+  static_assert(not square_shaped<Eigen::Reshaped<M21, 2, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reshaped<M22, 2, 2>>);
   static_assert(square_shaped<Eigen::Reshaped<M22, 2, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, 2>>);
   static_assert(not square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reshaped<M2x, 2, 2>>);
   static_assert(not square_shaped<Eigen::Reshaped<M2x, 2, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<M2x, 2, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<M2x, 2, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 2>>);
-  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 2>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 2>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reshaped<Mx2, 2, 2>>);
   static_assert(not square_shaped<Eigen::Reshaped<Mx2, 2, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mx2, 2, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mx2, 2, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, 2>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, 2>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, 2>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, 2>>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>, values::unbounded_size, applicability::permitted>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, values::unbounded_size, applicability::permitted>);
 
   static_assert(constant_value_v<Eigen::Reshaped<C22_2, 2, 2>> == 2);
   static_assert(constant_value_v<Eigen::Reshaped<C2x_2, 2, 2>> == 2);

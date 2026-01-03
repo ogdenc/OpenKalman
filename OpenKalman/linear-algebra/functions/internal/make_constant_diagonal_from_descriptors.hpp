@@ -18,20 +18,20 @@
 #define OPENKALMAN_MAKE_CONSTANT_DIAGONAL_FROM_DESCRIPTORS_HPP
 
 #include <vector>
-#include "coordinates/concepts/pattern.hpp"
-#include "coordinates/concepts/pattern_collection.hpp"
+#include "patterns/concepts/pattern.hpp"
+#include "patterns/concepts/pattern_collection.hpp"
 
 namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Make a constant diagonal from a constant and a set of \ref coordinates::pattern objects.
+   * \brief Make a constant diagonal from a constant and a set of \ref patterns::pattern objects.
    */
   template<typename T, typename C, typename Descriptors>
   static constexpr decltype(auto)
   make_constant_diagonal_from_descriptors(C&& c, Descriptors&& descriptors)
   {
-    if constexpr (coordinates::pattern_collection<Descriptors>)
+    if constexpr (patterns::pattern_collection<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
         std::tuple(internal::smallest_pattern<scalar_type_of_t<T>>(
@@ -52,7 +52,7 @@ namespace OpenKalman::internal
       auto i1 = ++it;
       if (i1 == end(descriptors))
       {
-        new_descriptors.emplace_back(coordinates::Axis{});
+        new_descriptors.emplace_back(patterns::Axis{});
       }
       else if (i0 != end(descriptors))
       {

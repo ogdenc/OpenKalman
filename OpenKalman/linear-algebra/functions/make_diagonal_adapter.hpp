@@ -21,18 +21,18 @@ namespace OpenKalman
   /**
    * \brief Make a \ref diagonal_matrix, specifying the first two dimensions, which may not necessarily be the same.
    * \tparam Arg A vector or higher-order tensor reflecting the diagonal(s).
-   * \tparam D0 The \ref coordinates::pattern for the rows.
-   * \tparam D1 The \ref coordinates::pattern for the columns.
+   * \tparam D0 The \ref patterns::pattern for the rows.
+   * \tparam D1 The \ref patterns::pattern for the columns.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, coordinates::pattern D0, coordinates::pattern D1> requires
-    (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
+  template<indexible Arg, patterns::pattern D0, patterns::pattern D1> requires
+    (not fixed_pattern<D0> or not fixed_pattern<D1> or patterns::compares_with<D0, D1, less_equal<>> or patterns::compares_with<D1, D0, less_equal<>>) and
     (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, applicability::permitted>)
   constexpr diagonal_matrix auto
 #else
   template<typename Arg, typename D0, typename D1, std::enable_if_t<
-    indexible<Arg> and coordinates::pattern<D0> and coordinates::pattern<D1> and
-      (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
+    indexible<Arg> and patterns::pattern<D0> and patterns::pattern<D1> and
+      (not fixed_pattern<D0> or not fixed_pattern<D1> or patterns::compares_with<D0, D1, less_equal<>> or patterns::compares_with<D1, D0, less_equal<>>) and
       (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, applicability::permitted>), int> = 0>
   constexpr auto
 #endif

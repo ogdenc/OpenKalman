@@ -25,12 +25,12 @@ namespace OpenKalman
    * \tparam Arg A square matrix.
    */
 #ifdef __cpp_concepts
-  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_shaped<applicability::permitted> Arg>
+  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_shaped<2, applicability::permitted> Arg>
     requires (adapter_type == HermitianAdapterType::lower) or (adapter_type == HermitianAdapterType::upper)
   constexpr hermitian_matrix decltype(auto)
 #else
   template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, typename Arg, std::enable_if_t<
-    square_shaped<Arg, applicability::permitted> and
+    square_shaped<Arg, 2, applicability::permitted> and
     (adapter_type == HermitianAdapterType::lower or adapter_type == HermitianAdapterType::upper), int> = 0>
   constexpr decltype(auto)
 #endif

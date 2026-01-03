@@ -52,12 +52,12 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept hermitian_matrix =
-    square_shaped<T> and
+    square_shaped<T, 2> and
     (interface::object_traits<stdex::remove_cvref_t<T>>::is_hermitian or
       ((constant_object<T> or diagonal_matrix<T>) and values::not_complex<element_type_of_t<T>>));
 #else
   constexpr bool hermitian_matrix =
-    square_shaped<T> and
+    square_shaped<T, 2> and
     (detail::is_explicitly_hermitian<T>::value or
       ((constant_object<T> or diagonal_matrix<T>) and detail::is_inferred_hermitian_matrix<T>::value));
 #endif

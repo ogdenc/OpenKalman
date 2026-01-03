@@ -16,8 +16,8 @@
 #ifndef OPENKALMAN_COLLECTIONS_SIZED_HPP
 #define OPENKALMAN_COLLECTIONS_SIZED_HPP
 
-#include <type_traits>
 #include "basics/basics.hpp"
+#include "collections/functions/get_size.hpp"
 
 namespace OpenKalman::collections
 {
@@ -26,26 +26,22 @@ namespace OpenKalman::collections
    */
 #ifdef __cpp_lib_ranges
   template<typename T>
-  concept sized = std::ranges::sized_range<T> or requires { std::tuple_size<std::decay_t<T>>::value; };
+  concept sized = requires { collections::get_size(std::declval<T>()); };
 #else
-  namespace detail_sized
+  namespace detail
   {
     template<typename T, typename = void>
-    struct has_tuple_size : std::false_type {};
+    struct sized_impl : std::false_type {};
 
     template<typename T>
-    struct has_tuple_size<T, std::void_t<decltype(std::tuple_size<std::decay_t<T>>::value)>> : std::true_type {};
-
-    using namespace std;
-
-    template<typename T>
-    constexpr bool sized = stdex::ranges::sized_range<stdex::remove_cvref_t<T>> or has_tuple_size<T>::value;
+    struct sized_impl<T, std::void_t<decltype(collections::get_size(std::declval<T>()))>> : std::true_type {};
   }
 
 
-  using detail_sized::sized;
+  template<typename T>
+  constexpr bool sized = detail::sized_impl<T>::value;
 #endif
 
-} // OpenKalman::collections
+}
 
 #endif

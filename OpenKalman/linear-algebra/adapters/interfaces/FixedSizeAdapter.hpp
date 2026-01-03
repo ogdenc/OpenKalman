@@ -41,7 +41,7 @@ namespace OpenKalman::interface
     static constexpr auto count_indices(const Arg&)
     {
       // Truncate any trailing ℝ¹ dimensions
-      using NewDesc = decltype(OpenKalman::coordinates::internal::strip_1D_tail(std::declval<Descriptors>()));
+      using NewDesc = decltype(OpenKalman::patterns::internal::strip_1D_tail(std::declval<Descriptors>()));
       return collections::size_of<NewDesc>{};
     }
 
@@ -53,7 +53,7 @@ namespace OpenKalman::interface
       if constexpr (values::fixed<N>)
       {
         if constexpr (N::value >= dim)
-          return coordinates::Axis{};
+          return patterns::Axis{};
         else if constexpr (fixed_pattern<collections::collection_element_t<N::value, Descriptors>>)
           return collections::collection_element_t<N::value, Descriptors> {};
         else
@@ -318,7 +318,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     get_slice_impl(Arg&& arg, const std::tuple<Begin...>& begin_tup, const std::tuple<Size...>& size_tup, std::index_sequence<Ix...>)
     {
-      using NewDesc = std::tuple<std::decay_t<decltype(coordinates::get_slice<scalar_type_of_t<Arg>>(
+      using NewDesc = std::tuple<std::decay_t<decltype(patterns::get_slice<scalar_type_of_t<Arg>>(
         std::declval<collections::collection_element_t<Ix, Descriptors>>, std::declval<Begin>(), std::declval<Size>()))>...>;
       return internal::make_fixed_size_adapter<NewDesc>(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup));
     }
@@ -416,7 +416,7 @@ namespace OpenKalman::interface
         return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
       else 
         return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{patterns::Axis{}, patterns::Axis{}}));
     }
 
   private:
@@ -428,7 +428,7 @@ namespace OpenKalman::interface
       if constexpr (Ix < N)
         return get_pattern_collection<Ix>(arg) * std::get<Ix>(factors_tup);
       else
-        return coordinates::Axis{};
+        return patterns::Axis{};
     }
 
 
@@ -460,7 +460,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinates::pattern...IDs, typename Operation> requires
+    template<patterns::pattern...IDs, typename Operation> requires
       interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<IDs...>&, Operation&&>
     static indexible auto
 #else
@@ -475,7 +475,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinates::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
+    template<patterns::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -542,7 +542,7 @@ namespace OpenKalman::interface
       else
       {
         using D0 = collections::collection_element_t<0, Descriptors>;
-        if constexpr (coordinates::euclidean_pattern<D0>)
+        if constexpr (patterns::euclidean_pattern<D0>)
         {
           return std::forward<Arg>(arg);
         }
@@ -550,8 +550,8 @@ namespace OpenKalman::interface
         {
           using V0 = std::conditional_t<
             fixed_pattern<D0>,
-            coordinates::Dimensions<coordinates::stat_dimension_of_v<D0>>,
-            coordinates::DynamicDescriptor<scalar_type_of_t<Arg>>>;
+            patterns::Dimensions<patterns::stat_dimension_of_v<D0>>,
+            patterns::DynamicDescriptor<scalar_type_of_t<Arg>>>;
           using Vtail = std::decay_t<decltype(internal::tuple_slice<1, dim>(std::declval<Descriptors>()))>;
           using Vcat = decltype(std::tuple_cat(std::declval<V0>()), std::declval<Vtail>());
           return internal::make_fixed_size_adapter<Vcat>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
@@ -561,7 +561,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, coordinates::pattern D> requires
+    template<indexible Arg, patterns::pattern D> requires
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, D&&>
     static constexpr indexible auto
 #else
@@ -571,7 +571,7 @@ namespace OpenKalman::interface
 #endif
     from_euclidean(Arg&& arg, D&& d)
     {
-      if constexpr (coordinates::euclidean_pattern<D>)
+      if constexpr (patterns::euclidean_pattern<D>)
       {
         return std::forward<Arg>(arg);
       }

@@ -21,7 +21,7 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_shaped<applicability::permitted> NestedObject, triangle_type tri>
+  template<square_shaped<2, applicability::permitted> NestedObject, triangle_type tri>
     requires (index_count_v<NestedObject> <= 2)
 #else
   template<typename NestedObject, triangle_type tri>
@@ -30,7 +30,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(square_shaped<NestedObject, applicability::permitted>);
+    static_assert(square_shaped<NestedObject, 2, applicability::permitted>);
     static_assert(index_count_v<NestedObject> <= 2);
 #endif
 
@@ -85,7 +85,7 @@ namespace OpenKalman
     template<square_shaped<applicability::permitted> Arg> requires (not triangular_matrix<Arg, tri>) and
       (not diagonal_matrix<NestedObject>) and dimensions_match<Arg> and std::constructible_from<NestedObject, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, applicability::permitted> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, 2, applicability::permitted> and
       (not triangular_matrix<Arg, tri>) and (not diagonal_matrix<NestedObject>) and
       dimensions_match<Arg> and stdex::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
@@ -131,7 +131,7 @@ namespace OpenKalman
     template<square_shaped<applicability::permitted> Arg> requires (not triangular_matrix<Arg>) and diagonal_matrix<NestedObject> and
       dimensions_match<Arg> and requires(Arg&& arg) { NestedObject {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, applicability::permitted> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, 2, applicability::permitted> and
       (not triangular_matrix<Arg>) and diagonal_matrix<NestedObject> and
       dimensions_match<Arg> and std::is_constructible<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif

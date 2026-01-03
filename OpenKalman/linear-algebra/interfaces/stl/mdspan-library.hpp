@@ -19,6 +19,8 @@
 #include "basics/basics.hpp"
 #include "mdspan-object.hpp"
 #include "linear-algebra/interfaces/library_interface.hpp"
+#include "to_diagonal_mdspan_policies.hpp"
+#include "transpose_mdspan_policies.hpp"
 
 namespace OpenKalman::interface
 {
@@ -26,56 +28,66 @@ namespace OpenKalman::interface
    * \internal
    * \brief Library interface to an std::mdspan.
    */
-  template<typename T, typename IndexType, std::size_t...Extents, typename LayoutPolicy, typename AccessorPolicy>
-  struct library_interface<stdex::mdspan<T, stdex::extents<IndexType, Extents...>, LayoutPolicy, AccessorPolicy>>
+  template<typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
+  struct library_interface<stdex::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>>
   {
-  private:
+    static constexpr auto
+    to_diagonal = [](auto&& m) -> decltype(auto)
+    {
+      if constexpr (Extents::rank() == 0)
+      {
+        return std::forward<decltype(m)>(m);
+      }
+      else
+      {
+        auto ext = patterns::to_extents(patterns::to_diagonal_pattern_collection(m.extents()));
+        using extents_type = std::decay_t<decltype(ext)>;
+        using nested_layout = typename std::decay_t<decltype(m)>::layout_type;
+        using nested_accessor = typename std::decay_t<decltype(m)>::accessor_type;
+        using mapping_type = typename layout_to_diagonal<nested_layout>::template mapping<extents_type>;
+        using accessor_type = to_diagonal_accessor<nested_accessor>;
+        auto nested_m = m.mapping();
+        auto acc = accessor_type {m.accessor(), nested_m.required_span_size()};
+        auto map = mapping_type {std::move(nested_m), std::move(ext)};
+        return stdex::mdspan(m.data_handle(), std::move(map), std::move(acc));
+      }
+    };
 
-    using M = stdex::mdspan<T, stdex::extents<IndexType, Extents...>, LayoutPolicy, AccessorPolicy>;
-
-    using extents = stdex::extents<IndexType, Extents...>;
-
-    static constexpr std::size_t rank = extents::rank();
-    static constexpr std::size_t rank_dynamic = extents::rank_dynamic();
-
-  public:
 
     static constexpr auto
-    conjugate = [](auto&& m)
+    conjugate = [](auto&& m) -> decltype(auto)
     {
       return stdex::linalg::conjugated(std::forward<decltype(m)>(m));
     };
 
 
+    template<std::size_t indexa, std::size_t indexb>
     static constexpr auto
-#ifdef __cpp_concepts
-    transpose = [](auto&& m) -> decltype(auto) requires (rank <= 2)
-#else
-    transpose = [](auto&& m, std::enable_if_t<std::decay_t<decltype(m)>::rank() <= 2, int> = 0) -> decltype(auto)
-#endif
+    transpose = [](auto&& m) -> decltype(auto)
     {
-      if constexpr (rank == 2)
+      if constexpr (Extents::rank() == 2 and indexa == 0 and indexb == 1)
+      {
         return stdex::linalg::transposed(std::forward<decltype(m)>(m));
-      else if constexpr (rank == 1 and rank_dynamic == 0)
-        return stdex::extents<IndexType, 1_uz, Extents...> {};
-      else if constexpr (rank == 1)
-        return stdex::extents<IndexType, 1_uz, Extents...> {m.extent(0)};
-      else // if constexpr (rank == 0)
-        return std::forward<decltype(m)>(m);
+      }
+      else
+      {
+        using nested_layout = typename std::decay_t<decltype(m)>::layout_type;
+        return stdex::mdspan(
+          m.data_handle(),
+          layout_transpose<nested_layout, indexa, indexb>::mapping(m.mapping()),
+          m.accessor());
+      }
     };
 
 
+    template<std::size_t indexa, std::size_t indexb>
     static constexpr auto
-#ifdef __cpp_concepts
-    adjoint = [](auto&& m) -> decltype(auto) requires (rank <= 2)
-#else
-    adjoint = [](auto&& m, std::enable_if_t<std::decay_t<decltype(m)>::rank() <= 2, int> = 0) -> decltype(auto)
-#endif
+    adjoint = [](auto&& m) -> decltype(auto)
     {
-      if constexpr (rank == 2)
+      if constexpr (Extents::rank() == 2 and indexa == 0 and indexb == 1)
         return stdex::linalg::conjugate_transposed(std::forward<decltype(m)>(m));
       else
-        return conjugate(transpose(std::forward<decltype(m)>(m)));
+        return conjugate(transpose<indexa, indexb>(std::forward<decltype(m)>(m)));
     };
 
   };

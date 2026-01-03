@@ -78,7 +78,7 @@ namespace OpenKalman
     std::size_t s = collections::get_size(indices);
     if (s < rank)
       return mds[detail::make_index_array_padded(indices, s, std::make_index_sequence<rank>{})];
-    if constexpr (stdex::ranges::range<Indices>)
+    else if constexpr (stdex::ranges::range<Indices>)
       return mds[stdex::span(indices).template subspan<0, rank>()];
     else
       return mds[detail::make_index_array(indices, std::make_index_sequence<rank>{})];

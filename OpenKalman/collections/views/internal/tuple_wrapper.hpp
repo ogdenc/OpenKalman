@@ -19,7 +19,9 @@
 
 #include <functional>
 #include "basics/basics.hpp"
+#include "collections/traits/size_of.hpp"
 #include "collections/functions/get.hpp"
+#include "collections/traits/collection_element.hpp"
 #include "collections/concepts/viewable_tuple_like.hpp"
 #include "collections/views/internal/movable_wrapper.hpp"
 
@@ -280,10 +282,12 @@ namespace OpenKalman::collections::internal
 namespace std
 {
   template<typename Tup>
-  struct tuple_size<OpenKalman::collections::internal::tuple_wrapper<Tup>> : tuple_size<std::decay_t<Tup>> {};
+  struct tuple_size<OpenKalman::collections::internal::tuple_wrapper<Tup>>
+    : OpenKalman::collections::size_of<std::decay_t<Tup>> {};
 
   template<std::size_t i, typename Tup>
-  struct tuple_element<i, OpenKalman::collections::internal::tuple_wrapper<Tup>> : tuple_element<i, std::decay_t<Tup>> {};
+  struct tuple_element<i, OpenKalman::collections::internal::tuple_wrapper<Tup>>
+    : OpenKalman::collections::collection_element<i, std::decay_t<Tup>> {};
 }
 
 #endif

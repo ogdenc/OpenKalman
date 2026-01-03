@@ -8,27 +8,30 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+/**
+ * \file
+ * \brief Definition for \ref pattern_adapter.
+ */
+
 #ifndef OPENKALMAN_PATTERN_ADAPTER_HPP
 #define OPENKALMAN_PATTERN_ADAPTER_HPP
 
-#include "coordinates/coordinates.hpp"
-#include "linear-algebra/interfaces/interfaces-defined.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/adapters/internal/AdapterBase.hpp"
-#include "linear-algebra/concepts/hermitian_matrix.hpp"
 #include "linear-algebra/concepts/pattern_collection_for.hpp"
-#include "linear-algebra/concepts/square_shaped.hpp"
-#include "linear-algebra/functions/copy_from.hpp"
-#include "linear-algebra/traits/hermitian_adapter_type_of.hpp"
+#include "linear-algebra/adapters/internal/AdapterBase.hpp"
+#include "linear-algebra/adapters/interfaces/pass_through_interface.hpp"
 
 namespace OpenKalman
 {
   /**
-   * \brief An adapter that attaches a \ref coordinates::pattern_collection "pattern_collection" to an \ref indexible object.
+   * \brief An adapter that attaches a \ref patterns::pattern_collection "pattern_collection" to an \ref indexible object.
    * \details Any vector space descriptors associated with the nested object are effectively overwritten.
+   * The adapter can be owning or non-owning, depending on whether Nested is an lvalue reference.
    */
 #ifdef __cpp_concepts
   template<indexible Nested, pattern_collection_for<Nested> PatternCollection>
+  requires std::same_as<PatternCollection, std::decay_t<PatternCollection>>
 #else
   template<typename Nested, typename PatternCollection>
 #endif
@@ -45,81 +48,43 @@ namespace OpenKalman
   public:
 
     /**
+     * \brief Construct from an \ref indexible object and a \ref patterns::pattern_collection "pattern_collection".
+     */
+#ifdef __cpp_concepts
+    template<indexible Arg, patterns::pattern_collection P> requires
+      std::constructible_from<Nested, Arg&&> and
+      std::constructible_from<PatternCollection, P&&>
+#else
+    template<typename Arg, typename P, std::enable_if_t<
+      stdex::constructible_from<Nested, Arg&&> and
+      stdex::constructible_from<PatternCollection, P&&>, int> = 0>
+#endif
+    constexpr
+    pattern_adapter(Arg&& arg, P&& p) : Base {std::forward<Arg>(arg)}, patt_ {std::forward<P>(p)}
+    {
+      if constexpr(not pattern_collection_for<PatternCollection, Nested, applicability::guaranteed>)
+      {
+        // Note: this could be expensive in some circumstances:
+        assert(not patterns::compare_pattern_collections(to_extents(patt_), get_pattern_collection(this->nested_object())));
+      }
+    }
+
+
+    /**
      * \brief Default constructor.
      */
     constexpr pattern_adapter() = default;
 
 
     /**
-     * \brief Construct from an \ref indexible object and a \ref coordinates::pattern_collection "pattern_collection".
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg, coordinates::pattern_collection P> requires
-      std::constructible_from<Nested, Arg&&> and
-      std::constructible_from<PatternCollection, P&&>
-#else
-    template<typename Arg, typename P, std::enable_if_t<
-      stdex::constructible_from<Nested, Arg&&> and
-      stdex::constructible_from<PatternCollection, P&&>, int> = 0>
-#endif
-    constexpr
-    pattern_adapter(Arg&& arg, P&& p) : Base {std::forward<Arg>(arg)}, patt_ {std::forward<P>(p)} {}
-
-
-    /**
-     * \brief Construct from an \ref indexible object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg, coordinates::pattern_collection P> requires
-      std::constructible_from<Nested, Arg&&> and
-      std::default_initializable<PatternCollection>
-#else
-    template<typename Arg, typename P, std::enable_if_t<
-      stdex::constructible_from<Nested, Arg&&> and
-      stdex::default_initializable<PatternCollection>, int> = 0>
-#endif
-    constexpr
-    pattern_adapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
-
-
-    /**
-     * \brief Copy construct from another pattern_adapter, attaching a different \ref coordinates::pattern_collection "pattern_collection".
-     */
-#ifdef __cpp_concepts
-    template<typename N, typename P> requires
-      std::constructible_from<Nested, const N&> and
-      std::constructible_from<PatternCollection, P&&>
-#else
-    template<typename N, typename P, std::enable_if_t<
-      stdex::constructible_from<Nested, const N&> and
-      stdex::constructible_from<PatternCollection, P&&>, int> = 0>
-#endif
-    constexpr pattern_adapter(const pattern_adapter<N, P>& arg, P&& p)
-      : Base {arg.nested_object()}, patt_ {std::forward<P>(p)} {}
-
-
-    /**
-     * \brief Move construct from another pattern_adapter, attaching a different \ref coordinates::pattern_collection "pattern_collection".
-     */
-#ifdef __cpp_concepts
-    template<typename N, typename P> requires
-      std::constructible_from<Nested, N&&> and
-      std::constructible_from<PatternCollection, P&&>
-#else
-    template<typename N, typename P, std::enable_if_t<
-      stdex::constructible_from<Nested, N&&> and
-      stdex::constructible_from<PatternCollection, P&&>, int> = 0>
-#endif
-    constexpr pattern_adapter(pattern_adapter<N, P>&& arg, P&& p)
-      : Base {std::move(arg).nested_object()}, patt_ {std::forward<P>(p)} {}
-
-
-    /**
-     * \brief Get the associated \ref coordinates::pattern_collection "pattern_collection".
+     * \brief Get the associated \ref patterns::pattern_collection "pattern_collection".
      */
 #ifdef __cpp_explicit_this_parameter
     template<typename Self>
-    constexpr decltype(auto) pattern_collection(this Self&& self) { return std::forward<Self>(self).patt_; }
+    constexpr decltype(auto) pattern_collection(this Self&& self)
+    {
+      return std::forward<Self>(self).patt_;
+    }
 #else
     constexpr PatternCollection& pattern_collection() & { return patt_; }
 
@@ -133,7 +98,6 @@ namespace OpenKalman
     constexpr const PatternCollection&& pattern_collection() const && { return std::move(*this).patt_; }
 #endif
 
-
   private:
 
     PatternCollection patt_;
@@ -142,15 +106,19 @@ namespace OpenKalman
 
 
   /**
-   * \brief Deduction guide 
+   * \brief Deduction guide
    */
 #ifdef __cpp_concepts
   template<indexible Arg, pattern_collection_for<Arg> P>
 #else
   template<typename Arg, typename P, std::enable_if_t<indexible<Arg> and pattern_collection_for<P, Arg>, int> = 0>
 #endif
-    pattern_adapter(Arg&&, P&&) -> pattern_adapter<Arg, P>;
+  pattern_adapter(Arg&&, P&&) -> pattern_adapter<Arg, stdex::remove_cvref_t<P>>;
 
+
+  ///////////////////////
+  //     interface     //
+  ///////////////////////
 
   namespace interface
   {
@@ -159,58 +127,11 @@ namespace OpenKalman
      */
     template<typename Nested, typename PatternCollection>
     struct object_traits<pattern_adapter<Nested, PatternCollection>>
+      : pass_through_object_traits<pattern_adapter<Nested, PatternCollection>, Nested>
     {
-    private:
-
-      using NestedTraits = object_traits<stdex::remove_cvref_t<Nested>>;
-
-    public:
-
-      static constexpr auto
-      get_mdspan = [](auto&& t) -> decltype(auto)
-      { return OpenKalman::get_mdspan(std::forward<decltype(t)>(t).nested_object()); };
-
-
       static constexpr auto
       get_pattern_collection = [](auto&& t) -> decltype(auto)
       { return std::forward<decltype(t)>(t).pattern_collection(); };
-
-
-      static constexpr triangle_type
-      triangle_type_value = triangle_type_of_v<Nested>;
-
-
-#ifdef __cpp_concepts
-      static constexpr auto
-      get_constant = [](get_constant_defined_for auto&& t)
-#else
-      template<bool Enable = true, std::enable_if_t<Enable and get_constant_defined_for<Nested>, int> = 0>
-      static constexpr auto
-      get_constant = [](auto&& t)
-#endif
-      { return NestedTraits::get_constant(std::forward<decltype(t)>(t).nested_object()); };
-
-
-      static constexpr auto
-      nested_object = [](auto&& t) -> decltype(auto)
-      { return std::forward<decltype(t)>(t).nested_object(); };
-
-
-      template<applicability b>
-      static constexpr bool
-      is_square = square_shaped<Nested, b>;
-
-
-      static constexpr bool
-      is_triangular_adapter = false;
-
-
-      static constexpr bool is_hermitian = hermitian_matrix<Nested>;
-
-
-      static constexpr HermitianAdapterType
-      hermitian_adapter_type = hermitian_adapter_type_of_v<Nested>;
-
     };
 
 
@@ -219,765 +140,8 @@ namespace OpenKalman
      */
     template<typename Nested, typename PatternCollection>
     struct library_interface<pattern_adapter<Nested, PatternCollection>>
-    {
-    private:
-
-      using NestedInterface = library_interface<stdex::remove_cvref_t<Nested>>;
-
-      template<typename T, typename Arg>
-      static constexpr auto
-      make_adapter(T&& t, Arg&& arg)
-      {
-        return std::apply([](auto&& a, auto&&...vs){
-          return attach_pattern(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
-          }, std::tuple_cat(std::forward_as_tuple(std::forward<Arg>(arg)), std::forward<T>(t).my_descriptors));
-      }
-
-    public:
-
-      template<typename Derived>
-      using library_base = internal::library_base_t<Derived, Nested>;
-
-
-#ifdef __cpp_concepts
-      static constexpr auto
-      copy_from = []<typename T, typename Other> requires copy_from_defined_for<Nested&, Other&&> (T& t, Other&& other)
-#else
-      static constexpr auto
-      copy_from = [](auto& t, auto&& other) -> std::enable_if_t<copy_from_defined_for<Nested&, decltype(other)>>
-#endif
-      { NestedInterface::copy_from(t.nested_object(), std::forward<decltype(other)>(other)); };
-
-
-  /*#ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
-        interface::get_component_defined_for<Nested, nested_object_of_t<Arg&&>, const Indices&>
-      static constexpr values::scalar decltype(auto)
-  #else
-      template<typename Arg, typename Indices, std::enable_if_t<
-        interface::get_component_defined_for<Nested, typename nested_object_of<Arg&&>::type, const Indices&>, int> = 0>
-      static constexpr decltype(auto)
-  #endif
-      get_component(Arg&& arg, const Indices& indices)
-      {
-        return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), indices);
-      }
-
-
-  #ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
-        interface::set_component_defined_for<Nested, nested_object_of_t<Arg&&>, const scalar_type_of_t<Arg>&, const Indices&>
-  #else
-      template<typename Arg, typename Indices, std::enable_if_t<
-        interface::set_component_defined_for<Nested, typename nested_object_of<Arg&&>::type, const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
-  #endif
-      static constexpr void
-      set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
-      {
-        NestedInterface::set_component(nested_object(arg), s, indices);
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename Arg> requires interface::to_native_matrix_defined_for<Nested, nested_object_of_t<Arg&&>>
-  #else
-      template<typename Arg, std::enable_if_t<interface::to_native_matrix_defined_for<Nested, nested_object_of_t<Arg&&>>, int> = 0>
-  #endif
-      static decltype(auto)
-      to_native_matrix(Arg&& arg)
-      {
-        return make_adapter(std::forward<Arg>(arg), NestedInterface::to_native_matrix(nested_object(std::forward<Arg>(arg))));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<data_layout layout, typename Scalar, typename D> requires
-        interface::make_default_defined_for<Nested, layout, Scalar, D&&>
-  #else
-      template<data_layout layout, typename Scalar, typename D, std::enable_if_t<
-        interface::make_default_defined_for<Nested, layout, Scalar, D&&>, int> = 0>
-  #endif
-      static auto
-      make_default(D&& d)
-      {
-        return NestedInterface::template make_default<layout, Scalar>(std::forward<D>(d));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<data_layout layout, typename Arg, typename...Scalars> requires
-        interface::fill_components_defined_for<Nested, layout, nested_object_of_t<Arg&>, Scalars...>
-  #else
-      template<data_layout layout, typename Arg, typename...Scalars, std::enable_if_t<
-        interface::fill_components_defined_for<Nested, layout, typename nested_object_of<Arg&>::type, Scalars...>, int> = 0>
-  #endif
-      static void
-      fill_components(Arg& arg, const Scalars...scalars)
-      {
-        NestedInterface::template fill_components<layout>(nested_object(arg), scalars...);
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename C, typename D> requires interface::make_constant_defined_for<Nested, C&&, D&&>
-  #else
-      template<typename C, typename D, std::enable_if_t<interface::make_constant_defined_for<Nested, C&&, D&&>, int> = 0>
-  #endif
-      static constexpr auto
-      make_constant(C&& c, D&& d)
-      {
-        return NestedInterface::make_constant(std::forward<C>(c), std::forward<D>(d));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename Scalar, typename D> requires interface::make_identity_matrix_defined_for<Nested, Scalar, D&&>
-  #else
-      template<typename Scalar, typename D, std::enable_if_t<interface::make_identity_matrix_defined_for<Nested, Scalar, D&&>, int> = 0>
-  #endif
-      static constexpr auto
-      make_identity_matrix(D&& d)
-      {
-        return NestedInterface::make_identity_matrix(std::forward<D>(d));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<triangle_type t, indexible Arg> requires
-        interface::make_triangular_matrix_defined_for<Nested, t, nested_object_of_t<Arg&&>>
-      static constexpr triangular_matrix<t> auto
-  #else
-      template<triangle_type t, typename Arg, std::enable_if_t<
-        interface::make_triangular_matrix_defined_for<Nested, t, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      make_triangular_matrix(Arg&& arg)
-      {
-        return make_adapter(std::forward<Arg>(arg), (NestedInterface::template make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg)))));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<HermitianAdapterType t, indexible Arg> requires
-        interface::make_hermitian_adapter_defined_for<Nested, t, nested_object_of_t<Arg&&>>
-      static constexpr hermitian_matrix auto
-  #else
-      template<HermitianAdapterType t, typename Arg, std::enable_if_t<
-        make_hermitian_adapter_defined_for<Nested, t, typename nested_object_of<Arg&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      make_hermitian_adapter(Arg&& arg)
-      {
-        return make_adapter(std::forward<Arg>(arg), NestedInterface::template make_hermitian_adapter<t>(nested_object(std::forward<Arg>(arg))));
-      }
-
-    private:
-
-      template<typename Arg, typename BeginTup, typename SizeTup, std::size_t...Ix>
-      static decltype(auto)
-      get_slice_impl(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup, std::index_sequence<Ix...>)
-      {
-        return attach_pattern(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
-          std::tuple {coordinates::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_pattern_collection(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
-      }
-
-    public:
-
-  #ifdef __cpp_concepts
-      template<typename Arg, typename...Begin, typename...Size> requires
-        interface::get_slice_defined_for<Nested, nested_object_of_t<Arg&&>, const std::tuple<Begin...>&, const std::tuple<Size...>&>
-  #else
-      template<typename Arg, typename...Begin, typename...Size, std::enable_if_t<
-        interface::get_slice_defined_for<Nested, typename nested_object_of<Arg&&>::type, const std::tuple<Begin...>&, const std::tuple<Size...>&>, int> = 0>
-  #endif
-      static decltype(auto)
-      get_slice(Arg&& arg, const std::tuple<Begin...>& begin_tup, const std::tuple<Size...>& size_tup)
-      {
-        return get_slice_impl(std::forward<Arg>(arg), begin_tup, size_tup, std::index_sequence_for<Begin...>{});
-      };
-
-
-  #ifdef __cpp_concepts
-      template<typename Arg, typename Block, typename...Begin> requires
-        interface::set_slice_defined_for<Arg, nested_object_of_t<Arg&>, Block&&, const Begin&...>
-  #else
-      template<typename Arg, typename Block, typename...Begin, std::enable_if_t<
-        interface::set_slice_defined_for<Arg, typename nested_object_of<Arg&>::type, Block&&, const Begin&...>, int> = 0>
-  #endif
-      static void
-      set_slice(Arg& arg, Block&& block, const Begin&...begin)
-      {
-        NestedInterface::set_slice(nested_object(arg), std::forward<Block>(block), begin...);
-      };
-
-
-  #ifdef __cpp_concepts
-      template<triangle_type t, typename A, typename B> requires
-        interface::set_triangle_defined_for<Nested, t, nested_object_of_t<A&&>, B&&>
-  #else
-      template<triangle_type t, typename A, typename B, std::enable_if_t<
-        interface::set_triangle_defined_for<Nested, t, typename nested_object_of<A&&>::type, B&&>, int> = 0>
-  #endif
-      static void
-      set_triangle(A&& a, B&& b)
-      {
-        NestedInterface::template set_triangle<t>(nested_object(std::forward<A>(a)), std::forward<B>(b));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename Arg> requires
-        interface::to_diagonal_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr diagonal_matrix auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::to_diagonal_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      to_diagonal(Arg&& arg)
-      {
-        return std::apply([](auto&& a, auto&& v, auto&&...vs){
-          return attach_pattern(
-            std::forward<decltype(a)>(a),
-            std::forward<decltype(v)>(v),
-            std::forward<decltype(v)>(v),
-            std::forward<decltype(vs)>(vs)...);
-          }, std::tuple_cat(
-            std::forward_as_tuple(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg)))),
-            std::forward<Arg>(arg).my_descriptors),
-            std::tuple{coordinates::Axis{}});
-      }
-
-    private:
-
-      template<typename Arg, typename V0, typename V1, typename...Vs>
-      static constexpr decltype(auto)
-      diagonal_of_impl(Arg&& arg, V0&& v0, V1&& v1, const Vs&...vs)
-      {
-        auto d0 = internal::smallest_pattern<scalar_type_of_t<Arg>>(std::forward<V0>(v0), std::forward<V1>(v1));
-        return attach_pattern(std::forward<Arg>(arg), d0, vs...);
-      }
-
-    public:
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires (diagonal_matrix<Nested> and internal::has_nested_vector<Nested>) or
-        (diagonal_matrix<Nested> and internal::has_nested_vector<Nested, 1> and
-          interface::transpose_defined_for<Nested, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
-        interface::diagonal_of_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr vector auto
-  #else
-      template<typename Arg, std::enable_if_t<(diagonal_matrix<Nested> and internal::has_nested_vector<Nested>) or
-        (diagonal_matrix<Nested> and internal::has_nested_vector<Nested, 1> and
-          interface::transpose_defined_for<Nested, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
-        interface::diagonal_of_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      diagonal_of(Arg&& arg)
-      {
-        if constexpr (diagonal_matrix<Nested> and internal::has_nested_vector<Nested>)
-          return diagonal_of_impl(nested_object(nested_object(std::forward<Arg>(arg))));
-        else if constexpr (diagonal_matrix<Nested> and internal::has_nested_vector<Nested, 1> and
-            interface::transpose_defined_for<Nested, decltype(nested_object(nested_object(std::declval<Arg>())))>)
-          return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
-        else 
-          return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-            std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
-      }
-
-    private:
-
-      template<std::size_t Ix, typename Arg, typename Factors_tup>
-      static constexpr auto broadcast_for_index(const Arg& arg, const Factors_tup& factors_tup)
-      {
-        constexpr auto N = collections::size_of_v<Factors_tup>;
-        if constexpr (Ix < N)
-          return get_pattern_collection<Ix>(arg) * std::get<Ix>(factors_tup);
-        else
-          return coordinates::Axis{};
-      }
-
-
-      template<typename Arg, std::size_t...Is, typename Factors_tup>
-      static constexpr auto broadcast_impl(Arg&& arg, std::index_sequence<Is...>, const Factors_tup& factors_tup)
-      {
-        constexpr auto N = collections::size_of_v<Factors_tup>;
-        return attach_pattern(std::forward<Arg>(arg), broadcast_for_index<Is>(arg, factors_tup)...);
-      }
-
-    public:
-
-  #ifdef __cpp_concepts
-      template<indexible Arg, values::index...Factors> requires
-        interface::broadcast_defined_for<Nested, nested_object_of_t<Arg&&>, const Factors&...>
-      static indexible auto
-  #else
-      template<typename Arg, typename...Factors, std::enable_if_t<
-        interface::broadcast_defined_for<Nested, typename nested_object_of<Arg&&>::type, const Factors&...>, int> = 0>
-      static auto
-  #endif
-      broadcast(Arg&& arg, const Factors&...factors)
-      {
-        auto&& ret = NestedInterface::broadcast(nested_object(std::forward<Arg>(arg)), factors...);
-        using Ret = decltype(ret);
-        auto seq = std::make_index_sequence<std::max(index_count_v<Arg>, sizeof...(factors))>{};
-        return broadcast_impl(std::forward<Ret>(ret), seq, std::forward_as_tuple(factors...));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<coordinates::pattern...Vs, typename Operation> requires
-        interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>
-      static indexible auto
-  #else
-      template<typename...Vs, typename Operation, std::enable_if_t<
-        interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>, int> = 0>
-      static auto
-  #endif
-      n_ary_operation(const std::tuple<Vs...>& d_tup, Operation&& op)
-      {
-        return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<coordinates::pattern...Vs, typename Operation, indexible Arg, indexible...Args> requires
-        interface::n_ary_operation_defined_for<Nested, const std::tuple<Vs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
-      static indexible auto
-  #else
-      template<typename...Vs, typename Operation, typename Arg, typename...Args, std::enable_if_t<
-        interface::n_ary_operation_defined_for<Nested, const std::tuple<Vs...>&, Operation&&, typename nested_object_of<Arg&&>::type, Args...>, int> = 0>
-      static auto
-  #endif
-      n_ary_operation(const std::tuple<Vs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
-      {
-        return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...);
-      }
-
-    private:
-
-      template<std::size_t...indices, typename Arg, typename...Vs, std::size_t...Ix>
-      static constexpr decltype(auto)
-      reduce_impl(Arg&& arg, const std::tuple<Vs...>& tup_vs, std::index_sequence<Ix...> seq)
-      {
-        return attach_pattern(std::forward<Arg>(arg),
-          ([]{ constexpr auto I = Ix; return ((I == indices) or ...); } ?
-            uniform_pattern_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
-            std::get<Ix>(tup_vs))...);
-      }
-
-    public:
-
-  #ifdef __cpp_concepts
-      template<std::size_t...indices, typename BinaryFunction, indexible Arg> requires
-        interface::reduce_defined_for<Nested, BinaryFunction&&, nested_object_of_t<Arg&&>, indices...>
-  #else
-      template<std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
-        interface::reduce_defined_for<Nested, BinaryFunction&&, typename nested_object_of<Arg&&>::type, indices...>, int> = 0>
-  #endif
-      static constexpr auto
-      reduce(BinaryFunction&& op, Arg&& arg)
-      {
-        return reduce_impl<indices...>(
-          NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), nested_object(std::forward<Arg>(arg))),
-          std::forward<Arg>(arg).my_descriptors,
-          std::index_sequence_for<Ds...>{});
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::to_euclidean_defined_for<Nested, Arg&&> or
-        interface::to_euclidean_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::to_euclidean_defined_for<Nested, Arg&&> or
-        interface::to_euclidean_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      to_euclidean(Arg&& arg)
-      {
-        if constexpr (interface::to_euclidean_defined_for<Nested, Arg&&>)
-          return NestedInterface::to_euclidean(std::forward<Arg>(arg));
-        else
-          return NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg)));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg, coordinates::pattern V> requires
-        interface::from_euclidean_defined_for<Nested, Arg&&, const V&> or
-        interface::from_euclidean_defined_for<Nested, nested_object_of_t<Arg&&>, const V&>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, typename V, std::enable_if_t<
-        interface::from_euclidean_defined_for<Nested, Arg&&, const V&> or
-        interface::from_euclidean_defined_for<Nested, typename nested_object_of<Arg&&>::type, const V&>, int> = 0>
-      static constexpr auto
-  #endif
-      from_euclidean(Arg&& arg, const V& v)
-      {
-        if constexpr (interface::from_euclidean_defined_for<Nested, Arg&&, const V&>)
-          return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
-        else
-          return NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v);
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::wrap_angles_defined_for<Nested, Arg&&> or
-        interface::wrap_angles_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::wrap_angles_defined_for<Nested, Arg&&> or
-        interface::wrap_angles_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      wrap_angles(Arg&& arg)
-      {
-        if constexpr (interface::wrap_angles_defined_for<Nested, Arg&&>)
-          return NestedInterface::wrap_angles(std::forward<Arg>(arg));
-        else
-          return NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg)));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::conjugate_defined_for<Nested, Arg&&> or
-        interface::conjugate_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::conjugate_defined_for<Nested, Arg&&> or
-        interface::conjugate_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      conjugate(Arg&& arg)
-      {
-        if constexpr (interface::conjugate_defined_for<Nested, Arg&&>)
-        {
-          return NestedInterface::conjugate(std::forward<Arg>(arg));
-        }
-        else
-        {
-          auto&& conj = NestedInterface::conjugate(nested_object(std::forward<Arg>(arg)));
-          return internal::make_fixed_size_adapter_like<Arg>(std::forward<decltype(conj)>(conj));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::transpose_defined_for<Nested, Arg&&> or
-        interface::transpose_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::transpose_defined_for<Nested, Arg&&> or
-        interface::transpose_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      transpose(Arg&& arg)
-      {
-        if constexpr (interface::transpose_defined_for<Nested, Arg&&>)
-        {
-          return NestedInterface::transpose(std::forward<Arg>(arg));
-        }
-        else
-        {
-          return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>>(
-            NestedInterface::transpose(nested_object(std::forward<Arg>(arg))));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::adjoint_defined_for<Nested, Arg&&> or
-        interface::adjoint_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr indexible auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::adjoint_defined_for<Nested, Arg&&> or
-        interface::adjoint_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      adjoint(Arg&& arg)
-      {
-        if constexpr (interface::adjoint_defined_for<Nested, Arg&&>)
-        {
-          return NestedInterface::adjoint(std::forward<Arg>(arg));
-        }
-        else
-        {
-          return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>>(
-            NestedInterface::adjoint(nested_object(std::forward<Arg>(arg))));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<indexible Arg> requires
-        interface::determinant_defined_for<Nested, Arg&&> or
-        interface::determinant_defined_for<Nested, nested_object_of_t<Arg&&>>
-      static constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
-  #else
-      template<typename Arg, std::enable_if_t<
-        interface::determinant_defined_for<Nested, Arg&&> or
-        interface::determinant_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      determinant(Arg&& arg)
-      {
-        if constexpr (interface::determinant_defined_for<Nested, Arg&&>)
-        {
-          return NestedInterface::determinant(std::forward<Arg>(arg));
-        }
-        else
-        {
-          return NestedInterface::determinant(nested_object(std::forward<Arg>(arg)));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename Arg, typename...Args> requires
-        interface::sum_defined_for<Nested, Arg&&, Args&&...> or
-        interface::sum_defined_for<Nested, nested_object_of_t<Arg&&>, Args&&...>
-  #else
-      template<typename Arg, typename...Args, std::enable_if_t<
-        interface::sum_defined_for<Nested, Arg&&, Args&&...> or
-        interface::sum_defined_for<Nested, typename nested_object_of<Arg&&>::type, Args&&...>, int> = 0>
-  #endif
-      static auto
-      sum(Arg&& arg, Args&&...args)
-      {
-        if constexpr (interface::sum_defined_for<Nested, Arg&&, Args&&...>)
-        {
-          return NestedInterface::sum(std::forward<Arg>(arg), std::forward<Args>(args)...);
-        }
-        else
-        {
-          return NestedInterface::sum(nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...);
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename A, typename B> requires
-        interface::contract_defined_for<Nested, A&&, B&&> or
-        interface::contract_defined_for<Nested, nested_object_of_t<A&&>, B&&>
-  #else
-      template<typename A, typename B, std::enable_if_t<
-        interface::contract_defined_for<Nested, A&&, B&&> or
-        interface::contract_defined_for<Nested, typename nested_object_of<A&&>::type, B&&>, int> = 0>
-  #endif
-      static auto
-      contract(A&& a, B&& b)
-      {
-        if constexpr (interface::contract_defined_for<Nested, A&&, B&&>)
-        {
-          return NestedInterface::contract(std::forward<A>(a), std::forward<B>(b));
-        }
-        else
-        {
-          return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(
-            NestedInterface::contract(nested_object(std::forward<A>(a)), std::forward<B>(b)));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<bool on_the_right, typename A, typename B> requires
-        interface::contract_in_place_defined_for<Nested, on_the_right, A&&, B&&> or
-        interface::contract_in_place_defined_for<Nested, on_the_right, nested_object_of_t<A&&>, B&&>
-  #else
-      template<bool on_the_right, typename A, typename B, std::enable_if_t<
-        interface::contract_in_place_defined_for<Nested, on_the_right, A&&, B&&> or
-        interface::contract_in_place_defined_for<Nested, on_the_right, typename nested_object_of<A&&>::type, B&&>, int> = 0>
-  #endif
-      static decltype(auto)
-      contract_in_place(A&& a, B&& b)
-      {
-        if constexpr (interface::contract_in_place_defined_for<Nested, on_the_right, A&&, B&&>)
-        {
-          return NestedInterface::template contract_in_place<on_the_right>(std::forward<A>(a), std::forward<B>(b));
-        }
-        else
-        {
-          auto&& ret = NestedInterface::template contract_in_place<on_the_right>(nested_object(std::forward<A>(a)), std::forward<B>(b));
-          using Ret = decltype(ret);
-          if constexpr (std::is_lvalue_reference_v<Ret> and std::is_same_v<Ret, nested_object_of_t<A&&>>)
-          {
-            return std::forward<A>(a);
-          }
-          else if constexpr (on_the_right)
-          {
-            return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::forward<Ret>(ret));
-          }
-          else
-          {
-            return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<B, 0>, vector_space_descriptor_of_t<A, 1>>(std::forward<Ret>(ret));
-          }
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<triangle_type tri, indexible Arg> requires
-        interface::cholesky_factor_defined_for<Nested, tri, Arg&&> or
-        interface::cholesky_factor_defined_for<Nested, tri, nested_object_of_t<Arg&&>>
-      static constexpr triangular_matrix<tri> auto
-  #else
-      template<triangle_type tri, typename Arg, std::enable_if_t<
-        interface::cholesky_factor_defined_for<Nested, tri, Arg&&> or
-        interface::cholesky_factor_defined_for<Nested, tri, typename nested_object_of<Arg&&>::type>, int> = 0>
-      static constexpr auto
-  #endif
-      cholesky_factor(Arg&& arg)
-      {
-        if constexpr (interface::cholesky_factor_defined_for<Nested, tri, Arg&&>)
-        {
-          return NestedInterface::template cholesky_factor<tri>(std::forward<Arg>(arg));
-        }
-        else
-        {
-          auto tri = NestedInterface::template cholesky_factor<tri>(nested_object(std::forward<Arg>(arg)));
-          return internal::make_fixed_square_adapter_like(std::move(tri));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<HermitianAdapterType significant_triangle, indexible A, indexible U> requires
-        interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&> or
-        interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
-      static constexpr hermitian_matrix auto
-  #else
-      template<HermitianAdapterType significant_triangle, typename A, typename U, std::enable_if_t<
-        interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const typename scalar_type_of<A>::type&> or
-        interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
-      static constexpr auto
-  #endif
-      rank_update_hermitian(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
-      {
-        if constexpr (interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&>)
-        {
-          return NestedInterface::template rank_update_hermitian<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
-        }
-        else
-        {
-          auto tri = NestedInterface::template rank_update_hermitian<significant_triangle>(nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
-          return internal::make_fixed_square_adapter_like(std::move(tri));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<triangle_type tri, indexible A, indexible U> requires
-        interface::rank_update_triangular_defined_for<Nested, tri, A&&, U&&, const scalar_type_of_t<A>&> or
-        interface::rank_update_triangular_defined_for<Nested, tri, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
-      static constexpr triangular_matrix<tri> auto
-  #else
-      template<triangle_type tri, typename A, typename U, std::enable_if_t<
-        interface::rank_update_triangular_defined_for<Nested, tri, A&&, U&&, const typename scalar_type_of<A>::type&> or
-        interface::rank_update_triangular_defined_for<Nested, tri, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
-      static constexpr auto
-  #endif
-      rank_update_triangular(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
-      {
-        if constexpr (interface::rank_update_triangular_defined_for<Nested, tri, A&&, U&&, const scalar_type_of_t<A>&>)
-        {
-          return NestedInterface::template rank_update_triangular<tri>(std::forward<A>(a), std::forward<U>(u), alpha);
-        }
-        else
-        {
-          auto tri = NestedInterface::template rank_update_triangular<tri>(nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
-          return internal::make_fixed_square_adapter_like(std::move(tri));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<bool must_be_unique, bool must_be_exact, typename A, typename B> requires
-        interface::solve_defined_for<Nested, must_be_unique, must_be_exact, A&&, B&&> or
-        interface::solve_defined_for<Nested, must_be_unique, must_be_exact, nested_object_of_t<A&&>, B&&>
-      static compatible_with_vector_space_descriptor_collection<std::tuple<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>>> auto
-  #else
-      template<bool must_be_unique, bool must_be_exact, typename A, typename B, std::enable_if_t<
-        interface::solve_defined_for<Nested, must_be_unique, must_be_exact, A&&, B&&> or
-        interface::solve_defined_for<Nested, must_be_unique, must_be_exact, typename nested_object_of<A&&>::type, B&&>, int> = 0>
-      static auto
-  #endif
-      solve(A&& a, B&& b)
-      {
-        if constexpr (interface::solve_defined_for<Nested, must_be_unique, must_be_exact, A&&, B&&>)
-        {
-          return NestedInterface::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), std::forward<B>(b));
-        }
-        else
-        {
-          return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>>(
-            NestedInterface::template solve<must_be_unique, must_be_exact>(nested_object(std::forward<A>(a)), std::forward<B>(b)));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename A> requires
-        interface::LQ_decomposition_defined_for<Nested, A&&> or
-        interface::LQ_decomposition_defined_for<Nested, nested_object_of_t<A&&>>
-  #else
-      template<typename A, std::enable_if_t<
-        interface::LQ_decomposition_defined_for<Nested, A&&> or
-        interface::LQ_decomposition_defined_for<Nested, typename nested_object_of<A&&>::type>, int> = 0>
-  #endif
-      static auto
-      LQ_decomposition(A&& a)
-      {
-        if constexpr (interface::LQ_decomposition_defined_for<Nested, A&&>)
-        {
-          return NestedInterface::LQ_decomposition(std::forward<A>(a));
-        }
-        else
-        {
-          auto&& ret = NestedInterface::LQ_decomposition(nested_object(std::forward<A>(a)));
-          using D0 = vector_space_descriptor_of<A, 0>;
-          return internal::make_fixed_square_adapter_like<D0>(std::forward<decltype(ret)>(ret));
-        }
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename A> requires
-        interface::QR_decomposition_defined_for<Nested, A&&> or
-        interface::QR_decomposition_defined_for<Nested, nested_object_of_t<A&&>>
-  #else
-      template<typename A, std::enable_if_t<
-        interface::QR_decomposition_defined_for<Nested, A&&> or
-        interface::QR_decomposition_defined_for<Nested, typename nested_object_of<A&&>::type>, int> = 0>
-  #endif
-      static auto
-      QR_decomposition(A&& a)
-      {
-        if constexpr (interface::QR_decomposition_defined_for<Nested, A&&>)
-        {
-          return NestedInterface::QR_decomposition(std::forward<A>(a));
-        }
-        else
-        {
-          auto&& ret = NestedInterface::QR_decomposition(nested_object(std::forward<A>(a)));
-          using D1 = vector_space_descriptor_of<A, 1>;
-          return internal::make_fixed_square_adapter_like<D1>(std::forward<decltype(ret)>(ret));
-        }
-      }
-      */
-
-    };
+      : pass_through_library_interface<pattern_adapter<Nested, PatternCollection>, Nested>
+    {};
 
   }
 

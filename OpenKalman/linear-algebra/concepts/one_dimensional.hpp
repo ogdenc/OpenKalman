@@ -16,47 +16,67 @@
 #ifndef OPENKALMAN_ONE_DIMENSIONAL_HPP
 #define OPENKALMAN_ONE_DIMENSIONAL_HPP
 
-#include "linear-algebra/traits/index_count.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/dimension_size_of_index_is.hpp"
+#include "linear-algebra/concepts/square_shaped.hpp"
+#include "linear-algebra/traits/pattern_collection_type_of.hpp"
 
 namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, applicability b, std::size_t...is>
-    constexpr auto
-    one_dimensional_fixed_index_count(std::index_sequence<is...>)
-    {
-      return (... and (dimension_size_of_index_is<T, is, 1, &stdex::is_eq, b>));
-    }
+#ifndef __cpp_concepts
+    template<typename T, auto N, applicabilty b, typename = void>
+    struct one_dimensional_impl : std::false_type {};
+
+    template<typename T, auto N, applicabilty b>
+    struct one_dimensional_impl<T, N, b, std::enable_if_t<
+      patterns::collection_patterns_compare_with_dimension<typename pattern_collection_type_of<T>::type, 1, &stdex::is_eq, N, b>
+      > : std::true_type {};
+#endif
 
 
-    template<typename T, applicability b>
-    constexpr auto
-    one_dimensional_impl()
+    template<typename T, std::size_t N, typename = std::make_index_sequence<N>>
+    struct any_1d_index_impl : std::false_type {};
+
+    template<typename T, std::size_t N, std::size_t...i>
+    struct any_1d_index_impl<T, N, std::index_sequence<i...>>
+      : std::bool_constant<(... or dimension_size_of_index_is<T, i, 1>)> {};
+
+
+    template<typename T, auto N>
+    constexpr bool
+    any_1d_index()
     {
-      if constexpr (not indexible<T>) // only needed in c++17 mode
-        return false;
-      else if constexpr (index_count_v<T> == stdex::dynamic_extent)
-        return b == applicability::permitted;
+#ifdef __cpp_concepts
+      if constexpr (stdex::same_as<std::decay_t<decltype(N)>, values::unbounded_size_t>)
+#else
+      if constexpr (N == std::size_t(values::unbounded_size))
+#endif
+        return any_1d_index_impl<T, collections::size_of_v<T>>::value;
       else
-        return detail::one_dimensional_fixed_index_count<T, b>(std::make_index_sequence<index_count_v<T>>{});
+        return any_1d_index_impl<T, N>::value;
     }
   }
 
 
   /**
    * \brief Specifies that a type is one-dimensional in every index.
-   * \details Each index also must have an equivalent \ref coordinates::pattern object.
+   * \details Each index need not have an equivalent \ref patterns::pattern "pattern".
    */
-  template<typename T, applicability b = applicability::guaranteed>
 #ifdef __cpp_concepts
+  template<typename T, auto N = values::unbounded_size, applicability b = applicability::guaranteed>
   concept one_dimensional =
-#else
-  constexpr inline bool one_dimensional =
-#endif
     indexible<T> and
-    detail::one_dimensional_impl<T, b>();
+    (values::size<decltype(N)> or (values::integral<decltype(N)> and N >= 0)) and
+    (patterns::collection_patterns_compare_with_dimension<pattern_collection_type_of_t<T>, 1, &stdex::is_eq, N, b> or
+      (square_shaped<T, N, b> and detail::any_1d_index<T, N>()));
+#else
+  template<typename T, std::size_t N = values::unbounded_size, applicability b = applicability::guaranteed>
+  constexpr inline bool one_dimensional =
+    detail::one_dimensional_impl<T, N, b>::value or
+    (square_shaped<T, N, b> and detail::any_1d_index<T, N>());
+#endif
 
 
 }

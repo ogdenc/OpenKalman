@@ -71,9 +71,9 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<Arg1, applicability::permitted> and
-      OpenKalman::one_dimensional<Arg2, applicability::permitted> and
-      OpenKalman::one_dimensional<Arg3, applicability::permitted> and
+      OpenKalman::one_dimensional<Arg1, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<Arg2, values::unbounded_size, applicability::permitted> and
+      OpenKalman::one_dimensional<Arg3, values::unbounded_size, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<Arg1, b> or
@@ -83,14 +83,14 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool is_square =
-      square_shaped<Arg1, applicability::permitted> and
-      square_shaped<Arg2, applicability::permitted> and
-      square_shaped<Arg3, applicability::permitted> and
+      square_shaped<Arg1, 2, applicability::permitted> and
+      square_shaped<Arg2, 2, applicability::permitted> and
+      square_shaped<Arg3, 2, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
-        square_shaped<Arg1, b> or
-        square_shaped<Arg2, b> or
-        square_shaped<Arg3, b>);
+        square_shaped<Arg1, 2, b> or
+        square_shaped<Arg2, 2, b> or
+        square_shaped<Arg3, 2, b>);
 
 
     template<triangle_type t>

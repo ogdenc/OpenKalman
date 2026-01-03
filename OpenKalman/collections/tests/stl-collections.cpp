@@ -231,3 +231,23 @@ TEST(collections, apply)
   static_assert(collections::apply(std::equal_to{}, std::tuple{4, 2+2}));
   static_assert(collections::apply(std::equal_to{}, std::array{4, 2+2}));
 }
+
+
+#include "collections/traits/std-extents.hpp"
+#include "collections/concepts/viewable_collection.hpp"
+
+TEST(collections, extents)
+{
+  static_assert(collections::get_element(stdex::extents<std::size_t, 2, 3, 4>{}, std::integral_constant<std::size_t, 0>{}) == 2);
+  static_assert(collections::get_element(stdex::extents<std::size_t, 2, 3, 4>{}, 1U) == 3);
+  static_assert(collections::get_element(stdex::extents<std::size_t, stdex::dynamic_extent, 3, 4>{2}, std::integral_constant<std::size_t, 0>{}) == 2);
+  static_assert(collections::get_element(stdex::extents<std::size_t, 2, stdex::dynamic_extent, 4>{3}, 1U) == 3);
+  static_assert(collections::get<0>(stdex::extents<std::size_t, 2, 3, 4>{}) == 2);
+  static_assert(collections::get<1>(stdex::extents<std::size_t, 2, stdex::dynamic_extent, 4>{3}) == 3);
+  static_assert(uniformly_gettable<stdex::extents<std::size_t, 2, 3, 4>>);
+  static_assert(collection<stdex::extents<std::size_t, 2, 3, 4>>);
+  static_assert(collection<stdex::extents<std::size_t, 2, 3, stdex::dynamic_extent>>);
+  static_assert(viewable_tuple_like<stdex::extents<std::size_t, 2, 3, 4>>);
+  static_assert(viewable_collection<stdex::extents<std::size_t, 2, 3, 4>>);
+  static_assert(viewable_collection<stdex::extents<std::size_t, 2, stdex::dynamic_extent, 4>>);
+}

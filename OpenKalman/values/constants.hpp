@@ -28,8 +28,8 @@ namespace OpenKalman
    * \brief The applicability of a concept, trait, or restraint.
    * \details Determines whether something is necessarily applicable, or alternatively just permissible, at compile time.
    * Examples:
-   * - <code>square_shaped<T, applicability::guaranteed></code> means that T is known at compile time to be square shaped.
-   * - <code>square_shaped<T, applicability::permitted></code> means that T <em>could</em> be square shaped,
+   * - <code>square_shaped<T, values::unbounded_size, applicability::guaranteed></code> means that T is known at compile time to be square shaped.
+   * - <code>square_shaped<T, values::unbounded_size, applicability::permitted></code> means that T <em>could</em> be square shaped,
    * but whether it actually <em>is</em> cannot be determined at compile time.
    */
   enum struct applicability : int {

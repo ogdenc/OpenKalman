@@ -58,14 +58,14 @@ namespace OpenKalman
 
         if constexpr (tri == triangle_type::lower)
         {
-          auto col0 = make_constant<A>(sq, dim, coordinates::Axis{});
-          return attach_pattern(concatenate<1>(col0, make_zero<A>(dim, dim - coordinates::Axis{})), v, v);
+          auto col0 = make_constant<A>(sq, dim, patterns::Axis{});
+          return attach_pattern(concatenate<1>(col0, make_zero<A>(dim, dim - patterns::Axis{})), v, v);
         }
         else
         {
           static_assert(tri == triangle_type::upper);
-          auto row0 = make_constant<A>(sq, coordinates::Axis{}, dim);
-          return attach_pattern(concatenate<0>(row0, make_zero<A>(dim - coordinates::Axis{}, dim)), v, v);
+          auto row0 = make_constant<A>(sq, patterns::Axis{}, dim);
+          return attach_pattern(concatenate<0>(row0, make_zero<A>(dim - patterns::Axis{}, dim)), v, v);
         }
       }(a);
 
@@ -74,7 +74,7 @@ namespace OpenKalman
       using C1 = vector_space_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_pattern<C0>, C1, C0>;
 
-      if constexpr (coordinates::euclidean_pattern<Cret>) return ret;
+      if constexpr (patterns::euclidean_pattern<Cret>) return ret;
       //else return make_square_root_covariance<Cret>(ret);
       else return ret; // \todo change to make_triangular_matrix
     }

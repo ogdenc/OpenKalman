@@ -73,7 +73,7 @@ namespace OpenKalman::Eigen3
     struct eigen_sizes;
 
     template<typename...Ds>
-    struct eigen_sizes<std::tuple<Ds...>> { using type = Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<Ds>)...>; };
+    struct eigen_sizes<std::tuple<Ds...>> { using type = Eigen::Sizes<static_cast<std::ptrdiff_t>(patterns::dimension_of_v<Ds>)...>; };
 
   }
 
