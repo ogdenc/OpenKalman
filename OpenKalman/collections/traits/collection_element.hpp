@@ -51,13 +51,13 @@ namespace OpenKalman::collections
   /// \overload
 #ifdef __cpp_concepts
   template<std::size_t i, sized T> requires
-    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &std::is_lt> and
     requires { typename std::tuple_element<i, std::decay_t<T>>::type; }
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &stdex::is_lt> and
     detail::has_tuple_element<i, T>::value>>
 #endif
     : std::tuple_element<i, std::decay_t<T>> {};
@@ -69,14 +69,14 @@ namespace OpenKalman::collections
  */
 #ifdef __cpp_concepts
   template<std::size_t i, typename T> requires
-    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &std::is_lt> and
     (not requires { typename std::tuple_element<i, std::decay_t<T>>::type; }) and
     gettable<i, T>
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt> and
+    values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &stdex::is_lt> and
     (not detail::has_tuple_element<i, T>::value) and
     gettable<i, T>>>
 #endif
@@ -92,14 +92,14 @@ namespace OpenKalman::collections
    */
 #ifdef __cpp_concepts
   template<std::size_t i, stdex::ranges::random_access_range T> requires
-    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &std::is_lt>) and
+    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &std::is_lt>) and
     (not requires { typename std::tuple_element<i, std::decay_t<T>>::type; }) and
     (not gettable<i, T>)
   struct collection_element<i, T>
 #else
   template<std::size_t i, typename T>
   struct collection_element<i, T, std::enable_if_t<
-    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of<T>, &stdex::is_lt>) and
+    (not values::size_compares_with<std::integral_constant<std::size_t, i>, size_of_t<T>, &stdex::is_lt>) and
     stdex::ranges::random_access_range<T> and
     not detail::has_tuple_element<i, T>::value and
     not gettable<i, T>>>

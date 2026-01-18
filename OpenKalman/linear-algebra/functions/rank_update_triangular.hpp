@@ -68,7 +68,7 @@ namespace OpenKalman
       auto e = [](auto ax, const auto& uterm) {
           if constexpr (values::complex<scalar_type_of<A>>) return values::sqrt(ax * values::conj(ax) + uterm);
           else return values::sqrt(ax * ax + uterm);
-      }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, adjoint(u))));
+      }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, conjugate_transpose(u))));
 
       if constexpr (writable_by_component<A&&>)
       {
@@ -91,7 +91,7 @@ namespace OpenKalman
       if constexpr (diagonal_matrix<U>)
         return to_diagonal(sqrt(alpha) * diagonal_of(std::forward<U>(u)));
       else if constexpr (t == triangle_type::upper)
-        return QR_decomposition(sqrt(alpha) * adjoint(std::forward<U>(u)));
+        return QR_decomposition(sqrt(alpha) * conjugate_transpose(std::forward<U>(u)));
       else
         return LQ_decomposition(sqrt(alpha) * std::forward<U>(u));
     }

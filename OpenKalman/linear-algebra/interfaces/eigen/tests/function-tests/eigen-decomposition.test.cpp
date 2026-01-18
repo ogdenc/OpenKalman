@@ -37,7 +37,7 @@ TEST(eigen3, LQ_and_QR_decomp_triangular)
 {
   auto m22_lq = make_dense_object_from<M22>(-0.1, 0, 1.096, -1.272);
   EXPECT_TRUE(is_near(LQ_decomposition(m22_lq.triangularView<Eigen::Lower>()), m22_lq));
-  EXPECT_TRUE(is_near(QR_decomposition(adjoint(m22_lq).triangularView<Eigen::Upper>()), adjoint(m22_lq)));
+  EXPECT_TRUE(is_near(QR_decomposition(conjugate_transpose(m22_lq).triangularView<Eigen::Upper>()), conjugate_transpose(m22_lq)));
 }
 
 

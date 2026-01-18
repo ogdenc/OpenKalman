@@ -17,6 +17,7 @@
 #define OPENKALMAN_COLLECTIONS_GET_PATTERN_HPP
 
 #include "collections/collections.hpp"
+#include "patterns/concepts/pattern.hpp"
 #include "patterns/concepts/pattern_collection.hpp"
 #include "patterns/descriptors/Dimensions.hpp"
 #include "patterns/descriptors/Any.hpp"
@@ -29,18 +30,19 @@ namespace OpenKalman::patterns
    */
 #ifdef __cpp_concepts
   template<pattern_collection P, values::index I>
+  constexpr pattern decltype(auto)
 #else
   template<typename P, typename I, std::enable_if_t<
     pattern_collection<P> and values::index<I>, int> = 0>
-#endif
   constexpr decltype(auto)
+#endif
   get_pattern(P&& p, I i)
   {
-    if constexpr (not collections::sized<P> or values::size_compares_with<I, collections::size_of<P>, &stdex::is_lt>)
+    if constexpr (values::size_compares_with<I, collections::size_of_t<P>, &stdex::is_lt>)
       return collections::get_element(std::forward<P>(p), i);
-    else if constexpr (values::size_compares_with<I, collections::size_of<P>, &stdex::is_gteq>)
+    else if constexpr (values::size_compares_with<I, collections::size_of_t<P>, &stdex::is_gteq>)
       return Dimensions<1>{};
-    else if (i < collections::get_size(p))
+    else if (values::to_value_type(i) < collections::get_size(p))
       return Any {collections::get_element(std::forward<P>(p) | collections::views::all, i)};
     else
       return Any {1_uz};
@@ -52,10 +54,11 @@ namespace OpenKalman::patterns
  */
 #ifdef __cpp_concepts
   template<std::size_t i, pattern_collection P>
+  constexpr pattern decltype(auto)
 #else
   template<std::size_t i, typename P, std::enable_if_t<pattern_collection<P>, int> = 0>
-#endif
   constexpr decltype(auto)
+#endif
   get_pattern(P&& p)
   {
     return get_pattern(std::forward<P>(p), std::integral_constant<std::size_t, i>{});

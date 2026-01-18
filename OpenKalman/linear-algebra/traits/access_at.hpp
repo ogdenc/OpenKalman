@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,9 +17,7 @@
 #define OPENKALMAN_ACCESS_AT_HPP
 
 #include "collections/collections.hpp"
-#include "linear-algebra/concepts/dimension_size_of_index_is.hpp"
 #include "linear-algebra/concepts/index_collection_for.hpp"
-#include "../interfaces/library_interface.hpp"
 #include "linear-algebra/concepts/empty_object.hpp"
 #include "linear-algebra/traits/index_dimension_of.hpp"
 

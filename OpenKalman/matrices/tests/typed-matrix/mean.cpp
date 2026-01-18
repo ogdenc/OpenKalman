@@ -311,7 +311,7 @@ TEST(matrices, Mean_overloads)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {5, 6})), 1>, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
-  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
+  EXPECT_TRUE(is_near(conjugate_transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
 
   EXPECT_NEAR(determinant(Mean<Dimensions<2>, M22> {1, 2, 3, 4}), -2, 1e-6);
 

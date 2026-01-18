@@ -256,7 +256,7 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
 
   EXPECT_TRUE(is_near(diagonal_of(To23 {1, 2, 3, pi/6, pi/3, pi/4}), make_eigen_matrix<double, 3, 1>(1, 0.5, std::sqrt(2.)/2)));
   EXPECT_TRUE(is_near(transpose(To32 {1, 2, pi/6, pi/3, 3, 4}), make_eigen_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
-  EXPECT_TRUE(is_near(adjoint(To32 {1, 2, pi/6, pi/3, 3, 4}), make_eigen_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
+  EXPECT_TRUE(is_near(conjugate_transpose(To32 {1, 2, pi/6, pi/3, 3, 4}), make_eigen_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
   EXPECT_NEAR(determinant(To23 {1, 2, 3, pi/6, pi/3, pi/4}), 0.25 * (3 * std::sqrt(2) - 3 * std::sqrt(6.) + 6), 1e-6);
   EXPECT_NEAR(trace(To23 {1, 2, 3, pi/6, pi/3, pi/4}), 1.5 + std::sqrt(2.)/2, 1e-6);
   EXPECT_TRUE(is_near(solve(

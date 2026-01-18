@@ -62,7 +62,7 @@ namespace OpenKalman::internal
     {
       if constexpr ((t == triangle_type::lower and hermitian_adapter<A, HermitianAdapterType::upper>) or
           (t == triangle_type::upper and hermitian_adapter<A, HermitianAdapterType::lower>))
-        set_triangle<t>(nested_object(a), adjoint(std::forward<B>(b)));
+        set_triangle<t>(nested_object(a), conjugate_transpose(std::forward<B>(b)));
       else
         set_triangle<t>(nested_object(a), std::forward<B>(b));
     }

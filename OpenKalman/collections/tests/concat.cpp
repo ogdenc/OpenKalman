@@ -31,11 +31,11 @@ TEST(collections, concat_tuple_view)
   static constexpr std::tuple b {2, 2.1};
   static constexpr std::tuple c {3.2l};
   static_assert(std::tuple_size_v<decltype(concat_tuple_view(a, b, c))> == 5);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(concat_tuple_view(a, b, c))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(concat_tuple_view(a, b, c))>, float>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, decltype(concat_tuple_view(a, b, c))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(concat_tuple_view(a, b, c))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<4, decltype(concat_tuple_view(a, b, c))>, long double>);
+  static_assert(stdex::same_as<std::tuple_element_t<0, decltype(concat_tuple_view(a, b, c))>, int>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, decltype(concat_tuple_view(a, b, c))>, float>);
+  static_assert(stdex::same_as<std::tuple_element_t<2, decltype(concat_tuple_view(a, b, c))>, int>);
+  static_assert(stdex::same_as<std::tuple_element_t<3, decltype(concat_tuple_view(a, b, c))>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<4, decltype(concat_tuple_view(a, b, c))>, long double>);
   static_assert(get<0>(concat_tuple_view(a, b, c)) == 1);
   static_assert(get<1>(concat_tuple_view(a, b, c)) == 1.4f);
   static_assert(get<2>(concat_tuple_view(a, b, c)) == 2);
@@ -58,8 +58,8 @@ TEST(collections, concat)
 
   static_assert(size_of_v<decltype(stdex::ranges::views::concat(t1 | views::all, a1 | views::all) | stdex::ranges::views::transform(std::negate{}) | stdex::ranges::views::reverse)> == 10);
   static_assert(std::tuple_size_v<decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)> == 10);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<2, decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
   EXPECT_EQ(get<7>(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all), 3);
   static_assert(tuple_like<decltype(stdex::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>);
 
@@ -71,9 +71,9 @@ TEST(collections, concat)
   static_assert(not tuple_like<decltype(views::concat(a1, v1))>);
   static_assert(stdex::ranges::random_access_range<decltype(views::concat(a1, v1))>);
 
-  static_assert(std::is_same_v<std::tuple_element_t<5, decltype(views::concat(t1, t1) | views::all)>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<6, decltype(views::concat(t1, t1) | views::all)>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<7, decltype(views::concat(t1, t1) | views::all)>, float>);
+  static_assert(stdex::same_as<std::tuple_element_t<5, decltype(views::concat(t1, t1) | views::all)>, int>);
+  static_assert(stdex::same_as<std::tuple_element_t<6, decltype(views::concat(t1, t1) | views::all)>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<7, decltype(views::concat(t1, t1) | views::all)>, float>);
 
   static_assert(views::concat(t1, t1)[0U] == 1);
   static_assert(views::concat(t1, t1)[5U] == 1);
@@ -83,5 +83,18 @@ TEST(collections, concat)
   EXPECT_TRUE(views::concat(t1, v1)[2U] == 3);
   EXPECT_TRUE(views::concat(t1, v1)[5U] == 4);
   EXPECT_TRUE(views::concat(t1, v1)[7U] == 6);
+
+  static constexpr std::tuple a {std::monostate{}, std::tuple{std::monostate{}}};
+  static constexpr std::tuple b {2, std::array{2.1}};
+  static constexpr std::tuple c {3.2L};
+  using CH = decltype(views::concat(a, b, c));
+  static_assert(not collection_view<CH>);
+  static_assert(not viewable_collection<CH>);
+  static_assert(std::tuple_size_v<CH> == 5);
+  static_assert(stdex::same_as<std::tuple_element_t<0, CH>, std::monostate>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, CH>, std::tuple<std::monostate>>);
+  static_assert(stdex::same_as<std::tuple_element_t<2, CH>, int>);
+  static_assert(stdex::same_as<std::tuple_element_t<3, CH>, std::array<double, 1>>);
+  static_assert(stdex::same_as<std::tuple_element_t<4, CH>, long double>);
 }
 

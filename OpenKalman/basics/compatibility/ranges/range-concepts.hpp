@@ -234,31 +234,31 @@ namespace OpenKalman::stdex::ranges
   // Range primitives
   // ---
 
-  template<typename R, std::enable_if_t<sized_range<R>, int> = 0>
-  using range_size_t = decltype(size(std::declval<R&>()));
+  template<typename R>
+  using range_size_t = std::enable_if_t<sized_range<R>, decltype(size(std::declval<R&>()))>;
 
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_difference_t = iter_difference_t<iterator_t<R>>;
+  template<typename R>
+  using range_difference_t = std::enable_if_t<range<R>, iter_difference_t<iterator_t<R>>>;
 
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_value_t = iter_value_t<iterator_t<R>>;
+  template<typename R>
+  using range_value_t = std::enable_if_t<range<R>, iter_value_t<iterator_t<R>>>;
 
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_reference_t = iter_reference_t<iterator_t<R>>;
+  template<typename R>
+  using range_reference_t = std::enable_if_t<range<R>, iter_reference_t<iterator_t<R>>>;
 
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_rvalue_reference_t =  iter_rvalue_reference_t<iterator_t<R>>;
+  template<typename R>
+  using range_rvalue_reference_t = std::enable_if_t<range<R>, iter_rvalue_reference_t<iterator_t<R>>>;
 #endif
 
 
   // range_common_reference_t is not available in at least some c++23 versions of GCC or clang
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_common_reference_t =  iter_common_reference_t<iterator_t<R>>;
+  template<typename R>
+  using range_common_reference_t = std::enable_if_t<range<R>, iter_common_reference_t<iterator_t<R>>>;
 
 
 #if __cplusplus < 202302L
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_const_reference_t =  iter_const_reference_t<iterator_t<R>>;
+  template<typename R>
+  using range_const_reference_t = std::enable_if_t<range<R>, iter_const_reference_t<iterator_t<R>>>;
 #endif
 
 }

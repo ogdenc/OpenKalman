@@ -660,16 +660,16 @@ namespace OpenKalman::interface
       interface::adjoint_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    adjoint(Arg&& arg)
+    conjugate_transpose(Arg&& arg)
     {
       if constexpr (interface::adjoint_defined_for<NestedObject, Arg&&>)
       {
-        return NestedInterface::adjoint(std::forward<Arg>(arg));
+        return NestedInterface::conjugate_transpose(std::forward<Arg>(arg));
       }
       else
       {
         return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>>(
-          NestedInterface::adjoint(nested_object(std::forward<Arg>(arg))));
+          NestedInterface::conjugate_transpose(nested_object(std::forward<Arg>(arg))));
       }
     }
 

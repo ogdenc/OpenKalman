@@ -44,8 +44,8 @@ namespace OpenKalman
 #include "values/values.hpp"
 
 #include "functions/get_size.hpp"
-#include "traits/size_of.hpp"
 #include "concepts/sized.hpp"
+#include "traits/size_of.hpp"
 
 #include "functions/get_element.hpp"
 #include "functions/get.hpp"

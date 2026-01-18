@@ -66,7 +66,7 @@ namespace OpenKalman::patterns
    * \details If N exceeds the size of T, T will be padded with Dimensions<1>.
    * If N == values::unbounded_size, all elements will be compared.
    * Note that the result will always be true if the number of compared elements is 1.
-   * \tparam N Either an integer greater than 0 or \ref values::unbounded_size
+   * \tparam N Either \ref values::unbounded_size or an integer greater than 0.
    * \return a \ref std::optional containing the common dimension, if it exists.
    */
 #ifdef __cpp_concepts
@@ -112,7 +112,6 @@ namespace OpenKalman::patterns
       else
       {
         using Op = std::optional<std::size_t>;
-        if (n == 0) return Op{};
         std::size_t d = get_dimension(get_pattern<0>(t));
         for (std::size_t i = 1; i < n; ++i) if (get_dimension(get_pattern(t, i)) != d) return Op{};
         return Op{d};

@@ -44,12 +44,9 @@ namespace OpenKalman::interface
 
     template<typename T>
     static constexpr void
-    assert_valid_arg_type(T) { static_assert(stdex::same_as<std::remove_cvref_t<T>, Object>); }
+    assert_valid_arg_type(T) { static_assert(stdex::same_as<stdex::remove_cvref_t<T>, Object>); }
 
   public:
-
-    static const bool is_specialized = true;
-
 
     static constexpr auto
     get_mdspan = [](auto&& t) -> decltype(auto)
@@ -74,7 +71,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename T> requires get_constant_defined_for<Nested>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and get_constant_defined_for<Nested>, int> = 0>
+    template<typename T, bool Enable = true, std::enable_if_t<Enable and get_constant_defined_for<Nested>, int> = 0>
 #endif
     static constexpr auto
     get_constant(T&& t)
@@ -94,7 +91,7 @@ namespace OpenKalman::interface
 
     template<applicability b>
     static constexpr bool
-    is_square = square_shaped<Nested, b>;
+    is_square = square_shaped<Nested, 2, b>;
 
 
     static constexpr bool
@@ -123,14 +120,14 @@ namespace OpenKalman::interface
 
     template<typename T>
     static constexpr void
-    assert_valid_arg_type(T) { static_assert(stdex::same_as<std::remove_cvref_t<T>, Object>); }
+    assert_valid_arg_type(T) { static_assert(stdex::same_as<stdex::remove_cvref_t<T>, Object>); }
 
     template<typename T, typename Arg>
     static constexpr auto
     make_adapter(T&& t, Arg&& arg)
     {
       return std::apply([](auto&& a, auto&&...vs){
-        return attach_pattern(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
+        return attach_patterns(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
         }, std::tuple_cat(std::forward_as_tuple(std::forward<Arg>(arg)), std::forward<T>(t).my_descriptors));
     }
 
@@ -143,7 +140,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename T, typename Other> requires copy_from_defined_for<Nested&, Other&&>
 #else
-    template<typename T, typename Other, std::enable_if_t<copy_from_defined_for<Nested&, decltype(other)>, int> = 0>
+    template<typename T, typename Other, std::enable_if_t<copy_from_defined_for<Nested&, Other&&>, int> = 0>
 #endif
     static constexpr void
     copy_from(T& t, Other&& other)
@@ -281,7 +278,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     get_slice_impl(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup, std::index_sequence<Ix...>)
     {
-      return attach_pattern(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
+      return attach_patterns(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
         std::tuple {patterns::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_pattern_collection(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
     }
 
@@ -341,7 +338,7 @@ namespace OpenKalman::interface
     to_diagonal(Arg&& arg)
     {
       return std::apply([](auto&& a, auto&& v, auto&&...vs){
-        return attach_pattern(
+        return attach_patterns(
           std::forward<decltype(a)>(a),
           std::forward<decltype(v)>(v),
           std::forward<decltype(v)>(v),
@@ -359,7 +356,7 @@ namespace OpenKalman::interface
     diagonal_of_impl(Arg&& arg, V0&& v0, V1&& v1, const Vs&...vs)
     {
       auto d0 = internal::smallest_pattern<scalar_type_of_t<Arg>>(std::forward<V0>(v0), std::forward<V1>(v1));
-      return attach_pattern(std::forward<Arg>(arg), d0, vs...);
+      return attach_patterns(std::forward<Arg>(arg), d0, vs...);
     }
 
   public:
@@ -406,7 +403,7 @@ namespace OpenKalman::interface
     static constexpr auto broadcast_impl(Arg&& arg, std::index_sequence<Is...>, const Factors_tup& factors_tup)
     {
       constexpr auto N = collections::size_of_v<Factors_tup>;
-      return attach_pattern(std::forward<Arg>(arg), broadcast_for_index<Is>(arg, factors_tup)...);
+      return attach_patterns(std::forward<Arg>(arg), broadcast_for_index<Is>(arg, factors_tup)...);
     }
 
   public:
@@ -464,7 +461,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     reduce_impl(Arg&& arg, const std::tuple<Vs...>& tup_vs, std::index_sequence<Ix...> seq)
     {
-      return attach_pattern(std::forward<Arg>(arg),
+      return attach_patterns(std::forward<Arg>(arg),
         ([]{ constexpr auto I = Ix; return ((I == indices) or ...); } ?
           uniform_pattern_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
           std::get<Ix>(tup_vs))...);
@@ -610,16 +607,16 @@ namespace OpenKalman::interface
       interface::adjoint_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    adjoint(Arg&& arg)
+    conjugate_transpose(Arg&& arg)
     {
       if constexpr (interface::adjoint_defined_for<Nested, Arg&&>)
       {
-        return NestedInterface::adjoint(std::forward<Arg>(arg));
+        return NestedInterface::conjugate_transpose(std::forward<Arg>(arg));
       }
       else
       {
         return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>>(
-          NestedInterface::adjoint(nested_object(std::forward<Arg>(arg))));
+          NestedInterface::conjugate_transpose(nested_object(std::forward<Arg>(arg))));
       }
     }
 

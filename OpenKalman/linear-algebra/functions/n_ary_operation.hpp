@@ -215,7 +215,7 @@ namespace OpenKalman
         using Interface = interface::library_interface<stdex::remove_cvref_t<PatternMatrix>>;
         auto ret {Interface::n_ary_operation(d_tup, std::forward<Op>(op), replicate_arg(d_tup, std::forward<Args>(args), seq)...)};
         return std::apply([](auto&& a, auto&&...vs){
-          return attach_pattern(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
+          return attach_patterns(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
           }, std::tuple_cat(std::forward_as_tuple(std::move(ret)), d_tup));
       }
       // \todo add case where interface needs arguments to be wrapped in a library adapter

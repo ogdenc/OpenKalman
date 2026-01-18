@@ -561,9 +561,11 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(not is_one_dimensional(m22));
   static_assert(not is_one_dimensional(m222));
 
+
   static_assert(not one_dimensional<M3, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<M23, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<M234, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<stdex::mdspan<double, stdex::extents<std::size_t, 3, 3>>, values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<M1>);
   static_assert(one_dimensional<M11>);
   static_assert(one_dimensional<M111>);

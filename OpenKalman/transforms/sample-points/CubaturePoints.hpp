@@ -57,7 +57,7 @@ namespace OpenKalman
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
-      const auto delta = attach_pattern(to_dense_object(square_root(n * covariance_of(d))), Coeffs{}, Dimensions<dim_i>{});
+      const auto delta = attach_patterns(to_dense_object(square_root(n * covariance_of(d))), Coeffs{}, Dimensions<dim_i>{});
 
       if constexpr(frame_size == points_count)
       {
@@ -183,7 +183,7 @@ namespace OpenKalman
 
         if constexpr (return_cross)
         {
-          auto cross_covariance = make_self_contained(x_deviations * inv_weight * adjoint(y_deviations));
+          auto cross_covariance = make_self_contained(x_deviations * inv_weight * conjugate_transpose(y_deviations));
           return std::tuple {std::move(out_covariance), std::move(cross_covariance)};
         }
         else
@@ -193,7 +193,7 @@ namespace OpenKalman
       }
       else
       {
-        const auto w_yT = make_self_contained(inv_weight * adjoint(y_deviations));
+        const auto w_yT = make_self_contained(inv_weight * conjugate_transpose(y_deviations));
         auto out_covariance = Covariance {make_self_contained(y_deviations * w_yT)};
 
         if constexpr (return_cross)

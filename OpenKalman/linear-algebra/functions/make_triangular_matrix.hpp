@@ -53,7 +53,7 @@ namespace OpenKalman
       if constexpr (hermitian_adapter<Arg, static_cast<HermitianAdapterType>(t)>)
         return make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg)));
       else
-        return make_triangular_matrix<t>(adjoint(nested_object(std::forward<Arg>(arg))));
+        return make_triangular_matrix<t>(conjugate_transpose(nested_object(std::forward<Arg>(arg))));
     }
     else if constexpr (interface::make_triangular_matrix_defined_for<Arg, t, Arg&&>)
     {

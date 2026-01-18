@@ -79,38 +79,40 @@ TEST(stl_interfaces, copy_from)
   EXPECT_TRUE(is_near(m23a, m23_7etc));
 }
 
-#include "linear-algebra/functions/attach_pattern.hpp"
+#include "linear-algebra/traits/pattern_collection_type_of.hpp"
+#include "linear-algebra/functions/attach_patterns.hpp"
 #include "linear-algebra/traits/get_index_pattern.hpp"
 
-TEST(stl_interfaces, attach_pattern)
+TEST(stl_interfaces, attach_patterns)
 {
   using namespace patterns;
   using M23 = stdex::mdspan<double, stdex::extents<std::size_t, 2, 3>>;
   using A23 = double[2][3];
   A23 a23 {{1, 2, 3}, {4, 5, 6}};
   M23 m23 = get_mdspan(a23);
-  static_assert(stdex::same_as<std::decay_t<decltype(attach_pattern(m23, std::tuple{Dimensions<2>{}, Dimensions<3>{}}))>, M23>);
-  static_assert(not stdex::same_as<std::decay_t<decltype(attach_pattern(m23, std::tuple{Polar<>{}, Dimensions<3>{}}))>, M23>);
+  static_assert(stdex::same_as<pattern_collection_type_of_t<std::decay_t<decltype(attach_patterns(m23, std::tuple{Polar{}, Dimensions<3>{}}))>>, std::tuple<Polar<>, Dimensions<3>>>);
 
-  auto p23 = attach_pattern(m23, std::tuple<Polar<>, Spherical<>>{});
+  auto p23 = attach_patterns(m23, std::tuple<Polar<>, Spherical<>>{});
   static_assert(stdex::same_as<decltype(get_index_pattern<0>(p23)), Polar<>>);
   static_assert(stdex::same_as<decltype(get_index_pattern<1>(p23)), Spherical<>>);
   static_assert(compares_with_pattern_collection<decltype(p23), std::tuple<Polar<>, Spherical<>>, &stdex::is_eq, applicability::guaranteed>);
   static_assert(pattern_collection_for<std::array<Any<>, 2>, decltype(p23)>);
   static_assert(not pattern_collection_for<std::array<Any<>, 2>, decltype(p23), applicability::guaranteed>);
 
-  auto q23 = attach_pattern(m23, std::array{Any{Polar{}}, Any{Spherical{}}});
+  auto q23 = attach_patterns(m23, std::array{Any{Polar{}}, Any{Spherical{}}});
   EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(q23), std::tuple{Polar{}, Spherical{}}));
-  auto r23 = pattern_adapter {q23, std::tuple{Polar{}, Dimensions<3>{}}};
-  EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(r23), std::tuple{Polar{}, Dimensions<3>{}}));
-  auto s23 = attach_pattern(q23, std::tuple{Polar{}, Dimensions<3>{}});
+  static_assert(stdex::same_as<decltype(q23.nested_object()), M23&>);
+  auto r23 = pattern_adapter {q23, std::tuple{Polar{}, Dimensions<3>{}, Dimensions<1>{}}};
+  EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(r23), std::tuple{Polar{}, Dimensions<3>{}, Dimensions<1>{}}));
+  static_assert(stdex::same_as<decltype(r23.nested_object()), decltype(q23)&>);
+  auto s23 = attach_patterns(r23, std::tuple{Polar{}, Dimensions<3>{}});
   EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(s23), std::tuple{Polar{}, Dimensions<3>{}}));
-  static_assert(stdex::same_as<decltype(s23.nested_object()), decltype(q23.nested_object())>);
+  static_assert(stdex::same_as<decltype(s23.nested_object()), decltype(q23)&>);
 
   using M213 = stdex::mdspan<double, stdex::dextents<std::size_t, 3>>;
   auto a213 = std::array<double, 6>{};
   M213 m213 {a213.data(), 2, 1, 3};
-  auto p213 = attach_pattern(m213, std::array{Any{Polar{}}, Any{Distance{}}, Any{Spherical{}}});
+  auto p213 = attach_patterns(m213, std::array{Any{Polar{}}, Any{Distance{}}, Any{Spherical{}}});
   EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(p213), std::tuple{Polar{}, Distance{}, Spherical{}}));
 }
 
@@ -151,7 +153,7 @@ TEST(stl_interfaces, make_constant)
   static_assert(stdex::same_as<decltype(get_index_pattern<0>(m23)), Polar<>>);
   static_assert(stdex::same_as<decltype(get_index_pattern<1>(m23)), Spherical<>>);
   EXPECT_EQ(constant_value(m23), 5);
-  EXPECT_TRUE(is_near(m23, a23));
+  EXPECT_TRUE(is_near(detach_patterns(m23), a23));
   EXPECT_EQ((m23[std::array{0U, 0U}]), 5);
   EXPECT_EQ((m23[std::array{0U, 1U}]), 5);
   EXPECT_EQ((m23[std::array{0U, 2U}]), 5);
@@ -240,6 +242,7 @@ TEST(stl_interfaces, make_zero)
 #include "linear-algebra/concepts/diagonal_matrix.hpp"
 #include "linear-algebra/functions/to_diagonal.hpp"
 #include "linear-algebra/functions/make_constant_diagonal.hpp"
+#include "linear-algebra/functions/make_identity_matrix.hpp"
 
 TEST(stl_interfaces, to_diagonal)
 {
@@ -290,15 +293,29 @@ TEST(stl_interfaces, to_diagonal)
 
   // Non-symmetrical diagonal matrices:
 
+  decltype(auto) d2 = to_diagonal(a1, stdex::extents<std::size_t, 2>{});
+  using D2 = decltype(d2);
+  static_assert(diagonal_matrix<D2>);
+  static_assert(not one_dimensional<D2>);
+  static_assert(index_count_v<D2> == 1);
+  static_assert(index_dimension_of_v<D2, 0> == 2);
+  static_assert(index_dimension_of_v<D2, 1> == 1);
+  static_assert(index_dimension_of_v<D2, 2> == 1);
+  EXPECT_EQ((d2[0U]), 7.);
+  EXPECT_EQ((d2[1U]), 0.);
+  EXPECT_EQ(access(d2, std::array{0U, 0U, 0U}), 7.);
+  EXPECT_EQ(access(d2, std::array{1U, 0U, 0U}), 0.);
+
   decltype(auto) d21 = to_diagonal(a1, stdex::extents<std::size_t, 2, 1>{});
   using D21 = decltype(d21);
   static_assert(diagonal_matrix<D21>);
   static_assert(not one_dimensional<D21>);
+  static_assert(index_count_v<D21> == 1);
   static_assert(index_dimension_of_v<D21, 0> == 2);
   static_assert(index_dimension_of_v<D21, 1> == 1);
   static_assert(index_dimension_of_v<D21, 2> == 1);
-  EXPECT_EQ((d21[std::array{0U, 0U}]), 7.);
-  EXPECT_EQ((d21[std::array{1U, 0U}]), 0.);
+  EXPECT_EQ((d21[0U]), 7.);
+  EXPECT_EQ((d21[1U]), 0.);
   EXPECT_EQ(access(d21, std::array{0U, 0U, 0U}), 7.);
   EXPECT_EQ(access(d21, std::array{1U, 0U, 0U}), 0.);
 
@@ -385,7 +402,7 @@ TEST(stl_interfaces, to_diagonal)
   static_assert(constant_object<decltype(c5d)>);
   auto dc5 = to_diagonal(c5d);
   EXPECT_EQ(constant_value(dc5), 0.5);
-  static_assert(stdex::same_as<element_type_of_t<decltype(dc5)>, const double>);
+  static_assert(stdex::same_as<element_type_of_t<decltype(dc5)>, double>);
   static_assert(not constant_object<decltype(dc5)>);
   static_assert(constant_diagonal_object<decltype(dc5)>);
   EXPECT_EQ(get_index_extent(dc5, 0U), 3);
@@ -402,10 +419,10 @@ TEST(stl_interfaces, to_diagonal)
   EXPECT_EQ((dc5[std::array{2U, 2U}]), 0.5);
 
   auto c33 = make_constant_diagonal(F5{}, stdex::extents<std::size_t, 3, 3>{});
-  static_assert(stdex::same_as<element_type_of_t<decltype(c33)>, const double>);
+  static_assert(stdex::same_as<element_type_of_t<decltype(c33)>, double>);
   static_assert(not constant_object<decltype(c33)>);
   static_assert(constant_diagonal_object<decltype(c33)>);
-  EXPECT_EQ(constant_value(c33), 5.0);
+  static_assert(values::fixed_value_of_v<decltype(constant_value(c33))> == 5.0);
   EXPECT_EQ((c33[std::array{0U, 0U}]), 5.0);
   EXPECT_EQ((c33[std::array{0U, 1U}]), 0.0);
   EXPECT_EQ((c33[std::array{0U, 2U}]), 0.0);
@@ -415,12 +432,129 @@ TEST(stl_interfaces, to_diagonal)
   EXPECT_EQ((c33[std::array{2U, 0U}]), 0.0);
   EXPECT_EQ((c33[std::array{2U, 1U}]), 0.0);
   EXPECT_EQ((c33[std::array{2U, 2U}]), 5.0);
+
+  // Identity matrices
+
+  auto i32 = make_identity_matrix<double>(std::array {Any{Spherical{}}, Any{Polar{}}});
+  static_assert(identity_matrix<decltype(i32)>);
+  EXPECT_EQ(constant_value(i32), 1);
+  static_assert(stdex::same_as<element_type_of_t<decltype(i32)>, double>);
+  static_assert(not constant_object<decltype(i32)>);
+  EXPECT_EQ(get_index_extent(i32, 0U), 3);
+  EXPECT_EQ(get_index_extent(i32, 1U), 2);
+  EXPECT_TRUE(compare_pattern_collections(get_pattern_collection(i32), std::tuple{Spherical{}, Polar{}}));
+  EXPECT_EQ((i32[std::array{0U, 0U}]), 1.0);
+  EXPECT_EQ((i32[std::array{0U, 1U}]), 0.0);
+  EXPECT_EQ((i32[std::array{1U, 0U}]), 0.0);
+  EXPECT_EQ((i32[std::array{1U, 1U}]), 1.0);
+  EXPECT_EQ((i32[std::array{2U, 0U}]), 0.0);
+  EXPECT_EQ((i32[std::array{2U, 1U}]), 0.0);
 }
 
-/*#include "linear-algebra/functions/diagonal_of.hpp"
+#include "linear-algebra/concepts/vector.hpp"
+#include "linear-algebra/functions/diagonal_of.hpp"
 
 TEST(stl_interfaces, diagonal_of)
 {
+  using A1 = double[1];
+  A1 a1 {7};
+  decltype(auto) d1 = diagonal_of(a1);
+  using D1 = decltype(d1);
+  static_assert(diagonal_matrix<D1>);
+  static_assert(one_dimensional<D1>);
+  static_assert(not dynamic_dimension<D1, 0>);
+  static_assert(not dynamic_dimension<D1, 1>);
+  static_assert(index_dimension_of_v<D1, 0> == 1);
+  static_assert(index_dimension_of_v<D1, 1> == 1);
+  EXPECT_EQ(constant_value(d1), 7);
+
+  using A33 = double[3][3];
+  A33 a33 {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+  static_assert(not one_dimensional<A33>);
+  decltype(auto) d3 = diagonal_of(a33);
+  static_assert(vector<decltype(d3)>);
+  static_assert(index_dimension_of_v<decltype(d3), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(d3), 1> == 1);
+  EXPECT_EQ((d3[0U]), 1.);
+  EXPECT_EQ((d3[1U]), 5.);
+  EXPECT_EQ((d3[2U]), 9.);
+
+  using A34 = double[3][4];
+  A34 a34 {{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}};
+  static_assert(not one_dimensional<A34>);
+  decltype(auto) d34 = diagonal_of(a34);
+  static_assert(vector<decltype(d34)>);
+  static_assert(index_dimension_of_v<decltype(d34), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(d34), 1> == 1);
+  EXPECT_EQ((d34[0U]), 1.);
+  EXPECT_EQ((d34[1U]), 6.);
+  EXPECT_EQ((d34[2U]), 11.);
+
+  using A43 = double[4][3];
+  A43 a43 {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}, {10, 11, 12}};
+  static_assert(not one_dimensional<A43>);
+  decltype(auto) d43 = diagonal_of(a43);
+  static_assert(vector<decltype(d43)>);
+  static_assert(index_dimension_of_v<decltype(d43), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(d43), 1> == 1);
+  EXPECT_EQ((d43[0U]), 1.);
+  EXPECT_EQ((d43[1U]), 5.);
+  EXPECT_EQ((d43[2U]), 9.);
+
+  using Z35 = F0[3][5];
+  static_assert(diagonal_matrix<Z35>);
+  Z35 z35;
+  auto zd3 = diagonal_of(z35);
+  using ZD3 = decltype(zd3);
+  static_assert(diagonal_matrix<ZD3>);
+  static_assert(zero<ZD3>);
+  static_assert(index_dimension_of_v<ZD3, 0> == 3);
+  static_assert(index_dimension_of_v<ZD3, 1> == 1);
+  EXPECT_EQ(constant_value(zd3), 0);
+  EXPECT_EQ(zd3[0U], 0.);
+  EXPECT_EQ(zd3[1U], 0.);
+  EXPECT_EQ(zd3[2U], 0.);
+
+  auto c0_23 = make_zero<double>(std::tuple{Polar{}, std::tuple{Polar{}, Distance{}}});
+  auto d0_23 = diagonal_of(c0_23);
+  EXPECT_EQ(constant_value(d0_23), 0);
+  static_assert(constant_object<decltype(d0_23)>);
+  static_assert(zero<decltype(d0_23)>);
+  static_assert(index_dimension_of_v<decltype(d0_23), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(d0_23), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(d0_23), 2> == 1);
+  static_assert(stdex::same_as<decltype(get_index_pattern<0>(d0_23)), Polar<>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<1>(d0_23)), Dimensions<1>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<2>(d0_23)), Dimensions<1>>);
+
+  auto c4_43 = make_constant_diagonal(F4{}, std::tuple{std::tuple{Spherical{}, Distance{}}, Spherical{}});
+  auto d4_43 = diagonal_of(c4_43);
+  EXPECT_EQ(constant_value(d4_43), 4);
+  static_assert(constant_object<decltype(d4_43)>);
+  static_assert(index_dimension_of_v<decltype(d4_43), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(d4_43), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(d4_43), 2> == 1);
+  static_assert(stdex::same_as<decltype(get_index_pattern<0>(d4_43)), Spherical<>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<1>(d4_43)), Dimensions<1>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<2>(d4_43)), Dimensions<1>>);
+
+  auto id_43 = make_identity_matrix<double>(std::tuple{std::tuple{Spherical{}, Distance{}}, Spherical{}});
+  static_assert(identity_matrix<decltype(id_43)>);
+  static_assert(constant_diagonal_object<decltype(id_43)>);
+  auto di_43 = diagonal_of(id_43);
+  EXPECT_EQ(constant_value(di_43), 1);
+  static_assert(index_dimension_of_v<decltype(di_43), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(di_43), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(di_43), 2> == 1);
+  static_assert(stdex::same_as<decltype(get_index_pattern<0>(di_43)), Spherical<>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<1>(di_43)), Dimensions<1>>);
+  static_assert(stdex::same_as<decltype(get_index_pattern<2>(di_43)), Dimensions<1>>);
+
+  using A23c = std::complex<double>[2][3];
+  A23c a23c {{std::complex{1.,.1}, std::complex{2.,.2}, std::complex{3.,.3}},
+            {std::complex{4.,-.4}, std::complex{5.,-.5}, std::complex{6.,-.6}}};
+  std::complex<double> a2c[2] {std::complex{1.,.1}, std::complex{5.,-.5}};
+  EXPECT_TRUE(is_near(diagonal_of(a23c), a2c));
 }
 
 #include "linear-algebra/functions/conjugate.hpp"
@@ -441,10 +575,18 @@ TEST(stl_interfaces, conjugate)
   A23c a23conj {{std::complex{1.,-.1}, std::complex{2.,-.2}, std::complex{3.,-.3}},
             {std::complex{4.,.4}, std::complex{5.,.5}, std::complex{6.,.6}}};
   M23c m23conj = get_mdspan(a23conj);
-  static_assert(interface::conjugate_defined_for<M23c&&>);
-  static_assert(interface::conjugate_defined_for<M23c&>);
   EXPECT_TRUE(is_near(conjugate(m23c), m23conj));
   EXPECT_TRUE(is_near(conjugate(m23conj), m23c));
+
+  EXPECT_TRUE(is_near(conjugate(a23c), m23conj));
+  EXPECT_TRUE(is_near(conjugate(make_constant(std::complex{1.,.1}, std::tuple{Polar{}, Spherical{}})), make_constant(std::complex{1.,-.1}, std::tuple{Polar{}, Spherical{}})));
+  EXPECT_TRUE(is_near(conjugate(make_constant_diagonal(std::complex{1.,.1}, std::tuple{Polar{}, Spherical{}})), make_constant_diagonal(std::complex{1.,-.1}, std::tuple{Polar{}, Spherical{}})));
+  std::complex<double> a2c[2] {std::complex{1.,-.1}, std::complex{5.,.5}};
+  EXPECT_TRUE(is_near(conjugate(diagonal_of(a23c)), a2c));
+  EXPECT_TRUE(is_near(diagonal_of(conjugate(a23c)), a2c));
+
+  static_assert(stdex::same_as<pattern_collection_type_of_t<decltype(conjugate(make_constant(std::complex{1.,.1}, std::tuple{Polar{}, Spherical{}})))>, std::tuple<Polar<>, Spherical<>>>);
+  static_assert(stdex::same_as<pattern_collection_type_of_t<decltype(conjugate(std::declval<pattern_adapter<M23, std::tuple<Polar<>, Spherical<>>>&>()))>, std::tuple<Polar<>, Spherical<>>>);
 }
 
 #include "linear-algebra/functions/transpose.hpp"
@@ -462,11 +604,27 @@ TEST(stl_interfaces, transpose)
 
   EXPECT_TRUE(is_near(transpose(m23), m32));
   EXPECT_TRUE(is_near(transpose(m32), m23));
+
+  using M123 = stdex::mdspan<double, stdex::extents<std::size_t, 1, 2, 3>>;
+  M123 m123 {a23[0]};
+
+  EXPECT_TRUE(is_near(transpose<0, 2>(m32), m123));
+  EXPECT_TRUE(is_near(transpose<0, 2>(m123), m32));
+
+  using M213 = stdex::mdspan<double, stdex::extents<std::size_t, 2, 1, 3>>;
+  M213 m213 {a23[0]};
+
+  EXPECT_TRUE(is_near(transpose<1, 2>(m23), m213));
+  EXPECT_TRUE(is_near(transpose<1, 2>(m213), m23));
+
+  EXPECT_TRUE(is_near(transpose<2, 3>(m23), m23));
+
+  static_assert(patterns::collection_compares_with<pattern_collection_type_of_t<decltype(transpose(make_constant(5., std::tuple{Polar{}, Spherical{}})))>, std::tuple<Spherical<>, Polar<>>>);
 }
 
-#include "linear-algebra/functions/adjoint.hpp"
+#include "linear-algebra/functions/conjugate_transpose.hpp"
 
-TEST(stl_interfaces, adjoint)
+TEST(stl_interfaces, conjugate_transpose)
 {
   using M23 = stdex::mdspan<double, stdex::extents<std::size_t, 2, 3>>;
   using A23 = double[2][3];
@@ -476,8 +634,8 @@ TEST(stl_interfaces, adjoint)
   using M32 = stdex::mdspan<double, stdex::extents<std::size_t, 3, 2>>;
   auto a32 = std::array{1., 4., 2., 5., 3., 6.};
   M32 m32 {a32.data()};
-  EXPECT_TRUE(is_near(adjoint(m23), m32));
-  EXPECT_TRUE(is_near(adjoint(m32), m23));
+  EXPECT_TRUE(is_near(conjugate_transpose(m23), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(m32), m23));
 
   using M23c = stdex::mdspan<std::complex<double>, stdex::extents<std::size_t, 2, 3>>;
   using A23c = std::complex<double>[2][3];
@@ -491,9 +649,9 @@ TEST(stl_interfaces, adjoint)
     std::complex{2.,-.2}, std::complex{5.,.5},
     std::complex{3.,-.3}, std::complex{6.,.6}};
   M32c m32c {a32c.data()};
-  EXPECT_TRUE(is_near(adjoint(m23c), m32c));
-  EXPECT_TRUE(is_near(adjoint(m32c), m23c));
-}*/
+  EXPECT_TRUE(is_near(conjugate_transpose(m23c), m32c));
+  EXPECT_TRUE(is_near(conjugate_transpose(m32c), m23c));
+}
 
 
 /*TEST(stl_interfaces, constant_adapter_traits)
@@ -712,165 +870,6 @@ TEST(stl_interfaces, make_dense_object_from)
   EXPECT_TRUE(is_near(to_dense_object(c504_3), M34::Constant(5)));
   EXPECT_TRUE(is_near(to_dense_object(c500_34), M34::Constant(5)));
   EXPECT_TRUE(is_near(to_dense_object(constant_adapter<F5, const double[3][4]> {}), CM34::Constant(cdouble(5,0))));
-}
-
-
-TEST(stl_interfaces, make_zero)
-{
-  auto m23 = make_dense_object_from<M23>(0, 0, 0, 0, 0, 0);
-  auto m2x_3 = M2x {m23};
-  auto mx3_2 = Mx3 {m23};
-  auto mxx_23 = Mxx {m23};
-
-  EXPECT_TRUE(is_near(make_zero<M23>(Dimensions<2>{}, Dimensions<3>{}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero<Mxx>(Dimensions<2>{}, 3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero<Mxx>(2, Dimensions<3>{}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero<Mxx>(2, 3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero(m23), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero(m2x_3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero(mx3_2), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero(mxx_23), M23::Zero()));
-  EXPECT_TRUE(is_near(make_zero<M23>(), M23::Zero()));
-
-  static_assert(zero<decltype(make_zero<Mxx>(Dimensions<2>(), Dimensions<3>()))>);
-  static_assert(zero<decltype(make_zero<Mxx>(Dimensions<2>(), 3))>);
-  static_assert(zero<decltype(make_zero<Mxx>(2, Dimensions<3>()))>);
-  static_assert(zero<decltype(make_zero<Mxx>(2, 3))>);
-  static_assert(zero<decltype(make_zero(m23))>);
-  static_assert(zero<decltype(make_zero(m2x_3))>);
-  static_assert(zero<decltype(make_zero(mx3_2))>);
-  static_assert(zero<decltype(make_zero(mxx_23))>);
-  static_assert(zero<decltype(make_zero<M23>())>);
-
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, Dimensions<3>())), 0> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<0>(make_zero<Mxx>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 0> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<0>(make_zero<Mxx>(2, 3)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(m23)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(m2x_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(mx3_2)), 0> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<0>(make_zero(mx3_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 0> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<0>(make_zero(mxx_23)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero<M23>()), 0> == 2);
-
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(Dimensions<2>(), 3)), 1> == stdex::dynamic_extent);  EXPECT_EQ(get_index_extent<1>(make_zero<Mxx>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<Mxx>(2, 3)), 1> == stdex::dynamic_extent);  EXPECT_EQ(get_index_extent<1>(make_zero<Mxx>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(m23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(m2x_3)), 1> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<1>(make_zero(m2x_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(mx3_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero(mxx_23)), 1> == stdex::dynamic_extent); EXPECT_EQ(get_index_extent<1>(make_zero(mxx_23)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero<M23>()), 1> == 3);
-
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<Mxx, int>(Dimensions<2>(), Dimensions<3>()))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<Mxx, int>(Dimensions<2>(), 3))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<Mxx, int>(2, Dimensions<3>()))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<Mxx, int>(2, 3))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<int>(m23))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<int>(m2x_3))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<int>(mx3_2))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<int>(mxx_23))>::value_type>);
-  static_assert(std::is_integral_v<constant_value<decltype(make_zero<M23, int>())>::value_type>);
-}
-
-
-TEST(stl_interfaces, make_identity_matrix_like)
-{
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}, Dimensions<1>{}), M33::Identity()));
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}, Dimensions<1>{}))>);
-}
-
-
-TEST(stl_interfaces, diagonal_of_constant)
-{
-  // Note: constant_adapter is only created when the constant is known at compile time.
-  // dynamic one-by-one, known at compile time:
-
-  static_assert(one_dimensional<decltype(diagonal_of(M11::Identity()))>);
-  static_assert(not one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1)))>);
-  static_assert(not one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
-  static_assert(not one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1)))>);
-  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), values::unbounded_size, applicability::permitted>);
-
-  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M11::Identity()))>);
-  static_assert(has_dynamic_dimensions<decltype(diagonal_of(M1x::Identity(1, 1)))>);
-  static_assert(has_dynamic_dimensions<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
-
-  static_assert(dynamic_dimension<decltype(diagonal_of(Mxx::Identity(1, 1))), 0>);
-  static_assert(dimension_size_of_index_is<decltype(diagonal_of(Mxx::Identity(1, 1))), 1, 1>);
-
-  static_assert(constant_value_v<decltype(diagonal_of(M11::Identity()))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(M1x::Identity()))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(Mx1::Identity(1, 1)))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(Mxx::Identity(1, 1)))> == 1);
-
-  auto i22 = M22::Identity();
-  auto i2x_2 = M2x::Identity(2, 2);
-  auto ix2_2 = Mx2::Identity(2, 2);
-  auto ixx_22 = Mxx::Identity(2, 2);
-
-  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(i22))>);
-  static_assert(has_dynamic_dimensions<decltype(diagonal_of(i2x_2))>);
-  static_assert(has_dynamic_dimensions<decltype(diagonal_of(ix2_2))>);
-  static_assert(has_dynamic_dimensions<decltype(diagonal_of(ixx_22))>);
-
-  static_assert(constant_value_v<decltype(diagonal_of(i22))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(i2x_2))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(ix2_2))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(ixx_22))> == 1);
-
-  EXPECT_TRUE(is_near(diagonal_of(i22), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(i2x_2), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(ix2_2), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(ixx_22), M21::Constant(1)));
-  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(diagonal_of(i22)), M21::Constant(1)));
-
-  static_assert(constant_value_v<decltype(diagonal_of(M22::Identity()))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2, 2)))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(Mx2::Identity(2, 2)))> == 1);
-  static_assert(constant_value_v<decltype(diagonal_of(Mxx::Identity(2, 2)))> == 1);
-
-  EXPECT_TRUE(is_near(diagonal_of(M22::Identity()), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2, 2)), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(Mx2::Identity(2, 2)), M21::Constant(1)));
-  EXPECT_TRUE(is_near(diagonal_of(Mxx::Identity(2, 2)), M21::Constant(1)));
-
-  static_assert(constant_object<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))>);
-  static_assert(index_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>())), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>())), 1> == 1);
-
-  auto z11 = M11::Identity() - M11::Identity();
-
-  auto z22 = M22::Identity() - M22::Identity();
-  auto z20_2 = Eigen::Replicate<decltype(z11), 2, Eigen::Dynamic> {z11, 2, 2};
-  auto z02_2 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 2> {z11, 2, 2};
-  auto z00_22 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
-
-  EXPECT_TRUE(is_near(diagonal_of(z22.template triangularView<Eigen::Upper>()), M21::Zero())); static_assert(zero<decltype(diagonal_of(z22.template triangularView<Eigen::Upper>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(z20_2.template triangularView<Eigen::Lower>()), M21::Zero())); static_assert(zero<decltype(diagonal_of(z20_2.template triangularView<Eigen::Lower>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(z02_2.template triangularView<Eigen::Upper>()), M21::Zero())); static_assert(zero<decltype(diagonal_of(z02_2.template triangularView<Eigen::Upper>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(z00_22.template triangularView<Eigen::Lower>()), M21::Zero())); static_assert(zero<decltype(diagonal_of(z00_22.template triangularView<Eigen::Lower>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(z22.template triangularView<Eigen::Upper>())), M21::Zero()));
-
-  auto c11_2 {M11::Identity() + M11::Identity()};
-
-  auto c22_2 = c11_2.replicate<2, 2>();
-  auto c20_2_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic>(c11_2, 2, 2);
-  auto c02_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 2>(c11_2, 2, 2);
-  auto c00_22_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 2, 2);
-
-  EXPECT_TRUE(is_near(diagonal_of(c22_2.template triangularView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c22_2.template triangularView<Eigen::Upper>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(c20_2_2.template triangularView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c20_2_2.template triangularView<Eigen::Lower>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(c02_2_2.template triangularView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c02_2_2.template triangularView<Eigen::Upper>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(c00_22_2.template triangularView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_value_v<decltype(diagonal_of(c00_22_2.template triangularView<Eigen::Lower>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(c22_2.template triangularView<Eigen::Upper>())), M21::Constant(2)));
-
-  EXPECT_TRUE(is_near(diagonal_of(M22::Identity().template triangularView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M22::Identity().template triangularView<Eigen::Upper>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Upper>()))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_value_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()))> == 1);
 }
 
 

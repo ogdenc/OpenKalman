@@ -267,13 +267,13 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    adjoint(Arg&& arg)
+    conjugate_transpose(Arg&& arg)
     {
       // Global conjugate function already handles HermitianAdapter and diagonal_adapter
       static_assert(OpenKalman::internal::triangular_expr<Arg>);
 
       constexpr auto t = triangular_matrix<Arg, triangle_type::lower> ? triangle_type::upper : triangle_type::lower;
-      return make_triangular_matrix<t>(OpenKalman::adjoint(nested_object(std::forward<Arg>(arg))));
+      return make_triangular_matrix<t>(OpenKalman::conjugate_transpose(nested_object(std::forward<Arg>(arg))));
     }
 
 
@@ -318,7 +318,7 @@ namespace OpenKalman::interface
         if constexpr (hermitian_adapter<A, h>)
           return cholesky_factor<tri>(nested_object(std::forward<A>(a)));
         else
-          return cholesky_factor<tri>(adjoint(nested_object(std::forward<A>(a))));
+          return cholesky_factor<tri>(conjugate_transpose(nested_object(std::forward<A>(a))));
       }
       else
       {

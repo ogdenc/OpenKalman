@@ -285,9 +285,9 @@ TEST(matrices, EuclideanMean_overloads)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 0>, Dimensions<3>>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 1>, Dimensions<2>>);
 
-  EXPECT_TRUE(is_near(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_object(), TM32 {1, 4, 2, 5, 3, 6}));
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 0>, Dimensions<3>>);
-  static_assert(compares_with<vector_space_descriptor_of_t<decltype(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 1>, Dimensions<2>>);
+  EXPECT_TRUE(is_near(conjugate_transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_object(), TM32 {1, 4, 2, 5, 3, 6}));
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(conjugate_transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 0>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(conjugate_transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 1>, Dimensions<2>>);
 
   EXPECT_NEAR(determinant(EuclideanMean<Dimensions<3>, M33> {1, 2, 3, 4, 5, 6, 1, 5, 1}), 24, 1e-6);
 

@@ -27,6 +27,16 @@ namespace OpenKalman::patterns::views
   {
     struct concat_adaptor
     {
+    private:
+
+      struct Op
+      {
+        template<typename...Xs>
+        constexpr auto operator()(Xs...xs) const { return (0 + ... + xs); }
+      };
+
+    public:
+
   #ifdef __cpp_concepts
       template<pattern...P>
   #else
@@ -36,7 +46,7 @@ namespace OpenKalman::patterns::views
       operator() (P&&...p) const
       {
         if constexpr ((... and euclidean_pattern<P>))
-          return Dimensions {values::operation([](auto...xs){ return (0 + ... + xs); }, get_dimension(p)...)};
+          return Dimensions {values::operation(Op{}, get_dimension(p)...)};
         else if constexpr ((... and descriptor<P>))
           return std::make_tuple(std::forward<P>(p)...) | collections::views::all;
         else

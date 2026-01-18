@@ -23,7 +23,7 @@ namespace OpenKalman::test
     template<typename Jacobians, typename Covs, std::size_t...ints>
     constexpr auto sumprod(const Jacobians& j, const Covs& c, std::index_sequence<ints...>)
     {
-      return make_self_contained(((std::get<ints>(j) * std::get<ints>(c) * adjoint(std::get<ints>(j))) + ...));
+      return make_self_contained(((std::get<ints>(j) * std::get<ints>(c) * conjugate_transpose(std::get<ints>(j))) + ...));
     }
   }
 
@@ -40,7 +40,7 @@ namespace OpenKalman::test
     auto p = covariance_of(in);
     auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
-    auto cross_cov = p*adjoint(a);
+    auto cross_cov = p*conjugate_transpose(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
     auto covariances = std::forward_as_tuple(std::move(p), covariance_of(noise)...);
     auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1> {});
@@ -67,7 +67,7 @@ namespace OpenKalman::test
     auto p = covariance_of(in);
     auto y = g(x, mean_of(noise)...);
     auto [a] = g.jacobian(x);
-    auto cross_cov = p*adjoint(a);
+    auto cross_cov = p*conjugate_transpose(a);
     auto jacobians = g.jacobian(x, mean_of(noise)...);
     auto covariances = std::forward_as_tuple(std::move(p), covariance_of(noise)...);
     auto cov = detail::sumprod(jacobians, covariances, std::make_index_sequence<sizeof...(Noise) + 1> {});

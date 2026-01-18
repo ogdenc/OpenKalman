@@ -82,7 +82,7 @@ namespace OpenKalman::patterns
   /**
    * \brief Specifies that each element of a \ref pattern_collection T has dimension dim for the first N indices.
    * \details If N is greater than the size of T, T will effectively be padded with Dimensions<1>.
-   * \tparam N Either an integer greater than 0 or \ref values::unbounded_size
+   * \tparam N Either \ref values::unbounded_size or an integer greater than 0.
    */
 #ifdef __cpp_concepts
   template<

@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_GET_SIZE_HPP
 #define OPENKALMAN_COLLECTIONS_GET_SIZE_HPP
 
+#include <variant>
 #include "values/values.hpp"
 #include "collections/traits/std-extents.hpp"
 
@@ -23,58 +24,66 @@ namespace OpenKalman::collections
 {
   namespace detail_get_size
   {
-#ifndef __cpp_concepts
+#ifdef __cpp_concepts
+    template<typename T>
+    struct range_extent {};
+
+
+    template<typename T> requires requires { std::tuple_size<T>::value; }
+    struct range_extent<T> : std::tuple_size<T> {};
+
+
+    template<typename T> requires values::fixed<decltype(stdex::ranges::size(std::declval<T>()))> and
+      (not requires { std::tuple_size<T>::value; })
+    struct range_extent<T>
+      : values::fixed_value_of<decltype(stdex::ranges::size(std::declval<T>()))> {};
+
+
+    // If T has a static size() member function (e.g., ranges::empty_view and ranges::single_view)
+    template<typename T> requires std::bool_constant<(std::decay_t<T>::size(), true)>::value and
+      (not values::fixed<decltype(stdex::ranges::size(std::declval<T>()))>) and
+      (not requires { std::tuple_size<T>::value; })
+    struct range_extent<T>
+      : std::integral_constant<std::size_t, std::decay_t<T>::size()> {};
+#else
     template<typename T, typename = void>
     struct has_tuple_size : std::false_type {};
 
     template<typename T>
     struct has_tuple_size<T, std::void_t<decltype(std::tuple_size<std::decay_t<T>>::value)>> : std::true_type {};
-#endif
 
 
-#ifdef __cpp_concepts
-    template<typename T>
-#else
     template<typename T, typename = void>
-#endif
-    struct range_extent : std::integral_constant<std::size_t, stdex::dynamic_extent> {};
+    struct range_extent_impl {};
 
-
-#ifdef __cpp_concepts
-    template<typename T> requires requires { std::tuple_size<T>::value; }
-    struct range_extent<T>
-#else
     template<typename T>
-    struct range_extent<T, std::enable_if_t<has_tuple_size<T>::value>>
-#endif
+    struct range_extent_impl<T, std::enable_if_t<has_tuple_size<T>::value>>
       : std::tuple_size<T> {};
 
-
-#ifdef __cpp_concepts
-    template<typename T> requires values::fixed<decltype(stdex::ranges::size(std::declval<T>()))> and
-      (not requires { std::tuple_size<T>::value; })
-    struct range_extent<T>
-#else
     template<typename T>
-    struct range_extent<T, std::enable_if_t<values::fixed<decltype(stdex::ranges::size(std::declval<T>()))> and
+    struct range_extent_impl<T, std::enable_if_t<values::fixed<decltype(stdex::ranges::size(std::declval<T>()))> and
       not has_tuple_size<T>::value>>
-#endif
       : values::fixed_value_of<decltype(stdex::ranges::size(std::declval<T>()))> {};
 
-
-    // If T has a static size() member function (e.g., ranges::empty_view and ranges::single_view)
-#ifdef __cpp_concepts
-    template<typename T> requires std::bool_constant<(std::decay_t<T>::size(), true)>::value and
-      (not values::fixed<decltype(stdex::ranges::size(std::declval<T>()))>) and
-      (not requires { std::tuple_size<T>::value; })
-    struct range_extent<T>
-#else
     template<typename T>
-    struct range_extent<T, std::enable_if_t<std::bool_constant<(std::decay_t<T>::size(), true)>::value and
+    struct range_extent_impl<T, std::enable_if_t<std::bool_constant<(std::decay_t<T>::size(), true)>::value and
       (not values::fixed<decltype(stdex::ranges::size(std::declval<T>()))>) and
       not has_tuple_size<T>::value>>
-#endif
       : std::integral_constant<std::size_t, std::decay_t<T>::size()> {};
+
+
+    template<typename T, typename = void>
+    struct range_extent : range_extent_impl<T> {};
+#endif
+
+
+    template<typename T>
+    constexpr std::size_t
+    ext_val = []
+    {
+      if constexpr (values::index<range_extent<T>>) return range_extent<T>::value;
+      else return 0_uz;
+    }();
 
 
     template<typename IndexType, std::size_t...Extents>
@@ -114,9 +123,11 @@ namespace OpenKalman::collections
 
 
     template<typename...Views>
-    struct range_extent<stdex::ranges::concat_view<Views...>> : std::integral_constant<std::size_t,
-      (... or (range_extent<Views>::value == stdex::dynamic_extent)) ? stdex::dynamic_extent :
-        (0_uz + ... + range_extent<Views>::value)> {};
+    struct range_extent<stdex::ranges::concat_view<Views...>>
+      : std::conditional_t<
+        (... and values::index<range_extent<Views>>),
+        std::integral_constant<std::size_t, (0_uz + ... + ext_val<Views>)>,
+        std::monostate> {};
 
 
 #ifdef __cpp_lib_ranges
@@ -148,32 +159,42 @@ namespace OpenKalman::collections
 
 #ifdef __cpp_lib_ranges_zip
     template<typename...Views>
-      struct range_extent<std::ranges::zip_view<Views...>> : std::integral_constant<std::size_t,
-        (... or (range_extent<Views>::value == stdex::dynamic_extent)) ? stdex::dynamic_extent :
-          std::min({range_extent<Views>::value...})> {};
+      struct range_extent<std::ranges::zip_view<Views...>>
+      : std::conditional_t<
+        (... and values::index<range_extent<Views>>),
+        std::integral_constant<std::size_t, std::min({ext_val<Views>...})>,
+        std::monostate> {};
 
     template<typename F, typename...Views>
-      struct range_extent<std::ranges::zip_transform_view<F, Views...>> : std::integral_constant<std::size_t,
-        (... or (range_extent<Views>::value == stdex::dynamic_extent)) ? stdex::dynamic_extent :
-          std::min({range_extent<Views>::value...})> {};
+      struct range_extent<std::ranges::zip_transform_view<F, Views...>>
+      : std::conditional_t<
+        (... and values::index<range_extent<Views>>),
+        std::integral_constant<std::size_t, std::min({ext_val<Views>...})>,
+        std::monostate> {};
 
     template<typename View, std::size_t N>
-      struct range_extent<std::ranges::adjacent_view<View, N>>: std::integral_constant<std::size_t,
-        range_extent<View>::value == stdex::dynamic_extent ? stdex::dynamic_extent :
-          range_extent<View>::value >= N ? range_extent<View>::value - N + 1 : 0> {};
+    struct range_extent<std::ranges::adjacent_view<View, N>>
+      : std::conditional_t<
+        values::index<range_extent<View>>,
+        std::integral_constant<std::size_t, ext_val<View> >= N ? ext_val<View> - N + 1 : 0>,
+        std::monostate> {};
 
     template<typename View, typename F, std::size_t N>
-      struct range_extent<std::ranges::adjacent_transform_view<View, F, N>> : std::integral_constant<std::size_t,
-        range_extent<View>::value == stdex::dynamic_extent ? stdex::dynamic_extent :
-          range_extent<View>::value >= N ? range_extent<View>::value - N + 1 : 0> {};
+      struct range_extent<std::ranges::adjacent_transform_view<View, F, N>>
+      : std::conditional_t<
+        values::index<range_extent<View>>,
+        std::integral_constant<std::size_t, ext_val<View> >= N ? ext_val<View> - N + 1 : 0>,
+        std::monostate> {};
 #endif
 
 
 #ifdef __cpp_lib_ranges_cartesian_product
     template<typename...Vs>
-    struct range_extent<std::ranges::cartesian_product_view<Vs...>> : std::integral_constant<std::size_t,
-      (... or (range_extent<Vs>::value == stdex::dynamic_extent)) ? stdex::dynamic_extent :
-        (1_uz * ... * range_extent<Vs>::value)> {};
+    struct range_extent<std::ranges::cartesian_product_view<Vs...>>
+      : std::conditional_t<
+        (... and values::index<range_extent<Vs>>),
+        std::integral_constant<std::size_t, (1_uz * ... * ext_val<Vs>)>,
+        std::monostate> {};
 #endif
 
 
@@ -188,44 +209,27 @@ namespace OpenKalman::collections
     struct range_extent<std::ranges::to_input_view<V>> : range_extent<stdex::remove_cvref_t<V>> {};
 #endif
 
-
-#ifndef __cpp_concepts
-    template<typename T, typename = void>
-    struct range_extent_defined : std::false_type {};
-
-    template<typename T>
-    struct range_extent_defined<T, std::enable_if_t<
-      (detail_get_size::range_extent<stdex::remove_cvref_t<T>>::value != stdex::dynamic_extent)>>
-      : std::true_type {};
-#endif
-
   }
 
 
   /**
    * \brief Get the size of a \ref sized object (e.g, a \ref collection)
    */
+  template<typename Arg>
 #ifdef __cpp_concepts
-  template<typename Arg> requires std::ranges::sized_range<Arg> or
-    (detail_get_size::range_extent<stdex::remove_cvref_t<Arg>>::value != stdex::dynamic_extent)
-  constexpr values::index auto
+  constexpr values::size auto
 #else
-  template<typename Arg, std::enable_if_t<
-    stdex::ranges::sized_range<stdex::remove_cvref_t<Arg>> or
-    detail_get_size::range_extent_defined<Arg>::value, int> = 0>
   constexpr auto
 #endif
   get_size(Arg&& arg)
   {
     using Ex = detail_get_size::range_extent<stdex::remove_cvref_t<Arg>>;
-    if constexpr (Ex::value != stdex::dynamic_extent)
-    {
-      return values::cast_to<std::size_t>(Ex {});
-    }
-    else
-    {
+    if constexpr (values::index<Ex>)
+      return values::cast_to<std::size_t>(Ex{});
+    else if constexpr (stdex::ranges::sized_range<Arg>)
       return static_cast<std::size_t>(stdex::ranges::size(std::forward<Arg>(arg)));
-    }
+    else
+      return values::unbounded_size;
   };
 
 

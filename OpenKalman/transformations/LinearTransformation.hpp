@@ -196,7 +196,7 @@ namespace OpenKalman
       if constexpr(sizeof...(Perturbations) + 1 > mat_count)
       {
         constexpr auto pad_size = std::integral_constant<std::size_t, sizeof...(Perturbations) + 1 - mat_count>{};
-        auto id = attach_pattern(make_identity_matrix_like<TransformationMatrix>(), OutputCoefficients{}, OutputCoefficients{});
+        auto id = attach_patterns(make_identity_matrix_like<TransformationMatrix>(), OutputCoefficients{}, OutputCoefficients{});
         return std::tuple_cat(transformation_matrices, OpenKalman::collections::views::repeat(std::move(id), pad_size));
       }
       else

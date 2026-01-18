@@ -59,7 +59,7 @@ TEST(covariance_tests, References_2from1_Cov_SAl_1)
   EXPECT_TRUE(is_near(v1a, v1));
   Covariance<C, const SAl<M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), v1));
 
   // case 2 from case 2
   Covariance<C, SAl<M>&> v2a {v2};
@@ -114,8 +114,8 @@ TEST(covariance_tests, References_2from1_Cov_SAl_2)
   EXPECT_TRUE(is_near(v1a, v1));
   Covariance<C, SAu<const M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), v1));
-  EXPECT_TRUE(is_near(adjoint(v2), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v2), v1));
 }
 
 
@@ -151,7 +151,7 @@ TEST(covariance_tests, References_2from1_SqCov_Tl_1)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, const Tl<M>> v1ac {v2};
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 }
 
 
@@ -187,7 +187,7 @@ TEST(covariance_tests, References_2from1_SqCov_Tu_2)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, Tu<const M>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 
   // case 2 from case 2:
   SquareRootCovariance<C, Tu<M&>> v2a = v2;
@@ -236,7 +236,7 @@ TEST(covariance_tests, References_2from1_Cov_D_1)
   EXPECT_TRUE(is_near(v1a, v1));
   Covariance<C, const D<M1>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), v1));
 }
 
 
@@ -266,7 +266,7 @@ TEST(covariance_tests, References_2from1_Cov_D_2)
   EXPECT_TRUE(is_near(v1a, v1));
   Covariance<C, D<const M1>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), v1));
 }
 
 
@@ -296,7 +296,7 @@ TEST(covariance_tests, References_2from1_SqCov_TuD_2)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, Tu<D<const M1>>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 }
 
 
@@ -326,7 +326,7 @@ TEST(covariance_tests, References_2from1_SqCov_D_1)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, const D<M1>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 }
 
 
@@ -356,7 +356,7 @@ TEST(covariance_tests, References_2from1_SqCov_D_2)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, D<const M1>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 }
 
 
@@ -401,7 +401,7 @@ TEST(covariance_tests, References_2from3_SqCov_1)
   EXPECT_TRUE(is_near(v3b, v3));
   Covariance<C, const Tl<M>> v3bc = SquareRootCovariance<C, const Tl<M>&> {v2}.square();
   EXPECT_TRUE(is_near(v3bc, v3));
-  EXPECT_TRUE(is_near(adjoint(v2.square()), adjoint(v3))); // adjoint(case 4 from case 2) == adjoint(case 3)
+  EXPECT_TRUE(is_near(conjugate_transpose(v2.square()), conjugate_transpose(v3))); // conjugate_transpose(case 4 from case 2) == conjugate_transpose(case 3)
 
   // case 2 from case 2:
   SquareRootCovariance<C, Tl<M>&> v2a = v2; // case 2
@@ -463,7 +463,7 @@ TEST(covariance_tests, References_2from3_Cov_2)
   EXPECT_TRUE(is_near(v3b, v3));
   SquareRootCovariance<C, SAu<const M>> v3bc = Covariance<C, const SAu<M&>> {v2}.square_root();
   EXPECT_TRUE(is_near(v3bc, v3));
-  EXPECT_TRUE(is_near(adjoint(v3a), adjoint(v2.square_root())));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3a), conjugate_transpose(v2.square_root())));
 }
 
 
@@ -501,7 +501,7 @@ TEST(covariance_tests, References_2from_nestable_SAl_1)
   EXPECT_TRUE(is_near(v1a, v1));
   Covariance<C, const SAl<M>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), v1));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), v1));
 
   // case 2 from case 2
   Covariance<C, SAl<M>&> v2a = v2;
@@ -556,7 +556,7 @@ TEST(covariance_tests, References_2from_nestable_Tu_2)
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, Tu<const M>> v1ac = v2;
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v2)));
 
   // case 2 from case 2:
   SquareRootCovariance<C, Tu<M&>> v2a = v2;
@@ -607,14 +607,14 @@ TEST(covariance_tests, References_4from3_Cov_Tl_1)
           8.3, 29.3, -13.3,
           4.3, -13.3, 46.3};
   EXPECT_TRUE(is_near(v3, v4));
-  EXPECT_TRUE(is_near(adjoint(v3), v3));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3), v3));
 
   // Case 3 from Case 4
   V v3a {v4};
   EXPECT_TRUE(is_near(v3a, v3));
   Covariance<C, Tl<const M>> v3ac = v4;
   EXPECT_TRUE(is_near(v3ac, v3));
-  EXPECT_TRUE(is_near(adjoint(v3a), v3a));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3a), v3a));
 
   // Case 4 from Case 4
   Covariance<C, Tl<M>&> v4a = v4; // copy constructor
@@ -658,14 +658,14 @@ TEST(covariance_tests, References_4from3_Cov_Tu_2)
           8.3, 29.3, -13.3,
           4.3, -13.3, 46.3};
   EXPECT_TRUE(is_near(v3, v4));
-  EXPECT_TRUE(is_near(adjoint(v3), v3));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3), v3));
 
   // Case 3 from Case 4
   V v3a = v4;
   EXPECT_TRUE(is_near(v3a, v3));
   Covariance<C, Tu<const M>> v3ac = v4;
   EXPECT_TRUE(is_near(v3ac, v3));
-  EXPECT_TRUE(is_near(adjoint(v3a), v3a));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3a), v3a));
 
   // Case 4 from Case 4
   Covariance<C, Tu<M&>> v4x = v4; // copy constructor
@@ -712,14 +712,14 @@ TEST(covariance_tests, References_4from3_SqCov_SAl_1)
           2.3, 5.3, 0,
           1.3, -3.3, 6.3};
   EXPECT_TRUE(is_near(v3, v4));
-  EXPECT_TRUE(is_near(adjoint(v3), adjoint(v4)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3), conjugate_transpose(v4)));
 
   // Case 3 from Case 4
   V v3a = v4;
   EXPECT_TRUE(is_near(v3a, v3));
   SquareRootCovariance<C, SAl<const M>> v3ac = v4;
   EXPECT_TRUE(is_near(v3ac, v3));
-  EXPECT_TRUE(is_near(adjoint(v3a), adjoint(v3)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3a), conjugate_transpose(v3)));
 
   // Case 4 from Case 4
   SquareRootCovariance<C, SAl<M>&> v4a = v4;
@@ -764,14 +764,14 @@ TEST(covariance_tests, References_4from3_SqCov_SAu_2)
           0, 5.3, -3.3,
           0, 0, 6.3};
   EXPECT_TRUE(is_near(v3, v2));
-  EXPECT_TRUE(is_near(adjoint(v3), adjoint(v2)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3), conjugate_transpose(v2)));
 
   // Case 3 from Case 4
   V v3a = v2;
   EXPECT_TRUE(is_near(v3a, v3));
   SquareRootCovariance<C, SAu<const M>> v3ac = v2;
   EXPECT_TRUE(is_near(v3ac, v3));
-  EXPECT_TRUE(is_near(adjoint(v3a), adjoint(v3)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v3a), conjugate_transpose(v3)));
 
   // Case 4 from Case 4
   SquareRootCovariance<C, SAu<M&>> v4a = v2;
@@ -824,14 +824,14 @@ TEST(covariance_tests, References_4from1_Cov_l_1)
            9.89, 33.38, -14.5,
            5.59, -14.5, 52.27};
   EXPECT_TRUE(is_near(v1, Mat3 {4.3, 0, 0, 2.3, 5.3, 0, 1.3, -3.3, 6.3}));
-  EXPECT_TRUE(is_near(adjoint(v1), adjoint(v4.square_root())));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1), conjugate_transpose(v4.square_root())));
 
   // Case 1 from Case 4
   V v1a = v4.square_root(); // case 1
   EXPECT_TRUE(is_near(v1a, v1));
   SquareRootCovariance<C, Tl<const M>> v1ac = v4.square_root(); // case 1
   EXPECT_TRUE(is_near(v1ac, v1));
-  EXPECT_TRUE(is_near(adjoint(v1a), adjoint(v4.square_root())));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1a), conjugate_transpose(v4.square_root())));
 
   // Case 4 from Case 4
   Mat3 m1849 {18.49, 9.89, 5.59, 9.89, 33.38, -14.5, 5.59, -14.5, 52.27};
@@ -882,7 +882,7 @@ TEST(covariance_tests, References_4from1_SqCov_l_1)
   Mat3 m43 {4.3, 0, 0, 2.3, 5.3, 0, 1.3, -3.3, 6.3};
   v4 = V3 {m43};
   EXPECT_TRUE(is_near(v1, Mat3 {18.49, 9.89, 5.59, 9.89, 33.38, -14.5, 5.59, -14.5, 52.27}));
-  EXPECT_TRUE(is_near(adjoint(v1.square_root()), adjoint(v4)));
+  EXPECT_TRUE(is_near(conjugate_transpose(v1.square_root()), conjugate_transpose(v4)));
 
   // Case 1 from Case 4
   V v1a = v4.square(); // case 1
@@ -938,14 +938,14 @@ TEST(covariance_tests, References_4from2_Cov_l_1)
   Mat3 m1849 {18.49, 9.89, 5.59, 9.89, 33.38, -14.5, 5.59, -14.5, 52.27};
   v4 = V3 {m1849};
   EXPECT_TRUE(is_near(v2, Mat3 {4.3, 0, 0, 2.3, 5.3, 0, 1.3, -3.3, 6.3}));
-  EXPECT_TRUE(is_near(adjoint(v2.square()), v2.square()));
+  EXPECT_TRUE(is_near(conjugate_transpose(v2.square()), v2.square()));
 
   // Case 2 from Case 4
   SquareRootCovariance<C, Tl<M>&> v2a {v4.square_root()}; // case 4 & -> case 2
   EXPECT_TRUE(is_near(v2a, v2));
   SquareRootCovariance<C, const Tl<M>&> v2ac = v4c.square_root(); // const case 4 & -> const case 4 && -> const case 2
   EXPECT_TRUE(is_near(v2ac, v2));
-  EXPECT_TRUE(is_near(adjoint(v2a), adjoint(v4.square_root())));
+  EXPECT_TRUE(is_near(conjugate_transpose(v2a), conjugate_transpose(v4.square_root())));
 
   // Case 4 from Case 4
   Covariance<C, Tl<M>&> v4a = v4;

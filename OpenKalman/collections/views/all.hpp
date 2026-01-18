@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -34,14 +34,12 @@ namespace OpenKalman::collections::views
       constexpr collection_view auto
 #else
       template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
-      constexpr decltype(auto)
+      constexpr auto
 #endif
       operator() (R&& r) const
       {
-        if constexpr (
-          collection_view<R> and
-          (not values::fixed_value_compares_with<size_of<R>, stdex::dynamic_extent, &stdex::is_neq> or
-            collections::tuple_like<R>))
+        if constexpr (collection_view<R> and (collections::tuple_like<R> or
+          (uniformly_gettable<R> and not values::fixed_value_compares_with<size_of<R>, stdex::dynamic_extent, &stdex::is_neq>)))
         {
           return std::forward<R>(r);
         }
@@ -60,7 +58,7 @@ namespace OpenKalman::collections::views
 
   /**
    * \brief a std::ranges::range_adaptor_closure which returns a view to all members of its \ref collection argument.
-   * \details The result will be a \ref collection_view and, if if has a fixed size, will be \ref tuple_like
+   * \details The result will be a \ref collection_view and, if it has a fixed size, will be \ref tuple_like
    * Examples:
    * \code
    * static_assert(equal_to{}(views::all{std::tuple{4, 5.}}, std::tuple{4, 5.}));

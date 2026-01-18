@@ -36,17 +36,17 @@ TEST(eigen3, transpose_adjoint_conjugate_matrix)
   EXPECT_TRUE(is_near(transpose(Mxx{m23}), m32));
   EXPECT_TRUE(is_near(transpose(Eigen::Array<double, 2, 3>{m23}), m32));
 
-  EXPECT_TRUE(is_near(adjoint(m23), m32));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(m23)), m32));
-  EXPECT_TRUE(is_near(adjoint(m23.array()), m32));
-  EXPECT_TRUE(is_near(adjoint(mx3_2), m32));
-  EXPECT_TRUE(is_near(adjoint(m2x_3), m32));
-  EXPECT_TRUE(is_near(adjoint(mxx_23), m32));
-  EXPECT_TRUE(is_near(adjoint(M23{m23}), m32));
-  EXPECT_TRUE(is_near(adjoint(M2x{m23}), m32));
-  EXPECT_TRUE(is_near(adjoint(Mx3{m23}), m32));
-  EXPECT_TRUE(is_near(adjoint(Mxx{m23}), m32));
-  EXPECT_TRUE(is_near(adjoint(Eigen::Array<double, 2, 3>{m23}), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(m23), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(m23)), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(m23.array()), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(mx3_2), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(m2x_3), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(mxx_23), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(M23{m23}), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(M2x{m23}), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(Mx3{m23}), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(Mxx{m23}), m32));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::Array<double, 2, 3>{m23}), m32));
 
   EXPECT_TRUE(is_near(conjugate(m23), m23));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(m23)), m23));
@@ -68,10 +68,10 @@ TEST(eigen3, transpose_adjoint_conjugate_matrix)
   EXPECT_TRUE(is_near(transpose(CM23{cm23}), cm32));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(cm23)), cm32));
   EXPECT_TRUE(is_near(transpose(cm23.array()), cm32));
-  EXPECT_TRUE(is_near(adjoint(cm23), cm32conj));
-  EXPECT_TRUE(is_near(adjoint(CM23{cm23}), cm32conj));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(cm23)), cm32conj));
-  EXPECT_TRUE(is_near(adjoint(cm23.array()), cm32conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(cm23), cm32conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(CM23{cm23}), cm32conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(cm23)), cm32conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(cm23.array()), cm32conj));
   EXPECT_TRUE(is_near(conjugate(cm32), cm32conj));
   EXPECT_TRUE(is_near(conjugate(CM32{cm32}), cm32conj));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(cm32)), cm32conj));
@@ -92,11 +92,11 @@ TEST(eigen3, transpose_adjoint_conjugate_self_adjoint)
   EXPECT_TRUE(is_near(transpose(m02_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
   EXPECT_TRUE(is_near(transpose(m00_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
 
-  EXPECT_TRUE(is_near(adjoint(m22_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(m22_93310.template selfadjointView<Eigen::Upper>())), m22_93310));
-  EXPECT_TRUE(is_near(adjoint(m20_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
-  EXPECT_TRUE(is_near(adjoint(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
-  EXPECT_TRUE(is_near(adjoint(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(m22_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(m22_93310.template selfadjointView<Eigen::Upper>())), m22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(m20_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
 
   EXPECT_TRUE(is_near(conjugate(m22_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(m22_93310.template selfadjointView<Eigen::Upper>())), m22_93310));
@@ -111,8 +111,8 @@ TEST(eigen3, transpose_adjoint_conjugate_self_adjoint)
   EXPECT_TRUE(is_near(transpose(std::as_const(cm22_93310).template selfadjointView<Eigen::Upper>()), cm22_93310_trans));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(cm22_93310.template selfadjointView<Eigen::Upper>())), cm22_93310_trans));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(std::as_const(cm22_93310).template selfadjointView<Eigen::Upper>())), cm22_93310_trans));
-  EXPECT_TRUE(is_near(adjoint(cm22_93310.template selfadjointView<Eigen::Lower>()), cm22_93310));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(cm22_93310.template selfadjointView<Eigen::Lower>())), cm22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(cm22_93310.template selfadjointView<Eigen::Lower>()), cm22_93310));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(cm22_93310.template selfadjointView<Eigen::Lower>())), cm22_93310));
   EXPECT_TRUE(is_near(conjugate(cm22_93310.template selfadjointView<Eigen::Lower>()), cm22_93310_trans));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(cm22_93310.template selfadjointView<Eigen::Lower>())), cm22_93310_trans));
 }
@@ -137,11 +137,11 @@ TEST(eigen3, transpose_adjoint_conjugate_triangular)
   EXPECT_TRUE(is_near(transpose(m02_3013.template triangularView<Eigen::Lower>()), m22_3103));
   EXPECT_TRUE(is_near(transpose(m00_3103.template triangularView<Eigen::Upper>()), m22_3013));
 
-  EXPECT_TRUE(is_near(adjoint(m22_3103.template triangularView<Eigen::Upper>()), m22_3013));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(m22_3103.template triangularView<Eigen::Upper>())), m22_3013));
-  EXPECT_TRUE(is_near(adjoint(m20_3013.template triangularView<Eigen::Lower>()), m22_3103));
-  EXPECT_TRUE(is_near(adjoint(m02_3103.template triangularView<Eigen::Upper>()), m22_3013));
-  EXPECT_TRUE(is_near(adjoint(m00_3013.template triangularView<Eigen::Lower>()), m22_3103));
+  EXPECT_TRUE(is_near(conjugate_transpose(m22_3103.template triangularView<Eigen::Upper>()), m22_3013));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(m22_3103.template triangularView<Eigen::Upper>())), m22_3013));
+  EXPECT_TRUE(is_near(conjugate_transpose(m20_3013.template triangularView<Eigen::Lower>()), m22_3103));
+  EXPECT_TRUE(is_near(conjugate_transpose(m02_3103.template triangularView<Eigen::Upper>()), m22_3013));
+  EXPECT_TRUE(is_near(conjugate_transpose(m00_3013.template triangularView<Eigen::Lower>()), m22_3103));
 
   EXPECT_TRUE(is_near(conjugate(m22_3103.template triangularView<Eigen::Upper>()), m22_3103));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(m22_3103.template triangularView<Eigen::Upper>())), m22_3103));
@@ -160,11 +160,11 @@ TEST(eigen3, transpose_adjoint_conjugate_triangular)
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(cm22_3103.template triangularView<Eigen::Upper>())), cm22_3013));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(std::as_const(cm22_3103).template triangularView<Eigen::Upper>())), cm22_3013));
 
-  EXPECT_TRUE(is_near(adjoint(cm22_3103.template triangularView<Eigen::Upper>()), cm22_3013_conj));
-  EXPECT_TRUE(is_near(adjoint(std::as_const(cm22_3103).template triangularView<Eigen::Upper>()), cm22_3013_conj));
-  EXPECT_TRUE(is_near(adjoint(cm22_3013.template triangularView<Eigen::Lower>()), cm22_3103_conj));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(cm22_3013.template triangularView<Eigen::Lower>())), cm22_3103_conj));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(std::as_const(cm22_3013).template triangularView<Eigen::Lower>())), cm22_3103_conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(cm22_3103.template triangularView<Eigen::Upper>()), cm22_3013_conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(std::as_const(cm22_3103).template triangularView<Eigen::Upper>()), cm22_3013_conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(cm22_3013.template triangularView<Eigen::Lower>()), cm22_3103_conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(cm22_3013.template triangularView<Eigen::Lower>())), cm22_3103_conj));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(std::as_const(cm22_3013).template triangularView<Eigen::Lower>())), cm22_3103_conj));
 
   EXPECT_TRUE(is_near(conjugate(cm22_3013.template triangularView<Eigen::Lower>()), cm22_3013_conj));
   EXPECT_TRUE(is_near(conjugate(cm22_3103.template triangularView<Eigen::Upper>()), cm22_3103_conj));
@@ -186,9 +186,9 @@ TEST(eigen3, transpose_adjoint_conjugate_diagonal)
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 2> {m21})), m22_1004));
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21}), m22_1004));
 
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21}), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21})), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m21})), m22_1004));
 
   EXPECT_TRUE(is_near(conjugate(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 2> {m21})), m22_1004));
@@ -200,11 +200,11 @@ TEST(eigen3, transpose_adjoint_conjugate_diagonal)
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalWrapper<Mx1> {mx1_2}), m22_1004));
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalWrapper<Mxx> {mxx_21}), m22_1004));
 
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalWrapper<M21> {m21}), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper<M21> {m21})), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalWrapper<M2x> {m2x_1}), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalWrapper<Mx1> {mx1_2}), m22_1004));
-  EXPECT_TRUE(is_near(adjoint(Eigen::DiagonalWrapper<Mxx> {mxx_21}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalWrapper<M21> {m21}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper<M21> {m21})), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalWrapper<M2x> {m2x_1}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalWrapper<Mx1> {mx1_2}), m22_1004));
+  EXPECT_TRUE(is_near(conjugate_transpose(Eigen::DiagonalWrapper<Mxx> {mxx_21}), m22_1004));
 
   EXPECT_TRUE(is_near(conjugate(Eigen::DiagonalWrapper<M21> {m21}), m22_1004));
   EXPECT_TRUE(is_near(conjugate(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper<M21> {m21})), m22_1004));

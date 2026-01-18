@@ -639,7 +639,7 @@ namespace OpenKalman::interface
       // A SelfAdjointView won't always be a hermitian_adapter
       if constexpr ((t == triangle_type::lower and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::upper) or
           (t == triangle_type::upper and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::lower))
-        internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), OpenKalman::adjoint(std::forward<B>(b)));
+        internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), OpenKalman::conjugate_transpose(std::forward<B>(b)));
       else
         internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
     }
@@ -797,8 +797,11 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
-        auto f = [](const auto& a, const auto& b) { return std::min(a, b); };
-        auto dim = values::operation(f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg));
+        struct Op
+        {
+          constexpr auto operator()(std::size_t a, std::size_t b) const { return std::min(a, b); }
+        };
+        auto dim = values::operation(Op{}, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg));
         return make_constant<Arg, Scalar, 1>(dim);
       }
       else if constexpr (Eigen3::eigen_dense_general<Arg>)
@@ -1003,21 +1006,21 @@ namespace OpenKalman::interface
     template<typename Arg, std::enable_if_t<not Eigen3::eigen_dense_general<Arg>, int> = 0>
 #endif
     static constexpr decltype(auto)
-    adjoint(Arg&& arg)
+    conjugate_transpose(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
       {
-        return std::forward<Arg>(arg).adjoint();
+        return std::forward<Arg>(arg).conjugate_transpose();
       }
       else if constexpr (triangular_matrix<Arg>)
       {
         static_assert(triangle_type_of_v<Arg> == triangle_type::upper or triangle_type_of_v<Arg> == triangle_type::lower);
         constexpr auto t = triangular_matrix<Arg, triangle_type::upper> ? triangle_type::lower : triangle_type::upper;
-        return OpenKalman::make_triangular_matrix<t>(OpenKalman::adjoint(to_native_matrix(std::forward<Arg>(arg))));
+        return OpenKalman::make_triangular_matrix<t>(OpenKalman::conjugate_transpose(to_native_matrix(std::forward<Arg>(arg))));
       }
       else
       {
-        return OpenKalman::adjoint(to_native_matrix(std::forward<Arg>(arg)));
+        return OpenKalman::conjugate_transpose(to_native_matrix(std::forward<Arg>(arg)));
       }
       // Note: the global adjoint function already handles zero, constant, diagonal, non-complex, and hermitian cases.
     }
@@ -1235,7 +1238,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto col0 = make_constant<A>(values::sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
-          return attach_pattern(OpenKalman::make_triangular_matrix<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
+          return attach_patterns(OpenKalman::make_triangular_matrix<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
         else
         {
@@ -1243,7 +1246,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto row0 = make_constant<A>(values::sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
-          return attach_pattern(OpenKalman::make_triangular_matrix<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
+          return attach_patterns(OpenKalman::make_triangular_matrix<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
         }
       }
       else
@@ -1262,7 +1265,7 @@ namespace OpenKalman::interface
           else
           {
             constexpr unsigned int uplo = tri == triangle_type::upper ? Eigen::Upper : Eigen::Lower;
-            b.template triangularView<uplo>() = LL_x.matrixLLT().adjoint();
+            b.template triangularView<uplo>() = LL_x.matrixLLT().conjugate_transpose();
           }
         }
         else [[unlikely]]
@@ -1496,7 +1499,7 @@ namespace OpenKalman::interface
     static constexpr auto
     LQ_decomposition(A&& a)
     {
-      return OpenKalman::make_triangular_matrix<triangle_type::lower>(OpenKalman::adjoint(QR_decomp_impl(OpenKalman::adjoint(std::forward<A>(a)))));
+      return OpenKalman::make_triangular_matrix<triangle_type::lower>(OpenKalman::conjugate_transpose(QR_decomp_impl(OpenKalman::conjugate_transpose(std::forward<A>(a)))));
     }
 
 

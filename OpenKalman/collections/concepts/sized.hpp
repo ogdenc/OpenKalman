@@ -26,21 +26,12 @@ namespace OpenKalman::collections
    */
 #ifdef __cpp_lib_ranges
   template<typename T>
-  concept sized = requires { collections::get_size(std::declval<T>()); };
+  concept sized =
 #else
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct sized_impl : std::false_type {};
-
-    template<typename T>
-    struct sized_impl<T, std::void_t<decltype(collections::get_size(std::declval<T>()))>> : std::true_type {};
-  }
-
-
   template<typename T>
-  constexpr bool sized = detail::sized_impl<T>::value;
+  constexpr bool sized =
 #endif
+    values::index<decltype(collections::get_size(std::declval<T>()))>;
 
 }
 

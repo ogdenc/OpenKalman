@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,13 +31,13 @@ namespace OpenKalman::interface
   template<typename T, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
   struct object_traits<stdex::mdspan<T, Extents, LayoutPolicy, AccessorPolicy>>
   {
-  private:
+  //private:
 
     template<typename>
     struct is_diagonal_layout : std::false_type {};
 
-    template<typename N>
-    struct is_diagonal_layout<layout_to_diagonal<N>> : std::true_type {};
+    template<typename N, typename E>
+    struct is_diagonal_layout<layout_to_diagonal<N, E>> : std::true_type {};
 
     template<typename>
     struct is_constant_accessor : std::false_type {};
@@ -57,7 +57,7 @@ namespace OpenKalman::interface
 
 
     template<typename M>
-    static constexpr auto
+    static constexpr decltype(auto)
     get_mdspan(M&& m)
     {
       return std::forward<M>(m);
@@ -84,9 +84,9 @@ namespace OpenKalman::interface
     get_constant(const M& m)
     {
       if constexpr (is_constant_accessor<typename M::accessor_type>::value)
-        return *(m.accessor().data_handle());
+        return m.data_handle();
       else
-        return *(m.accessor().nested_accessor().data_handle());
+        return std::get<0>(m.data_handle());
     }
 
   };

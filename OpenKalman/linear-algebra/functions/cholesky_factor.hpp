@@ -59,13 +59,13 @@ namespace OpenKalman
         if constexpr (tri == triangle_type::lower)
         {
           auto col0 = make_constant<A>(sq, dim, patterns::Axis{});
-          return attach_pattern(concatenate<1>(col0, make_zero<A>(dim, dim - patterns::Axis{})), v, v);
+          return attach_patterns(concatenate<1>(col0, make_zero<A>(dim, dim - patterns::Axis{})), v, v);
         }
         else
         {
           static_assert(tri == triangle_type::upper);
           auto row0 = make_constant<A>(sq, patterns::Axis{}, dim);
-          return attach_pattern(concatenate<0>(row0, make_zero<A>(dim - patterns::Axis{}, dim)), v, v);
+          return attach_patterns(concatenate<0>(row0, make_zero<A>(dim - patterns::Axis{}, dim)), v, v);
         }
       }(a);
 

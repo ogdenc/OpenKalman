@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -50,11 +50,13 @@ TEST(collections, slice_view)
   static_assert(stdex::same_as<std::decay_t<collection_element_t<1, T3>>, int>);
   static_assert(stdex::same_as<std::decay_t<collection_element_t<2, T3>>, int>);
 
-  static_assert(collection_view<T2>);
-  static_assert(std::tuple_size_v<T2> == 4);
-  static_assert(stdex::same_as<std::tuple_element_t<0, T2>, double>);
-  static_assert(stdex::same_as<std::tuple_element_t<1, T2>, long double&>);
-  static_assert(stdex::same_as<std::tuple_element_t<2, T2>, float&>);
+  using T4 = slice_view<std::tuple<std::monostate, double, std::tuple<>, std::vector<std::monostate>>, N1, N2>;
+  static_assert(not collection_view<T4>);
+  static_assert(std::tuple_size_v<T4> == 2);
+  static_assert(stdex::same_as<std::tuple_element_t<0, T4>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, T4>, std::tuple<>>);
+  static_assert(stdex::same_as<collection_element_t<0, T4>, double>);
+  static_assert(stdex::same_as<collection_element_t<1, T4>, std::tuple<>>);
 
   constexpr auto t1 = std::tuple{4, 5., 6.f, 8.l, 7u};
   static_assert(get_element(views::slice(t1, N0{}, N1{}), N0{}) == 4);

@@ -65,7 +65,7 @@ namespace OpenKalman::test
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
-        return sum(apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, adjoint(x) * x), ps...);
+        return sum(apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, conjugate_transpose(x) * x), ps...);
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
@@ -74,7 +74,7 @@ namespace OpenKalman::test
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
-        return std::make_tuple(scalar_quotient(adjoint(x), std::sqrt(trace(adjoint(x) * x))),
+        return std::make_tuple(scalar_quotient(conjugate_transpose(x), std::sqrt(trace(conjugate_transpose(x) * x))),
           Matrix<Axis, Axis, dense_writable_matrix_t<decltype(ps), data_layout::none, scalar_type_of_t<decltype(ps)>, std::tuple<Axis, Axis>>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians
@@ -85,8 +85,8 @@ namespace OpenKalman::test
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         std::array<Matrix<Dimensions<n>, Dimensions<n>, eigen_matrix_t<double, n, n>>, 1> ret;
-        double sq = trace(adjoint(x) * x);
-        ret[0] = pow(sq, -1.5) * (-x * adjoint(x) + sq * make_identity_matrix_like<decltype(ret[0])>());
+        double sq = trace(conjugate_transpose(x) * x);
+        ret[0] = pow(sq, -1.5) * (-x * conjugate_transpose(x) + sq * make_identity_matrix_like<decltype(ret[0])>());
         return std::make_tuple(std::move(ret), std::get<0>(zero_hessian<Axis>(ps))...);
       }
     };

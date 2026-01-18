@@ -66,7 +66,7 @@ namespace OpenKalman
       }
       else
       {
-        return attach_pattern(
+        return attach_patterns(
           interface::library_interface<stdex::remove_cvref_t<Arg>>::get_slice(std::forward<Arg>(arg), offsets, extents),
           std::move(slice_descriptors));
       }

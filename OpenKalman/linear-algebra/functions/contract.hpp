@@ -125,9 +125,9 @@ namespace OpenKalman
         return ret;
     }
     else if constexpr ((hermitian_matrix<A> or hermitian_matrix<B>) and
-      interface::contract_defined_for<B, decltype(adjoint(std::declval<B>())), decltype(adjoint(std::declval<A>()))>)
+      interface::contract_defined_for<B, decltype(conjugate_transpose(std::declval<B>())), decltype(conjugate_transpose(std::declval<A>()))>)
     {
-      return adjoint(interface::library_interface<stdex::remove_cvref_t<B>>::contract(adjoint(std::forward<B>(b)), adjoint(std::forward<A>(a))));
+      return conjugate_transpose(interface::library_interface<stdex::remove_cvref_t<B>>::contract(conjugate_transpose(std::forward<B>(b)), conjugate_transpose(std::forward<A>(a))));
     }
     else if constexpr (interface::contract_defined_for<B, decltype(transpose(std::declval<B>())), decltype(transpose(std::declval<A>()))>)
     {

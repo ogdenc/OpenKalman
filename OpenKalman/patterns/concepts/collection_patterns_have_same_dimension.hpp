@@ -109,7 +109,7 @@ namespace OpenKalman::patterns
    * \details If N exceeds the size of T, T will be padded with Dimensions<1>.
    * If N == values::unbounded_size, all elements will be compared.
    * Note that the result will always be true if the number of compared elements is 1.
-   * \tparam N Either an integer greater than 0 or \ref values::unbounded_size
+   * \tparam N Either \ref values::unbounded_size or an integer greater than 0.
    */
 #ifdef __cpp_concepts
   template<typename T, auto N = values::unbounded_size, applicability b = applicability::guaranteed>

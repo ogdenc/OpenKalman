@@ -53,15 +53,15 @@ namespace OpenKalman
 
       const auto y = mean_of(Ny);
       const auto P_yy = covariance_of(Ny);
-      const auto K_adj = solve(adjoint(P_yy), adjoint(P_xy));
-      const auto K = adjoint(K_adj);
+      const auto K_adj = solve(conjugate_transpose(P_yy), conjugate_transpose(P_xy));
+      const auto K = conjugate_transpose(K_adj);
       // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
       auto out_x_mean = sum(mean_of(Nx), contract(K, (Mean {z} - y)));
       using re = typename DistributionTraits<XDistribution>::random_number_engine;
 
       if constexpr (cholesky_form<YDistribution>)
       {
-        // P_xy * adjoint(K) == K * P_yy * adjoint(K) == K * square_root(P_yy) * adjoint(K * square_root(P_yy))
+        // P_xy * conjugate_transpose(K) == K * P_yy * conjugate_transpose(K) == K * square_root(P_yy) * conjugate_transpose(K * square_root(P_yy))
         // == square(LQ(K * square_root(P_yy)))
         auto out_x_cov = covariance_of(Nx) - square(LQ_decomposition(K * square_root(P_yy)));
         return make_GaussianDistribution<re>(std::move(out_x_mean), std::move(out_x_cov));
@@ -69,7 +69,7 @@ namespace OpenKalman
       else
       {
         // K == P_xy * inverse(P_yy), so
-        // P_xy * adjoint(K) == P_xy * adjoint(inverse(P_yy)) * adjoint(P_xy)
+        // P_xy * conjugate_transpose(K) == P_xy * conjugate_transpose(inverse(P_yy)) * conjugate_transpose(P_xy)
         auto out_x_cov = covariance_of(Nx) - Covariance(P_xy * K_adj);
         return make_GaussianDistribution<re>(std::move(out_x_mean), std::move(out_x_cov));
       }

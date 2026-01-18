@@ -129,7 +129,7 @@ namespace OpenKalman
             const auto x = (set1.count * set1.x + set2.x) / s_count;
             const auto y_E = (set1.count * set1.y_E + set2.y_E) / s_count;
             const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
-            const auto delta_adj_factor = adjoint(delta) * set1.count / s_count;
+            const auto delta_adj_factor = conjugate_transpose(delta) * set1.count / s_count;
             const OutputCovariance yy {set1.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
             {
@@ -148,7 +148,7 @@ namespace OpenKalman
             const auto x = (set1.count * set1.x + set2.count * set2.x) / s_count;
             const auto y_E = (set1.count * set1.y_E + set2.count * set2.y_E) / s_count;
             const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
-            const auto delta_adj_factor = adjoint(delta) * set1.count * set2.count / s_count;
+            const auto delta_adj_factor = conjugate_transpose(delta) * set1.count * set2.count / s_count;
             const OutputCovariance yy {set1.yy + set2.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
             {

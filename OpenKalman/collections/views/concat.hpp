@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -170,19 +170,32 @@ namespace OpenKalman::collections::views
     struct concat_adaptor
     {
   #ifdef __cpp_concepts
-      template<viewable_collection...R> requires (sizeof...(R) > 0)
+      template<typename...R> requires (sizeof...(R) > 0) and
+        ((... and viewable_collection<R>) or (... and uniformly_gettable<R>))
   #else
-      template<typename...R, std::enable_if_t<(sizeof...(R) > 0) and (... and viewable_collection<R>), int> = 0>
+      template<typename...R, std::enable_if_t<(sizeof...(R) > 0) and
+        ((... and viewable_collection<R>) or (... and uniformly_gettable<R>)), int> = 0>
   #endif
       constexpr decltype(auto)
       operator() (R&&...r) const
       {
         if constexpr (sizeof...(R) == 1)
-          return all(std::forward<R>(r)...);
+        {
+          if constexpr ((... and viewable_collection<R>))
+            return all(std::forward<R>(r)...);
+          else
+            return (std::forward<R>(r), ...);
+        }
         else if constexpr ((... and (uniformly_gettable<R>)))
-          return concat_tuple_view {std::forward<R>(r)...} | all;
+        {
+          concat_tuple_view v {std::forward<R>(r)...};
+          if constexpr (viewable_collection<decltype(v)>) return all(std::move(v));
+          else return v;
+        }
         else
+        {
           return stdex::ranges::views::concat(all(std::forward<R>(r))...) | all;
+        }
       }
 
     };

@@ -25,11 +25,12 @@ namespace OpenKalman::interface
    * \internal
    * \brief A layout policy that returns index 0 for every set of indices.
    */
-  template<typename NestedLayout, std::size_t indexa, std::size_t indexb>
+  template<typename NestedMapping, std::size_t indexa, std::size_t indexb>
   struct layout_transpose
   {
     template<class E>
-    struct mapping {
+    struct mapping
+    {
       using extents_type = E;
       using index_type = typename extents_type::index_type;
       using size_type = typename extents_type::size_type;
@@ -38,38 +39,28 @@ namespace OpenKalman::interface
 
     private:
 
-      template<typename = std::make_index_sequence<extents_type::rank()>>
-      struct transposed_extents {};
-
-      template<std::size_t...i>
-      struct transposed_extents<std::index_sequence<i...>>
+      template<std::size_t...i, typename...Ix>
+      constexpr index_type
+      access_with_indices_adjusted(std::index_sequence<i...> seq, Ix...ix) const
       {
-        using type = stdex::extents<index_type,
-          extents_type::static_extent(i == indexa ? indexb : i == indexb ? indexa : i)...>;
-      };
-
-      using transposed_extents_t = typename transposed_extents<extents_type>::type;
-
-      template<std::size_t...i>
-      constexpr transposed_extents_t
-      transpose_extents(const stdex::extents<index_type, i...>& e)
-      {
-        return {e.extent(i == indexa ? indexb : i == indexb ? indexa : i)...};
-      }
-
-      using nested_mapping_type = typename NestedLayout::template mapping<transposed_extents_t>;
-
-      template<typename IndexTuple, index_type...i>
-      index_type
-      transpose_indices(IndexTuple index_tuple, std::index_sequence<i...>) const
-      {
-        return nested_mapping_(std::get<i == indexa ? indexb : i == indexb ? indexa : i>(std::move(index_tuple))...);
+        constexpr std::size_t N = sizeof...(Ix);
+        if constexpr (sizeof...(i) > N)
+        {
+          return access_with_indices_adjusted(seq, std::move(ix)..., 0_uz);
+        }
+        else
+        {
+          return nested_mapping_(std::get<
+            i == indexa and indexb < N ? indexb :
+            i == indexb and indexa < N ? indexa : i>(
+              std::forward_as_tuple(std::move(ix)...))...);
+        }
       }
 
     public:
 
       constexpr explicit
-      mapping(const nested_mapping_type& map) : nested_mapping_(map), extents_(transpose_extents(map.extents())) {}
+      mapping(const NestedMapping& map, const extents_type& e) : nested_mapping_(map), extents_(e) {}
 
       constexpr const extents_type&
       extents() const noexcept { return extents_; }
@@ -84,7 +75,8 @@ namespace OpenKalman::interface
       index_type
       operator() (IndexTypes...i) const
       {
-        return transpose_indices(std::forward_as_tuple(std::move(i)...), std::index_sequence_for<IndexTypes...>{});
+        constexpr std::size_t rank = NestedMapping::extents_type::rank();
+        return access_with_indices_adjusted(std::make_index_sequence<rank>{}, std::move(i)...);
       }
 
       constexpr index_type
@@ -93,17 +85,17 @@ namespace OpenKalman::interface
         return nested_mapping_.required_span_size();
       }
 
-      const nested_mapping_type&
+      const NestedMapping&
       nested_mapping() const { return nested_mapping_; }
 
       static constexpr bool
-      is_always_unique() noexcept { return nested_mapping_type::is_always_unique(); }
+      is_always_unique() noexcept { return NestedMapping::is_always_unique(); }
 
       static constexpr bool
-      is_always_exhaustive() noexcept { return nested_mapping_type::is_always_contiguous(); }
+      is_always_exhaustive() noexcept { return NestedMapping::is_always_contiguous(); }
 
       static constexpr bool
-      is_always_strided() noexcept { return nested_mapping_type::is_always_strided(); }
+      is_always_strided() noexcept { return NestedMapping::is_always_strided(); }
 
       constexpr bool
       is_unique() const { return nested_mapping_.is_unique(); }
@@ -131,7 +123,7 @@ namespace OpenKalman::interface
 
     private:
 
-      nested_mapping_type nested_mapping_;
+      NestedMapping nested_mapping_;
       extents_type extents_;
 
     };

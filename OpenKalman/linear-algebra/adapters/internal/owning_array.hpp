@@ -11,60 +11,38 @@
 /**
  * \internal
  * \file
- * \brief Definition for \ref to_diagonal function.
+ * \brief Definition for \ref internal::owning_array.
  */
 
 #ifndef OPENKALMAN_OWNING_ARRAY_HPP
 #define OPENKALMAN_OWNING_ARRAY_HPP
 
-#include "basics/basics.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/adapters/internal/AdapterBase.hpp"
-#include "linear-algebra/adapters/interfaces/pass_through_interface.hpp"
 
 namespace OpenKalman::internal
 {
-  namespace detail
-  {
-    template<typename N>
-    using nested_mdspan = std::decay_t<decltype(get_mdspan(std::declval<N>()))>;
-  }
-
-
   /**
+   * \internal
    * \brief An owning array that stores both an array and an associated mdspan.
    * \details This should only be used when an object is \ref indexible (i.e., get_mdspan is defined),
    * but there is no \ref interface::library_interface "library interface" for a particular operation.
    * \note This may be phased out and replaced with std::mdarray.
    */
 #ifdef __cpp_concepts
-  template<
-    indexible Nested,
-    pattern_collection_for<Nested> Extents = detail::nested_mdspan<Nested>::extents_type,
-    typename LayoutPolicy = detail::nested_mdspan<Nested>::layout_type,
-    typename AccessorPolicy = detail::nested_mdspan<Nested>::accessor_type>
+  template<indexible Nested, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
 #else
-  template<
-    typename Nested,
-    typename Extents = detail::nested_mdspan<Nested>::extents_type,
-    typename LayoutPolicy = detail::nested_mdspan<Nested>::layout_type,
-    typename AccessorPolicy = detail::nested_mdspan<Nested>::accessor_type>
+  template<typename Nested, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
 #endif
   struct owning_array
     : AdapterBase<owning_array<Nested, Extents, LayoutPolicy, AccessorPolicy>, Nested>
   {
-  private:
-
-    using Base = AdapterBase<owning_array, Nested>;
-    using mdspan_type = stdex::mdspan<element_type_of_t<Nested>, Extents, LayoutPolicy, AccessorPolicy>;
-
-  public:
-
     using extents_type = Extents;
     using layout_type = LayoutPolicy;
     using accessor_type = AccessorPolicy;
     using mapping_type = typename layout_type::template mapping<extents_type>;
-    using element_type = element_type_of_t<Nested>;
+    using element_type = typename accessor_type::element_type;
     using value_type = std::remove_cv_t<element_type>;
     using index_type = typename extents_type::index_type;
     using size_type = typename extents_type::size_type;
@@ -72,37 +50,31 @@ namespace OpenKalman::internal
     using data_handle_type = typename accessor_type::data_handle_type;
     using reference = typename accessor_type::reference;
 
+  private:
+
+    using Base = AdapterBase<owning_array, Nested>;
+    using mdspan_type = stdex::mdspan<element_type, extents_type, layout_type, accessor_type>;
+    using nested_data_handle_type = typename std::decay_t<decltype(get_mdspan(std::declval<Nested>()))>::data_handle_type;
+
+  public:
+
     /**
      * \brief Construct from an \ref indexible object and mdspan parameters.
+     * \tparam F A callable function that converts a data handle of the nested type to \ref data_handle_type.
      */
 #ifdef __cpp_concepts
-    template<indexible N> requires std::constructible_from<Nested, N&&>
-#else
-    template<typename N, std::enable_if_t<stdex::constructible_from<Nested, N&&>, int> = 0>
-#endif
-    constexpr
-    owning_array(N&& n, const mapping_type& m, const accessor_type& a)
-      : Base {std::forward<N>(n)},
-        mdspan_ {get_mdspan(this->nested_object()).data_handle(), m, a} {}
-
-
-    /**
-     * \overload
-     * \brief Construct from an \ref indexible object using that object's mdspan parameters.
-     */
-#ifdef __cpp_concepts
-    template<indexible N> requires
+    template<indexible N, typename F> requires
       std::constructible_from<Nested, N&&> and
-      std::constructible_from<mdspan_type, decltype(get_mdspan(std::declval<N>()))>
+      std::is_invocable_r_v<data_handle_type, F, nested_data_handle_type>
 #else
-    template<typename N, std::enable_if_t<
+    template<typename N, typename F, std::enable_if_t<
       stdex::constructible_from<Nested, N&&> and
-      stdex::constructible_from<mdspan_type, decltype(get_mdspan(std::declval<N>()))>, int> = 0>
+      std::is_invocable_r_v<data_handle_type, F, nested_data_handle_type>, int> = 0>
 #endif
     constexpr
-    owning_array(N&& n)
+    owning_array(N&& n, F&& f, const mapping_type& m, const accessor_type& a)
       : Base {std::forward<N>(n)},
-        mdspan_ {get_mdspan(this->nested_object())} {}
+        mdspan_ {f(get_mdspan(this->nested_object()).data_handle()), m, a} {}
 
 
     /**
@@ -121,7 +93,7 @@ namespace OpenKalman::internal
       std::constructible_from<mdspan_type, const owning_array<N, E, L, A>&>
 #else
     template<typename N, typename E, typename L, typename A, std::enable_if_t<
-      (not std::same_as<owning_array, owning_array<N, E, L, A>>) and
+      (not stdex::same_as<owning_array, owning_array<N, E, L, A>>) and
       stdex::constructible_from<Nested, N&&> and
       stdex::constructible_from<mdspan_type, const owning_array<N, E, L, A>&>, int> = 0>
 #endif
@@ -141,7 +113,7 @@ namespace OpenKalman::internal
       std::constructible_from<mdspan_type, owning_array<N, E, L, A>&&>
 #else
     template<typename N, typename E, typename L, typename A, std::enable_if_t<
-      (not std::same_as<owning_array, owning_array<N, E, L, A>>) and
+      (not stdex::same_as<owning_array, owning_array<N, E, L, A>>) and
       stdex::constructible_from<Nested, N&&> and
       stdex::constructible_from<mdspan_type, owning_array<N, E, L, A>&&>, int> = 0>
 #endif
@@ -160,15 +132,17 @@ namespace OpenKalman::internal
 
 
   /**
+   * \internal
    * \brief Deduction guide
    */
 #ifdef __cpp_concepts
-  template<indexible N, typename M, typename A>
+  template<indexible N, typename F, typename M, typename A>
 #else
-  template<typename N, std::enable_if_t<indexible<Arg>, int> = 0>
+  template<typename N, typename F, typename M, typename A, std::enable_if_t<indexible<N>, int> = 0>
 #endif
-  owning_array(const N&, const M& m, const A& a)
+  owning_array(const N&, const F&, const M& m, const A& a)
     -> owning_array<N, typename M::extents_type, typename M::layout_type, A>;
+
 
 }
 
@@ -180,24 +154,71 @@ namespace OpenKalman::internal
 namespace OpenKalman::interface
 {
   /**
+   * \internal
    * \brief Interface traits for \ref owning_array
    */
-  template<typename Nested, typename Mdspan>
-  struct object_traits<internal::owning_array<Nested, Mdspan>>
-    : pass_through_object_traits<internal::owning_array<Nested, Mdspan>, Nested>
+  template<typename Nested, typename Extents, typename LayoutPolicy, typename AccessorPolicy>
+  struct object_traits<internal::owning_array<Nested, Extents, LayoutPolicy, AccessorPolicy>>
   {
+  private:
+
+    using M = typename internal::owning_array<Nested, Extents, LayoutPolicy, AccessorPolicy>::mdspan_type;
+
+  public:
+
+    static const bool is_specialized = true;
+
     static constexpr auto
-    get_mdspan = [](auto&& t) -> decltype(auto) { return t.mdspan_; };
+    get_mdspan = [](auto&& t) -> decltype(auto) { return std::forward<decltype(t)>(t).mdspan_; };
+
+    static constexpr auto
+    get_pattern_collection = [](auto&& t) -> decltype(auto)
+    {
+      return std::forward<decltype(t)>(t).mdspan_.mapping().extents();
+    };
+
+    static constexpr triangle_type
+    triangle_type_value = triangle_type_of_v<M>;
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires constant_object<M> or constant_diagonal_object<M>
+#else
+    template<typename T, bool Enable = true, std::enable_if_t<Enable and
+      constant_object<M> or constant_diagonal_object<M>, int> = 0>
+#endif
+    static constexpr auto
+    get_constant(T&& t)
+    {
+      return OpenKalman::constant_value(t.mdspan_);
+    };
+
+
+    static constexpr auto
+    nested_object = [](auto&& t) -> decltype(auto)
+    {
+      assert_valid_arg_type(t);
+      return std::forward<decltype(t)>(t).nested_object();
+    };
+
+
+    template<applicability b>
+    static constexpr bool
+    is_square = square_shaped<M, 2, b>;
+
+
+    static constexpr bool
+    is_triangular_adapter = false;
+
+
+    static constexpr bool
+    is_hermitian = hermitian_matrix<M>;
+
+
+    static constexpr HermitianAdapterType
+    hermitian_adapter_type = hermitian_adapter_type_of_v<M>;
+
   };
-
-
-  /**
-   * \brief Library interface traits for \ref owning_array
-   */
-  template<typename Nested, typename Mdspan>
-  struct library_interface<internal::owning_array<Nested, Mdspan>>
-    : pass_through_library_interface<internal::owning_array<Nested, Mdspan>, Nested>
-  {};
 
 }
 

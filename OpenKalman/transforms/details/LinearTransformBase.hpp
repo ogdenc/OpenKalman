@@ -62,7 +62,7 @@ namespace OpenKalman::internal
           return std::tuple {
             make_self_contained(LQ_decomposition(concatenate_horizontal(term0, Matrix(
               (std::get<ints+1>(j) * (square_root(covariance_of(std::get<ints+1>(std::forward<D>(d)))))))...))),
-            make_self_contained(std::move(sqrt_c0) * adjoint(term0))};
+            make_self_contained(std::move(sqrt_c0) * conjugate_transpose(term0))};
         }
         else
         {
@@ -75,17 +75,17 @@ namespace OpenKalman::internal
       {
         if constexpr (return_cross)
         {
-          auto cross = make_self_contained(covariance_of(std::get<0>(std::forward<D>(d))) * adjoint(std::get<0>(j)));
+          auto cross = make_self_contained(covariance_of(std::get<0>(std::forward<D>(d))) * conjugate_transpose(std::get<0>(j)));
           auto cov = make_covariance(make_self_contained((
             (std::get<0>(j) * cross) +
-              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * adjoint(std::get<ints+1>(j)))))));
+              ... + (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * conjugate_transpose(std::get<ints+1>(j)))))));
           return std::tuple {std::move(cov), std::move(cross)};
         }
         else
         {
           return make_covariance(make_self_contained((
-            (std::get<0>(j) * covariance_of(std::get<0>(std::forward<D>(d))) * adjoint(std::get<0>(j))) + ... +
-            (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * adjoint(std::get<ints+1>(j)))))));
+            (std::get<0>(j) * covariance_of(std::get<0>(std::forward<D>(d))) * conjugate_transpose(std::get<0>(j))) + ... +
+            (std::get<ints+1>(j) * (covariance_of(std::get<ints+1>(std::forward<D>(d))) * conjugate_transpose(std::get<ints+1>(j)))))));
         }
       }
     }

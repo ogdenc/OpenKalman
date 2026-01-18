@@ -79,6 +79,7 @@ namespace OpenKalman::patterns::internal
         }
       }
     }
+
   }
 
 
@@ -101,7 +102,6 @@ namespace OpenKalman::patterns::internal
     else
       return detail::strip_1D_tail_fixed<collections::size_of_v<P>>(std::forward<P>(p));
   }
-
 
 }
 

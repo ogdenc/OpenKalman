@@ -115,20 +115,19 @@ namespace OpenKalman::patterns::views {}
 #include "functions/get_pattern.hpp"
 #include "traits/pattern_collection_element.hpp"
 
-#include "functions/compare_collection_patterns_with_dimension.hpp"
 #include "concepts/collection_patterns_compare_with_dimension.hpp"
+#include "functions/compare_collection_patterns_with_dimension.hpp"
 
-#include "functions/get_common_pattern_collection_dimension.hpp"
 #include "concepts/collection_patterns_have_same_dimension.hpp"
-
-#include "functions/pattern_collection_of_diagonal.hpp"
-#include "functions/to_diagonal_pattern_collection.hpp"
+#include "functions/get_common_pattern_collection_dimension.hpp"
 
 // views
 
 #include "views/concat.hpp"
 #include "views/replicate.hpp"
 #include "views/dimensions.hpp"
-
+#include "views/diagonal_of.hpp"
+#include "views/to_diagonal.hpp"
+#include "views/transpose.hpp"
 
 #endif

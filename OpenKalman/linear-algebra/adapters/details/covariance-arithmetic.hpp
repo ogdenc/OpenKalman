@@ -75,11 +75,11 @@ namespace OpenKalman
       }
       else if constexpr (triangular_matrix<E1, triangle_type::upper> and triangular_matrix<E2, triangle_type::lower>)
       {
-        return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
+        return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), conjugate_transpose(std::forward<E2>(e2)))));
       }
       else if constexpr (triangular_matrix<E1, triangle_type::lower> and triangular_matrix<E2, triangle_type::upper>)
       {
-        return make_covariance<C>(LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
+        return make_covariance<C>(LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), conjugate_transpose(std::forward<E2>(e2)))));
       }
       else
       {
@@ -103,7 +103,7 @@ namespace OpenKalman
       }
       else
       {
-        return attach_pattern(std::move(sum), C{}, C{});
+        return attach_patterns(std::move(sum), C{}, C{});
       }
     }
   }
@@ -141,7 +141,7 @@ namespace OpenKalman
 
       if constexpr (triangular_matrix<B, triangle_type::upper>)
       {
-        auto b = to_dense_object(adjoint(nested_object(std::forward<Arg2>(arg2))));
+        auto b = to_dense_object(conjugate_transpose(nested_object(std::forward<Arg2>(arg2))));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
       }
       else
@@ -167,7 +167,7 @@ namespace OpenKalman
       }
       else
       {
-        return attach_pattern(std::move(diff), C{}, C{});
+        return attach_patterns(std::move(diff), C{}, C{});
       }
     }
   }
@@ -214,7 +214,7 @@ namespace OpenKalman
       }
       else
       {
-        return attach_pattern(std::move(prod), C{}, C{});
+        return attach_patterns(std::move(prod), C{}, C{});
       }
     }
   }
@@ -249,7 +249,7 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_object_of_t<M>>)
     {
-      return attach_pattern(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
+      return attach_patterns(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
     }
     else
     {
@@ -292,7 +292,7 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<nested_object_of_t<M>>)
     {
-      return attach_pattern(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
+      return attach_patterns(oin::to_covariance_nestable(std::forward<Cov>(cov)), RC{}, CC{});
     }
     else
     {
@@ -560,10 +560,10 @@ namespace OpenKalman
    * \brief Scale a covariance by a matrix.
    * \tparam M A \ref covariance.
    * \tparam A A \ref typed_matrix.
-   * \details A scaled covariance Arg is A * Arg * adjoint(A).
+   * \details A scaled covariance Arg is A * Arg * conjugate_transpose(A).
    * A scaled square root covariance L or U is also scaled accordingly, so that
-   * scale(L * adjoint(L)) = A * L * adjoint(L) * adjoint(A) or
-   * scale(adjoint(U) * U) = A * adjoint(U) * U * adjoint(A).
+   * scale(L * conjugate_transpose(L)) = A * L * conjugate_transpose(L) * conjugate_transpose(A) or
+   * scale(conjugate_transpose(U) * U) = A * conjugate_transpose(U) * U * conjugate_transpose(A).
    */
 #ifdef __cpp_concepts
   template<covariance M, typed_matrix A> requires
@@ -589,18 +589,18 @@ namespace OpenKalman
 
       if constexpr(triangular_covariance<M>)
       {
-        auto b = make_self_contained<M, A>(nested_object(a * (square(std::forward<M>(m)) * adjoint(a))));
+        auto b = make_self_contained<M, A>(nested_object(a * (square(std::forward<M>(m)) * conjugate_transpose(a))));
         return make_square_root_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
       else
       {
-        auto b = make_self_contained<M, A>(nested_object(a * (std::forward<M>(m) * adjoint(a))));
+        auto b = make_self_contained<M, A>(nested_object(a * (std::forward<M>(m) * conjugate_transpose(a))));
         return make_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
     }
     else if constexpr (triangular_matrix<NestedMatrix, triangle_type::upper>)
     {
-      auto b = QR_decomposition(nested_object(std::forward<M>(m)) * adjoint(nested_object(std::forward<A>(a))));
+      auto b = QR_decomposition(nested_object(std::forward<M>(m)) * conjugate_transpose(nested_object(std::forward<A>(a))));
       return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
     else

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -42,12 +42,13 @@ namespace OpenKalman::interface
       constexpr const extents_type&
       extents() const noexcept { return extents_; }
 
-      constexpr index_type
 #ifdef __cpp_concepts
+      constexpr index_type
       operator() (std::convertible_to<index_type> auto...i) const
 #else
       template<typename...IndexTypes, std::enable_if_t<
         (... and std::is_convertible_v<IndexTypes, index_type>), int> = 0>
+      constexpr index_type
       operator() (IndexTypes...i) const
 #endif
       {
@@ -55,7 +56,11 @@ namespace OpenKalman::interface
       }
 
       constexpr index_type
-      required_span_size() const noexcept { return 0; }
+      required_span_size() const noexcept
+      {
+        for(unsigned r = 0; r < extents_type::rank(); r++) if (extents().extent(r) == 0) return 0;
+        return 1;
+      }
 
       static constexpr bool is_always_unique() noexcept { return false; }
       static constexpr bool is_always_exhaustive() noexcept { return false; }
@@ -90,11 +95,9 @@ namespace OpenKalman::interface
   template<typename ElementType>
   struct constant_accessor {
     using element_type = ElementType;
-    using reference = const element_type&;
-    using data_handle_type = const element_type*;
+    using reference = const element_type;
+    using data_handle_type = element_type;
     using offset_policy = constant_accessor;
-
-    constexpr constant_accessor(ElementType e) : element_ {std::move(e)} {}
 
     constexpr constant_accessor() noexcept = default;
 
@@ -106,35 +109,13 @@ namespace OpenKalman::interface
       stdex::convertible_to<OtherElementType, element_type> and
       (not std::is_same_v<element_type, OtherElementType>), int> = 0>
 #endif
-    constexpr constant_accessor(const constant_accessor<OtherElementType>& other) noexcept
-      : element_ {other.element_} {}
-
-#ifdef __cpp_concepts
-    template<stdex::convertible_to<element_type> OtherElementType> requires
-      (not std::is_same_v<element_type, OtherElementType>)
-#else
-    template<typename OtherElementType, std::enable_if_t<
-      stdex::convertible_to<OtherElementType, element_type> and
-      (not std::is_same_v<element_type, OtherElementType>), int> = 0>
-#endif
-    constexpr constant_accessor(constant_accessor<OtherElementType>&& other) noexcept
-      : element_ {std::move(other).element_} {}
+    constexpr constant_accessor(const constant_accessor<OtherElementType>& other) noexcept {}
 
     constexpr reference
-    access(data_handle_type p, std::size_t i) const noexcept { return element_; }
+    access(data_handle_type p, std::size_t) const noexcept { return std::move(p); }
 
     constexpr data_handle_type
-    offset(data_handle_type p, std::size_t i) const noexcept { return &element_; }
-
-    constexpr data_handle_type
-    data_handle() const noexcept { return &element_; }
-
-  private:
-
-    const ElementType element_;
-
-    template<typename OtherElementType>
-    friend struct constant_accessor;
+    offset(data_handle_type p, std::size_t) const noexcept { return std::move(p); }
 
   };
 

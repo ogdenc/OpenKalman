@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2024-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,7 @@ namespace OpenKalman
           decltype(patterns::to_extents(std::declval<P>())),
           decltype(get_pattern_collection(get_mdspan(std::declval<std::add_lvalue_reference_t<T>>()))),
           &stdex::is_eq, a>>>
-          : compatible_shape_with_impl<P, T, a> {};
+          : std::true_type {};
 #endif
   }
 
@@ -42,7 +42,7 @@ namespace OpenKalman
    * \brief \ref patterns::pattern_collection "pattern collection" P has a shape that is attachable to \ref indexible T.
    * \tparam P a \ref patterns::pattern_collection
    * \tparam T an \ref indexible object
-   * \sa attach_pattern
+   * \sa attach_patterns
    */
   template<typename P, typename T, applicability a = applicability::permitted>
 #ifdef __cpp_concepts
@@ -52,7 +52,7 @@ namespace OpenKalman
       decltype(get_pattern_collection(get_mdspan(std::declval<std::add_lvalue_reference_t<T>>()))),
       &stdex::is_eq, a>;
 #else
-  constexpr bool pattern_collection_for = pattern_collection_for_impl<P, T, a>::value;
+  constexpr bool pattern_collection_for = detail::pattern_collection_for_impl<P, T, a>::value;
 #endif
 
 

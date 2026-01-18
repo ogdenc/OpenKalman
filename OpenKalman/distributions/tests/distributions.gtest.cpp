@@ -758,14 +758,14 @@ TEST(matrices, GaussianDistribution_mult_div)
 {
   auto a = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2>(8., 2, 2, 6));
   auto a_chol = GaussianDistribution(make_mean<C2>(2., 30), make_covariance<C2, triangle_type::lower>(8., 2, 2, 6));
-  auto f_matrix = attach_pattern<C3, C2>(1., 2, 3, 4, 5, 6);
+  auto f_matrix = attach_patterns<C3, C2>(1., 2, 3, 4, 5, 6);
   auto a_scaled3 = f_matrix * a;
   EXPECT_TRUE(is_near(mean_of(a_scaled3), make_mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance_of(a_scaled3), attach_pattern<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(covariance_of(a_scaled3), attach_patterns<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(compares_with<typename DistributionTraits<decltype(a_scaled3)>::StaticDescriptor, C3>);
   auto a_chol_scaled3 = f_matrix * a_chol;
   EXPECT_TRUE(is_near(mean_of(a_chol_scaled3), make_mean<C3>(62., 126, 190)));
-  EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), attach_pattern<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
+  EXPECT_TRUE(is_near(covariance_of(a_chol_scaled3), attach_patterns<C3, C3>(40., 92, 144, 92, 216, 340, 144, 340, 536)));
   static_assert(compares_with<typename DistributionTraits<decltype(a_chol_scaled3)>::StaticDescriptor, C3>);
 
   eigen_matrix_t<double, 2, 2> cov_mat; cov_mat << 8, 2, 2, 6;

@@ -59,7 +59,7 @@ namespace OpenKalman
       }
       else // A is known to be a 1-by-1 matrix.
       {
-        auto e = internal::get_singular_component(a) + alpha * internal::get_singular_component(contract(u, adjoint(u)));
+        auto e = internal::get_singular_component(a) + alpha * internal::get_singular_component(contract(u, conjugate_transpose(u)));
 
         if constexpr (writable_by_component<A&&>)
         {

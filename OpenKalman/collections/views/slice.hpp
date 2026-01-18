@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,9 +17,8 @@
 #define OPENKALMAN_COLLECTIONS_VIEWS_SLICE_HPP
 
 #include <tuple>
-#include "values/concepts/index.hpp"
-#include "values/concepts/fixed.hpp"
-#include "values/functions/operation.hpp"
+#include "values/values.hpp"
+#include "collections/functions/get_size.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/functions/get_element.hpp"
@@ -37,11 +36,10 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
   template<collection V, values::index Offset, values::size Extent = values::unbounded_size_t> requires
     std::same_as<std::decay_t<Offset>, Offset> and std::same_as<std::decay_t<Extent>, Extent> and
-    (not values::size_compares_with<Offset, size_of<V>, &stdex::is_gt>) and
-    (not values::index<Extent> or not values::size_compares_with<Extent, size_of<V>, &stdex::is_gt>) and
-    (not sized<V> or size_of_v<V> == stdex::dynamic_extent or
-      values::dynamic<Offset> or values::dynamic<Extent> or
-      values::fixed_value_of_v<Offset> + values::fixed_value_of_v<Extent> <= size_of_v<V>)
+    (not values::size_compares_with<Offset, size_of_t<V>, &stdex::is_gt>) and
+    (not values::index<Extent> or not values::size_compares_with<Extent, size_of_t<V>, &stdex::is_gt>) and
+    (not sized<V> or not values::index<Extent> or
+      not values::size_compares_with<values::operation_t<std::plus<>, Offset, Extent>, size_of_t<V>, &std::is_gt>)
 #else
   template<typename V, typename Offset, typename Extent = values::unbounded_size_t>
 #endif
@@ -63,13 +61,8 @@ namespace OpenKalman::collections
      * \brief Construct from a \ref collection.
      */
     constexpr
-    slice_view(const V& v, Offset offset = {}, Extent extent = {})
-      : v_ {v}, offset_ {std::move(offset)}, extent_ {std::move(extent)} {}
-
-    /// \overload
-    constexpr
     slice_view(V&& v, Offset offset = {}, Extent extent = {})
-      : v_ {std::move(v)}, offset_ {std::move(offset)}, extent_ {std::move(extent)} {}
+      : v_ {std::forward<V>(v)}, offset_ {std::move(offset)}, extent_ {std::move(extent)} {}
 
 
     /**
@@ -77,12 +70,12 @@ namespace OpenKalman::collections
      **/
 #ifdef __cpp_explicit_this_parameter
     constexpr decltype(auto)
-    base(this auto&& self) noexcept { return std::forward<decltype(self)>(self).v_; }
+    base(this auto&& self) noexcept { return std::forward<decltype(self)>(self).v_.get(); }
 #else
-    constexpr V& base() & { return this->v_; }
-    constexpr const V& base() const & { return this->v_; }
-    constexpr V&& base() && noexcept { return std::move(*this).v_; }
-    constexpr const V&& base() const && noexcept { return std::move(*this).v_; }
+    constexpr V& base() & { return this->v_.get(); }
+    constexpr const V& base() const & { return this->v_.get(); }
+    constexpr V&& base() && noexcept { return std::move(*this).v_.get(); }
+    constexpr const V&& base() const && noexcept { return std::move(*this).v_.get(); }
 #endif
 
 #ifndef __cpp_explicit_this_parameter
@@ -92,14 +85,14 @@ namespace OpenKalman::collections
     static constexpr auto
     begin_impl(Self&& self) noexcept
     {
-      return stdex::ranges::begin(std::forward<Self>(self).v_);
+      return stdex::ranges::begin(std::forward<Self>(self).v_.get());
     }
 
     template<typename Self>
     static constexpr auto
     end_impl(Self&& self) noexcept
     {
-      return stdex::ranges::end(std::forward<Self>(self).v_);
+      return stdex::ranges::end(std::forward<Self>(self).v_.get());
     }
 
   public:
@@ -112,7 +105,7 @@ namespace OpenKalman::collections
     constexpr auto
     begin(this auto&& self) noexcept requires stdex::ranges::range<const V>
     {
-      return stdex::ranges::begin(std::forward<decltype(self)>(self).v_) + std::forward<decltype(self)>(self).offset_;
+      return stdex::ranges::begin(std::forward<decltype(self)>(self).v_.get()) + std::forward<decltype(self)>(self).offset_;
     }
 #else
     template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
@@ -139,7 +132,7 @@ namespace OpenKalman::collections
       if constexpr (values::index<Extent>)
         return std::forward<decltype(self)>(self).begin() + std::forward<decltype(self)>(self).extent_;
       else
-        return stdex::ranges::end(std::forward<decltype(self)>(self).v_);
+        return stdex::ranges::end(std::forward<decltype(self)>(self).v_.get());
     }
 #else
     template<bool Enable = true, std::enable_if_t<Enable and stdex::ranges::range<const V>, int> = 0>
@@ -184,7 +177,7 @@ namespace OpenKalman::collections
       else
         return values::operation(
           std::minus{},
-          get_size(std::forward<decltype(self)>(self).v_),
+          get_size(std::forward<decltype(self)>(self).v_.get()),
           std::forward<decltype(self)>(self).offset_);
     }
 #else
@@ -195,7 +188,7 @@ namespace OpenKalman::collections
       if constexpr (values::index<Extent>)
         return extent_;
       else
-        return values::operation(std::minus{}, get_size(v_), offset_);
+        return values::operation(std::minus{}, get_size(v_.get()), offset_);
     }
 #endif
 
@@ -209,7 +202,7 @@ namespace OpenKalman::collections
     get(this auto&& self) noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get_element(std::forward<decltype(self)>(self).v_,
+      return collections::get_element(std::forward<decltype(self)>(self).v_.get(),
         values::operation(std::plus{}, std::forward<decltype(self)>(self).offset_, std::integral_constant<std::size_t, i>{}));
     }
 #else
@@ -218,7 +211,7 @@ namespace OpenKalman::collections
     get() &
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get_element(v_,
+      return collections::get_element(v_.get(),
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -227,7 +220,7 @@ namespace OpenKalman::collections
     get() const &
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get_element(v_,
+      return collections::get_element(v_.get(),
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -236,7 +229,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get_element(std::move(*this).v_,
+      return collections::get_element(std::move(*this).v_.get(),
         values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
@@ -245,14 +238,14 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_value_of_v<Extent>, "Index exceeds range");
-      return collections::get_element(std::move(*this).v_,
+      return collections::get_element(std::move(*this).v_.get(),
         values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).get_t())));
     }
 #endif
 
   private:
 
-    V v_;
+    internal::movable_wrapper<V> v_;
     Offset offset_;
     Extent extent_;
 
@@ -263,10 +256,10 @@ namespace OpenKalman::collections
    * \brief Deduction guides
    */
   template<typename V, typename O, typename E>
-  slice_view(const V&, const O&, const E&) -> slice_view<V, O, E>;
+  slice_view(V&&, const O&, const E&) -> slice_view<V, O, E>;
 
   template<typename V, typename O>
-  slice_view(const V&, const O&) -> slice_view<V, O>;
+  slice_view(V&&, const O&) -> slice_view<V, O>;
 
 
 }
@@ -303,7 +296,10 @@ namespace std
 
   template<typename V, typename O>
   struct tuple_size<OpenKalman::collections::slice_view<V, O, OpenKalman::values::unbounded_size_t>>
-    : integral_constant<std::size_t, OpenKalman::collections::size_of<V>::value - OpenKalman::values::fixed_value_of<O>::value> {};
+    : std::conditional_t<
+        OpenKalman::values::fixed<OpenKalman::collections::size_of<V>> and OpenKalman::values::fixed<O>,
+        OpenKalman::values::operation_t<std::minus<>, OpenKalman::collections::size_of<V>, O>,
+        std::monostate> {};
 
 
 #ifdef __cpp_concepts
@@ -325,41 +321,50 @@ namespace OpenKalman::collections::views
 {
   namespace detail
   {
-#ifdef __cpp_concepts
-    template<typename O, typename E, typename N>
-#else
-    template<typename O, typename E, typename N, typename = void>
-#endif
-    struct slice_is_whole : std::false_type {};
-
-#ifdef __cpp_concepts
-    template<values::fixed O, values::fixed E, values::fixed N>
-    struct slice_is_whole<O, E, N>
-#else
-    template<typename O, typename E, typename N>
-    struct slice_is_whole<O, E, N, std::enable_if_t<values::fixed<O> and values::fixed<E> and values::fixed<N>>>
-#endif
-      : std::bool_constant<(values::fixed_value_of_v<O> == 0_uz and values::fixed_value_of_v<E> == values::fixed_value_of_v<N>)> {};
+    template<typename R, typename O, typename E>
+    constexpr auto
+    slice_impl(R&& r, O&& o, E&& e)
+    {
+      if constexpr (viewable_collection<R>)
+      {
+        if constexpr (values::fixed_value_compares_with<O, 0_uz> and values::size_compares_with<E, size_of_t<R>>)
+          return all(std::forward<R>(r));
+        else
+          return slice_view {all(std::forward<R>(r)), std::forward<O>(o), std::forward<E>(e)};
+      }
+      else return slice_view {std::forward<R>(r), std::forward<O>(o), std::forward<E>(e)};
+    };
 
 
-
+    /**
+     * \internal
+     * \brief A closure for the slice view
+     */
     template<typename O, typename E>
     struct slice_closure : stdex::ranges::range_adaptor_closure<slice_closure<O, E>>
     {
       constexpr slice_closure(O o, E e) : offset_ {std::move(o)}, extent_ {std::move(e)} {};
 
 #ifdef __cpp_concepts
-      template<viewable_collection R>
+      template<typename R> requires
+        (viewable_collection<R> or
+          (uniformly_gettable<R> and values::fixed<O> and (values::fixed<E> or not values::index<E>))) and
+        (not values::size_compares_with<O, size_of<R>, &std::is_gt>) and
+        (not values::index<E> or not values::size_compares_with<E, size_of<R>, &std::is_gt>) and
+        (not sized<R> or size_of_v<R> == std::dynamic_extent or
+          values::dynamic<O> or values::dynamic<E> or
+          values::fixed_value_of_v<O> + values::fixed_value_of_v<E> <= size_of_v<R>)
 #else
-      template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
+      template<typename R, std::enable_if_t<
+        ((viewable_collection<R> or (uniformly_gettable<R> and values::fixed<O> and (values::fixed<E> or not values::index<E>))) and
+          values::index<O> and values::size<E>) and
+        (not values::size_compares_with<O, size_of<R>, &stdex::is_gt>) and
+        (not values::index<E> or not values::size_compares_with<E, size_of<R>, &stdex::is_gt>), int> = 0>
 #endif
       constexpr auto
       operator() (R&& r) const
       {
-        if constexpr (slice_is_whole<O, E, size_of<R>>::value)
-          return all(std::forward<R>(r));
-        else
-          return slice_view {all(std::forward<R>(r)), offset_, extent_};
+        return slice_impl(std::forward<R>(r), offset_, extent_);
       }
 
     private:
@@ -384,18 +389,24 @@ namespace OpenKalman::collections::views
 
 
 #ifdef __cpp_concepts
-      template<viewable_collection R, values::index O, values::size E = values::unbounded_size_t>
+      template<typename R, values::index O, values::size E = values::unbounded_size_t> requires
+        (viewable_collection<R> or
+          (uniformly_gettable<R> and values::fixed<O> and (values::fixed<E> or not values::index<E>))) and
+        (not values::size_compares_with<O, size_of_t<R>, &std::is_gt>) and
+        (not values::index<E> or not values::size_compares_with<E, size_of_t<R>, &std::is_gt>) and
+        (not sized<R> or not values::index<E> or
+          not values::size_compares_with<values::operation_t<std::plus<>, O, E>, size_of_t<R>, &std::is_gt>)
 #else
       template<typename R, typename O, typename E = values::unbounded_size_t, std::enable_if_t<
-        viewable_collection<R> and values::index<O> and values::size<E>, int> = 0>
+        ((viewable_collection<R> or (uniformly_gettable<R> and values::fixed<O> and (values::fixed<E> or not values::index<E>))) and
+          values::index<O> and values::size<E>) and
+        (not values::size_compares_with<O, size_of<R>, &stdex::is_gt>) and
+        (not values::index<E> or not values::size_compares_with<E, size_of<R>, &stdex::is_gt>), int> = 0>
 #endif
       constexpr decltype(auto)
       operator() (R&& r, O o, E e = values::unbounded_size) const
       {
-        if constexpr (slice_is_whole<O, E, size_of<R>>::value)
-          return all(std::forward<R>(r));
-        else
-          return slice_view {all(std::forward<R>(r)), std::move(o), std::move(e)};
+        return slice_impl(std::forward<R>(r), std::move(o), std::move(e));
       }
 
     };

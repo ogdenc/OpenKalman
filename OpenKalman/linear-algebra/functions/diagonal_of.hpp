@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,16 @@
 #ifndef OPENKALMAN_DIAGONAL_OF_HPP
 #define OPENKALMAN_DIAGONAL_OF_HPP
 
-#include "linear-algebra/concepts/constant_object.hpp"
+#include "patterns/patterns.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/get_mdspan.hpp"
+#include "linear-algebra/concepts/compares_with_pattern_collection.hpp"
+#include "linear-algebra/concepts/pattern_collection_for.hpp"
+#include "linear-algebra/concepts/diagonal_matrix.hpp"
+#include "linear-algebra/functions/attach_patterns.hpp"
+#include "linear-algebra/functions/make_constant.hpp"
+#include "linear-algebra/functions/internal/make_wrapped_mdspan.hpp"
+#include "linear-algebra/interfaces/stl/diagonal_of_mdspan_policies.hpp"
 
 namespace OpenKalman
 {
@@ -34,7 +43,7 @@ namespace OpenKalman
 #endif
   diagonal_of(Arg&& arg)
   {
-    if constexpr (one_dimensional<Arg>)
+    if constexpr (compares_with_pattern_collection<Arg, patterns::Dimensions<1>>)
     {
       return std::forward<Arg>(arg);
     }
@@ -42,39 +51,32 @@ namespace OpenKalman
     {
       return interface::library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
-    else if constexpr (constant_object<Arg>)
-    {
-
-
-      auto ds = get_pattern_collection(std::forward<Arg>(arg));
-      if constexpr (pattern_collection<decltype(ds)>)
-      {
-        return internal::make_constant_diagonal_from_descriptors<Arg>(
-          constant_value {std::forward<Arg>(arg)},
-          std::tuple_cat(ds, std::tuple{patterns::Axis{}, patterns::Axis{}}));
-      }
-      else
-      {
-        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_value {std::forward<Arg>(arg)}, ds);
-      }
-    }
-    else if constexpr (constant_diagonal_object<Arg>)
-    {
-      auto ds = get_pattern_collection(std::forward<Arg>(arg));
-      if constexpr (pattern_collection<decltype(ds)>)
-      {      
-        return internal::make_constant_diagonal_from_descriptors<Arg>(
-          constant_diagonal_value {std::forward<Arg>(arg)},
-          std::tuple_cat(get_pattern_collection(std::forward<Arg>(arg)), std::tuple{patterns::Axis{}, patterns::Axis{}}));
-      }
-      else
-      {
-        return internal::make_constant_diagonal_from_descriptors<Arg>(constant_diagonal_value {std::forward<Arg>(arg)}, ds);
-      }
-    }
     else
     {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+      auto p = patterns::views::diagonal_of(get_pattern_collection(arg));
+      if constexpr (constant_object<Arg> or constant_diagonal_object<Arg>)
+      {
+        return make_constant(constant_value(arg), std::move(p));
+      }
+      else
+      {
+        decltype(auto) n = get_mdspan(arg);
+        using N = std::decay_t<decltype(n)>;
+        using nested_extents_type = typename N::extents_type;
+        using nested_layout = typename N::layout_type;
+
+        using layout_type = interface::layout_diagonal_of<nested_layout, nested_extents_type>;
+        using extents_type = decltype(patterns::to_extents(p));
+        using mapping_type = typename layout_type::template mapping<extents_type>;
+        auto map = mapping_type {n.mapping(), patterns::to_extents(p)};
+
+        return internal::make_wrapped_mdspan(
+          std::forward<Arg>(arg),
+          stdex::identity{},
+          std::move(map),
+          n.accessor(),
+          std::move(p));
+      }
     }
   }
 

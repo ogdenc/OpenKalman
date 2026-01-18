@@ -36,8 +36,8 @@ namespace OpenKalman::collections
     {
       using type = stdex::ranges::range_value_t<T>;
 
-      template<typename R> constexpr decltype(auto) operator() (R&& r) const
-       { return get<i>(std::forward<R>(r)); }
+      template<typename R> constexpr decltype(auto)
+      operator() (R&& r) const { return get<i>(std::forward<R>(r)); }
     };
 
 

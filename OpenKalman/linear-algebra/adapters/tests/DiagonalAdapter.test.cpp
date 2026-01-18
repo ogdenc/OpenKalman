@@ -687,8 +687,8 @@ TEST(adapters, Diagonal_overloads)
   EXPECT_TRUE(is_near(transpose(d3), d3));
   EXPECT_TRUE(is_near(transpose(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
 
-  EXPECT_TRUE(is_near(adjoint(d3), d3));
-  EXPECT_TRUE(is_near(adjoint(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,-2), cdouble(2,-3), 3}));
+  EXPECT_TRUE(is_near(conjugate_transpose(d3), d3));
+  EXPECT_TRUE(is_near(conjugate_transpose(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,-2), cdouble(2,-3), 3}));
 
   EXPECT_NEAR(determinant(diagonal_adapter<M31> {2., 3, 4}), 24, 1e-6);
 

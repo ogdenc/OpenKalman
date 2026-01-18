@@ -631,23 +631,23 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    adjoint(Arg&& arg)
+    conjugate_transpose(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
         if constexpr (Eigen3::eigen_general<nested_object_of_t<Arg>, true>)
-          return adjoint(nested_object(std::forward<Arg>(arg)));
+          return conjugate_transpose(nested_object(std::forward<Arg>(arg)));
         else
-          return std::forward<Arg>(arg).adjoint(); // Rely on inherited Eigen adjoint method
+          return std::forward<Arg>(arg).conjugate_transpose(); // Rely on inherited Eigen adjoint method
       }
       else if constexpr (Eigen3::eigen_matrix_general<Arg, true> or Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
-        return std::forward<Arg>(arg).adjoint();
+        return std::forward<Arg>(arg).conjugate_transpose();
       else if constexpr (Eigen3::eigen_array_general<Arg, true>)
-        return std::forward<Arg>(arg).matrix().adjoint();
+        return std::forward<Arg>(arg).matrix().conjugate_transpose();
       else if constexpr (triangular_matrix<Arg>)
-        return OpenKalman::adjoint(TriangularAdapter {std::forward<Arg>(arg)});
+        return OpenKalman::conjugate_transpose(TriangularAdapter {std::forward<Arg>(arg)});
       else
-        return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).adjoint();
+        return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).conjugate_transpose();
       // Note: the global adjoint function already handles zero, constant, diagonal, non-complex, and hermitian cases.
     }
 
@@ -819,7 +819,7 @@ namespace OpenKalman::interface
           else
           {
             constexpr unsigned int uplo = tri == triangle_type::upper ? Eigen::Upper : Eigen::Lower;
-            b.template triangularView<uplo>() = LL_x.matrixLLT().adjoint();
+            b.template triangularView<uplo>() = LL_x.matrixLLT().conjugate_transpose();
           }
         }
         else [[unlikely]]
@@ -1060,7 +1060,7 @@ namespace OpenKalman::interface
     static constexpr auto
     LQ_decomposition(A&& a)
     {
-      return make_triangular_matrix<triangle_type::lower>(make_self_contained(adjoint(QR_decomp_impl(adjoint(std::forward<A>(a))))));
+      return make_triangular_matrix<triangle_type::lower>(make_self_contained(conjugate_transpose(QR_decomp_impl(conjugate_transpose(std::forward<A>(a))))));
     }
 
 

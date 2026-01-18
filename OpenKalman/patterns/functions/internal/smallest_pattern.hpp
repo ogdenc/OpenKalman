@@ -37,11 +37,11 @@ namespace OpenKalman::patterns::internal
         auto ix = std::integral_constant<std::size_t, i>{};
         auto p_i = get_dimension(collections::get<i>(p));
         auto is_new_min = values::operation(std::less{}, p_i, min);
-        auto select = [](bool q, std::size_t curr, std::size_t old){ return q ? curr : old; };
+        struct Op { constexpr auto operator()(bool q, std::size_t curr, std::size_t old) const { return q ? curr : old; } };
         return smallest_pattern_fixed<i + 1>(
           p,
-          values::operation(select, is_new_min, ix, mi),
-          values::operation(select, is_new_min, p_i, min));
+          values::operation(Op{}, is_new_min, ix, mi),
+          values::operation(Op{}, is_new_min, p_i, min));
       }
       else
       {

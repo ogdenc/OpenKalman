@@ -347,7 +347,7 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(to_diagonal(FromEuclideanExpr<Cara, eigen_matrix_t<double, 4, 1>>{1., std::sqrt(3)/2, 0.5, 3}), diagonal_adapter {1, pi/6, 3}));
   EXPECT_TRUE(is_near(diagonal_of(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), make_eigen_matrix<double, 2, 1>(1, pi/3)));
   EXPECT_TRUE(is_near(transpose(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
-  EXPECT_TRUE(is_near(adjoint(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
+  EXPECT_TRUE(is_near(conjugate_transpose(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), make_eigen_matrix<double, 2, 3>(1, pi/6, 3, 2, pi/3, 4)));
   EXPECT_NEAR(determinant(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), 0.0, 1e-6);
   EXPECT_NEAR(trace(From32 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2}), 1 + pi/3, 1e-6);
   EXPECT_TRUE(is_near(solve(

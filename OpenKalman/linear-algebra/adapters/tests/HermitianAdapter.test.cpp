@@ -671,10 +671,10 @@ TEST(special_matrices, SelfAdjointMatrix_overloads)
   EXPECT_TRUE(is_near(transpose(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
   EXPECT_TRUE(is_near(transpose(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
   //
-  EXPECT_TRUE(is_near(adjoint(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(adjoint(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(adjoint(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
-  EXPECT_TRUE(is_near(adjoint(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
+  EXPECT_TRUE(is_near(conjugate_transpose(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(conjugate_transpose(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(conjugate_transpose(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
+  EXPECT_TRUE(is_near(conjugate_transpose(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
   //
   EXPECT_NEAR(determinant(L22 {9., 3, 3, 10}), 81, 1e-6);
   EXPECT_NEAR(determinant(U22 {9., 3, 3, 10}), 81, 1e-6);

@@ -50,8 +50,7 @@ namespace OpenKalman::values
 
 
   /**
-   * \brief T is a \ref value that is determinable at compile time.
-   * \todo Include objects that can be implicitly converted to a number at compile time?
+   * \brief T has a value that is determinable at compile time.
    */
   template<typename T>
 #ifdef __cpp_concepts

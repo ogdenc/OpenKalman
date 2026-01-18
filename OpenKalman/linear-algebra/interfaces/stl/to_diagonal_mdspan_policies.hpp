@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief mdspan policies for \ref diagonal_matrix
+ * \brief mdspan policies for \ref to_diagonal operation
  */
 
 #ifndef OPENKALMAN_TO_DIAGONAL_MDSPAN_POLICIES_HPP
@@ -23,9 +23,9 @@ namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief A layout policy that returns the index of a diagonal element or std::dynamic_extent representing the 0 elements.
+   * \brief A layout policy that returns a 1D index to the main diagonal of the nested object.
    */
-  template<typename NestedLayout>
+  template<typename NestedLayout, typename NestedExtents>
   struct layout_to_diagonal
   {
     template<class Extents>
@@ -39,54 +39,57 @@ namespace OpenKalman::interface
 
     private:
 
-      constexpr std::size_t
-      diag_extent_0() noexcept
-      {
-        if constexpr (extents_type::rank() == 0) return 0;
-        else if constexpr (extents_type::rank() == 1) return std::min(extents_.extent(0), 1);
-        else return std::min(extents_type::static_extent(0), extents_.extent(1));
-      }
+      using nested_extents_type = NestedExtents;
+      using nested_mapping_type = typename NestedLayout:: template mapping<nested_extents_type>;
 
-      using nested_mapping_type = typename NestedLayout::template mapping<std::decay_t<decltype(
-        patterns::to_extents(patterns::pattern_collection_of_diagonal(std::declval<extents_type>())))>>;
+      template<typename...Is>
+      constexpr index_type
+      access_with_padded_indices(Is...is) const
+      {
+        if constexpr (sizeof...(Is) < nested_extents_type::rank())
+          return access_with_padded_indices(is..., 0_uz);
+        else
+          return nested_mapping_(is...);
+      }
 
     public:
 
       constexpr explicit
       mapping(const nested_mapping_type& map, const extents_type& e)
-        : nested_mapping_(map),
-          extents_(e) {}
+        : nested_mapping_(map), extents_(e) {}
 
       constexpr const extents_type&
       extents() const noexcept { return extents_; }
 
-      constexpr index_type
 #ifdef __cpp_concepts
+      constexpr index_type
       operator() () const requires (extents_type::rank() == 0)
 #else
       template<bool Enable = true, std::enable_if_t<Enable and (extents_type::rank() == 0), int> = 0>
+      constexpr index_type
       operator() () const
 #endif
       {
-        return nested_mapping_(0);
+        return access_with_padded_indices();
       }
 
-      constexpr index_type
 #ifdef __cpp_concepts
+      constexpr index_type
       operator() (std::convertible_to<index_type> auto i0) const requires (extents_type::rank() == 1)
 #else
       template<typename IndexType0, std::enable_if_t<
         std::is_convertible_v<IndexType0, index_type> and
         (extents_type::rank() == 1), int> = 0>
+      constexpr index_type
       operator() (IndexType0 i0) const
 #endif
       {
-        if (i0 == 0) return nested_mapping_(0);
-        else return nested_mapping_.required_span_size();
+        if (i0 == 0) return access_with_padded_indices();
+        return nested_mapping_.required_span_size();
       }
 
-      constexpr index_type
 #ifdef __cpp_concepts
+      constexpr index_type
       operator() (
         std::convertible_to<index_type> auto i0,
         std::convertible_to<index_type> auto i1,
@@ -97,52 +100,63 @@ namespace OpenKalman::interface
         std::is_convertible_v<IndexType1, index_type> and
         (... and std::is_convertible_v<IndexTypes, index_type>) and
         (2 + sizeof...(IndexTypes) == extents_type::rank()), int> = 0>
-      operator() (IndexType0 i0, IndexType i1, IndexTypes...is) const
+      constexpr index_type
+      operator() (IndexType0 i0, IndexType1 i1, IndexTypes...is) const
 #endif
       {
-        if (i0 == i1) return nested_mapping_(i1, is...);
-        else return nested_mapping_.required_span_size();
+        if (i0 == i1) return access_with_padded_indices(i1, is...);
+        return nested_mapping_.required_span_size();
       }
 
       constexpr index_type
-      required_span_size() const noexcept { return nested_mapping_.required_span_size() + 1; }
-
-      static constexpr bool is_always_unique() noexcept
+      required_span_size() const noexcept
       {
-        if constexpr (extents_type::rank() == 0) return true;
+        auto s = nested_mapping_.required_span_size();
+        return s == 0 ? 0 : s + 1;
+      }
+
+      static constexpr bool
+      is_always_unique() noexcept
+      {
+        if constexpr (not nested_mapping_type::is_always_unique()) return false;
+        else if constexpr (extents_type::rank() == 0) return true;
         else if constexpr (extents_type::rank() == 1) return extents_type::static_extent(0) == 1;
         else return extents_type::static_extent(0) == 1 and extents_type::static_extent(1) == 1;
       }
 
-      static constexpr bool is_always_exhaustive() noexcept { return nested_mapping_type::is_always_exhaustive(); }
+      static constexpr bool
+      is_always_exhaustive() noexcept { return nested_mapping_type::is_always_exhaustive(); }
 
-      static constexpr bool is_always_strided() noexcept { return false; }
+      static constexpr bool
+      is_always_strided() noexcept { return false; }
 
-      constexpr bool is_unique() const
+      constexpr bool
+      is_unique() const
       {
+        if (not nested_mapping_type::is_unique()) return false;
         if constexpr (extents_type::rank() == 0) return true;
         else if constexpr (extents_type::rank() == 1) return extents_.extent(0) == 1;
         else return extents_.extent(0) == 1 and extents_.extent(1) == 1;
       }
 
-      constexpr bool is_exhaustive() const { return nested_mapping_type::is_exhaustive(); }
+      constexpr bool
+      is_exhaustive() const { return nested_mapping_type::is_exhaustive(); }
 
-      constexpr bool is_strided() const { return false; }
+      constexpr bool
+      is_strided() const { return false; }
 
       constexpr index_type
       stride(std::size_t r) const
       {
         assert(false);
-        assert(r < extents_type::rank());
-        if (r < 2 and extents_.extent(r) != diag_extent_0()) return 0;
-        else return nested_mapping_.stride(r - 1);
+        return 0;
       }
 
       template<class OtherExtents>
       friend constexpr bool
       operator==(const mapping& lhs, const mapping<OtherExtents>& rhs) noexcept
       {
-        return lhs.extents() == rhs.extents();
+        return patterns::compare_pattern_collections(lhs.extents(), rhs.extents());
       }
 
     private:
@@ -160,31 +174,25 @@ namespace OpenKalman::interface
    * \details The accessor returns 0 if the index is a special index designated for as the off-diagonal index.
    */
   template<typename NestedAccessor>
-  struct to_diagonal_accessor {
-  private:
+  struct to_diagonal_accessor
+  {
+    using element_type = values::value_type_of_t<typename NestedAccessor::element_type>;
+    using reference = element_type;
+    using data_handle_type = std::tuple<typename NestedAccessor::data_handle_type, std::size_t>;
+    using offset_policy = to_diagonal_accessor;
 
-    using nested_element_type = typename NestedAccessor::element_type;
-
-  public:
-
-    using element_type = std::add_const_t<values::value_type_of_t<nested_element_type>>;
-
-    using reference = std::add_lvalue_reference_t<element_type>;
-    static_assert(stdex::convertible_to<typename NestedAccessor::reference, reference>);
-
-    using data_handle_type = std::add_pointer_t<element_type>;
-    static_assert(stdex::convertible_to<values::value_type_of_t<typename NestedAccessor::data_handle_type>, data_handle_type>);
-
-    using offset_policy = to_diagonal_accessor<typename NestedAccessor::offset_policy>;
+    static_assert(values::value<element_type>);
+#ifdef __cpp_concepts
+    static_assert(requires { static_cast<reference>(std::declval<int>()); });
+    static_assert(requires { static_cast<reference>(std::declval<typename NestedAccessor::reference>()); });
+#endif
 
     /**
      * \brief
      * \param acc The nested accessor
-     * \param off_diagonal_index The index of the off-diagonal element (which should be the maximum of the accessible range + 1).
      */
     constexpr
-    to_diagonal_accessor(NestedAccessor acc, std::size_t off_diagonal_index)
-      : nested_accessor_(std::move(acc)), off_diagonal_index_(off_diagonal_index) {}
+    to_diagonal_accessor(NestedAccessor acc) : nested_accessor_(std::move(acc)) {}
 
     to_diagonal_accessor() = delete;
 
@@ -197,7 +205,7 @@ namespace OpenKalman::interface
       (not std::is_same_v<NestedAccessor, OtherNestedAccessor>), int> = 0>
 #endif
     constexpr to_diagonal_accessor(const to_diagonal_accessor<OtherNestedAccessor>& other) noexcept
-      : nested_accessor_ {other.element_}, off_diagonal_index_(other.off_diagonal_index_) {}
+      : nested_accessor_ {other.element_} {}
 
 #ifdef __cpp_concepts
     template<stdex::convertible_to<NestedAccessor> OtherNestedAccessor> requires
@@ -208,31 +216,20 @@ namespace OpenKalman::interface
       (not std::is_same_v<NestedAccessor, OtherNestedAccessor>), int> = 0>
 #endif
     constexpr to_diagonal_accessor(to_diagonal_accessor<OtherNestedAccessor>&& other) noexcept
-      : nested_accessor_ {std::move(other).element_}, off_diagonal_index_(std::move(other).off_diagonal_index_) {}
-
-  private:
-
-    static constexpr data_handle_type
-    get_zero()
-    {
-      static element_type z(0);
-      return &z;
-    }
-
-  public:
+      : nested_accessor_ {std::move(other).element_} {}
 
     constexpr reference
     access(data_handle_type p, std::size_t i) const noexcept
     {
-      if (i == off_diagonal_index_) return *get_zero();
-      return nested_accessor_.access(p, i);
+      if (i == std::get<1>(p)) return static_cast<reference>(0);
+      return static_cast<reference>(nested_accessor_.access(std::get<0>(std::move(p)), i));
     }
 
     constexpr data_handle_type
     offset(data_handle_type p, std::size_t i) const noexcept
     {
-      if (i == off_diagonal_index_) return get_zero();
-      return values::to_value_type(nested_accessor_.offset(p, i));
+      if (i == 0) return p;
+      return {std::get<0>(std::move(p)), std::get<1>(p) - i};
     }
 
     const NestedAccessor&
@@ -241,8 +238,6 @@ namespace OpenKalman::interface
   private:
 
     NestedAccessor nested_accessor_;
-
-    std::size_t off_diagonal_index_;
 
   };
 

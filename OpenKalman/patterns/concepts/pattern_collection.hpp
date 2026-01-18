@@ -13,8 +13,8 @@
  * \brief Definition for \ref pattern_collection.
  */
 
-#ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
-#define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
+#ifndef OPENKALMAN_PATTERN_COLLECTION_HPP
+#define OPENKALMAN_PATTERN_COLLECTION_HPP
 
 #include "collections/collections.hpp"
 #include "sized_pattern.hpp"

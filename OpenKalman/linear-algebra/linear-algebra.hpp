@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -68,11 +68,11 @@
 #include "concepts/compares_with_pattern_collection.hpp"
 #include "concepts/pattern_collection_for.hpp"
 
-#include "traits/is_square_shaped.hpp"
 #include "concepts/square_shaped.hpp"
+#include "traits/is_square_shaped.hpp"
 
-#include "traits/is_one_dimensional.hpp"
 #include "concepts/one_dimensional.hpp"
+#include "traits/is_one_dimensional.hpp"
 
 #include "concepts/empty_object.hpp"
 
@@ -108,18 +108,19 @@
 #include "functions/copy_from.hpp"
 
 #include "adapters/pattern_adapter.hpp"
-#include "functions/attach_pattern.hpp"
+#include "functions/attach_patterns.hpp"
 
 #include "functions/make_constant.hpp"
 #include "functions/make_zero.hpp"
 
 #include "functions/to_diagonal.hpp"
 #include "functions/make_constant_diagonal.hpp"
+#include "functions/make_identity_matrix.hpp"
 #include "functions/diagonal_of.hpp"
 
 #include "functions/conjugate.hpp"
 #include "functions/transpose.hpp"
-#include "functions/adjoint.hpp"
+#include "functions/conjugate_transpose.hpp"
 
 /*
 
@@ -136,9 +137,6 @@
 #include "functions/make_dense_object_from.hpp"
 
 #include "functions/make_diagonal_adapter.hpp"
-
-#include "functions/internal/make_constant_diagonal_from_descriptors.hpp"
-#include "functions/make_identity_matrix_like.hpp"
 
 #include "functions/make_triangular_matrix.hpp"
 #include "functions/make_hermitian_matrix.hpp"

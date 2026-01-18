@@ -602,7 +602,7 @@ namespace OpenKalman
       if (synchronization_direction() < 0) Base::synchronize_reverse();
       if constexpr (one_dimensional<NestedMatrix>)
       {
-        Base::operator()(0, 0) = trace(nested_object()) + alpha * trace(u * adjoint(u));
+        Base::operator()(0, 0) = trace(nested_object()) + alpha * trace(u * conjugate_transpose(u));
       }
       else
       {
@@ -628,7 +628,7 @@ namespace OpenKalman
       if constexpr (one_dimensional<NestedMatrix>)
       {
         std::tuple d_tup {Dimensions<1>{}, Dimensions<1>{}};
-        return make_dense_object_from<NestedMatrix>(d_tup, trace(nested_object()) + alpha * trace(u * adjoint(u)));
+        return make_dense_object_from<NestedMatrix>(d_tup, trace(nested_object()) + alpha * trace(u * conjugate_transpose(u)));
       }
       else
       {

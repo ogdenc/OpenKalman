@@ -32,7 +32,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
     else if constexpr (mean<V1> and mean<V2>) return make_mean<RC1>(std::move(b));
-    else return attach_pattern(std::move(b), RC1{}, CC1{});
+    else return attach_patterns(std::move(b), RC1{}, CC1{});
   }
 
 
@@ -53,8 +53,8 @@ namespace OpenKalman
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) - nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
-    else if constexpr (mean<V1> and mean<V2>) return attach_pattern(std::move(b), typename RC1::difference_type{}, CC1{});
-    else return attach_pattern(std::move(b), RC1{}, CC1{});
+    else if constexpr (mean<V1> and mean<V2>) return attach_patterns(std::move(b), typename RC1::difference_type{}, CC1{});
+    else return attach_patterns(std::move(b), RC1{}, CC1{});
   }
 
 
@@ -75,7 +75,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return attach_pattern(std::move(b), RC{}, CC{});
+    else return attach_patterns(std::move(b), RC{}, CC{});
   }
 
 
@@ -96,7 +96,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return attach_pattern(std::move(b), RC{}, CC{});
+    else return attach_patterns(std::move(b), RC{}, CC{});
   }
 
 
@@ -117,7 +117,7 @@ namespace OpenKalman
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
-    else return attach_pattern(std::move(b), RC{}, CC{});
+    else return attach_patterns(std::move(b), RC{}, CC{});
   }
 
 
@@ -136,7 +136,7 @@ namespace OpenKalman
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) * nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC>(std::move(b));
-    else return attach_pattern(std::move(b), RC{}, CC{});
+    else return attach_patterns(std::move(b), RC{}, CC{});
   }
 
 
@@ -154,7 +154,7 @@ namespace OpenKalman
     auto b = make_self_contained<V>(-nested_object(std::forward<V>(v)));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
-    else return attach_pattern(std::move(b), RC{}, CC{});
+    else return attach_patterns(std::move(b), RC{}, CC{});
   }
 
 

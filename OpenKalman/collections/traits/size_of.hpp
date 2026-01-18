@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2024-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,6 +18,7 @@
 
 #include "values/values.hpp"
 #include "collections/functions/get_size.hpp"
+#include "collections/concepts/sized.hpp"
 
 namespace OpenKalman::collections
 {
@@ -33,21 +34,23 @@ namespace OpenKalman::collections
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires (not values::fixed<decltype(collections::get_size(std::declval<T>()))>)
+  template<sized T> requires (not values::fixed<decltype(collections::get_size(std::declval<T>()))>)
   struct size_of<T>
 #else
   template<typename T>
-  struct size_of<T, std::enable_if_t<not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
+  struct size_of<T, std::enable_if_t<
+    sized<T> and not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
   : std::integral_constant<std::size_t, stdex::dynamic_extent> {};
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires values::fixed<decltype(collections::get_size(std::declval<T>()))>
+  template<sized T> requires values::fixed<decltype(collections::get_size(std::declval<T>()))>
   struct size_of<T>
 #else
   template<typename T>
-  struct size_of<T, std::enable_if_t<values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
+  struct size_of<T, std::enable_if_t<
+    sized<T> and values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
     : values::fixed_value_of<decltype(collections::get_size(std::declval<T>()))> {};
 
@@ -57,6 +60,13 @@ namespace OpenKalman::collections
    */
   template<typename T>
   inline constexpr std::size_t size_of_v = size_of<T>::value;
+
+
+  /**
+   * \brief The type of the argument's size, which will satisfy values::size.
+   */
+  template<typename T>
+  using size_of_t = std::conditional_t<sized<T>, size_of<T>, values::unbounded_size_t>;
 
 }
 

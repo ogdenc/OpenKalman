@@ -32,7 +32,7 @@ namespace OpenKalman::collections
     struct has_tuple_element_impl<i, T, std::void_t<typename std::tuple_element<i, T>::type>> : std::true_type {};
 
 
-    template<typename T, typename = std::make_index_sequence<collections::size_of_v<T>>>
+    template<typename T, typename = std::make_index_sequence<size_of_v<T>>>
     struct is_tuple_like_impl : std::false_type {};
 
     template<typename T, std::size_t...i>

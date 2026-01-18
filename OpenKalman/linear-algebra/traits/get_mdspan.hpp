@@ -31,7 +31,7 @@ namespace OpenKalman
 #else
   template<typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
-  constexpr auto
+  constexpr decltype(auto)
   get_mdspan(T&& t)
   {
     return interface::object_traits<stdex::remove_cvref_t<T>>::get_mdspan(std::forward<T>(t));

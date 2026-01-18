@@ -412,15 +412,15 @@ template<indexible Arg>
 
       template<typename Arg>
       static constexpr decltype(auto)
-      adjoint(Arg&& arg)
+      conjugate_transpose(Arg&& arg)
       {
         if constexpr(has_untyped_index<NestedObject, 0>)
         {
-          return OpenKalman::adjoint(nested_object(std::forward<Arg>(arg)));
+          return OpenKalman::conjugate_transpose(nested_object(std::forward<Arg>(arg)));
         }
         else
         {
-          return std::forward<Arg>(arg).adjoint(); //< \todo Generalize this.
+          return std::forward<Arg>(arg).conjugate_transpose(); //< \todo Generalize this.
         }
       }
 

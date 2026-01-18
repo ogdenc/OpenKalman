@@ -79,12 +79,12 @@ TEST(adapters, constant_adapter_functions)
   EXPECT_TRUE(is_near(transpose(c5xx_34), M43::Constant(5)));
   static_assert(constant_matrix<decltype(transpose(c5xx_34))>);
 
-  EXPECT_TRUE(is_near(adjoint(c534), M43::Constant(5)));
-  EXPECT_TRUE(is_near(adjoint(c53x_4), M43::Constant(5)));
-  EXPECT_TRUE(is_near(adjoint(c5x4_3), M43::Constant(5)));
-  EXPECT_TRUE(is_near(adjoint(c5xx_34), M43::Constant(5)));
-  EXPECT_TRUE(is_near(adjoint(constant_adapter<CM34, cdouble, 5> {}), CM43::Constant(cdouble(5,0))));
-  static_assert(constant_matrix<decltype(adjoint(c5xx_34))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(c534), M43::Constant(5)));
+  EXPECT_TRUE(is_near(conjugate_transpose(c53x_4), M43::Constant(5)));
+  EXPECT_TRUE(is_near(conjugate_transpose(c5x4_3), M43::Constant(5)));
+  EXPECT_TRUE(is_near(conjugate_transpose(c5xx_34), M43::Constant(5)));
+  EXPECT_TRUE(is_near(conjugate_transpose(constant_adapter<CM34, cdouble, 5> {}), CM43::Constant(cdouble(5,0))));
+  static_assert(constant_matrix<decltype(conjugate_transpose(c5xx_34))>);
 
   EXPECT_NEAR(determinant(c533), 0, 1e-6);
   EXPECT_NEAR(determinant(c53x_3), 0, 1e-6);
@@ -300,22 +300,22 @@ TEST(adapters, zero_adapter_functions)
 
   // adjoint
 
-  EXPECT_TRUE(is_near(adjoint(ec21_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ec21_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ec2x_1_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ec2x_1_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ecx1_2_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ecx1_2_2))> == 2);
-  EXPECT_TRUE(is_near(adjoint(ecxx_21_2), ec12_2)); static_assert(constant_value_v<decltype(adjoint(ecxx_21_2))> == 2);
+  EXPECT_TRUE(is_near(conjugate_transpose(ec21_2), ec12_2)); static_assert(constant_value_v<decltype(conjugate_transpose(ec21_2))> == 2);
+  EXPECT_TRUE(is_near(conjugate_transpose(ec2x_1_2), ec12_2)); static_assert(constant_value_v<decltype(conjugate_transpose(ec2x_1_2))> == 2);
+  EXPECT_TRUE(is_near(conjugate_transpose(ecx1_2_2), ec12_2)); static_assert(constant_value_v<decltype(conjugate_transpose(ecx1_2_2))> == 2);
+  EXPECT_TRUE(is_near(conjugate_transpose(ecxx_21_2), ec12_2)); static_assert(constant_value_v<decltype(conjugate_transpose(ecxx_21_2))> == 2);
 
-  EXPECT_TRUE(is_near(adjoint(ez21), ez12)); static_assert(zero<decltype(adjoint(ez21))>);
-  EXPECT_TRUE(is_near(adjoint(ez2x_1), ez12)); static_assert(zero<decltype(adjoint(ez2x_1))>);
-  EXPECT_TRUE(is_near(adjoint(ezx1_2), ez12)); static_assert(zero<decltype(adjoint(ezx1_2))>);
-  EXPECT_TRUE(is_near(adjoint(ezxx_21), ez12)); static_assert(zero<decltype(adjoint(ezxx_21))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(ez21), ez12)); static_assert(zero<decltype(conjugate_transpose(ez21))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(ez2x_1), ez12)); static_assert(zero<decltype(conjugate_transpose(ez2x_1))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(ezx1_2), ez12)); static_assert(zero<decltype(conjugate_transpose(ezx1_2))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(ezxx_21), ez12)); static_assert(zero<decltype(conjugate_transpose(ezxx_21))>);
 
-  EXPECT_TRUE(is_near(adjoint(z23), M32::Zero()));
-  EXPECT_TRUE(is_near(adjoint(z2x_3), M32::Zero()));
-  EXPECT_TRUE(is_near(adjoint(zx3_2), M32::Zero()));
-  EXPECT_TRUE(is_near(adjoint(zxx_23), M32::Zero()));
-  EXPECT_TRUE(is_near(adjoint(zero_adapter<CM23> {}), M32::Zero()));
-  static_assert(zero<decltype(adjoint(zxx_23))>);
+  EXPECT_TRUE(is_near(conjugate_transpose(z23), M32::Zero()));
+  EXPECT_TRUE(is_near(conjugate_transpose(z2x_3), M32::Zero()));
+  EXPECT_TRUE(is_near(conjugate_transpose(zx3_2), M32::Zero()));
+  EXPECT_TRUE(is_near(conjugate_transpose(zxx_23), M32::Zero()));
+  EXPECT_TRUE(is_near(conjugate_transpose(zero_adapter<CM23> {}), M32::Zero()));
+  static_assert(zero<decltype(conjugate_transpose(zxx_23))>);
 
   // determinant
 
@@ -497,7 +497,7 @@ TEST(adapters, constant_rank_update)
   EXPECT_TRUE(is_near(rank_update_hermitian(d00_21_9, dxx_21_2, 4), m22_25));
 
   auto m1034 = make_dense_object_from<M22>(1, 0, 3, 4);
-  auto m1034_2 = m1034 * adjoint(m1034);
+  auto m1034_2 = m1034 * conjugate_transpose(m1034);
 
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
   ZA20 z2x_2 {Dimensions<2>(), 2};

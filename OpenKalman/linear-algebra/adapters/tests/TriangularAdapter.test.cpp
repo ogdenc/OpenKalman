@@ -700,10 +700,10 @@ TEST(special_matrices, TriangularAdapter_overloads)
   EXPECT_TRUE(is_near(transpose(CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}), CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}));
   EXPECT_TRUE(is_near(transpose(CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}), CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}));
   //
-  EXPECT_TRUE(is_near(adjoint(Lower {3., 0, 1, 3}), mu));
-  EXPECT_TRUE(is_near(adjoint(Upper {3., 1, 0, 3}), ml));
-  EXPECT_TRUE(is_near(adjoint(CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}), CUpper {cdouble(3,-1), cdouble(1,-2), 0, cdouble(3,1)}));
-  EXPECT_TRUE(is_near(adjoint(CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}), CLower {cdouble(3,-1), 0, cdouble(1,-2), cdouble(3,1)}));
+  EXPECT_TRUE(is_near(conjugate_transpose(Lower {3., 0, 1, 3}), mu));
+  EXPECT_TRUE(is_near(conjugate_transpose(Upper {3., 1, 0, 3}), ml));
+  EXPECT_TRUE(is_near(conjugate_transpose(CLower {cdouble(3,1), 0, cdouble(1,2), cdouble(3,-1)}), CUpper {cdouble(3,-1), cdouble(1,-2), 0, cdouble(3,1)}));
+  EXPECT_TRUE(is_near(conjugate_transpose(CUpper {cdouble(3,1), cdouble(1,2), 0, cdouble(3,-1)}), CLower {cdouble(3,-1), 0, cdouble(1,-2), cdouble(3,1)}));
   //
   EXPECT_NEAR(determinant(Lower {3., 0, 1, 3}), 9, 1e-6);
   EXPECT_NEAR(determinant(Upper {3., 1, 0, 3}), 9, 1e-6);

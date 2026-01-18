@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,13 +26,13 @@ namespace OpenKalman
   namespace detail
   {
 #ifndef __cpp_concepts
-    template<typename T, auto N, applicabilty b, typename = void>
+    template<typename T, auto N, applicability b, typename = void>
     struct one_dimensional_impl : std::false_type {};
 
-    template<typename T, auto N, applicabilty b>
+    template<typename T, auto N, applicability b>
     struct one_dimensional_impl<T, N, b, std::enable_if_t<
-      patterns::collection_patterns_compare_with_dimension<typename pattern_collection_type_of<T>::type, 1, &stdex::is_eq, N, b>
-      > : std::true_type {};
+      patterns::collection_patterns_compare_with_dimension<typename pattern_collection_type_of<T>::type, 1, &stdex::is_eq, N, b>>>
+        : std::true_type {};
 #endif
 
 
@@ -53,29 +53,37 @@ namespace OpenKalman
 #else
       if constexpr (N == std::size_t(values::unbounded_size))
 #endif
-        return any_1d_index_impl<T, collections::size_of_v<T>>::value;
-      else
-        return any_1d_index_impl<T, N>::value;
+      {
+        if constexpr (values::fixed<index_count<T>>)
+          return any_1d_index_impl<T, index_count_v<T>>::value;
+        else
+          return false;
+      }
+      else return any_1d_index_impl<T, N>::value;
     }
   }
 
 
   /**
-   * \brief Specifies that a type is one-dimensional in every index.
-   * \details Each index need not have an equivalent \ref patterns::pattern "pattern".
+   * \brief Specifies that a type is one-dimensional in each of the first N indices.
+   * \details N must be a non-negative number or \ref values::unbounded_size.
+   * Note that the dimension of any indices greater than \ref index_count_v<T> will naturally be 1.
    */
 #ifdef __cpp_concepts
   template<typename T, auto N = values::unbounded_size, applicability b = applicability::guaranteed>
   concept one_dimensional =
     indexible<T> and
-    (values::size<decltype(N)> or (values::integral<decltype(N)> and N >= 0)) and
+    (values::integral<decltype(N)> or stdex::same_as<std::decay_t<decltype(N)>, values::unbounded_size_t>) and
+    (not values::integral<decltype(N)> or N >= 0) and
     (patterns::collection_patterns_compare_with_dimension<pattern_collection_type_of_t<T>, 1, &stdex::is_eq, N, b> or
-      (square_shaped<T, N, b> and detail::any_1d_index<T, N>()));
+      (square_shaped<T, N> and detail::any_1d_index<T, N>()));
 #else
   template<typename T, std::size_t N = values::unbounded_size, applicability b = applicability::guaranteed>
   constexpr inline bool one_dimensional =
+    indexible<T> and
+    (N == values::unbounded_size or N >= 0) and
     detail::one_dimensional_impl<T, N, b>::value or
-    (square_shaped<T, N, b> and detail::any_1d_index<T, N>());
+    (square_shaped<T, N> and detail::any_1d_index<T, N>());
 #endif
 
 

@@ -129,6 +129,12 @@ namespace OpenKalman
     struct object_traits<pattern_adapter<Nested, PatternCollection>>
       : pass_through_object_traits<pattern_adapter<Nested, PatternCollection>, Nested>
     {
+      static const bool is_specialized = true;
+
+      static constexpr auto
+      get_mdspan = [](auto&& t)
+      { return OpenKalman::get_mdspan(std::forward<decltype(t)>(t).nested_object()); };
+
       static constexpr auto
       get_pattern_collection = [](auto&& t) -> decltype(auto)
       { return std::forward<decltype(t)>(t).pattern_collection(); };

@@ -50,7 +50,7 @@ namespace OpenKalman
     else
     {
       auto ed = internal::to_euclidean_pattern_collection(d);
-      return attach_pattern(Traits::template make_default<layout, Scalar>(ed), std::forward<D>(d));
+      return attach_patterns(Traits::template make_default<layout, Scalar>(ed), std::forward<D>(d));
     }
   }
 

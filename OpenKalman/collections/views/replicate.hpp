@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,8 +19,7 @@
 #include "values/values.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/functions/get_size.hpp"
-#include "collections/functions/get.hpp"
-#include "collections/functions/lexicographical_compare_three_way.hpp"
+#include "collections/functions/get_element.hpp"
 #include "all.hpp"
 
 namespace OpenKalman::collections
@@ -386,17 +385,21 @@ namespace OpenKalman::collections::views
       constexpr replicate_closure(Factor f) : factor_ {std::move(f)} {};
 
 #ifdef __cpp_concepts
-      template<viewable_collection R>
+      template<collection R>
 #else
-      template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
+      template<typename R, std::enable_if_t<collection<R>, int> = 0>
 #endif
       constexpr auto
       operator() (R&& r) const
       {
-        return replicate_view {all(std::forward<R>(r)), factor_};
+        if constexpr (viewable_collection<R>)
+          return replicate_view {all(std::forward<R>(r)), factor_};
+        else
+          return replicate_view {std::forward<R>(r), factor_};
       }
 
     private:
+
       Factor factor_;
     };
 
@@ -416,14 +419,17 @@ namespace OpenKalman::collections::views
 
 
 #ifdef __cpp_concepts
-      template<viewable_collection R, values::index Factor>
+      template<collection R, values::index Factor>
 #else
-      template<typename R, typename Factor, std::enable_if_t<viewable_collection<R> and values::index<Factor>, int> = 0>
+      template<typename R, typename Factor, std::enable_if_t<collection<R> and values::index<Factor>, int> = 0>
 #endif
       constexpr auto
       operator() (R&& r, Factor factor) const
       {
-        return replicate_view {all(std::forward<R>(r)), std::move(factor)};
+        if constexpr (viewable_collection<R>)
+          return replicate_view {all(std::forward<R>(r)), std::move(factor)};
+        else
+          return replicate_view {std::forward<R>(r), std::move(factor)};
       }
 
     };

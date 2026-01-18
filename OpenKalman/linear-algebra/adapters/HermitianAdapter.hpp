@@ -230,7 +230,7 @@ namespace OpenKalman
     auto& operator=(Arg&& arg)
     {
       if constexpr (writable<NestedObject>) internal::set_triangle<storage_triangle>(this->nested_object(), std::forward<Arg>(arg));
-      else if (hermitian_adapter_type_of_v<Arg> != storage_triangle) Base::operator=(adjoint(std::forward<Arg>(arg)));
+      else if (hermitian_adapter_type_of_v<Arg> != storage_triangle) Base::operator=(conjugate_transpose(std::forward<Arg>(arg)));
       else Base::operator=(std::forward<Arg>(arg));
       return *this;
     }
@@ -246,7 +246,7 @@ namespace OpenKalman
     auto& operator+=(const HermitianAdapter<Arg, t>& arg)
     {
       if constexpr (writable<NestedObject>) internal::set_triangle<storage_triangle>(this->nested_object(), this->nested_object() + std::forward<Arg>(arg));
-      else if (t != storage_triangle) Base::operator+=(adjoint(std::forward<Arg>(arg)));
+      else if (t != storage_triangle) Base::operator+=(conjugate_transpose(std::forward<Arg>(arg)));
       else Base::operator+=(std::forward<Arg>(arg));
       return *this;
     }
@@ -262,7 +262,7 @@ namespace OpenKalman
     auto& operator-=(const HermitianAdapter<Arg, t>& arg)
     {
       if constexpr (writable<NestedObject>) internal::set_triangle<storage_triangle>(this->nested_object(), this->nested_object() - std::forward<Arg>(arg));
-      else if (t != storage_triangle) Base::operator-=(adjoint(std::forward<Arg>(arg)));
+      else if (t != storage_triangle) Base::operator-=(conjugate_transpose(std::forward<Arg>(arg)));
       else Base::operator-=(std::forward<Arg>(arg));
       return *this;
     }

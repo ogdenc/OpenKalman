@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -43,8 +43,8 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that \ref indexible objects Ts may have equivalent dimensions and vector-space types.
-   * \details Two dimensions are considered the same if their \ref patterns::pattern are equivalent.
+   * \brief Specifies that \ref indexible objects may have equivalent extents and patterns.
+   * \details Two dimensions are considered the same if their \ref patterns::pattern "patterns" are equivalent.
    * \sa patterns_match_with
    * \sa patterns_match
    */

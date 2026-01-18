@@ -298,6 +298,8 @@ TEST(stl_interfaces, array_shapes)
   static_assert(not one_dimensional<A3, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<A23, values::unbounded_size, applicability::permitted>);
   static_assert(not one_dimensional<A234, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<double[3][3], values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<double[3][3][3], values::unbounded_size, applicability::permitted>);
   static_assert(one_dimensional<double[1]>);
   static_assert(one_dimensional<double[1][1]>);
   static_assert(one_dimensional<double[1][1][1]>);

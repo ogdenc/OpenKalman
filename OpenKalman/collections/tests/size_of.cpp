@@ -79,6 +79,23 @@ TEST(collections, get_size)
 }
 
 
+TEST(collections, sized)
+{
+  static_assert(sized<std::tuple<int, double>>);
+  static_assert(sized<const std::tuple<int, double>>);
+  static_assert(sized<std::tuple<>>);
+  static_assert(sized<std::array<int, 7>>);
+  static_assert(sized<const std::array<int, 7>&>);
+  static_assert(sized<std::vector<int>>);
+  static_assert(sized<const std::vector<int>&>);
+  static_assert(sized<int(&)[5]>);
+  static_assert(sized<const int(&)[6]>);
+  static_assert(sized<stdex::ranges::views::all_t<int(&)[7]>>);
+  static_assert(sized<stdex::ranges::views::all_t<decltype(stdex::ranges::views::reverse(stdex::ranges::views::all(std::declval<int(&)[5]>())))>>);
+  static_assert(not sized<stdex::ranges::repeat_view<double>>);
+}
+
+
 #include "collections/traits/size_of.hpp"
 
 TEST(collections, size_of)
@@ -104,21 +121,9 @@ TEST(collections, size_of)
   static_assert(size_of_v<stdex::ranges::single_view<int>> == 1);
 
   static_assert(size_of_v<stdex::ranges::concat_view<stdex::ranges::views::all_t<std::array<double, 5>>, stdex::ranges::views::all_t<int(&)[4]>>> == 9);
-}
 
-
-TEST(collections, sized)
-{
-  static_assert(sized<std::tuple<int, double>>);
-  static_assert(sized<const std::tuple<int, double>>);
-  static_assert(sized<std::tuple<>>);
-  static_assert(sized<std::array<int, 7>>);
-  static_assert(sized<const std::array<int, 7>&>);
-  static_assert(sized<std::vector<int>>);
-  static_assert(sized<const std::vector<int>&>);
-  static_assert(sized<int(&)[5]>);
-  static_assert(sized<const int(&)[6]>);
-  static_assert(sized<stdex::ranges::views::all_t<int(&)[7]>>);
-  static_assert(sized<stdex::ranges::views::all_t<decltype(stdex::ranges::views::reverse(stdex::ranges::views::all(std::declval<int(&)[5]>())))>>);
+  static_assert(values::fixed<size_of_t<stdex::ranges::empty_view<int>>>);
+  static_assert(values::fixed_value_of_v<size_of_t<std::vector<double>>> == stdex::dynamic_extent);
+  static_assert(stdex::same_as<size_of_t<stdex::ranges::repeat_view<double>>, values::unbounded_size_t>);
 }
 

@@ -100,7 +100,7 @@ namespace OpenKalman::interface
     /**
      * \brief Take the conjugate of the argument.
      * \param arg An \ref indexible object within the same library as T.
-     * \note Mandatory if arg is not a \ref constant_object or \ref diagonal_matrix.
+     * \note Optional
      */
     static constexpr auto
     conjugate = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
@@ -111,26 +111,12 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Take the transpose of the argument.
-     * \param arg An \ref indexible object within the same library as T.
-     * \note Mandatory if arg is an lvalue reference; optional otherwise, or if the templated version, below, is defined
-     * with indexa == 0 and indexb == 1.
-     */
-    static constexpr auto
-    transpose = []<typename Arg> requires
-        std::same_as<std::remove_cvref_t<Arg>, T> and
-        dimension_size_of_index_is<0, index_dimension_of_v<T, 1>, &stdex::is_eq, applicability::permitted>
-      (Arg&& arg) -> dimension_size_of_index_is<0, index_dimension_of_v<T, 1>, &stdex::is_eq, applicability::permitted> decltype(auto)
-    {
-      // ...
-    };
-
-
-    /**
      * \overload
-     * \brief Take the transpose of the argument.
+     * \brief Take the transpose of the argument, swapping two indices.
      * \param arg An \ref indexible object within the same library as T.
-     * \note Mandatory if arg is an lvalue reference; optional otherwise.
+     * \param indexa The first index to be swapped.
+     * \param indexa The second index to be swapped.
+     * \note Optional
      */
     template<std::size_t indexa, std::size_t indexb>
     static constexpr auto
@@ -144,46 +130,13 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Take the adjoint of the argument.
-     * \note This is optional. If not defined, the adjoint will be calculated as the transpose of the conjugate.
+     * \brief Take the conjugate-transpose of the argument.
      * \param arg An \ref indexible object within the same library as T.
-     * \note Optional
+     * \note Optional. If omitted, this will be calculated as the conjugate of the transpose.
      */
     static constexpr auto
-    adjoint = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
+    conjugate_transpose = []<typename Arg> requires std::same_as<std::remove_cvref_t<Arg>, T>
       (Arg&& arg) -> dimension_size_of_index_is<0, index_dimension_of_v<T, 1>, &stdex::is_eq, applicability::permitted> decltype(auto)
-    {
-      // ...
-    };
-
-
-    /**
-     * \overload
-     * \brief Take the conjugate transpose of the argument.
-     * \param arg An \ref indexible object within the same library as T.
-     * \note Optional
-     */
-    template<std::size_t indexa, std::size_t indexb>
-    static constexpr auto
-    adjoint = []<typename Arg> requires
-        std::same_as<std::remove_cvref_t<Arg>, T> and
-        dimension_size_of_index_is<indexa, index_dimension_of_v<T, indexb>, &stdex::is_eq, applicability::permitted>
-      (Arg&& arg) -> dimension_size_of_index_is<indexa, index_dimension_of_v<T, indexb>, &stdex::is_eq, applicability::permitted> decltype(auto)
-    {
-      // ...
-    };
-
-
-    /**
-     * \brief Create a generalized \ref identity_matrix of a given shape (optional).
-     * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
-     * \note If not defined, an identity matrix is a \ref diagonal_adapter with a constant diagonal of 1.
-     * \tparam Scalar The scalar type of the new object
-     * \param d A \ref patterns::pattern object defining the size
-     */
-    template<values::number Scalar>
-    static constexpr auto
-    make_identity_matrix = [](patterns::euclidean_pattern_collection auto&& d) -> identity_matrix auto
     {
       // ...
     };

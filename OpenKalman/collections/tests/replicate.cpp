@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,18 +27,18 @@ TEST(collections, replicate_view)
   static_assert(collection_view<replicate_view<views::all_t<std::tuple<int, double>>, std::integral_constant<std::size_t, 3>>>);
   static_assert(std::tuple_size_v<replicate_view<views::all_t<std::tuple<int, double>>, std::integral_constant<std::size_t, 3>>> == 6);
   static_assert(std::tuple_size_v<replicate_view<views::all_t<std::tuple<>>, std::integral_constant<std::size_t, 3>>> == 0);
-  static_assert(std::is_same_v<std::tuple_element_t<0, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, int&>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, float&>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<4, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, int&>);
-  static_assert(std::is_same_v<std::tuple_element_t<5, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, float&>);
+  static_assert(stdex::same_as<std::tuple_element_t<0, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, int&>);
+  static_assert(stdex::same_as<std::tuple_element_t<2, replicate_view<views::all_t<std::tuple<double, int&, float&>>, std::integral_constant<std::size_t, 2>>>, float&>);
+  static_assert(stdex::same_as<std::tuple_element_t<3, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<4, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, int&>);
+  static_assert(stdex::same_as<std::tuple_element_t<5, replicate_view<views::all_t<std::tuple<double, int&, float&>&>, std::integral_constant<std::size_t, 2>>>, float&>);
 
   using T1 = replicate_view<views::all_t<std::tuple<int, double>>, unsigned>;
-  static_assert(std::is_same_v<decltype(*std::declval<stdex::ranges::iterator_t<T1>>()), stdex::iter_reference_t<stdex::ranges::iterator_t<T1>>>);
-  static_assert(std::is_same_v<decltype(std::declval<stdex::ranges::iterator_t<T1>>() + std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>()), stdex::ranges::iterator_t<T1>>);
-  static_assert(std::is_same_v<decltype(std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>() + std::declval<stdex::ranges::iterator_t<T1>>()), stdex::ranges::iterator_t<T1>>);
-  static_assert(std::is_same_v<decltype(std::declval<stdex::ranges::iterator_t<T1>>() - std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>()), stdex::ranges::iterator_t<T1>>);
+  static_assert(stdex::same_as<decltype(*std::declval<stdex::ranges::iterator_t<T1>>()), stdex::iter_reference_t<stdex::ranges::iterator_t<T1>>>);
+  static_assert(stdex::same_as<decltype(std::declval<stdex::ranges::iterator_t<T1>>() + std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>()), stdex::ranges::iterator_t<T1>>);
+  static_assert(stdex::same_as<decltype(std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>() + std::declval<stdex::ranges::iterator_t<T1>>()), stdex::ranges::iterator_t<T1>>);
+  static_assert(stdex::same_as<decltype(std::declval<stdex::ranges::iterator_t<T1>>() - std::declval<stdex::iter_difference_t<stdex::ranges::iterator_t<T1>>>()), stdex::ranges::iterator_t<T1>>);
 
   constexpr auto t1 = std::tuple{4, 5.};
   static_assert(get<0>(replicate_view {views::all(t1), std::integral_constant<std::size_t, 2>{}}) == 4);
@@ -92,5 +92,12 @@ TEST(collections, replicate_view)
   EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[3U] == 4);
   EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[4U] == 5);
   EXPECT_TRUE(views::replicate(std::tuple{4, 5, 6}, std::integral_constant<std::size_t, 2>{})[8U] == 6);
+
+  using V1 = replicate_view<std::tuple<std::monostate, double>, std::integral_constant<std::size_t, 2>>;
+  static_assert(not collection_view<V1>);
+  static_assert(stdex::same_as<std::tuple_element_t<0, V1>, std::monostate>);
+  static_assert(stdex::same_as<std::tuple_element_t<1, V1>, double>);
+  static_assert(stdex::same_as<std::tuple_element_t<2, V1>, std::monostate>);
+  static_assert(stdex::same_as<std::tuple_element_t<3, V1>, double>);
 }
 

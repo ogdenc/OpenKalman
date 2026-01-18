@@ -16,7 +16,6 @@
 #ifndef OPENKALMAN_VECTOR_HPP
 #define OPENKALMAN_VECTOR_HPP
 
-#include "linear-algebra/concepts/dynamic_dimension.hpp"
 #include "linear-algebra/concepts/dimension_size_of_index_is.hpp"
 #include "linear-algebra/traits/index_count.hpp"
 

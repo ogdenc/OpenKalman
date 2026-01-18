@@ -178,18 +178,18 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto adjoint(Arg&& arg)
+    static constexpr auto conjugate_transpose(Arg&& arg)
     {
       using CRows = vector_space_descriptor_of_t<Arg, 0>;
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
-        auto b = OpenKalman::adjoint(nested_object(from_euclidean(std::forward<Arg>(arg))));
+        auto b = OpenKalman::conjugate_transpose(nested_object(from_euclidean(std::forward<Arg>(arg))));
         return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
       else
       {
-        auto b = OpenKalman::adjoint(nested_object(std::forward<Arg>(arg)));
+        auto b = OpenKalman::conjugate_transpose(nested_object(std::forward<Arg>(arg)));
         return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
     }
@@ -319,7 +319,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       }
       else
       {
-        return attach_pattern(std::move(cat), RC{}, CC{});
+        return attach_patterns(std::move(cat), RC{}, CC{});
       }
     }
     else

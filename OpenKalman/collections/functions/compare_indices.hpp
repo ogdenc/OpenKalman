@@ -29,8 +29,14 @@ namespace OpenKalman::collections
     constexpr auto
     get_min_size(const Lhs& lhs, const Rhs& rhs)
     {
+      struct Op
+      {
+        constexpr auto
+        operator()(std::size_t a, std::size_t b) const { return std::min(a, b); }
+      };
+
       if constexpr (sized<Lhs> and sized<Rhs>)
-        return values::operation([](const auto& a, const auto& b){ return std::min(a, b); }, get_size(lhs), get_size(rhs));
+        return values::operation(Op{}, get_size(lhs), get_size(rhs));
       else if constexpr (sized<Lhs>)
         return get_size(lhs);
       else
@@ -55,24 +61,34 @@ namespace OpenKalman::collections
     }
 
 
+    template<auto comp>
+    struct compare_indices_fixed_op
+    {
+      template<typename A, typename B>
+      constexpr auto operator()(const A& a, const B& b) const
+      {
+        return stdex::invoke(comp, stdex::compare_three_way{}(a, b));
+      }
+    };
+
+
     template<auto comp, std::size_t fsz, std::size_t i = 0, typename Lhs, typename Rhs, typename Sz>
     constexpr auto
     compare_indices_fixed(const Lhs& lhs, const Rhs& rhs, const Sz& sz)
     {
       using ix = std::integral_constant<std::size_t, i>;
-      auto c = [](const auto& a, const auto& b){ return stdex::invoke(comp, stdex::compare_three_way{}(a, b)); };
 
       if constexpr (values::size_compares_with<ix, Sz, &stdex::is_lt>)
         return values::operation(
           std::logical_and{},
-          values::operation(c, collections::get<i>(lhs), collections::get<i>(rhs)),
+          values::operation(compare_indices_fixed_op<comp>{}, collections::get<i>(lhs), collections::get<i>(rhs)),
           compare_indices_fixed<comp, fsz, i + 1>(lhs, rhs, sz));
       else if constexpr (values::size_compares_with<ix, Sz, &stdex::is_gteq> or i >= fsz)
         return std::true_type {};
       else
       {
         if (i < sz)
-          return c(collections::get<i>(lhs), collections::get<i>(rhs)) and
+          return compare_indices_fixed_op<comp>{}(collections::get<i>(lhs), collections::get<i>(rhs)) and
             compare_indices_fixed<comp, fsz, i + 1>(lhs, rhs, sz);
         else
           return true;

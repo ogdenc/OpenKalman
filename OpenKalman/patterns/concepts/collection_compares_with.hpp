@@ -98,24 +98,22 @@ namespace OpenKalman::patterns
     constexpr bool
     collection_compares_with_impl()
     {
+#ifndef __cpp_concepts
+      if constexpr (pattern_collection<T> and pattern_collection<U>) {
+#endif
       constexpr bool fixed_t = collections::sized<T> and not values::fixed_value_compares_with<collections::size_of<T>, stdex::dynamic_extent>;
       constexpr bool fixed_u = collections::sized<U> and not values::fixed_value_compares_with<collections::size_of<U>, stdex::dynamic_extent>;
       if constexpr (fixed_t and fixed_u)
-      {
         return detail::collection_compares_with_iter<T, U, comp, a>();
-      }
       else if constexpr (fixed_t)
-      {
         return detail::collection_compares_with_iter_T<T, stdex::ranges::range_value_t<U>, comp, a>();
-      }
       else if constexpr (fixed_u)
-      {
         return detail::collection_compares_with_iter_U<stdex::ranges::range_value_t<T>, U, comp, a>();
-      }
       else
-      {
         return compares_with<stdex::ranges::range_value_t<T>, stdex::ranges::range_value_t<U>, comp, a>;
-      }
+#ifndef __cpp_concepts
+      } else return false;
+#endif
     }
 
   }

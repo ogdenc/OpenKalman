@@ -65,7 +65,7 @@ namespace OpenKalman::patterns
    * \brief Compares the dimensions of the first N elements of a \ref pattern_collection with a particular value.
    * \details If N exceeds the size of T, T will effectively be padded with Dimensions<1>.
    * If N == values::unbounded_size, all elements will be compared.
-   * \tparam N Either an integer greater than 0 or \ref values::unbounded_size
+   * \tparam N Either \ref values::unbounded_size or an integer greater than 0.
    */
 #ifdef __cpp_concepts
   template<auto comp = &stdex::is_eq, auto N = values::unbounded_size, pattern_collection T, values::index D> requires
