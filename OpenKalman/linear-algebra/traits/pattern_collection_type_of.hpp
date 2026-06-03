@@ -16,8 +16,7 @@
 #ifndef OPENKALMAN_PATTERN_COLLECTION_TYPE_OF_HPP
 #define OPENKALMAN_PATTERN_COLLECTION_TYPE_OF_HPP
 
-
-#include "linear-algebra/traits/get_mdspan.hpp"
+#include "linear-algebra/traits/get_pattern_collection.hpp"
 
 namespace OpenKalman
 {

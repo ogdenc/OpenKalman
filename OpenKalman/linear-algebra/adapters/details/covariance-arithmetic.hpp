@@ -327,7 +327,7 @@ namespace OpenKalman
       {
         auto prod = nested_object(std::forward<M>(m)) * static_cast<Scalar>(s);
         triangle_type t = triangle_type_of_v<nested_object_of_t<M>>;
-        return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(prod))));
+        return make_self_contained<M>(make_covariance(to_triangular<t>(std::move(prod))));
       }
       else
       {
@@ -355,12 +355,12 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto prod = nested_object(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s));
-        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(prod))));
+        return make_self_contained<M>(make_covariance(to_hermitian(std::move(prod))));
       }
       else
       {
         auto prod = nested_object(std::forward<M>(m)) * static_cast<Scalar>(s);
-        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(prod))));
+        return make_self_contained<M>(make_covariance(to_hermitian(std::move(prod))));
       }
     }
   }
@@ -399,7 +399,7 @@ namespace OpenKalman
       {
         auto ret {nested_object(std::forward<M>(m)) / static_cast<Scalar>(s)};
         triangle_type t = triangle_type_of_v<nested_object_of_t<M>>;
-        return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(ret))));
+        return make_self_contained<M>(make_covariance(to_triangular<t>(std::move(ret))));
       }
       else
       {
@@ -431,12 +431,12 @@ namespace OpenKalman
       else if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto ret {nested_object(std::forward<M>(m)) / (static_cast<Scalar>(s) * static_cast<Scalar>(s))};
-        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(ret))));
+        return make_self_contained<M>(make_covariance(to_hermitian(std::move(ret))));
       }
       else
       {
         auto ret {nested_object(std::forward<M>(m)) / static_cast<Scalar>(s)};
-        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(ret))));
+        return make_self_contained<M>(make_covariance(to_hermitian(std::move(ret))));
       }
     }
   }

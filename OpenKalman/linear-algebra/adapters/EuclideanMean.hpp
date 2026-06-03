@@ -73,16 +73,16 @@ namespace OpenKalman
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
-      requires(Arg&& arg) { NestedMatrix {to_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))}; }
+      requires(Arg&& arg) { NestedMatrix {to_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
       stdex::constructible_from<NestedMatrix,
-        decltype(to_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
+        decltype(to_stat_space<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg)
-      : Base {to_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
+      : Base {to_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
 
 
     /// Construct from compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable" object.
@@ -145,7 +145,7 @@ namespace OpenKalman
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        Base::operator=(to_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(other))));
+        Base::operator=(to_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(other))));
       }
       return *this;
     }
@@ -280,7 +280,7 @@ patterns::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 #endif
   EuclideanMean(V&&)
     -> EuclideanMean<vector_space_descriptor_of_t<V, 0>, std::remove_reference_t<
-      decltype(to_euclidean<vector_space_descriptor_of_t<V, 0>>(nested_object(std::declval<V&&>())))>>;
+      decltype(to_stat_space<vector_space_descriptor_of_t<V, 0>>(nested_object(std::declval<V&&>())))>>;
 
 
   /// Deduce template parameters from a Euclidean-transformed typed matrix.
@@ -355,7 +355,7 @@ patterns::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
     if constexpr(euclidean_transformed<Arg>)
       return make_euclidean_mean<C>(nested_object(std::forward<Arg>(arg)));
     else
-      return make_euclidean_mean<C>(nested_object(to_euclidean<C>(std::forward<Arg>(arg))));
+      return make_euclidean_mean<C>(nested_object(to_stat_space<C>(std::forward<Arg>(arg))));
   }
 
 
@@ -463,8 +463,8 @@ patterns::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<applicability b>
-      static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, b>;
+      template<std::size_t N, applicability b>
+      static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, N, b>;
 
 
       template<triangle_type t>

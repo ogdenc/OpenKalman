@@ -17,13 +17,22 @@
 #define OPENKALMAN_COPY_FROM_HPP
 
 #include "linear-algebra/interfaces/interfaces-defined.hpp"
+#include "linear-algebra/traits/get_mdspan.hpp"
 #include "linear-algebra/traits/index_count.hpp"
 #include "linear-algebra/traits/get_index_extent.hpp"
 #include "linear-algebra/traits/access.hpp"
 #include "linear-algebra/concepts/copyable_from.hpp"
+#include "linear-algebra/functions/attach_patterns.hpp"
 
 namespace OpenKalman
 {
+  namespace interface
+  {
+    template<typename LHS, typename RHS>
+    struct copy_from { static const bool is_specialized = false; };
+  }
+
+
   namespace detail
   {
     template<typename LHS, typename RHS, typename...J>
@@ -58,19 +67,42 @@ namespace OpenKalman
   constexpr decltype(auto)
   copy_from(Dest&& dest, Source&& source)
   {
-    if constexpr (interface::copy_from_defined_for<Dest&, Source&&>)
+    using interface_a = interface::copy_from<std::remove_reference_t<Dest>, Source&&>;
+    using interface_b = interface::copy_from<std::remove_reference_t<Dest>, decltype(get_mdspan(std::declval<Source&&>()))>;
+    if constexpr (interface_a::is_specialized)
     {
-      interface::library_interface<Dest>::copy(dest, std::forward<Source>(source));
+      interface_a{}(dest, std::forward<Source>(source));
     }
-    else if constexpr (interface::copy_from_defined_for<Dest&, decltype(get_mdspan(std::declval<Source&&>()))>)
+    else if constexpr (interface_b::is_specialized)
     {
-      interface::library_interface<Dest>::copy(dest, get_mdspan(std::forward<Source>(source)));
+      interface_b{}(dest, get_mdspan(std::forward<Source>(source)));
     }
     else
     {
       detail::copy_tensor_elements(get_mdspan(dest), get_mdspan(std::forward<Source>(source)), std::make_index_sequence<index_count_v<Dest>>{});
     }
     return std::forward<Dest>(dest);
+  }
+
+
+  namespace interface
+  {
+    template<typename Nested, typename PatternCollection, typename RHS>
+    struct copy_from<pattern_adapter<Nested, PatternCollection>, RHS>
+    {
+      using NestedInterface = copy_from<std::remove_reference_t<Nested>, RHS>;
+      static const bool is_specialized = NestedInterface::is_specialized;
+
+      constexpr auto
+      operator()(pattern_adapter<Nested, PatternCollection>& lhs, RHS&& rhs)
+      {
+        return attach_patterns(
+          NestedInterface{}(lhs.nested_object(), std::forward<RHS>(rhs)),
+          lhs.pattern_collection() );
+      }
+
+    };
+
   }
 
 

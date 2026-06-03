@@ -147,7 +147,7 @@ namespace OpenKalman::internal
     }
     else if constexpr (square_shaped<Arg>)
     {
-      return make_hermitian_matrix(std::forward<Arg>(arg));
+      return to_hermitian(std::forward<Arg>(arg));
     }
     else
     {

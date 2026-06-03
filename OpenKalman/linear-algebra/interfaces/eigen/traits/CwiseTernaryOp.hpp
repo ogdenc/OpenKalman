@@ -81,22 +81,20 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<Arg3, b>);
 
 
-    template<applicability b>
+    template<std::size_t N, applicability b>
     static constexpr bool is_square =
-      square_shaped<Arg1, 2, applicability::permitted> and
-      square_shaped<Arg2, 2, applicability::permitted> and
-      square_shaped<Arg3, 2, applicability::permitted> and
+      square_shaped<Arg1, N, applicability::permitted> and
+      square_shaped<Arg2, N, applicability::permitted> and
+      square_shaped<Arg3, N, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
-        square_shaped<Arg1, 2, b> or
-        square_shaped<Arg2, 2, b> or
-        square_shaped<Arg3, 2, b>);
+        square_shaped<Arg1, N, b> or
+        square_shaped<Arg2, N, b> or
+        square_shaped<Arg3, N, b>);
 
 
     template<triangle_type t>
     static constexpr bool triangle_type_value = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template triangle_type_value<t>;
-
-    static constexpr bool is_triangular_adapter = false;
 
     static constexpr bool is_hermitian = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::is_hermitian;
   };

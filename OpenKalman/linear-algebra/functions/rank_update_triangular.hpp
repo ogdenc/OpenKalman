@@ -33,13 +33,16 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in triangular (or diagonal) form.
    */
 # ifdef __cpp_concepts
-  template<triangular_matrix<triangle_type::any> A, indexible U> requires
+  template<indexible A, indexible U> requires
+    (not triangular_matrix<A, triangle_type::none>) and
     dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, applicability::permitted> and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
   inline triangular_matrix<triangle_type_of_v<A> == triangle_type::upper ? triangle_type::upper : triangle_type::lower> decltype(auto)
 # else
-  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, triangle_type::any> and indexible<U> and
+  template<typename A, typename U, std::enable_if_t<
+    indexible<A> and indexible<U> and
+    (not triangular_matrix<A, triangle_type::none>) and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, applicability::permitted> and
     stdex::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
@@ -55,7 +58,7 @@ namespace OpenKalman
         throw std::invalid_argument {"In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
-      return make_triangular_matrix<t>(std::forward<A>(a));
+      return to_triangular<t>(std::forward<A>(a));
     }
     else if constexpr (dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
     {
@@ -73,7 +76,7 @@ namespace OpenKalman
       if constexpr (writable_by_component<A&&>)
       {
         set_component(a, e, 0, 0);
-        return make_triangular_matrix<t>(std::forward<A>(a));
+        return to_triangular<t>(std::forward<A>(a));
       }
       else
       {
@@ -81,7 +84,7 @@ namespace OpenKalman
         if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
         {
           a = std::move(ret);
-          return make_triangular_matrix<t>(std::forward<A>(a));
+          return to_triangular<t>(std::forward<A>(a));
         }
         else return ret;
       }
@@ -111,7 +114,7 @@ namespace OpenKalman
       auto&& aw = internal::make_writable_square_matrix<U>(std::forward<decltype(an)>(an));
       using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
-      return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
+      return to_triangular<t>(std::forward<decltype(ret)>(ret));
     }
   }
 

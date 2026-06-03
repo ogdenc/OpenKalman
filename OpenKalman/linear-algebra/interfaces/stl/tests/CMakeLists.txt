@@ -14,8 +14,15 @@ include(GoogleTest)
 
 add_executable(stl_interfaces
         mdspan-properties.cpp
-        mdspan-functions.cpp
         array-properties.cpp
+        basic-functions.cpp
+        constant-functions.cpp
+        diagonal-functions.cpp
+        conjugate-transpose-functions.cpp
+        triangular-matrices.cpp
+        hermitian-matrices.cpp
+        stat-space-matrices.cpp
+        mdspan-functions.cpp
     )
 
 target_link_libraries(stl_interfaces GTest::gtest_main Threads::Threads)

@@ -18,7 +18,6 @@
 
 #include "values/values.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/traits/get_mdspan.hpp"
 #include "linear-algebra/traits/element_type_of.hpp"
 #include "linear-algebra/traits/get_pattern_collection.hpp"
 #include "linear-algebra/concepts/diagonal_matrix.hpp"
@@ -26,11 +25,19 @@
 #include "linear-algebra/concepts/constant_diagonal_object.hpp"
 #include "linear-algebra/traits/constant_value_of.hpp"
 #include "linear-algebra/functions/make_constant.hpp"
-#include "linear-algebra/functions/internal/make_wrapped_mdspan.hpp"
+#include "linear-algebra/functions/diagonal_of.hpp"
 #include "linear-algebra/functions/to_diagonal.hpp"
+#include "linear-algebra/adapters/conjugate_adapter.hpp"
 
 namespace OpenKalman
 {
+  namespace interface
+  {
+    template<typename T>
+    struct conjugate { static const bool is_specialized = false; };
+  }
+
+
   /**
    * \brief Take the complex conjugate of an \ref indexible object
    * \details The resulting object has every element substituted with its complex conjugate.
@@ -47,9 +54,9 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::conjugate_defined_for<Arg&&>)
+    else if constexpr (interface::conjugate<stdex::remove_cvref_t<Arg>>::is_specialized)
     {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::conjugate(std::forward<Arg>(arg));
+      return interface::conjugate<stdex::remove_cvref_t<Arg>>{}(std::forward<Arg>(arg));
     }
     else if constexpr (constant_object<Arg>)
     {
@@ -61,20 +68,35 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return to_diagonal(conjugate(diagonal_of(std::forward<Arg>(arg))));
+      return to_diagonal(conjugate(diagonal_of(std::forward<Arg>(arg))), get_pattern_collection(std::forward<Arg>(arg)));
     }
     else
     {
-      auto n = get_mdspan(arg);
-      using nested_accessor = typename std::decay_t<decltype(n)>::accessor_type;
-      using accessor_type = stdex::linalg::conjugated_accessor<nested_accessor>;
-      return internal::make_wrapped_mdspan(
-        std::forward<Arg>(arg),
-        stdex::identity{},
-        n.mapping(),
-        accessor_type(n.accessor()),
-        get_pattern_collection(arg));
+      return conjugate_adapter{std::forward<Arg>(arg)};
     }
+  }
+
+
+  namespace interface
+  {
+    template<typename Nested, typename PatternCollection>
+    struct conjugate<pattern_adapter<Nested, PatternCollection>>
+    {
+      using NestedInterface = conjugate<stdex::remove_cvref_t<Nested>>;
+
+      static const bool is_specialized = NestedInterface::is_specialized;
+
+      template<typename Arg>
+      constexpr auto
+      operator()(Arg&& arg)
+      {
+        return attach_patterns(
+          NestedInterface{}(std::forward<Arg>(arg).nested_object()),
+          arg.pattern_collection() );
+      }
+
+    };
+
   }
 
 

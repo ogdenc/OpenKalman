@@ -299,7 +299,7 @@ namespace OpenKalman::interface
     struct pass_through_eigenwrapper<A, std::enable_if_t<Eigen3::eigen_wrapper<A>>>
 #endif
       : std::bool_constant<Eigen3::eigen_dense_general<nested_object_of_t<A>> or (diagonal_matrix<nested_object_of_t<A>> and internal::has_nested_vector<nested_object_of_t<A>>) or
-        triangular_adapter<nested_object_of_t<A>> or hermitian_adapter<nested_object_of_t<A>>> {};
+        triangular_adapter_obsolete<nested_object_of_t<A>> or hermitian_adapter_concept<nested_object_of_t<A>>> {};
 
   public:
 
@@ -590,9 +590,9 @@ namespace OpenKalman::interface
       }
     }
 
-    // to_euclidean not defined--rely on default
+    // to_stat_space not defined--rely on default
 
-    // from_euclidean not defined--rely on default
+    // from_stat_space not defined--rely on default
 
     // wrap_angles not defined--rely on default
 
@@ -622,7 +622,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_array_general<Arg, true>)
         return std::forward<Arg>(arg).matrix().transpose();
       else if constexpr (triangular_matrix<Arg>)
-        return OpenKalman::transpose(TriangularAdapter {std::forward<Arg>(arg)});
+        return OpenKalman::transpose(triangular_adapter {std::forward<Arg>(arg)});
       else
         return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).transpose();
       // Note: the global transpose function already handles zero, constant, constant-diagonal, and symmetric cases.
@@ -645,7 +645,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_array_general<Arg, true>)
         return std::forward<Arg>(arg).matrix().conjugate_transpose();
       else if constexpr (triangular_matrix<Arg>)
-        return OpenKalman::conjugate_transpose(TriangularAdapter {std::forward<Arg>(arg)});
+        return OpenKalman::conjugate_transpose(triangular_adapter {std::forward<Arg>(arg)});
       else
         return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).conjugate_transpose();
       // Note: the global adjoint function already handles zero, constant, diagonal, non-complex, and hermitian cases.
@@ -708,26 +708,26 @@ namespace OpenKalman::interface
           return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(std::forward<A>(a)) *
             OpenKalman::to_native_matrix<T>(nested_object(std::forward<B>(b))).asDiagonal());
       }
-      else if constexpr (triangular_adapter<A>)
+      else if constexpr (triangular_adapter_obsolete<A>)
       {
         constexpr auto uplo = triangular_matrix<A, triangle_type::upper> ? Eigen::Upper : Eigen::Lower;
         return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_object(std::forward<A>(a))).template triangularView<uplo>() *
           OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
       }
-      else if constexpr (triangular_adapter<B>)
+      else if constexpr (triangular_adapter_obsolete<B>)
       {
         constexpr auto uplo = triangular_matrix<A, triangle_type::upper> ? Eigen::Upper : Eigen::Lower;
         auto prod = OpenKalman::to_native_matrix<T>(std::forward<A>(a));
         prod.applyOnTheRight(OpenKalman::to_native_matrix<T>(nested_object(std::forward<B>(b))).template triangularView<uplo>());
         return prod;
       }
-      else if constexpr (hermitian_adapter<A>)
+      else if constexpr (hermitian_adapter_concept<A>)
       {
-        constexpr auto uplo = hermitian_adapter<A, HermitianAdapterType::upper> ? Eigen::Upper : Eigen::Lower;
+        constexpr auto uplo = hermitian_adapter_concept<A, triangle_type::upper> ? Eigen::Upper : Eigen::Lower;
         return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_object(std::forward<A>(a))).template selfadjointView<uplo>() *
           OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
       }
-      else if constexpr (hermitian_adapter<B>)
+      else if constexpr (hermitian_adapter_concept<B>)
       {
         constexpr auto uplo = triangular_matrix<A, triangle_type::upper> ? Eigen::Upper : Eigen::Lower;
         auto prod = OpenKalman::to_native_matrix<T>(std::forward<A>(a));
@@ -782,27 +782,27 @@ namespace OpenKalman::interface
         if (s < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("cholesky_factor of constant HermitianAdapter: covariance is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant hermitian_adapter: covariance is indefinite"));
         }
 
         if constexpr(tri == triangle_type::diagonal)
         {
           static_assert(diagonal_matrix<A>);
           auto vec = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          return diagonal_adapter<decltype(vec)> {vec};
+          return to_diagonal_adapter<decltype(vec)> {vec};
         }
         else if constexpr(tri == triangle_type::lower)
         {
           auto col0 = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
           auto othercols = make_zero<A>(get_pattern_collection<0>(a), get_pattern_collection<0>(a) - 1);
-          return TriangularAdapter<M, tri> {concatenate_horizontal(col0, othercols)};
+          return triangular_adapter<M, tri> {concatenate_horizontal(col0, othercols)};
         }
         else
         {
           static_assert(tri == triangle_type::upper);
           auto row0 = make_constant<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
           auto otherrows = make_zero<A>(get_pattern_collection<0>(a) - 1, get_pattern_collection<0>(a));
-          return TriangularAdapter<M, tri> {concatenate_vertical(row0, otherrows)};
+          return triangular_adapter<M, tri> {concatenate_vertical(row0, otherrows)};
         }
       }
       else
@@ -837,7 +837,7 @@ namespace OpenKalman::interface
             }
             else // Covariance is indefinite, so throw an exception.
             {
-              throw (std::runtime_error("cholesky_factor of HermitianAdapter: covariance is indefinite"));
+              throw (std::runtime_error("cholesky_factor of hermitian_adapter: covariance is indefinite"));
             }
           }
           else if constexpr(tri == triangle_type::lower)
@@ -851,12 +851,12 @@ namespace OpenKalman::interface
               LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
           }
         }
-        return TriangularAdapter<M, tri> {std::move(b)};
+        return triangular_adapter<M, tri> {std::move(b)};
       }
     }
 
 
-    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+    template<triangle_type significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
@@ -871,7 +871,7 @@ namespace OpenKalman::interface
       else
       {
         static_assert(writable<A>);
-        constexpr auto s = significant_triangle == HermitianAdapterType::lower ? Eigen::Lower : Eigen::Upper;
+        constexpr auto s = significant_triangle == triangle_type::lower ? Eigen::Lower : Eigen::Upper;
         a.template selfadjointView<s>().template rankUpdate(std::forward<U>(u), alpha);
         return std::forward<A>(a);
       }
@@ -1060,7 +1060,7 @@ namespace OpenKalman::interface
     static constexpr auto
     LQ_decomposition(A&& a)
     {
-      return make_triangular_matrix<triangle_type::lower>(make_self_contained(conjugate_transpose(QR_decomp_impl(conjugate_transpose(std::forward<A>(a))))));
+      return to_triangular<triangle_type::lower>(make_self_contained(conjugate_transpose(QR_decomp_impl(conjugate_transpose(std::forward<A>(a))))));
     }
 
 
@@ -1068,7 +1068,7 @@ namespace OpenKalman::interface
     static constexpr auto
     QR_decomposition(A&& a)
     {
-      return make_triangular_matrix<triangle_type::upper>(QR_decomp_impl(std::forward<A>(a)));
+      return to_triangular<triangle_type::upper>(QR_decomp_impl(std::forward<A>(a)));
     }*/
 
   };

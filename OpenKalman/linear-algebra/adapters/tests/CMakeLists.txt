@@ -17,12 +17,12 @@ include(GoogleTest)
 add_executable(adapters
         constant_adapter.cpp
         #constant-matrix-functions.test.cpp
-        #diagonal_adapter.test.cpp
-        #HermitianAdapter.test.cpp
-        #TriangularAdapter.test.cpp
+        #to_diagonal_adapter.test.cpp
+        #hermitian_adapter.test.cpp
+        #triangular_adapter.test.cpp
         #VectorSpaceAdapter.test.cpp
-        #ToEuclideanExpr.test.cpp
-        #FromEuclideanExpr.test.cpp
+        #to_stat_space_adapter.test.cpp
+        #from_stat_space_adapter.test.cpp
         #rank-update.test.cpp
         #blocks.test.cpp
         #linear-algebra.test.cpp

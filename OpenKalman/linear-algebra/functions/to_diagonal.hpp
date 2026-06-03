@@ -24,11 +24,18 @@
 #include "linear-algebra/concepts/diagonal_matrix.hpp"
 #include "linear-algebra/functions/attach_patterns.hpp"
 #include "linear-algebra/functions/make_zero.hpp"
-#include "linear-algebra/functions/internal/make_wrapped_mdspan.hpp"
-#include "linear-algebra/interfaces/stl/to_diagonal_mdspan_policies.hpp"
+#include "linear-algebra/adapters/to_diagonal_adapter.hpp"
 
 namespace OpenKalman
 {
+  namespace interface
+  {
+    template<typename T>
+    struct to_diagonal { static const bool is_specialized = false; };
+  }
+
+
+
   /**
    * \brief Convert a column vector (or any other array with a 1D second index) into a \ref diagonal_matrix.
    * \tparam P A \ref patterns::pattern_collection equivalent to the intended resulting diagonal
@@ -45,9 +52,12 @@ namespace OpenKalman
 #endif
   to_diagonal(Arg&& arg, P&& p)
   {
-    using extents_type = decltype(patterns::to_extents(p));
-    if constexpr (one_dimensional<Arg> and
-      patterns::collection_compares_with<extents_type, stdex::extents<std::size_t, 1>>)
+    if constexpr (interface::to_diagonal<stdex::remove_cvref_t<Arg>>::is_specialized)
+    {
+      return interface::to_diagonal<stdex::remove_cvref_t<Arg>>{}(std::forward<Arg>(arg));
+    }
+    else if constexpr (one_dimensional<Arg> and
+      patterns::collection_compares_with<decltype(patterns::to_extents(p)), stdex::extents<std::size_t, 1>>)
     {
       return attach_patterns(std::forward<Arg>(arg), std::forward<P>(p));
     }
@@ -57,28 +67,7 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) n = get_mdspan(arg);
-      using N = std::decay_t<decltype(n)>;
-      using nested_extents_type = typename N::extents_type;
-      using nested_layout = typename N::layout_type;
-      using nested_accessor = typename N::accessor_type;
-      auto nested_m = n.mapping();
-
-      using layout_type = interface::layout_to_diagonal<nested_layout, nested_extents_type>;
-      using mapping_type = typename layout_type::template mapping<extents_type>;
-      std::size_t off_diag_index = nested_m.required_span_size();
-      auto m = mapping_type {nested_m, patterns::to_extents(p)};
-
-      using accessor_type = interface::to_diagonal_accessor<nested_accessor>;
-      using data_handle_type = typename accessor_type::data_handle_type;
-      auto a = accessor_type {n.accessor()};
-
-      return internal::make_wrapped_mdspan(
-        std::forward<Arg>(arg),
-        [off_diag_index](auto&& h) { return data_handle_type {std::forward<decltype(h)>(h), off_diag_index}; },
-        std::move(m),
-        std::move(a),
-        std::forward<P>(p));
+      return to_diagonal_adapter {std::forward<Arg>(arg), std::forward<P>(p)};
     }
   }
 
@@ -98,13 +87,9 @@ namespace OpenKalman
 #endif
   to_diagonal(Arg&& arg)
   {
-    if constexpr (compares_with_pattern_collection<Arg, Dimensions<1>>)
+    if constexpr (compares_with_pattern_collection<Arg, patterns::Dimensions<1>>)
     {
       return std::forward<Arg>(arg);
-    }
-    else if constexpr (interface::to_diagonal_defined_for<Arg&&>)
-    {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
     }
     else
     {
@@ -112,6 +97,27 @@ namespace OpenKalman
         std::forward<Arg>(arg),
         patterns::views::to_diagonal(get_pattern_collection(arg)));
     }
+  }
+
+
+  namespace interface
+  {
+    template<typename Nested, typename PatternCollection>
+    struct to_diagonal<pattern_adapter<Nested, PatternCollection>>
+    {
+      using NestedInterface = to_diagonal<stdex::remove_cvref_t<Nested>>;
+      static const bool is_specialized = NestedInterface::is_specialized;
+
+      template<typename Arg>
+      constexpr auto
+      operator()(Arg&& arg)
+      {
+        return NestedInterface{}(std::forward<Arg>(arg).nested_object(),
+          patterns::views::to_diagonal(arg.pattern_collection()));
+      }
+
+    };
+
   }
 
 

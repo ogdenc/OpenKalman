@@ -970,13 +970,13 @@ namespace OpenKalman
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<applicability b>
-      static constexpr bool is_square = true;
+      template<std::size_t N, applicability b>
+      static constexpr bool is_square = N == 2;
 
 
       template<triangle_type t>
       static constexpr bool triangle_type_value = triangular_matrix<NestedMatrix, t> or
-        hermitian_adapter<NestedMatrix, t == triangle_type::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
+        hermitian_adapter_concept<NestedMatrix, t == triangle_type::upper ? triangle_type::upper : triangle_type::lower>;
 
 
       static constexpr bool is_triangular_adapter = false;

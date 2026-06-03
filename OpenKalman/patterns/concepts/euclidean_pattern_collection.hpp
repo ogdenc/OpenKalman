@@ -57,8 +57,8 @@ namespace OpenKalman::patterns
   concept euclidean_pattern_collection =
     collections::collection<T> and
     ( euclidean_pattern<stdex::ranges::range_value_t<T>> or
-      []<std::size_t...Ix>(std::index_sequence<Ix...>)
-        { return (... and euclidean_pattern<collections::collection_element_t<Ix, T>>); }
+      []<std::size_t...i>(std::index_sequence<i...>)
+        { return (... and euclidean_pattern<collections::collection_element_t<i, T>>); }
         (std::make_index_sequence<collections::size_of_v<T>>{})
     );
 #else

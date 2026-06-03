@@ -285,31 +285,31 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<triangle_type t, indexible Arg> requires
-      interface::make_triangular_matrix_defined_for<NestedObject, t, nested_object_of_t<Arg&&>>
+      interface::to_triangular_defined_for<NestedObject, t, nested_object_of_t<Arg&&>>
     static constexpr triangular_matrix<t> auto
 #else
     template<triangle_type t, typename Arg, std::enable_if_t<
-      interface::make_triangular_matrix_defined_for<NestedObject, t, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::to_triangular_defined_for<NestedObject, t, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    make_triangular_matrix(Arg&& arg)
+    to_triangular(Arg&& arg)
     {
-      return internal::make_fixed_size_adapter<Descriptors>(NestedInterface::template make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg))));
+      return internal::make_fixed_size_adapter<Descriptors>(NestedInterface::template to_triangular<t>(nested_object(std::forward<Arg>(arg))));
     }
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType t, indexible Arg> requires
-      interface::make_hermitian_adapter_defined_for<NestedObject, t, nested_object_of_t<Arg&&>>
+    template<triangle_type t, indexible Arg> requires
+      interface::to_hermitian_defined_for<NestedObject, t, nested_object_of_t<Arg&&>>
     static constexpr hermitian_matrix auto
 #else
-    template<HermitianAdapterType t, typename Arg, std::enable_if_t<
-      make_hermitian_adapter_defined_for<NestedObject, t, typename nested_object_of<Arg&>::type>, int> = 0>
+    template<triangle_type t, typename Arg, std::enable_if_t<
+      to_hermitian_defined_for<NestedObject, t, typename nested_object_of<Arg&>::type>, int> = 0>
     static constexpr auto
 #endif
-    make_hermitian_adapter(Arg&& arg)
+    to_hermitian(Arg&& arg)
     {
-      return internal::make_fixed_size_adapter<Descriptors>(NestedInterface::template make_hermitian_adapter<t>(nested_object(std::forward<Arg>(arg))));
+      return internal::make_fixed_size_adapter<Descriptors>(NestedInterface::template to_hermitian<t>(nested_object(std::forward<Arg>(arg))));
     }
 
   private:
@@ -398,13 +398,13 @@ namespace OpenKalman::interface
     template<indexible Arg> requires (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
       (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or
-      interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+      interface::diagonal_of_defined_for<nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<(diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
       (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
-      interface::diagonal_of_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::diagonal_of_defined_for<typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     diagonal_of(Arg&& arg)
@@ -525,14 +525,14 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg> requires interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+    template<indexible Arg> requires interface::to_stat_space_defined_for<nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
-      interface::to_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::to_stat_space_defined_for<typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    to_euclidean(Arg&& arg)
+    to_stat_space(Arg&& arg)
     {
       constexpr auto dim = collections::size_of_v<Descriptors>;
       if constexpr (dim == 0)
@@ -554,7 +554,7 @@ namespace OpenKalman::interface
             patterns::DynamicDescriptor<scalar_type_of_t<Arg>>>;
           using Vtail = std::decay_t<decltype(internal::tuple_slice<1, dim>(std::declval<Descriptors>()))>;
           using Vcat = decltype(std::tuple_cat(std::declval<V0>()), std::declval<Vtail>());
-          return internal::make_fixed_size_adapter<Vcat>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
+          return internal::make_fixed_size_adapter<Vcat>(NestedInterface::to_stat_space(nested_object(std::forward<Arg>(arg))));
         }
       }
     }
@@ -562,14 +562,14 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<indexible Arg, patterns::pattern D> requires
-      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, D&&>
+      interface::from_stat_space_defined_for<NestedObject, nested_object_of_t<Arg&&>, D&&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename V, std::enable_if_t<
-      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, V&&>, int> = 0>
+      interface::from_stat_space_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, V&&>, int> = 0>
     static constexpr auto
 #endif
-    from_euclidean(Arg&& arg, D&& d)
+    from_stat_space(Arg&& arg, D&& d)
     {
       if constexpr (patterns::euclidean_pattern<D>)
       {
@@ -580,7 +580,7 @@ namespace OpenKalman::interface
         constexpr auto dim = collections::size_of_v<Descriptors>;
         using Vtail = std::decay_t<decltype(internal::tuple_slice<1, dim>(std::declval<Descriptors>()))>;
         using Vcat = decltype(std::tuple_cat(std::declval<D>()), std::declval<Vtail>());
-        return internal::make_fixed_size_adapter<Vcat>(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), std::forward<D>(d)));
+        return internal::make_fixed_size_adapter<Vcat>(NestedInterface::from_stat_space(nested_object(std::forward<Arg>(arg)), std::forward<D>(d)));
       }
     }
 
@@ -807,12 +807,12 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType significant_triangle, indexible A, indexible U> requires
+    template<triangle_type significant_triangle, indexible A, indexible U> requires
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&> or
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
     static constexpr hermitian_matrix auto
 #else
-    template<HermitianAdapterType significant_triangle, typename A, typename U, std::enable_if_t<
+    template<triangle_type significant_triangle, typename A, typename U, std::enable_if_t<
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, A&&, U&&, const typename scalar_type_of<A>::type&> or
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
     static constexpr auto

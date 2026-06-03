@@ -112,7 +112,7 @@ namespace OpenKalman::patterns::views
       {
         if constexpr (collections::viewable_collection<P>)
         {
-          auto f = [pt = std::make_tuple(collections::views::all(std::forward<P>(p)))](auto&& i)
+          auto f = [pt = std::tuple {collections::views::all(std::forward<P>(p))}](auto&& i)
           {
             if constexpr (values::size_compares_with<decltype(i), collections::size_of<P>, &stdex::is_gteq>)
             {

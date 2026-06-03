@@ -19,16 +19,15 @@
 namespace OpenKalman
 {
   /**
-   * \brief The type of a triangular matrix.
+   * \brief The type of a triangular matrix, if it is triangular.
    * \details This is generally applicable to a rank-2 tensor (e.g., a matrix).
    * It also applies to tensors of rank > 2, in which case every rank-2 slice over dimensions 0 and 1 must be a triangle of this type.
    */
   enum struct triangle_type : int {
     none, ///< Not triangular.
-    any, ///< Lower, upper, or diagonal matrix.
-    lower, ///< A lower-left triangular matrix.
-    upper, ///< An upper-right triangular matrix.
-    diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
+    lower, ///< An application should only read elements of the lower-left triangle.
+    upper, ///< An application should only read elements of the upper-right triange.
+    diagonal, ///< An application should only read diagonal elements. diagonal also implies both lower and upper.
     // \todo strict_diagonal,
     //< A specific diagonal object for rank 2k (k:ℕ) tensors in which each element is zero unless its
     //< indices can be divided into two identical sequences.
@@ -50,8 +49,6 @@ namespace OpenKalman
         b == triangle_type::lower) return triangle_type::lower;
     if (a == triangle_type::upper or
         b == triangle_type::upper) return triangle_type::upper;
-    if (a == triangle_type::any or
-        b == triangle_type::any) return triangle_type::any;
     return triangle_type::none;
   }
 
@@ -69,19 +66,6 @@ namespace OpenKalman
     return triangle_type::none;
   }
 
-
-  /**
-   * \brief The type of a hermitian adapter, indicating which triangle of the nested matrix is used.
-   * \details This type can be statically cast from \ref triangle_type so that <code>lower</code>, <code>upper</code>,
-   * and <code>any</code> correspond to each other. The value <code>none</code> corresponds to triangle_type::diagonal.
-   *
-   */
-  enum struct HermitianAdapterType : int {
-    none = static_cast<int>(triangle_type::none), ///< Not a hermitian adapter.
-    any = static_cast<int>(triangle_type::diagonal), ///< Either lower or upper hermitian adapter.
-    lower = static_cast<int>(triangle_type::lower), ///< A lower-left hermitian adapter.
-    upper = static_cast<int>(triangle_type::upper), ///< An upper-right hermitian adapter.
-  };
 
 }
 

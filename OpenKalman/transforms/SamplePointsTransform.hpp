@@ -136,7 +136,7 @@ namespace OpenKalman
 
       auto y_means = Mean { y_means_impl(g, std::move(xdists_tup), std::move(xpoints_tup), std::make_index_sequence<N> {})};
 
-      const auto y_mean = from_euclidean(SamplePointsType::template weighted_means<dim>(to_euclidean(y_means)));
+      const auto y_mean = from_stat_space(SamplePointsType::template weighted_means<dim>(to_stat_space(y_means)));
 
       // Each column is a deviation from y mean for each transformed sigma point:
       auto ypoints = apply_columnwise(

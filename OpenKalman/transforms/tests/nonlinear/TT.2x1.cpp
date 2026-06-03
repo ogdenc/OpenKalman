@@ -25,10 +25,10 @@ inline namespace
   using M = eigen_matrix_t<double, n, 1>;
 
   template<std::size_t n>
-  using SA = HermitianAdapter<eigen_matrix_t<double, n, n>>;
+  using SA = hermitian_adapter<eigen_matrix_t<double, n, n>>;
 
   template<std::size_t n>
-  using TR = TriangularAdapter<eigen_matrix_t<double, n, n>>;
+  using TR = triangular_adapter<eigen_matrix_t<double, n, n>>;
 
   template<std::size_t n>
   using G = GaussianDistribution<Dimensions<n>, M<n>, SA<n>>;

@@ -25,8 +25,8 @@ using stdex::numbers::pi;
 inline namespace
 {
   using M2 = eigen_matrix_t<double, 2, 1>;
-  using SA = HermitianAdapter<eigen_matrix_t<double, 2, 2>>;
-  using TR = TriangularAdapter<eigen_matrix_t<double, 2, 2>>;
+  using SA = hermitian_adapter<eigen_matrix_t<double, 2, 2>>;
+  using TR = triangular_adapter<eigen_matrix_t<double, 2, 2>>;
   using G2 = GaussianDistribution<Polar<>, M2, SA>;
   using G2T = GaussianDistribution<Polar<>, M2, TR>;
 

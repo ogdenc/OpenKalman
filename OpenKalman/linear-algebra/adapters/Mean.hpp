@@ -78,15 +78,15 @@ namespace OpenKalman
     template<euclidean_transformed Arg> requires
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      requires(Arg&& arg) { NestedMatrix{from_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))}; }
+      requires(Arg&& arg) { NestedMatrix{from_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       stdex::constructible_from<NestedMatrix,
-        decltype(from_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
+        decltype(from_stat_space<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
-    Mean(Arg&& arg) : Base {from_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
+    Mean(Arg&& arg) : Base {from_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
 
 
     /// Construct from a compatible typed matrix or Euclidean-transformed mean.
@@ -161,17 +161,17 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_euclidean<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_stat_space<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_euclidean<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_stat_space<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
-        Base::operator=(from_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(other))));
+        Base::operator=(from_stat_space<RowCoefficients>(nested_object(std::forward<Arg>(other))));
       }
       return *this;
     }
@@ -398,7 +398,7 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<euclidean_transformed<V>, int> = 0>
 #endif
   Mean(V&&) -> Mean<vector_space_descriptor_of_t<V, 0>, std::decay_t<decltype(
-    from_euclidean<vector_space_descriptor_of_t<V, 0>>(nested_object(std::forward<V>(std::declval<V>()))))>>;
+    from_stat_space<vector_space_descriptor_of_t<V, 0>>(nested_object(std::forward<V>(std::declval<V>()))))>>;
 
 
   // ----------------------------- //
@@ -456,7 +456,7 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     if constexpr(euclidean_transformed<Arg>)
-      return make_mean<C>(nested_object(from_euclidean<C>(std::forward<Arg>(arg))));
+      return make_mean<C>(nested_object(from_stat_space<C>(std::forward<Arg>(arg))));
     else
       return make_mean<C>(nested_object(std::forward<Arg>(arg)));
   }
@@ -562,8 +562,8 @@ namespace OpenKalman
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<applicability b>
-      static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, b>;
+      template<std::size_t N, applicability b>
+      static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, N, b>;
 
 
       template<triangle_type t>

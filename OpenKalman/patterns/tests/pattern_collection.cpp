@@ -245,24 +245,6 @@ TEST(patterns, most_fixed_pattern)
 }
 
 
-#include "patterns/functions/internal/to_euclidean_pattern_collection.hpp"
-
-TEST(patterns, to_euclidean_pattern_collection)
-{
-  using OpenKalman::patterns::internal::to_euclidean_pattern_collection;
-  EXPECT_TRUE(compare_pattern_collections(to_euclidean_pattern_collection(std::tuple {4U, 2U, 5U}), std::tuple {4U, 2U, 5U}));
-  EXPECT_TRUE(compare_pattern_collections(to_euclidean_pattern_collection(
-    std::tuple {std::tuple<Distance, Dimensions<3>>{}, std::tuple<Axis, Angle<>>{}, Spherical{}}),
-    std::tuple {4U, 2U, 3U}));
-  EXPECT_TRUE(compare_pattern_collections(to_euclidean_pattern_collection(
-    std::tuple {std::vector{Any{Distance{}}, Any{Dimensions{3}}}, std::vector{Axis{}, Axis{}}, Polar{}}),
-    std::tuple {4U, 2U, 2U}));
-  EXPECT_TRUE(compare_pattern_collections(to_euclidean_pattern_collection(
-    std::vector {std::vector{Any{Distance{}}, Any{Dimensions{3}}}, std::vector{Any{Axis{}}, Any{Axis{}}}, std::vector{Any{Polar{}}}}),
-    std::vector {4U, 2U, 2U}));
-}
-
-
 #include "patterns/functions/get_pattern.hpp"
 #include "patterns/traits/pattern_collection_element.hpp"
 
@@ -547,7 +529,7 @@ TEST(patterns, get_common_pattern_collection_dimension)
 
 #include "patterns/functions/to_extents.hpp"
 
-TEST(patterns, extents)
+TEST(patterns, to_extents)
 {
   static_assert(pattern_collection<stdex::extents<std::size_t, 2, 3, 4>>);
   static_assert(euclidean_pattern_collection<stdex::extents<std::size_t, 2, 3, 4>>);
@@ -604,6 +586,34 @@ TEST(patterns, extents)
   static_assert(collections::size_of_v<decltype(to_extents(stdex::extents<std::size_t, 4, 5, 6, stdex::dynamic_extent>{}))> == 4);
   static_assert(collections::size_of_v<decltype(to_extents(std::tuple{4U, 5U, 6U, Dimensions<1>{}}))> == 3);
   static_assert(collections::size_of_v<decltype(to_extents(std::tuple{4U, 5U, 6U, Dimensions{1}}))> == 4);
+}
+
+
+#include "patterns/functions/to_stat_space_pattern_collection.hpp"
+
+TEST(patterns, to_stat_space_pattern_collection)
+{
+  static_assert(stdex::same_as<decltype(to_stat_space_pattern_collection(std::declval<std::tuple<>>())), std::tuple<>>);
+  static_assert(stdex::same_as<
+    decltype(to_stat_space_pattern_collection(std::declval<stdex::extents<std::size_t, 1, 2, 3>>())),
+    stdex::extents<std::size_t, 1, 2, 3>>);
+  static_assert(stdex::same_as<decltype(to_stat_space_pattern_collection(std::declval<stdex::extents<std::size_t>>())), stdex::extents<std::size_t>>);
+  static_assert(collection_compares_with<
+    decltype(to_stat_space_pattern_collection(std::declval<std::tuple<Dimensions<1>, Dimensions<1>, Dimensions<1>>>())),
+    std::tuple<Dimensions<1>, Dimensions<1>, Dimensions<1>>>);
+
+  static_assert(collection_compares_with<
+    decltype(to_stat_space_pattern_collection(std::declval<std::tuple<Distance, Dimensions<1>, Dimensions<1>>>())),
+    std::tuple<Dimensions<1>, Dimensions<1>, Dimensions<1>>>);
+  static_assert(collection_compares_with<
+    decltype(to_stat_space_pattern_collection(std::declval<std::tuple<Polar<>, Dimensions<2>, Dimensions<3>>>())),
+    std::tuple<Dimensions<3>, Dimensions<2>, Dimensions<3>>>);
+  static_assert(collection_compares_with<
+    decltype(to_stat_space_pattern_collection(std::declval<std::tuple<Spherical<>, std::tuple<Axis, Axis>, Spherical<>>>())),
+    std::tuple<Dimensions<4>, Dimensions<2>, Dimensions<3>>>);
+  static_assert(collection_compares_with<
+    decltype(to_stat_space_pattern_collection(std::declval<std::tuple<std::tuple<Angle<>, Spherical<>>, std::tuple<Axis, Axis>, Polar<>>>())),
+    std::tuple<Dimensions<6>, Dimensions<2>, Dimensions<2>>>);
 }
 
 

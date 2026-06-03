@@ -74,18 +74,16 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<DiagVectorType, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = true;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<DiagVectorType, N - 1, b>;
 
 
     static constexpr triangle_type triangle_type_value = triangle_type::diagonal;
 
 
-    static constexpr bool is_triangular_adapter = false;
-
     // is_hermitian not defined because matrix is diagonal;
 
-    // make_hermitian_adapter(Arg&& arg) not defined
+    // to_hermitian(Arg&& arg) not defined
 
   };
 

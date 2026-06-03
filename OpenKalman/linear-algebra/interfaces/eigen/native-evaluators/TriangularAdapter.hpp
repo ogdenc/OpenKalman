@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 evaluator for TriangularAdapter
+ * \brief Native Eigen3 evaluator for triangular_adapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_EVALUATORS_TRIANGULARADAPTER_HPP
@@ -20,10 +20,10 @@
 namespace Eigen::internal
 {
   template<typename ArgType, OpenKalman::triangle_type tri>
-  struct evaluator<OpenKalman::TriangularAdapter<ArgType, tri>>
-    : evaluator_base<OpenKalman::TriangularAdapter<ArgType, tri>>
+  struct evaluator<OpenKalman::triangular_adapter<ArgType, tri>>
+    : evaluator_base<OpenKalman::triangular_adapter<ArgType, tri>>
   {
-    using XprType = OpenKalman::TriangularAdapter<ArgType, tri>;
+    using XprType = OpenKalman::triangular_adapter<ArgType, tri>;
     using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
@@ -53,7 +53,7 @@ namespace Eigen::internal
     auto& coeffRef(Index i)
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access by reference is only available for one-by-one TriangularAdapter");
+        "Linear (single index) element access by reference is only available for one-by-one triangular_adapter");
 
       return m_argImpl.coeffRef(i);
     }
@@ -81,7 +81,7 @@ namespace Eigen::internal
     CoeffReturnType coeff(Index i) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access is only available for one-by-one TriangularAdapter");
+        "Linear (single index) element access is only available for one-by-one triangular_adapter");
 
       return m_argImpl.coeff(i);
     }
@@ -91,7 +91,7 @@ namespace Eigen::internal
     constexpr PacketType packet(Index row, Index col) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Packet access is only available for one-by-one TriangularAdapter");
+        "Packet access is only available for one-by-one triangular_adapter");
 
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
     }
@@ -101,7 +101,7 @@ namespace Eigen::internal
     constexpr PacketType packet(Index index) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear packet access is only available for one-by-one TriangularAdapter");
+        "Linear packet access is only available for one-by-one triangular_adapter");
 
       return m_argImpl.template packet<LoadMode, PacketType>(index);
     }

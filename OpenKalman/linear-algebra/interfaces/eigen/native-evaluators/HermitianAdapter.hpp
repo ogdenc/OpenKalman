@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 evaluator for HermitianAdapter
+ * \brief Native Eigen3 evaluator for hermitian_adapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_EVALUATORS_HERMITIANADAPTER_HPP
@@ -21,11 +21,11 @@
 
 namespace Eigen::internal
 {
-  template<typename ArgType, OpenKalman::HermitianAdapterType storage_triangle>
-  struct evaluator<OpenKalman::HermitianAdapter<ArgType, storage_triangle>>
-    : evaluator_base<OpenKalman::HermitianAdapter<ArgType, storage_triangle>>
+  template<typename ArgType, OpenKalman::triangle_type storage_triangle>
+  struct evaluator<OpenKalman::hermitian_adapter<ArgType, storage_triangle>>
+    : evaluator_base<OpenKalman::hermitian_adapter<ArgType, storage_triangle>>
   {
-    using XprType = OpenKalman::HermitianAdapter<ArgType, storage_triangle>;
+    using XprType = OpenKalman::hermitian_adapter<ArgType, storage_triangle>;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
@@ -44,14 +44,14 @@ namespace Eigen::internal
     auto& coeffRef(Index row, Index col)
     {
       static_assert(not OpenKalman::values::complex<Scalar>,
-        "Reference to element is not available for a complex HermitianAdapter");
+        "Reference to element is not available for a complex hermitian_adapter");
 
-      if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::upper)
+      if constexpr (storage_triangle == OpenKalman::triangle_type::upper)
       {
         if (row > col)
           return m_argImpl.coeffRef(col, row);
       }
-      else if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::lower)
+      else if constexpr (storage_triangle == OpenKalman::triangle_type::lower)
       {
         if (row < col)
           return m_argImpl.coeffRef(col, row);
@@ -64,10 +64,10 @@ namespace Eigen::internal
     auto& coeffRef(Index i)
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access by reference is only available for one-by-one HermitianAdapter");
+        "Linear (single index) element access by reference is only available for one-by-one hermitian_adapter");
 
       static_assert(not OpenKalman::values::complex<Scalar>,
-        "Reference to element is not available for a complex HermitianAdapter");
+        "Reference to element is not available for a complex hermitian_adapter");
 
       return m_argImpl.coeffRef(i);
     }
@@ -75,7 +75,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::upper)
+      if constexpr (storage_triangle == OpenKalman::triangle_type::upper)
       {
         if (row > col)
         {
@@ -83,7 +83,7 @@ namespace Eigen::internal
           else return m_argImpl.coeff(col, row);
         }
       }
-      else if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::lower)
+      else if constexpr (storage_triangle == OpenKalman::triangle_type::lower)
       {
         if (row < col)
         {

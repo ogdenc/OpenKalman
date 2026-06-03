@@ -22,9 +22,9 @@
 #include "VectorSpaceAdapter.hpp"
 
 #include "constant_adapter.hpp"
-#include "HermitianAdapter.hpp"
-#include "TriangularAdapter.hpp"
-#include "diagonal_adapter.hpp"
+#include "hermitian_adapter.hpp"
+#include "triangular_adapter.hpp"
+#include "to_diagonal_adapter.hpp"
 
 namespace Eigen::internal
 {
@@ -75,20 +75,20 @@ namespace Eigen::internal
 
 
   // ----------------- //
-  //  ToEuclideanExpr  //
+  //  to_stat_space_adapter  //
   // ----------------- //
 
   /**
    * \internal
-   * \brief Evaluator for ToEuclideanExpr
+   * \brief Evaluator for to_stat_space_adapter
    */
   template<typename ArgType>
-  struct evaluator<OpenKalman::ToEuclideanExpr<ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<OpenKalman::vector_space_descriptor_of<ArgType, 0>, OpenKalman::ToEuclideanExpr<ArgType>,
+  struct evaluator<OpenKalman::to_stat_space_adapter<ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<OpenKalman::vector_space_descriptor_of<ArgType, 0>, OpenKalman::to_stat_space_adapter<ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
 	using V0 = OpenKalman::vector_space_descriptor_of<ArgType, 0>; 
-    using XprType = OpenKalman::ToEuclideanExpr<ArgType>;
+    using XprType = OpenKalman::to_stat_space_adapter<ArgType>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
@@ -138,19 +138,19 @@ namespace Eigen::internal
 
 
   // ------------------- //
-  //  FromEuclideanExpr  //
+  //  from_stat_space_adapter  //
   // ------------------- //
 
   /**
    * \internal
-   * \brief General evaluator for FromEuclideanExpr
+   * \brief General evaluator for from_stat_space_adapter
    */
   template<typename ArgType, typename V0>
-  struct evaluator<OpenKalman::FromEuclideanExpr<ArgType, V0>>
-    : detail::Evaluator_EuclideanExpr_Base<V0, OpenKalman::FromEuclideanExpr<ArgType, V0>,
+  struct evaluator<OpenKalman::from_stat_space_adapter<ArgType, V0>>
+    : detail::Evaluator_EuclideanExpr_Base<V0, OpenKalman::from_stat_space_adapter<ArgType, V0>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<ArgType, V0>;
+    using XprType = OpenKalman::from_stat_space_adapter<ArgType, V0>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
@@ -199,17 +199,17 @@ namespace Eigen::internal
 
   /**
    * \internal
-   * \brief Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
+   * \brief Specialized evaluator for from_stat_space_adapter that has a nested to_stat_space_adapter.
    * \details This amounts to wrapping angles.
    */
   template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+    OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>
       : detail::Evaluator_EuclideanExpr_Base<V0,
-        OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>,
+        OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>,
         std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>;
+    using XprType = OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
     using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
@@ -257,30 +257,30 @@ namespace Eigen::internal
 
   template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<const OpenKalman::ToEuclideanExpr<ArgType>, V0>>
-    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+    OpenKalman::from_stat_space_adapter<const OpenKalman::to_stat_space_adapter<ArgType>, V0>>
+    : evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
+    using Base = evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>;
     using Base::Base;
   };
 
 
   template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>&, V0>>
-    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+    OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>&, V0>>
+    : evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
+    using Base = evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>;
     using Base::Base;
   };
 
 
   template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<const OpenKalman::ToEuclideanExpr<ArgType>&, V0>>
-    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+    OpenKalman::from_stat_space_adapter<const OpenKalman::to_stat_space_adapter<ArgType>&, V0>>
+    : evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
+    using Base = evaluator<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<ArgType>, V0>>;
     using Base::Base;
   };
 

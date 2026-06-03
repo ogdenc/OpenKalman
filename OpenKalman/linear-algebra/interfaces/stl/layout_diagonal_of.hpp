@@ -11,13 +11,12 @@
 /**
  * \file
  * \internal
- * \brief mdspan policies for \ref diagonal_of operation
+ * \brief mdspan layout for \ref diagonal_of operation
  */
 
-#ifndef OPENKALMAN_DIAGONAL_OF_MDSPAN_POLICIES_HPP
-#define OPENKALMAN_DIAGONAL_OF_MDSPAN_POLICIES_HPP
+#ifndef OPENKALMAN_LAYOUT_DIAGONAL_OF_HPP
+#define OPENKALMAN_LAYOUT_DIAGONAL_OF_HPP
 
-#include <iostream>
 #include "patterns/patterns.hpp"
 
 namespace OpenKalman::interface
@@ -109,19 +108,19 @@ namespace OpenKalman::interface
       is_always_strided() noexcept { return nested_mapping_type::is_always_strided(); }
 
       constexpr bool
-      is_unique() const { return nested_mapping_type::is_unique(); }
+      is_unique() const { return nested_mapping_.is_unique(); }
 
       constexpr bool
       is_exhaustive() const
       {
-        if (not nested_mapping_type::is_exhaustive()) return false;
+        if (not nested_mapping_.is_exhaustive()) return false;
         if constexpr (nested_extents_type::rank() == 0) return true;
         else if constexpr (nested_extents_type::rank() == 1) return nested_mapping_.extents().extent(0) == 1;
         else return nested_mapping_.extents().extent(0) == 1 and nested_mapping_.extents().extent(1) == 1;
       }
 
       constexpr bool
-      is_strided() const { return nested_mapping_type::is_strided(); }
+      is_strided() const { return nested_mapping_.is_strided(); }
 
       constexpr index_type
       stride(std::size_t r) const

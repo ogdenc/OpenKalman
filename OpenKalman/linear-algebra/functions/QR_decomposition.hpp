@@ -52,7 +52,7 @@ namespace OpenKalman
         if (get_dimension(dim) == 1) m = std::move(row1);
         else m = concatenate<0>(std::move(row1), make_zero<A>(dim - patterns::Axis{}, dim));
 
-        auto ret {make_triangular_matrix<triangle_type::upper>(std::move(m))};
+        auto ret {to_triangular<triangle_type::upper>(std::move(m))};
 
         // \todo Fix this:
         if constexpr (has_untyped_index<A, 1>) return ret;
@@ -60,7 +60,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret = make_triangular_matrix<triangle_type::upper>([](Scalar elem){
+        auto ret = to_triangular<triangle_type::upper>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 1>;
           auto row1 = make_constant<A>(elem, patterns::Axis{}, patterns::Dimensions<dim>{});
           if constexpr (dim == 1) return row1;

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,246 +10,192 @@
 
 /**
  * \file
- * \brief FromEuclideanExpr and related definitions.
+ * \brief Definition for \ref from_stat_space_adapter.
  */
 
-#ifndef OPENKALMAN_FROMEUCLIDEANEXPR_HPP
-#define OPENKALMAN_FROMEUCLIDEANEXPR_HPP
+#ifndef OPENKALMAN_FROM_STAT_SPACE_ADAPTER_HPP
+#define OPENKALMAN_FROM_STAT_SPACE_ADAPTER_HPP
 
-#include "basics/traits/traits.hpp"
+#include "patterns/patterns.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/concepts/pattern_collection_for.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
+#include "linear-algebra/traits/element_type_of.hpp"
+#include "linear-algebra/traits/get_index_pattern.hpp"
+#include "linear-algebra/views/range_of.hpp"
+#include "linear-algebra/traits/internal/library_base.hpp"
 
 namespace OpenKalman
 {
 
+  /**
+   * \brief An adapter that transforms a patterned object back from a Euclidean space for directional statistics.
+   * \details This is the counterpart expression to to_stat_space_adapter.
+   * \note This should not usually be constructed directly. Instead, call \ref from_stat_space.
+   * \tparam Nested The nested, pre-transformed object.
+   * \tparam Pattern The pattern of index 0 of the result.
+   */
 #ifdef __cpp_concepts
-  template<has_untyped_index<0> NestedObject, patterns::pattern V0>
+  template<indexible Nested, patterns::pattern_collection PatternCollection> requires
+    patterns::euclidean_pattern_collection<pattern_collection_type_of_t<Nested>> and
+    pattern_collection_for<decltype(patterns::to_stat_space_pattern_collection(std::declval<PatternCollection>())), Nested> and
+    std::same_as<PatternCollection, std::decay_t<PatternCollection>>
 #else
-  template<typename NestedObject, typename V0>
+  template<typename NestedObject, typename Pattern>
 #endif
-  struct FromEuclideanExpr : internal::AdapterBase<FromEuclideanExpr<NestedObject, V0>, NestedObject>
+  struct from_stat_space_adapter
+    : internal::library_base_t<to_stat_space_adapter<Nested>, Nested>
   {
 
-  private:
-
 #ifndef __cpp_concepts
-    static_assert(indexible<NestedObject>);
-    static_assert(patterns::pattern<V0>);
-    static_assert(has_untyped_index<NestedObject, 0>);
+    static_assert(patterns::euclidean_pattern_collection<pattern_collection_type_of_t<Nested>>);
+    static_assert(pattern_collection_for<decltype(patterns::to_stat_space_pattern_collection(std::declval<PatternCollection>())), Nested>);
+    static_assert(requires std::is_same_v<PatternCollection, std::decay_t<PatternCollection>>);
 #endif
 
-    using Scalar = scalar_type_of_t<NestedObject>;
+    using element_type = element_type_of_t<Nested>;
 
-    using Base = internal::AdapterBase<FromEuclideanExpr, NestedObject>;
+    using pattern_type = PatternCollection;
+
+    using extents_type = decltype(patterns::to_extents(std::declval<pattern_type>()));
+
+    using mdspan_type = stdex::mdspan<element_type, extents_type, stdex::layout_left>;
+
+
+    template<std::size_t i = 0, typename Prod = std::integral_constant<std::size_t, 1>>
+    static constexpr auto
+    store_size(const Nested& n, Prod prod = {})
+    {
+      if constexpr (i < index_count_v<Nested>)
+        return store_size<i + 1>(n,
+          values::operation(
+            std::multiplies{},
+            std::move(prod),
+            patterns::get_dimension(get_index_pattern<i>(n))
+          ));
+      else
+        return prod;
+    }
+
+
+    using store_size_type = decltype(store_size(std::declval<Nested>()));
+
+    using store_type = std::conditional_t<
+      values::fixed<store_size_type>,
+      std::array<element_type, values::fixed_value_of_v<store_size_type>>,
+      std::vector<element_type>>;
+
+
+    template<std::size_t N, std::size_t i = N, typename P, typename It, typename...J>
+    static constexpr auto
+    fill_store(const P& p, const Nested& nested, It it, J...j)
+    {
+      if constexpr (i == 0)
+        it = stdex::ranges::copy(patterns::from_stat_space(p, collections::views::range_of(nested, j...)), std::move(it)).out;
+      else for (std::size_t k = 0; k < get_index_extent<i>(nested); k++)
+        it = fill_store<N, i - 1>(p, nested, std::move(it), k, j...);
+      return it;
+    }
+
+
+    template<typename P>
+    static constexpr store_type
+    store_init(const Nested& nested, const P& p)
+    {
+      store_type store;
+      if constexpr (not values::fixed<store_size_type>) store.reserve(store_size(nested));
+      fill_store<index_count_v<Nested>>(p, nested, store.begin());
+      return store;
+    }
 
   public:
 
     /**
-     * \brief Default constructor.
+     * \brief Construct from an \ref indexible object and a \ref patterns::pattern_collection "pattern_collection".
      */
 #ifdef __cpp_concepts
-    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_pattern<V0>
+    template<patterns::pattern_collection P> requires
+      std::constructible_from<PatternCollection, P&&>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and stdex::default_initializable<Base> and fixed_pattern<V0>, int> = 0>
-    constexpr FromEuclideanExpr()
+    template<typename P, std::enable_if_t<
+      stdex::constructible_from<PatternCollection, P&&>, int> = 0>
 #endif
+    constexpr
+    from_stat_space_adapter(const Nested& nested, P&& p)
+      : pattern_ {std::forward<P>(p)},
+        store_ {store_init(nested, patterns::get_pattern<0>(pattern_))},
+        mdspan_ {store_.data(), stdex::layout_left::mapping {patterns::to_extents(pattern_)}}
     {}
 
 
     /**
-     * Construct from a compatible \ref indexible object.
+     * \brief Get the associated \ref patterns::pattern_collection "pattern_collection".
      */
-#ifdef __cpp_concepts
-    template<indexible Arg, patterns::pattern D0> requires
-      std::constructible_from<NestedObject, Arg&&> and std::constructible_from<std::decay_t<V0>, D0>
-#else
-    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and patterns::pattern<C> and
-      stdex::constructible_from<NestedObject, Arg&&> and stdex::constructible_from<std::decay_t<V0>, D0>, int> = 0>
-#endif
-    explicit FromEuclideanExpr(Arg&& arg, const D0& d0) : Base {std::forward<Arg>(arg)}, vector_space_descriptor_index_0{d0} {}
-
-
-    /**
-     * Construct from a compatible \ref indexible object if the \ref patterns::pattern "pattern" of index 0 is fixed.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>
-#else
-    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and
-      stdex::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
-#endif
-    explicit FromEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
-
-
-    /**
-     * Assign from a compatible \ref indexible object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
-      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean(std::declval<Arg&&>()))>
-#else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean(std::declval<Arg&&>()))>, int> = 0>
-#endif
-    auto& operator=(Arg&& arg)
+#ifdef __cpp_explicit_this_parameter
+    template<typename Self>
+    constexpr decltype(auto)
+    pattern_collection(this Self&& self)
     {
-      using TArg = decltype(to_euclidean(std::declval<Arg>()));
-      if constexpr ((zero<NestedObject> and zero<TArg>) or (identity_matrix<NestedObject> and identity_matrix<TArg>))
-      {}
-      else
-      {
-        this->nested_object() = to_euclidean(std::forward<Arg>(arg));
-      }
-      return *this;
+      return std::forward<Self>(self).pattern_;
     }
-
-  protected:
-
-    std::decay_t<V0> vector_space_descriptor_index_0;
-
-    friend struct interface::object_traits<VectorSpaceAdapter>;
-    friend struct interface::library_interface<VectorSpaceAdapter>;
-
-  }; // struct FromEuclideanExpr
-
-
-  // ------------------------------ //
-  //        Deduction Guide         //
-  // ------------------------------ //
-
-#ifdef __cpp_concepts
-  template<indexible Arg, patterns::pattern V>
 #else
-  template<typename Arg, typename V, std::enable_if_t<indexible<Arg> and patterns::pattern<V>, int> = 0>
+    constexpr PatternCollection&
+    pattern_collection() & { return pattern_; }
+
+    /// \overload
+    constexpr const PatternCollection&
+    pattern_collection() const & { return pattern_; }
+
+    /// \overload
+    constexpr PatternCollection&&
+    pattern_collection() && { return std::move(*this).pattern_; }
+
+    /// \overload
+    constexpr const PatternCollection&&
+    pattern_collection() const && { return std::move(*this).pattern_; }
 #endif
-  FromEuclideanExpr(Arg&&, const V&) -> FromEuclideanExpr<Arg, V>;
+
+  private:
+
+    pattern_type pattern_;
+    store_type store_;
+    mdspan_type mdspan_;
+
+    friend struct interface::object_traits<from_stat_space_adapter>;
+
+  };
 
 
-  // ------------------------- //
-  //        Interfaces         //
-  // ------------------------- //
+  /**
+   * \brief Deduction guide
+   */
+#ifdef __cpp_concepts
+  template<indexible Arg, patterns::pattern_collection P>
+#else
+  template<typename Arg, typename P, std::enable_if_t<indexible<Arg> and patterns::pattern_collection<P>, int> = 0>
+#endif
+  from_stat_space_adapter(Arg&&, const P&) -> from_stat_space_adapter<Arg, P>;
+
 
   namespace interface
   {
-
-    // --------------------------- //
-    //   object_traits   //
-    // --------------------------- //
-
-    template<typename NestedObject, typename V0>
-    struct object_traits<FromEuclideanExpr<NestedObject, V0>>
+    template<typename Nested, typename PatternCollection>
+    struct object_traits<from_stat_space_adapter<Nested, PatternCollection>>
     {
       static const bool is_specialized = true;
 
-      using scalar_type = scalar_type_of_t<NestedObject>;
-
-
-      template<typename Arg>
-      static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
-
-
-      template<typename Arg, typename N>
       static constexpr auto
-      get_pattern_collection(Arg&& arg, const N& n)
+      get_mdspan = [](auto&& t)
       {
-        if constexpr (values::fixed<N>)
-        {
-          if constexpr (n == 0_uz) return std::forward<Arg>(arg).vector_space_descriptor_index_0;
-          else return OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n);
-        }
-        else
-        {
-          using Desc = DynamicDescriptor<scalar_type_of<Arg>>;
-          if (n == 0) return Desc {std::forward<Arg>(arg).vector_space_descriptor_index_0};
-          else return Desc {OpenKalman::get_pattern_collection(nested_object(std::forward<Arg>(arg)), n)};
-        }
-      }
+        return std::forward<decltype(t)>(t).mdspan_;
+      };
 
 
-      template<typename Arg>
-      static decltype(auto)
-      nested_object(Arg&& arg)
-      {
-        return std::forward<Arg>(arg).nested_object();
-      }
-
-
-      template<typename Arg>
       static constexpr auto
-      get_constant(const Arg& arg)
+      get_pattern_collection = [](auto&& t) -> decltype(auto)
       {
-        if constexpr (patterns::euclidean_pattern<V0>)
-          return constant_value {arg.nested_object()};
-        else
-          return std::monostate {};
-      }
-
-
-      template<typename Arg>
-      static constexpr auto
-      get_constant_diagonal(const Arg& arg)
-      {
-        if constexpr (patterns::euclidean_pattern<V0>)
-          return constant_diagonal_value {arg.nested_object()};
-        else
-          return std::monostate {};
-      }
-
-
-      template<applicability b>
-      static constexpr bool
-      one_dimensional = patterns::euclidean_pattern<V0> and OpenKalman::one_dimensional<NestedObject, b>;
-
-
-      template<applicability b>
-      static constexpr bool
-      is_square = patterns::euclidean_pattern<V0> and square_shaped<NestedObject, b>;
-
-
-      template<triangle_type t>
-      static constexpr bool
-      triangle_type_value = patterns::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
-
-
-      static constexpr bool
-      is_triangular_adapter = false;
-
-
-      static constexpr bool
-      is_hermitian = patterns::euclidean_pattern<V0> and hermitian_matrix<NestedObject>;
-
-
-    // hermitian_adapter_type is omitted
-
-
-      static constexpr bool is_writable = false;
-
-
-#ifdef __cpp_lib_concepts
-      template<typename Arg> requires patterns::euclidean_pattern<V0> and raw_data_defined_for<nested_object_of_t<Arg&>>
-#else
-      template<typename Arg, std::enable_if_t<patterns::euclidean_pattern<V0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
-#endif
-      static constexpr auto * const
-      raw_data(Arg& arg)
-      {
-        return internal::raw_data(nested_object(arg));
-      }
-
-
-      static constexpr data_layout
-      layout = patterns::euclidean_pattern<V0> ? layout_of_v<NestedObject> : data_layout::none;
-
-
-#ifdef __cpp_concepts
-      template<typename Arg> requires (layout != data_layout::none)
-#else
-      template<data_layout l = layout, typename Arg, std::enable_if_t<l != data_layout::none, int> = 0>
-#endif
-      static auto
-      strides(Arg&& arg)
-      {
-        return OpenKalman::internal::strides(OpenKalman::nested_object(std::forward<Arg>(arg)));
-      }
+        return std::forward<decltype(t)>(t).pattern_;
+      };
 
     };
 
@@ -259,8 +205,9 @@ namespace OpenKalman
     // --------------------- //
 
     template<typename NestedObject, typename V0>
-    struct library_interface<FromEuclideanExpr<NestedObject, V0>>
+    struct library_interface<from_stat_space_adapter<NestedObject, V0>>
     {
+      /*
     private:
 
       using NestedInterface = library_interface<NestedObject>;
@@ -417,20 +364,20 @@ namespace OpenKalman
 
       template<typename Arg>
       constexpr decltype(auto)
-      to_euclidean(Arg&& arg)
+      to_stat_space(Arg&& arg)
       {
         return nested_object(std::forward<Arg>(arg)); //< from- and then to- is an identity.
       }
 
 
-      // from_euclidean not included. Double application of from_euclidean does not make sense.
+      // from_stat_space not included. Double application of from_stat_space does not make sense.
 
 
       template<typename Arg>
       constexpr decltype(auto)
       wrap_angles(Arg&& arg)
       {
-        return std::forward<Arg>(arg); //< A FromEuclideanExpr is already wrapped
+        return std::forward<Arg>(arg); //< A from_stat_space_adapter is already wrapped
       }
 
 
@@ -494,18 +441,18 @@ namespace OpenKalman
       }
 
 
-      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+      template<triangle_type significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto)
       rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
       {
-        return OpenKalman::rank_update_hermitian<significant_triangle>(make_hermitian_matrix(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+        return OpenKalman::rank_update_hermitian<significant_triangle>(to_hermitian(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
       }
 
 
       template<triangle_type triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
-        return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+        return OpenKalman::rank_update_triangular(to_triangular<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
       }
 
 
@@ -533,13 +480,14 @@ namespace OpenKalman
         return QR_decomposition(to_dense_object(std::forward<A>(a)));
       }
 
+*/
     };
 
 
   }
 
 
-} // OpenKalman
+}
 
 
 #endif

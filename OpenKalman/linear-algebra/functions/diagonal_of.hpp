@@ -18,17 +18,22 @@
 
 #include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/traits/get_mdspan.hpp"
 #include "linear-algebra/concepts/compares_with_pattern_collection.hpp"
-#include "linear-algebra/concepts/pattern_collection_for.hpp"
-#include "linear-algebra/concepts/diagonal_matrix.hpp"
-#include "linear-algebra/functions/attach_patterns.hpp"
+#include "linear-algebra/concepts/constant_object.hpp"
+#include "linear-algebra/concepts/constant_diagonal_object.hpp"
 #include "linear-algebra/functions/make_constant.hpp"
-#include "linear-algebra/functions/internal/make_wrapped_mdspan.hpp"
-#include "linear-algebra/interfaces/stl/diagonal_of_mdspan_policies.hpp"
+#include "linear-algebra/adapters/diagonal_of_adapter.hpp"
+#include "linear-algebra/functions/attach_patterns.hpp"
 
 namespace OpenKalman
 {
+  namespace interface
+  {
+    template<typename T>
+    struct diagonal_of { static const bool is_specialized = false; };
+  }
+
+
   /**
    * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
    * \tparam Arg An \ref indexible object, which can have any rank and may or may not be square
@@ -47,39 +52,43 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::diagonal_of_defined_for<Arg&&>)
+    else if constexpr (interface::diagonal_of<stdex::remove_cvref_t<Arg>>::is_specialized)
     {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+      return interface::diagonal_of<stdex::remove_cvref_t<Arg>>{}(std::forward<Arg>(arg));
+    }
+    else if constexpr (constant_object<Arg> or constant_diagonal_object<Arg>)
+    {
+      return make_constant(
+        constant_value(std::forward<Arg>(arg)),
+        patterns::views::diagonal_of(get_pattern_collection(arg)));
     }
     else
     {
-      auto p = patterns::views::diagonal_of(get_pattern_collection(arg));
-      if constexpr (constant_object<Arg> or constant_diagonal_object<Arg>)
-      {
-        return make_constant(constant_value(arg), std::move(p));
-      }
-      else
-      {
-        decltype(auto) n = get_mdspan(arg);
-        using N = std::decay_t<decltype(n)>;
-        using nested_extents_type = typename N::extents_type;
-        using nested_layout = typename N::layout_type;
-
-        using layout_type = interface::layout_diagonal_of<nested_layout, nested_extents_type>;
-        using extents_type = decltype(patterns::to_extents(p));
-        using mapping_type = typename layout_type::template mapping<extents_type>;
-        auto map = mapping_type {n.mapping(), patterns::to_extents(p)};
-
-        return internal::make_wrapped_mdspan(
-          std::forward<Arg>(arg),
-          stdex::identity{},
-          std::move(map),
-          n.accessor(),
-          std::move(p));
-      }
+      return diagonal_of_adapter {std::forward<Arg>(arg)};
     }
   }
 
+
+  namespace interface
+  {
+    template<typename Nested, typename PatternCollection>
+    struct diagonal_of<pattern_adapter<Nested, PatternCollection>>
+    {
+      using NestedInterface = diagonal_of<stdex::remove_cvref_t<Nested>>;
+      static const bool is_specialized = NestedInterface::is_specialized;
+
+      template<typename Arg>
+      constexpr auto
+      operator()(Arg&& arg)
+      {
+        return attach_patterns(
+          NestedInterface{}(std::forward<Arg>(arg).nested_object()),
+          patterns::views::diagonal_of(arg.pattern_collection()) );
+      }
+
+    };
+
+  }
 
 }
 

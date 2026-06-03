@@ -106,16 +106,16 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<ElseMatrixType>);
 
 
-    template<applicability b>
+    template<std::size_t N, applicability b>
     static constexpr bool is_square =
-      square_shaped<ConditionMatrixType, 2, applicability::permitted> and
-      square_shaped<ThenMatrixType, 2, applicability::permitted> and
-      square_shaped<ElseMatrixType, 2, applicability::permitted> and
+      square_shaped<ConditionMatrixType, N, applicability::permitted> and
+      square_shaped<ThenMatrixType, N, applicability::permitted> and
+      square_shaped<ElseMatrixType, N, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
-        square_shaped<ConditionMatrixType, 2, b> or
-        square_shaped<ThenMatrixType, 2, b> or
-        square_shaped<ElseMatrixType, 2, b>);
+        square_shaped<ConditionMatrixType, N, b> or
+        square_shaped<ThenMatrixType, N, b> or
+        square_shaped<ElseMatrixType, N, b>);
 
 
     template<triangle_type t>
@@ -126,9 +126,6 @@ namespace OpenKalman::interface
             ThenMatrixType, ElseMatrixType>, t>;
         else return false;
       }();
-
-
-    static constexpr bool is_triangular_adapter = false;
 
 
     static constexpr bool is_hermitian =

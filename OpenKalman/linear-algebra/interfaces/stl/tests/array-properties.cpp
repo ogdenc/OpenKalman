@@ -38,6 +38,10 @@ namespace
   constexpr A111 a111 {{{9}}};
 
   using A3 = double[3];
+  using A31 = double[3][1];
+  using A13 = double[1][3];
+
+  using A3 = double[3];
   using A3c = const double[3];
   constexpr A3 a3 {1, 2, 3};
   constexpr A3c a3c {1, 2, 3};
@@ -278,13 +282,16 @@ TEST(stl_interfaces, array_shapes)
   double a222[2][2][2] {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};
   static_assert(compare(*is_square_shaped(a222), Dimensions<2>{}));
 
-  static_assert(not square_shaped<A3, values::unbounded_size, applicability::permitted>);
-  static_assert(not square_shaped<A23, values::unbounded_size, applicability::permitted>);
-  static_assert(not square_shaped<A234, values::unbounded_size, applicability::permitted>);
-  static_assert(square_shaped<double[1]>);
-  static_assert(square_shaped<double[2][2]>);
-  static_assert(square_shaped<double[2][2][2]>);
-  static_assert(not square_shaped<double[2][1][2], values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<A1, 1>);
+  static_assert(square_shaped<A1, 3>);
+  static_assert(not square_shaped<A3, 1, applicability::permitted>);
+  static_assert(not square_shaped<A3, 2, applicability::permitted>);
+  static_assert(not square_shaped<A23, 2, applicability::permitted>);
+  static_assert(not square_shaped<A234, 3, applicability::permitted>);
+  static_assert(square_shaped<double[1], 2>);
+  static_assert(square_shaped<double[2][2], 2>);
+  static_assert(square_shaped<double[2][2][2], 3>);
+  static_assert(not square_shaped<double[2][1][2], 3, applicability::permitted>);
 
   static_assert(not is_one_dimensional(a3));
   static_assert(not is_one_dimensional(a23));
@@ -295,15 +302,15 @@ TEST(stl_interfaces, array_shapes)
   static_assert(not is_one_dimensional(a22));
   static_assert(not is_one_dimensional(a222));
 
-  static_assert(not one_dimensional<A3, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<A23, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<A234, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<double[3][3], values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<double[3][3][3], values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<A3, applicability::permitted>);
+  static_assert(not one_dimensional<A23, applicability::permitted>);
+  static_assert(not one_dimensional<A234, applicability::permitted>);
+  static_assert(not one_dimensional<double[3][3], applicability::permitted>);
+  static_assert(not one_dimensional<double[3][3][3], applicability::permitted>);
   static_assert(one_dimensional<double[1]>);
   static_assert(one_dimensional<double[1][1]>);
   static_assert(one_dimensional<double[1][1][1]>);
-  static_assert(not one_dimensional<double[1][2][1], values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<double[1][2][1], applicability::permitted>);
 
   // no tests for empty_object, given that a legacy c++ array cannot have zero dimension.
 
@@ -546,12 +553,48 @@ TEST(stl_interfaces, array_indices)
   EXPECT_TRUE(is_near(a23w, a23));
 }
 
+#include "linear-algebra/views/range_of.hpp"
+
+TEST(stl_interfaces, range_of)
+{
+  EXPECT_EQ(views::range_of(a23, 0U)[0], 1);
+  EXPECT_EQ(views::range_of(a23, 1U)[0], 2);
+  EXPECT_EQ(views::range_of(a23, 2U)[0], 3);
+  EXPECT_EQ(views::range_of(a23, 0U)[1], 4);
+  EXPECT_EQ(views::range_of(a23, 1U)[1], 5);
+  EXPECT_EQ(views::range_of(a23, 2U)[1], 6);
+
+  EXPECT_EQ(views::range_of(a234, 0U, 0U)[0], 1);
+  EXPECT_EQ(views::range_of(a234, 0U, 1U)[0], 2);
+  EXPECT_EQ(views::range_of(a234, 0U, 2U)[0], 3);
+  EXPECT_EQ(views::range_of(a234, 0U, 3U)[0], 4);
+  EXPECT_EQ(views::range_of(a234, 1U, 0U)[0], 5);
+  EXPECT_EQ(views::range_of(a234, 1U, 1U)[0], 6);
+  EXPECT_EQ(views::range_of(a234, 1U, 2U)[0], 7);
+  EXPECT_EQ(views::range_of(a234, 1U, 3U)[0], 8);
+  EXPECT_EQ(views::range_of(a234, 2U, 0U)[0], 9);
+  EXPECT_EQ(views::range_of(a234, 2U, 1U)[0], 10);
+  EXPECT_EQ(views::range_of(a234, 2U, 2U)[0], 11);
+  EXPECT_EQ(views::range_of(a234, 2U, 3U)[0], 12);
+  EXPECT_EQ(views::range_of(a234, 0U, 0U)[1], 13);
+  EXPECT_EQ(views::range_of(a234, 0U, 1U)[1], 14);
+  EXPECT_EQ(views::range_of(a234, 0U, 2U)[1], 15);
+  EXPECT_EQ(views::range_of(a234, 0U, 3U)[1], 16);
+  EXPECT_EQ(views::range_of(a234, 1U, 0U)[1], 17);
+  EXPECT_EQ(views::range_of(a234, 1U, 1U)[1], 18);
+  EXPECT_EQ(views::range_of(a234, 1U, 2U)[1], 19);
+  EXPECT_EQ(views::range_of(a234, 1U, 3U)[1], 20);
+  EXPECT_EQ(views::range_of(a234, 2U, 0U)[1], 21);
+  EXPECT_EQ(views::range_of(a234, 2U, 1U)[1], 22);
+  EXPECT_EQ(views::range_of(a234, 2U, 2U)[1], 23);
+  EXPECT_EQ(views::range_of(a234, 2U, 3U)[1], 24);
+}
+
 #include "linear-algebra/concepts/zero.hpp"
 #include "linear-algebra/traits/triangle_type_of.hpp"
 #include "linear-algebra/concepts/triangular_matrix.hpp"
 #include "linear-algebra/concepts/diagonal_matrix.hpp"
 #include "linear-algebra/concepts/hermitian_matrix.hpp"
-//#include "linear-algebra/traits/hermitian_adapter_type_of.hpp"
 
 TEST(stl_interfaces, array_special_matrices)
 {
@@ -572,9 +615,15 @@ TEST(stl_interfaces, array_special_matrices)
   static_assert(triangle_type_of_v<A1> == triangle_type::diagonal);
   static_assert(triangle_type_of_v<A11> == triangle_type::diagonal);
   static_assert(triangle_type_of_v<A111> == triangle_type::diagonal);
-  static_assert(triangle_type_of_v<A3> == triangle_type::none);
   static_assert(triangle_type_of_v<A23> == triangle_type::none);
   static_assert(triangle_type_of_v<A234> == triangle_type::none);
+
+  static_assert(triangle_type_of_v<A3> == triangle_type::lower);
+  static_assert(triangle_type_of_v<A3> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<A31> == triangle_type::lower);
+  static_assert(triangle_type_of_v<A31> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<A13> == triangle_type::upper);
+  static_assert(triangle_type_of_v<A13> != triangle_type::diagonal);
 
   static_assert(triangular_matrix<Z1, triangle_type::diagonal>);
   static_assert(triangular_matrix<Z1, triangle_type::upper>);
@@ -604,7 +653,7 @@ TEST(stl_interfaces, array_special_matrices)
   static_assert(triangular_matrix<A111, triangle_type::diagonal>);
   static_assert(triangular_matrix<A111, triangle_type::upper>);
   static_assert(triangular_matrix<A111, triangle_type::lower>);
-  static_assert(not triangular_matrix<A234>);
+  static_assert(triangular_matrix<A234, triangle_type::none>);
   static_assert(triangular_matrix<I1, triangle_type::diagonal>);
   static_assert(triangular_matrix<I11, triangle_type::diagonal>);
   static_assert(triangular_matrix<I111, triangle_type::diagonal>);

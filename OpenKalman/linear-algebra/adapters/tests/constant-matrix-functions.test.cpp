@@ -69,9 +69,9 @@ TEST(adapters, constant_adapter_functions)
   EXPECT_EQ(get_pattern_collection<1>(c5x4_3), 4);
   EXPECT_EQ(get_pattern_collection<1>(c5xx_34), 4);
 
-  // to_euclidean is tested in ToEuclideanExpr.test.cpp.
-  // from_euclidean is tested in FromEuclideanExpr.test.cpp.
-  // wrap_angles is tested in FromEuclideanExpr.test.cpp.
+  // to_stat_space is tested in to_stat_space_adapter.test.cpp.
+  // from_stat_space is tested in from_stat_space_adapter.test.cpp.
+  // wrap_angles is tested in from_stat_space_adapter.test.cpp.
 
   EXPECT_TRUE(is_near(transpose(c534), M43::Constant(5)));
   EXPECT_TRUE(is_near(transpose(c53x_4), M43::Constant(5)));
@@ -233,9 +233,9 @@ TEST(adapters, constant_adapter_functions)
 
 TEST(adapters, zero_adapter_functions)
 {
-  // to_euclidean is tested in ToEuclideanExpr.test.cpp.
-  // from_euclidean is tested in FromEuclideanExpr.test.cpp.
-  // wrap_angles is tested in FromEuclideanExpr.test.cpp.
+  // to_stat_space is tested in to_stat_space_adapter.test.cpp.
+  // from_stat_space is tested in from_stat_space_adapter.test.cpp.
+  // wrap_angles is tested in from_stat_space_adapter.test.cpp.
 
   ZA23 z23 {Dimensions<2>(), Dimensions<3>()};
   ZA20 z2x_3 {Dimensions<2>(), 3};

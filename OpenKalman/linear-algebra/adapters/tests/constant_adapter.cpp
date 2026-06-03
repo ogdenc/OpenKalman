@@ -9,7 +9,7 @@
  */
 
 #include "linear-algebra/tests/tests.hpp"
-#include "linear-algebra/adapters/constant_adapter.hpp"
+#include "linear-algebra/adapters/constant_adapter.obsolete.hpp"
 #include "linear-algebra/concepts/constant_diagonal_object.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 #include "linear-algebra/concepts/diagonal_matrix.hpp"

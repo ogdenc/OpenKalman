@@ -19,8 +19,8 @@
 #include "basics/basics.hpp"
 #include "mdspan-object.hpp"
 #include "linear-algebra/interfaces/library_interface.hpp"
-#include "to_diagonal_mdspan_policies.hpp"
-#include "diagonal_of_mdspan_policies.hpp"
+#include "layout_to_diagonal.hpp"
+#include "layout_diagonal_of.hpp"
 #include "transpose_mdspan_policies.hpp"
 
 namespace OpenKalman::interface

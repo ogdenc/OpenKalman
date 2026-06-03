@@ -492,7 +492,7 @@ namespace OpenKalman::interface
       not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<std::remove_reference_t<Arg>>::non_const_type>), int> = 0>
 #endif
     static constexpr auto
-    make_triangular_matrix(Arg&& arg)
+    to_triangular(Arg&& arg)
     {
       constexpr auto Mode = t == triangle_type::upper ? Eigen::Upper : Eigen::Lower;
       return arg.template triangularView<Mode>();
@@ -500,21 +500,21 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType t, Eigen3::eigen_dense_general Arg> requires std::is_lvalue_reference_v<Arg>
+    template<triangle_type t, Eigen3::eigen_dense_general Arg> requires std::is_lvalue_reference_v<Arg>
 #else
-    template<HermitianAdapterType t, typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and std::is_lvalue_reference_v<Arg>, int> = 0>
+    template<triangle_type t, typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and std::is_lvalue_reference_v<Arg>, int> = 0>
 #endif
     static constexpr auto
-    make_hermitian_adapter(Arg&& arg)
+    to_hermitian(Arg&& arg)
     {
-      constexpr auto Mode = t == HermitianAdapterType::upper ? Eigen::Upper : Eigen::Lower;
+      constexpr auto Mode = t == triangle_type::upper ? Eigen::Upper : Eigen::Lower;
       return arg.template selfadjointView<Mode>();
     }
 
 
-    // to_euclidean not defined--rely on default
+    // to_stat_space not defined--rely on default
 
-    // from_euclidean not defined--rely on default
+    // from_stat_space not defined--rely on default
 
     // wrap_angles not defined--rely on default
 
@@ -636,9 +636,9 @@ namespace OpenKalman::interface
     static void
     set_triangle(A&& a, B&& b)
     {
-      // A SelfAdjointView won't always be a hermitian_adapter
-      if constexpr ((t == triangle_type::lower and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::upper) or
-          (t == triangle_type::upper and interface::object_traits<T>::hermitian_adapter_type == HermitianAdapterType::lower))
+      // A SelfAdjointView won't always be a hermitian_adapter_concept
+      if constexpr ((t == triangle_type::lower and interface::object_traits<T>::hermitian_adapter_type == triangle_type::upper) or
+          (t == triangle_type::upper and interface::object_traits<T>::hermitian_adapter_type == triangle_type::lower))
         internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), OpenKalman::conjugate_transpose(std::forward<B>(b)));
       else
         internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
@@ -724,7 +724,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_SelfAdjointView Arg> requires (hermitian_adapter_type_of_v<Arg> == HermitianAdapterType::lower)
+    template<Eigen3::eigen_SelfAdjointView Arg> requires (hermitian_adapter_type_of_v<Arg> == triangle_type::lower)
 #else
     template<typename Arg, std::enable_if_t<Eigen3::eigen_SelfAdjointView<Arg>, int> = 0>
 #endif
@@ -960,7 +960,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (triangular_matrix<Arg>)
       {
-        return OpenKalman::conjugate(TriangularAdapter {std::forward<Arg>(arg)});
+        return OpenKalman::conjugate(triangular_adapter {std::forward<Arg>(arg)});
       }
       else
       {
@@ -990,7 +990,7 @@ namespace OpenKalman::interface
       {
         static_assert(triangle_type_of_v<Arg> == triangle_type::upper or triangle_type_of_v<Arg> == triangle_type::lower);
         constexpr auto t = triangular_matrix<Arg, triangle_type::upper> ? triangle_type::lower : triangle_type::upper;
-        return OpenKalman::make_triangular_matrix<t>(transpose(to_native_matrix(std::forward<Arg>(arg))));
+        return OpenKalman::to_triangular<t>(transpose(to_native_matrix(std::forward<Arg>(arg))));
       }
       else
       {
@@ -1016,7 +1016,7 @@ namespace OpenKalman::interface
       {
         static_assert(triangle_type_of_v<Arg> == triangle_type::upper or triangle_type_of_v<Arg> == triangle_type::lower);
         constexpr auto t = triangular_matrix<Arg, triangle_type::upper> ? triangle_type::lower : triangle_type::upper;
-        return OpenKalman::make_triangular_matrix<t>(OpenKalman::conjugate_transpose(to_native_matrix(std::forward<Arg>(arg))));
+        return OpenKalman::to_triangular<t>(OpenKalman::conjugate_transpose(to_native_matrix(std::forward<Arg>(arg))));
       }
       else
       {
@@ -1048,14 +1048,14 @@ namespace OpenKalman::interface
     static constexpr auto
     sum(A&& a, B&& b)
     {
-      constexpr HermitianAdapterType h = hermitian_adapter_type_of_v<A, B> == HermitianAdapterType::any ?
-        HermitianAdapterType::lower : hermitian_adapter_type_of_v<A, B>;
+      constexpr triangle_type h = hermitian_adapter_type_of_v<A, B> == triangle_type::any ?
+        triangle_type::lower : hermitian_adapter_type_of_v<A, B>;
 
       auto f = [](auto&& x) -> decltype(auto) {
         constexpr bool herm = hermitian_matrix<A> and hermitian_matrix<B>;
-        if constexpr ((triangle_type_of_v<A, B> != triangle_type::any and triangular_adapter<decltype(x)>) or (herm and hermitian_adapter<decltype(x), h>))
+        if constexpr ((triangle_type_of_v<A, B> != triangle_type::none and triangular_adapter_obsolete<decltype(x)>) or (herm and hermitian_adapter_concept<decltype(x), h>))
           return nested_object(std::forward<decltype(x)>(x));
-        else if constexpr (herm and hermitian_adapter<decltype(x)>)
+        else if constexpr (herm and hermitian_adapter_concept<decltype(x)>)
           return OpenKalman::transpose(nested_object(std::forward<decltype(x)>(x)));
         else
           return std::forward<decltype(x)>(x);
@@ -1070,8 +1070,8 @@ namespace OpenKalman::interface
       using CW = Eigen::CwiseBinaryOp<decltype(op), std::remove_reference_t<AWrap>, std::remove_reference_t<BWrap>>;
       CW s {std::forward<AWrap>(a_wrap), std::forward<BWrap>(b_wrap), std::move(op)};
 
-      if constexpr (triangle_type_of_v<A, B> != triangle_type::any) return OpenKalman::make_triangular_matrix<triangle_type_of_v<A, B>>(std::move(s));
-      else if constexpr (hermitian_matrix<A> and hermitian_matrix<B>) return make_hermitian_matrix<h>(std::move(s));
+      if constexpr (triangle_type_of_v<A, B> != triangle_type::none) return OpenKalman::to_triangular<triangle_type_of_v<A, B>>(std::move(s));
+      else if constexpr (hermitian_matrix<A> and hermitian_matrix<B>) return to_hermitian<h>(std::move(s));
       else return s;
     }
 
@@ -1225,7 +1225,7 @@ namespace OpenKalman::interface
         if (values::to_value_type(s) < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("cholesky_factor of constant HermitianAdapter: result is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant hermitian_adapter: result is indefinite"));
         }
 
         if constexpr(tri == triangle_type::diagonal)
@@ -1238,7 +1238,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto col0 = make_constant<A>(values::sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
-          return attach_patterns(OpenKalman::make_triangular_matrix<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
+          return attach_patterns(OpenKalman::to_triangular<tri>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
         else
         {
@@ -1246,7 +1246,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension(dim);
           auto row0 = make_constant<A>(values::sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
-          return attach_patterns(OpenKalman::make_triangular_matrix<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
+          return attach_patterns(OpenKalman::to_triangular<tri>(concatenate_vertical(row0, otherrows)), dim, dim);
         }
       }
       else
@@ -1257,8 +1257,8 @@ namespace OpenKalman::interface
         auto LL_x = a.llt();
         if (LL_x.info() == Eigen::Success)
         {
-          if constexpr((tri == triangle_type::upper and hermitian_adapter_type_of_v<A> == HermitianAdapterType::upper) or
-            tri == triangle_type::lower and hermitian_adapter_type_of_v<A> == HermitianAdapterType::lower)
+          if constexpr((tri == triangle_type::upper and hermitian_adapter_type_of_v<A> == triangle_type::upper) or
+            tri == triangle_type::lower and hermitian_adapter_type_of_v<A> == triangle_type::lower)
           {
             b = std::move(LL_x.matrixLLT());
           }
@@ -1283,7 +1283,7 @@ namespace OpenKalman::interface
             }
             else // Covariance is indefinite, so throw an exception.
             {
-              throw (std::runtime_error("cholesky_factor of HermitianAdapter: covariance is indefinite"));
+              throw (std::runtime_error("cholesky_factor of hermitian_adapter: covariance is indefinite"));
             }
           }
           else if constexpr(tri == triangle_type::lower)
@@ -1297,19 +1297,19 @@ namespace OpenKalman::interface
               LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
           }
         }
-        return TriangularAdapter<M, tri> {std::move(b)};
+        return triangular_adapter<M, tri> {std::move(b)};
       }
     }
 
 
-    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+    template<triangle_type significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
       if constexpr (Eigen3::eigen_matrix_general<A>)
       {
         static_assert(writable<A>);
-        constexpr auto s = significant_triangle == HermitianAdapterType::lower ? Eigen::Lower : Eigen::Upper;
+        constexpr auto s = significant_triangle == triangle_type::lower ? Eigen::Lower : Eigen::Upper;
         a.template selfadjointView<s>().template rankUpdate(std::forward<U>(u), alpha);
         return std::forward<A>(a);
       }
@@ -1499,7 +1499,7 @@ namespace OpenKalman::interface
     static constexpr auto
     LQ_decomposition(A&& a)
     {
-      return OpenKalman::make_triangular_matrix<triangle_type::lower>(OpenKalman::conjugate_transpose(QR_decomp_impl(OpenKalman::conjugate_transpose(std::forward<A>(a)))));
+      return OpenKalman::to_triangular<triangle_type::lower>(OpenKalman::conjugate_transpose(QR_decomp_impl(OpenKalman::conjugate_transpose(std::forward<A>(a)))));
     }
 
 
@@ -1507,7 +1507,7 @@ namespace OpenKalman::interface
     static constexpr auto
     QR_decomposition(A&& a)
     {
-      return OpenKalman::make_triangular_matrix<triangle_type::upper>(QR_decomp_impl(std::forward<A>(a)));
+      return OpenKalman::to_triangular<triangle_type::upper>(QR_decomp_impl(std::forward<A>(a)));
     }
 
   };

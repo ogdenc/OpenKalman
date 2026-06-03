@@ -187,8 +187,8 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(not triangular_matrix<Eigen::Reshaped<Tuvxx, Eigen::Dynamic, 2>>);
   static_assert(not triangular_matrix<Eigen::Reshaped<Tuvxx, Eigen::Dynamic, Eigen::Dynamic>>);
 
-  static_assert(not hermitian_adapter<Eigen::Reshaped<Z22, 2, 2>>);
-  static_assert(not hermitian_adapter<Eigen::Reshaped<C22_2, 2, 2>>);
+  static_assert(not hermitian_adapter_concept<Eigen::Reshaped<Z22, 2, 2>>);
+  static_assert(not hermitian_adapter_concept<Eigen::Reshaped<C22_2, 2, 2>>);
 
   static_assert(hermitian_matrix<Eigen::Reshaped<Z22, 2, 2>>);
 

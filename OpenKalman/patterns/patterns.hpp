@@ -111,6 +111,7 @@ namespace OpenKalman::patterns::views {}
 #include "concepts/collection_compares_with.hpp"
 
 #include "functions/to_extents.hpp"
+#include "functions/to_stat_space_pattern_collection.hpp"
 
 #include "functions/get_pattern.hpp"
 #include "traits/pattern_collection_element.hpp"

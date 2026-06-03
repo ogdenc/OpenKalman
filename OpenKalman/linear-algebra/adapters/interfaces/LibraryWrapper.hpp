@@ -74,8 +74,8 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = square_shaped<NestedObject, b>;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<NestedObject, N, b>;
 
 
     static constexpr triangle_type triangle_type_value = triangle_type_of<NestedObject>;
@@ -241,31 +241,31 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<triangle_type t, indexible Arg> requires
-      interface::make_triangular_matrix_defined_for<LibraryObject, t, Arg&&>
+      interface::to_triangular_defined_for<LibraryObject, t, Arg&&>
     static constexpr triangular_matrix<t> auto
 #else
     template<triangle_type t, typename Arg, std::enable_if_t<
-      interface::make_triangular_matrix_defined_for<LibraryObject, t, Arg&&>, int> = 0>
+      interface::to_triangular_defined_for<LibraryObject, t, Arg&&>, int> = 0>
     static constexpr auto
 #endif
-    make_triangular_matrix(Arg&& arg)
+    to_triangular(Arg&& arg)
     {
-      return LibraryInterface::template make_triangular_matrix<t>(std::forward<Arg>(arg));
+      return LibraryInterface::template to_triangular<t>(std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType t, indexible Arg> requires
-      interface::make_hermitian_adapter_defined_for<LibraryObject, t, Arg&&>
+    template<triangle_type t, indexible Arg> requires
+      interface::to_hermitian_defined_for<LibraryObject, t, Arg&&>
     static constexpr hermitian_matrix auto
 #else
-    template<HermitianAdapterType t, typename Arg, std::enable_if_t<
-      make_hermitian_adapter_defined_for<LibraryObject, t, Arg&>, int> = 0>
+    template<triangle_type t, typename Arg, std::enable_if_t<
+      to_hermitian_defined_for<LibraryObject, t, Arg&>, int> = 0>
     static constexpr auto
 #endif
-    make_hermitian_adapter(Arg&& arg)
+    to_hermitian(Arg&& arg)
     {
-      return LibraryInterface::template make_hermitian_adapter<t>(std::forward<Arg>(arg));
+      return LibraryInterface::template to_hermitian<t>(std::forward<Arg>(arg));
     }
 
 
@@ -329,13 +329,13 @@ namespace OpenKalman::interface
     template<indexible Arg> requires (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
       (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
-      interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+      interface::diagonal_of_defined_for<nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<(diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject>) or
       (diagonal_matrix<NestedObject> and internal::has_nested_vector<NestedObject, 1> and
         interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
-      interface::diagonal_of_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::diagonal_of_defined_for<typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     diagonal_of(Arg&& arg)
@@ -421,58 +421,58 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<indexible Arg> requires
-      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
-      interface::to_euclidean_defined_for<NestedObject, Arg&&>
+      interface::to_stat_space_defined_for<nested_object_of_t<Arg&&>> or
+      interface::to_stat_space_defined_for<Arg&&>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
-      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
-      interface::to_euclidean_defined_for<NestedObject, Arg&&>, int> = 0>
+      interface::to_stat_space_defined_for<nested_object_of_t<Arg&&>> or
+      interface::to_stat_space_defined_for<Arg&&>, int> = 0>
     static constexpr auto
 #endif
-    to_euclidean(Arg&& arg)
+    to_stat_space(Arg&& arg)
     {
-      if constexpr (interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
-        return to_LibraryObject_native(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
+      if constexpr (interface::to_stat_space_defined_for<nested_object_of_t<Arg&&>>)
+        return to_LibraryObject_native(NestedInterface::to_stat_space(nested_object(std::forward<Arg>(arg))));
       else
-        return NestedInterface::to_euclidean(std::forward<Arg>(arg));
+        return NestedInterface::to_stat_space(std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg, patterns::pattern V> requires
-      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&> or
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>
+      interface::from_stat_space_defined_for<nested_object_of_t<Arg&&>, const V&> or
+      interface::from_stat_space_defined_for<Arg&&, const V&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename V, std::enable_if_t<
-      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const V&> or
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>, int> = 0>
+      interface::from_stat_space_defined_for<typename nested_object_of<Arg&&>::type, const V&> or
+      interface::from_stat_space_defined_for<Arg&&, const V&>, int> = 0>
     static constexpr auto
 #endif
-    from_euclidean(Arg&& arg, const V& v)
+    from_stat_space(Arg&& arg, const V& v)
     {
-      if constexpr (interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>)
-        return to_LibraryObject_native(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v));
+      if constexpr (interface::from_stat_space_defined_for<nested_object_of_t<Arg&&>, const V&>)
+        return to_LibraryObject_native(NestedInterface::from_stat_space(nested_object(std::forward<Arg>(arg)), v));
       else
-        return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
+        return NestedInterface::from_stat_space(std::forward<Arg>(arg), v);
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg> requires
-      interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
-      interface::wrap_angles_defined_for<NestedObject, Arg&&>
+      interface::wrap_angles_defined_for<nested_object_of_t<Arg&&>> or
+      interface::wrap_angles_defined_for<Arg&&>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
-      interface::wrap_angles_defined_for<NestedObject, typename nested_object_of<Arg&&>::type> or
-      interface::wrap_angles_defined_for<NestedObject, Arg&&>, int> = 0>
+      interface::wrap_angles_defined_for<typename nested_object_of<Arg&&>::type> or
+      interface::wrap_angles_defined_for<Arg&&>, int> = 0>
     static constexpr auto
 #endif
     wrap_angles(Arg&& arg)
     {
-      if constexpr (interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
+      if constexpr (interface::wrap_angles_defined_for<nested_object_of_t<Arg&&>>)
         return to_LibraryObject_native(NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg))));
       else
         return NestedInterface::wrap_angles(std::forward<Arg>(arg));
@@ -687,12 +687,12 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType significant_triangle, indexible A, indexible U> requires
+    template<triangle_type significant_triangle, indexible A, indexible U> requires
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&> or
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, nested_object_of_t<A&&>, U&&, const scalar_type_of_t<A>&>
     static constexpr hermitian_matrix auto
 #else
-    template<HermitianAdapterType significant_triangle, typename A, typename U, std::enable_if_t<
+    template<triangle_type significant_triangle, typename A, typename U, std::enable_if_t<
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, A&&, U&&, const typename scalar_type_of<A>::type&> or
       interface::rank_update_self_adjoint_defined_for<NestedObject, significant_triangle, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
     static constexpr auto

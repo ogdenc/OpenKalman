@@ -109,9 +109,9 @@ namespace OpenKalman::interface
     template<typename Arg, std::enable_if_t<mean<Arg> and patterns::pattern<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg)
+    to_stat_space(Arg&& arg)
     {
-      auto&& n = OpenKalman::to_euclidean(nested_object(std::forward<Arg>(arg), std::forward<DC>(dc)...));
+      auto&& n = OpenKalman::to_stat_space(nested_object(std::forward<Arg>(arg), std::forward<DC>(dc)...));
       return make_euclidean_mean(std::forward<decltype(n)>(n));
     }
 
@@ -122,9 +122,9 @@ namespace OpenKalman::interface
     template<typename Arg, std::enable_if_t<euclidean_mean<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg)
+    from_stat_space(Arg&& arg)
     {
-      auto&& n = OpenKalman::from_euclidean(nested_object(std::forward<Arg>(arg)));
+      auto&& n = OpenKalman::from_stat_space(nested_object(std::forward<Arg>(arg)));
       return make_mean(std::forward<decltype(n)>(n));
     }
 
@@ -148,7 +148,7 @@ namespace OpenKalman::interface
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
-        auto b = OpenKalman::conjugate(nested_object(from_euclidean(std::forward<Arg>(arg))));
+        auto b = OpenKalman::conjugate(nested_object(from_stat_space(std::forward<Arg>(arg))));
         return Matrix<CRows, CCols, decltype(b)>(std::move(b));
       }
       else
@@ -166,7 +166,7 @@ namespace OpenKalman::interface
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
-        auto b = OpenKalman::transpose(nested_object(from_euclidean(std::forward<Arg>(arg))));
+        auto b = OpenKalman::transpose(nested_object(from_stat_space(std::forward<Arg>(arg))));
         return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
       else
@@ -184,7 +184,7 @@ namespace OpenKalman::interface
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
-        auto b = OpenKalman::conjugate_transpose(nested_object(from_euclidean(std::forward<Arg>(arg))));
+        auto b = OpenKalman::conjugate_transpose(nested_object(from_stat_space(std::forward<Arg>(arg))));
         return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
       else
@@ -209,7 +209,7 @@ namespace OpenKalman::interface
     }
 
 
-    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+    template<triangle_type significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
       return OpenKalman::rank_update_hermitian(nested_object(std::forward<A>(a)), nested_object(std::forward<U>(u)), alpha);

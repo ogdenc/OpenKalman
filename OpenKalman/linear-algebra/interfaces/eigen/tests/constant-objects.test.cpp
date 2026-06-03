@@ -9,7 +9,7 @@
  */
 
 #include "eigen.gtest.hpp"
-#include "linear-algebra/adapters/constant_adapter.hpp"
+#include "linear-algebra/adapters/constant_adapter.obsolete.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;

@@ -175,25 +175,20 @@ namespace OpenKalman::interface
         ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, 2, b>));
 
 
-    template<applicability b>
+    template<std::size_t N, applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsXprType, 2, applicability::permitted> and square_shaped<RhsXprType, 2, applicability::permitted> and
+      square_shaped<LhsXprType, N, applicability::permitted> and square_shaped<RhsXprType, N, applicability::permitted> and
       (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
-        square_shaped<LhsXprType, 2, b> or square_shaped<RhsXprType, 2, b>);
+        square_shaped<LhsXprType, N, b> or square_shaped<RhsXprType, N, b>);
 
 
-    static constexpr bool is_triangular_adapter = false;
-
-
-    template<triangle_type t>
-    static constexpr bool triangle_type_value =
+    static constexpr triangle_type
+    triangle_type_value =
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
-      triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t> and
-      (t != triangle_type::any or triangle_type_of_v<LhsXprType, RhsXprType> != triangle_type::any) :
-      Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and
-      (triangular_matrix<LhsXprType, t> or triangular_matrix<RhsXprType, t> or
-       (triangular_matrix<LhsXprType, triangle_type::lower> and triangular_matrix<RhsXprType, triangle_type::upper>) or
-       (triangular_matrix<LhsXprType, triangle_type::upper> and triangular_matrix<RhsXprType, triangle_type::lower>));
+      triangle_type_of_v<LhsXprType> + triangle_type_of_v<RhsXprType> :
+      Traits::binary_functor_type == Eigen3::BinaryFunctorType::product ?
+      triangle_type_of_v<LhsXprType> * triangle_type_of_v<RhsXprType> :
+      triangle_type::none;
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and

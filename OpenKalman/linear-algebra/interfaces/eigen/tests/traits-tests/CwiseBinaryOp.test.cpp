@@ -100,10 +100,10 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_sum_op)
   static_assert(hermitian_matrix<decltype(std::declval<Sauv2x>() + std::declval<Sauvx2>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() + std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv2x>() + std::declval<Sauvx2>())>);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() + std::declval<Salv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() + std::declval<Sauv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() + std::declval<Salv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() + std::declval<Sauv22>())> == HermitianAdapterType::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() + std::declval<Salv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() + std::declval<Sauv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() + std::declval<Salv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() + std::declval<Sauv22>())> == triangle_type::any);
 
   static_assert(not writable<decltype(std::declval<M22>() + std::declval<M22>())>);
 }
@@ -180,10 +180,10 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_product_op)
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array() * std::declval<Sauv22>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array() * std::declval<Salv22>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>().array() * std::declval<Sauv22>().array())>);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>().array() * std::declval<Sauv22>().array())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>().array() * std::declval<Salv22>().array())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>().array() * std::declval<Salv22>().array())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>().array() * std::declval<Sauv22>().array())> == HermitianAdapterType::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>().array() * std::declval<Sauv22>().array())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>().array() * std::declval<Salv22>().array())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>().array() * std::declval<Salv22>().array())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>().array() * std::declval<Sauv22>().array())> == triangle_type::any);
 
   static_assert(not writable<decltype(std::declval<I22>() * 2)>);
 }
@@ -326,10 +326,10 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_difference_op)
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), applicability::permitted>);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
-  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Salv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Salv22>())> == triangle_type::any);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Sauv22>())> == triangle_type::any);
   EXPECT_EQ((constant_value{cxa - cxb}()), (std::complex<double>{-2, -2}));
 }
 

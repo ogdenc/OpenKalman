@@ -69,14 +69,14 @@ namespace OpenKalman
         }
       }(a);
 
-      auto ret {make_triangular_matrix<tri>(std::move(m))};
+      auto ret {to_triangular<tri>(std::move(m))};
       using C0 = vector_space_descriptor_of_t<A, 0>;
       using C1 = vector_space_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_pattern<C0>, C1, C0>;
 
       if constexpr (patterns::euclidean_pattern<Cret>) return ret;
       //else return make_square_root_covariance<Cret>(ret);
-      else return ret; // \todo change to make_triangular_matrix
+      else return ret; // \todo change to to_triangular
     }
     else if constexpr (diagonal_matrix<A>)
     {
@@ -107,7 +107,7 @@ namespace OpenKalman
   cholesky_factor(A&& a)
   {
     constexpr auto u = diagonal_matrix<A> ? triangle_type::diagonal :
-      hermitian_adapter<A, HermitianAdapterType::upper> ? triangle_type::upper : triangle_type::lower;
+      hermitian_adapter_concept<A, triangle_type::upper> ? triangle_type::upper : triangle_type::lower;
     return cholesky_factor<u>(std::forward<A>(a));
   }
 

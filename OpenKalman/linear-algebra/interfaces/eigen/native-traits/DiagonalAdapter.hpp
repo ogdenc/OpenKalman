@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 traits for Eigen3 general \ref diagonal_adapter
+ * \brief Native Eigen3 traits for Eigen3 general \ref to_diagonal_adapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_DIAGONALMATRIX_HPP
@@ -21,10 +21,10 @@ namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_general NestedMatrix>
-  struct native_traits<OpenKalman::diagonal_adapter<NestedMatrix>>
+  struct native_traits<OpenKalman::to_diagonal_adapter<NestedMatrix>>
 #else
   template<typename NestedMatrix>
-  struct native_traits<OpenKalman::diagonal_adapter<NestedMatrix>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
+  struct native_traits<OpenKalman::to_diagonal_adapter<NestedMatrix>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedMatrix>>
   {

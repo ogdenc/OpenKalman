@@ -65,8 +65,8 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square =
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = N == 2 and
       (b != applicability::guaranteed or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
       (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
         ((RowFactor != ColFactor or square_shaped<MatrixType, b>) and
@@ -77,14 +77,12 @@ namespace OpenKalman::interface
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
 
-    template<triangle_type t>
-    static constexpr bool triangle_type_value = triangular_matrix<MatrixType, t> and
-      ((RowFactor == 1 and ColFactor != 0 and (t == triangle_type::upper or t == triangle_type::any)) or
-        (ColFactor == 1 and RowFactor != 0 and (t == triangle_type::lower or t == triangle_type::any)) or
-        (RowFactor == 1 and ColFactor == 1 and t == triangle_type::diagonal));
-
-
-    static constexpr bool is_triangular_adapter = false;
+    static constexpr triangle_type
+    triangle_type_value =
+      triangular_matrix<MatrixType, triangle_type::diagonal> and RowFactor == 1 and ColFactor == 1 ? triangle_type::diagonal :
+      triangular_matrix<MatrixType, triangle_type::upper> and RowFactor == 1 ? triangle_type::upper :
+      triangular_matrix<MatrixType, triangle_type::lower> and ColFactor == 1 ? triangle_type::upper :
+      triangle_type::none;
 
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted> and

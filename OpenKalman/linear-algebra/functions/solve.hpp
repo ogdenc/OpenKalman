@@ -34,10 +34,10 @@ namespace OpenKalman
     decltype(auto) wrap_solve_result_impl(Arg&& arg)
     {
       constexpr triangle_type tri = triangle_type_of_v<A, B>;
-      if constexpr (tri != triangle_type::any)
-        return make_triangular_matrix<tri>(std::forward<Arg>(arg));
+      if constexpr (tri != triangle_type::none)
+        return to_triangular<tri>(std::forward<Arg>(arg));
       else if constexpr (((constant_diagonal_matrix<A> and hermitian_matrix<B>) or (constant_diagonal_matrix<B> and hermitian_matrix<A>)))
-        return make_hermitian_matrix(std::forward<Arg>(arg));
+        return to_hermitian(std::forward<Arg>(arg));
       else
         return std::forward<Arg>(arg);
     }

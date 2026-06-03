@@ -51,7 +51,7 @@ namespace Eigen
 
 
   /**
-   * \brief Version of Eigen::CommaInitializer for diagonal versions of HermitianAdapter and TriangularAdapter.
+   * \brief Version of Eigen::CommaInitializer for diagonal versions of hermitian_adapter and triangular_adapter.
    */
   template<typename XprType>
   struct DiagonalCommaInitializer
@@ -106,12 +106,12 @@ namespace Eigen
 
     ~DiagonalCommaInitializer()
     {
-      diag = OpenKalman::diagonal_adapter<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::to_diagonal_adapter<NestedMatrix>(comma_initializer.finished());
     }
 
     auto& finished()
     {
-      diag = OpenKalman::diagonal_adapter<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::to_diagonal_adapter<NestedMatrix>(comma_initializer.finished());
       return diag;
     }
   };

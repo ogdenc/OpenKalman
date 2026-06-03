@@ -158,7 +158,7 @@ namespace OpenKalman
       }
 
 
-      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+      template<triangle_type significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
       {
         if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)

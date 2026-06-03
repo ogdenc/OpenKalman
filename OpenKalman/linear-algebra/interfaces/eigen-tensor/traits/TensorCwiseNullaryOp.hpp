@@ -64,15 +64,12 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = square_shaped<XprType, b>;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<XprType, N, b>;
 
 
     template<triangle_type t>
     static constexpr bool triangle_type_value = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template triangle_type_value<t>;
-
-
-    static constexpr bool is_triangular_adapter = false;
 
 
     static constexpr bool is_hermitian = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::is_hermitian;

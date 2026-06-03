@@ -10,15 +10,14 @@
 
 /**
  * \file
- * \internal
  * \brief Definition for \ref patterns::to_extents.
  */
 
 #ifndef OPENKALMAN_TO_EXTENTS_HPP
 #define OPENKALMAN_TO_EXTENTS_HPP
 
-#include "patterns/functions/get_dimension.hpp"
 #include "patterns/concepts/pattern_collection.hpp"
+#include "patterns/functions/get_dimension.hpp"
 #include "patterns/traits/pattern_collection_element.hpp"
 
 namespace OpenKalman::patterns
@@ -116,7 +115,8 @@ namespace OpenKalman::patterns
 
   /**
    * \overload
-   * \brief Derive the rank from the argument. The number of extents will be minimized.
+   * \brief Derive the rank from the argument.
+   * \details The number of extents will be minimized by removing any trailing 1 extents.
    */
 #ifdef __cpp_lib_constexpr_vector
   template<pattern_collection P> requires

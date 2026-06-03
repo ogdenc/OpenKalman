@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,17 +10,16 @@
 
 /**
  * \file
- * \brief definitions for \ref to_euclidean function.
+ * \brief definitions for \ref to_stat_space function.
  */
 
-#ifndef OPENKALMAN_TO_EUCLIDEAN_HPP
-#define OPENKALMAN_TO_EUCLIDEAN_HPP
+#ifndef OPENKALMAN_TO_STAT_SPACE_HPP
+#define OPENKALMAN_TO_STAT_SPACE_HPP
 
-#include "patterns/concepts/euclidean_pattern.hpp"
+#include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/traits/vector_space_descriptor_of.hpp"
-#include "linear-algebra/adapters/ToEuclideanExpr.hpp"
-#include "linear-algebra/interfaces/interfaces-defined.hpp"
+#include "linear-algebra/traits/get_index_pattern.hpp"
+#include "linear-algebra/adapters/to_stat_space_adapter.hpp"
 
 namespace OpenKalman
 {
@@ -35,19 +34,15 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
-  to_euclidean(Arg&& arg)
+  to_stat_space(Arg&& arg)
   {
-    if constexpr (patterns::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>)
+    if constexpr (patterns::euclidean_pattern<decltype(get_index_pattern<0>(std::declval<Arg&&>()))>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::to_euclidean_defined_for<Arg, Arg&&>)
-    {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::to_euclidean(std::forward<Arg>(arg));
-    }
     else
     {
-      return ToEuclideanExpr {std::forward<Arg>(arg)};
+      return to_stat_space_adapter {std::forward<Arg>(arg)};
     }
   }
 

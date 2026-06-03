@@ -48,11 +48,11 @@ namespace OpenKalman
     }
     else if constexpr (triangular_matrix<A, triangle_type::upper>)
     {
-      return make_hermitian_matrix<HermitianAdapterType::upper>(contract(conjugate_transpose(a), a));
+      return to_hermitian<triangle_type::upper>(contract(conjugate_transpose(a), a));
     }
     else
     {
-      return make_hermitian_matrix<HermitianAdapterType::lower>(contract(a, conjugate_transpose(a)));
+      return to_hermitian<triangle_type::lower>(contract(a, conjugate_transpose(a)));
     }
   }
 

@@ -18,12 +18,12 @@ inline namespace
 {
   using C2 = Dimensions<2>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using CovSA2 = Covariance <C2, HermitianAdapter<M22>>;
-  using CovT2 = Covariance <C2, TriangularAdapter<M22>>;
+  using CovSA2 = Covariance <C2, hermitian_adapter<M22>>;
+  using CovT2 = Covariance <C2, triangular_adapter<M22>>;
   using C3 = Dimensions<3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
-  using CovSA3 = Covariance <C3, HermitianAdapter<M33>>;
-  using CovT3 = Covariance <C3, TriangularAdapter<M33>>;
+  using CovSA3 = Covariance <C3, hermitian_adapter<M33>>;
+  using CovT3 = Covariance <C3, triangular_adapter<M33>>;
 }
 
 

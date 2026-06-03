@@ -56,6 +56,8 @@ namespace
   using M113 = stdex::mdspan<double, stdex::extents<std::size_t, 1, 1, 3>>;
   constexpr M113 m113 {a3.data()};
 
+  using Mx1 = stdex::mdspan<double, stdex::extents<std::size_t, stdex::dynamic_extent, 1>>;
+  using M1x = stdex::mdspan<double, stdex::extents<std::size_t, 1, stdex::dynamic_extent>>;
 
   const auto a23c = std::array{1., 2., 3., 4., 5., 6.};
   using M23c = stdex::mdspan<const double, stdex::extents<std::size_t, 2, 3>>;
@@ -155,7 +157,6 @@ TEST(stl_interfaces, mdspan_interface_properties_defined)
 {
   static_assert(not interface::get_constant_defined_for<M23>);
   static_assert(not interface::is_square_defined_for<M23>);
-  static_assert(not interface::is_triangular_adapter_defined_for<M23>);
   static_assert(not interface::is_hermitian_defined_for<M23>);
   static_assert(not interface::hermitian_adapter_type_defined_for<M23>);
 }
@@ -536,21 +537,30 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(compare(*is_square_shaped(mx2_2), Dimensions<2>{}));
   static_assert(compare(*is_square_shaped(m222), Dimensions<2>{}));
 
-  static_assert(not square_shaped<M3, values::unbounded_size, applicability::permitted>);
-  static_assert(not square_shaped<M23, values::unbounded_size, applicability::permitted>);
-  static_assert(not square_shaped<M234, values::unbounded_size, applicability::permitted>);
-  static_assert(square_shaped<M1>);
+  static_assert(square_shaped<Mx, 1, applicability::permitted>);
+  static_assert(not square_shaped<Mx, 1>);
+  static_assert(square_shaped<Mx, 2, applicability::permitted>);
+  static_assert(not square_shaped<Mx, 2>);
+  static_assert(square_shaped<M1, 1>);
+  static_assert(square_shaped<M1, 2>);
+  static_assert(not square_shaped<M3, 1, applicability::permitted>);
+  static_assert(not square_shaped<M3, 2, applicability::permitted>);
+  static_assert(not square_shaped<M23, 2, applicability::permitted>);
+  static_assert(not square_shaped<M234, 2, applicability::permitted>);
+  static_assert(not square_shaped<M234, 3, applicability::permitted>);
   static_assert(square_shaped<M11>);
   static_assert(square_shaped<M111>);
   static_assert(square_shaped<M22>);
-  static_assert(not square_shaped<Mxx>);
+  static_assert(square_shaped<M2x, 2, applicability::permitted>);
   static_assert(not square_shaped<M2x>);
+  static_assert(square_shaped<Mx2, 2, applicability::permitted>);
   static_assert(not square_shaped<Mx2>);
-  static_assert(square_shaped<Mxx, values::unbounded_size, applicability::permitted>);
-  static_assert(square_shaped<M2x, values::unbounded_size, applicability::permitted>);
-  static_assert(square_shaped<Mx2, values::unbounded_size, applicability::permitted>);
-  static_assert(square_shaped<M222>);
-  static_assert(not square_shaped<M234, values::unbounded_size, applicability::permitted>);
+  static_assert(square_shaped<Mxx, 2, applicability::permitted>);
+  static_assert(not square_shaped<Mxx>);
+  static_assert(square_shaped<M222, 2>);
+  static_assert(square_shaped<M222, 3>);
+  static_assert(not square_shaped<M234, 2, applicability::permitted>);
+  static_assert(not square_shaped<M234, 3, applicability::permitted>);
 
   static_assert(not is_one_dimensional(m3));
   static_assert(not is_one_dimensional(m23));
@@ -561,19 +571,18 @@ TEST(stl_interfaces, mdspan_shapes)
   static_assert(not is_one_dimensional(m22));
   static_assert(not is_one_dimensional(m222));
 
-
-  static_assert(not one_dimensional<M3, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<M23, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<M234, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<stdex::mdspan<double, stdex::extents<std::size_t, 3, 3>>, values::unbounded_size, applicability::permitted>);
+  static_assert(not one_dimensional<M3, applicability::permitted>);
+  static_assert(not one_dimensional<M23, applicability::permitted>);
+  static_assert(not one_dimensional<M234, applicability::permitted>);
+  static_assert(not one_dimensional<stdex::mdspan<double, stdex::extents<std::size_t, 3, 3>>, applicability::permitted>);
   static_assert(one_dimensional<M1>);
   static_assert(one_dimensional<M11>);
   static_assert(one_dimensional<M111>);
   static_assert(not one_dimensional<Mx>);
-  static_assert(one_dimensional<Mx, values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<Mx, applicability::permitted>);
   static_assert(not one_dimensional<Mxx>);
-  static_assert(one_dimensional<Mxx, values::unbounded_size, applicability::permitted>);
-  static_assert(not one_dimensional<M2x, values::unbounded_size, applicability::permitted>);
+  static_assert(one_dimensional<Mxx, applicability::permitted>);
+  static_assert(not one_dimensional<M2x, applicability::permitted>);
   static_assert(one_dimensional<Z1>);
   static_assert(one_dimensional<Z11>);
   static_assert(one_dimensional<Z111>);
@@ -855,10 +864,23 @@ TEST(stl_interfaces, mdspan_special_matrices)
   static_assert(triangle_type_of_v<M1> == triangle_type::diagonal);
   static_assert(triangle_type_of_v<M11> == triangle_type::diagonal);
   static_assert(triangle_type_of_v<M111> == triangle_type::diagonal);
-  static_assert(triangle_type_of_v<M3> == triangle_type::none);
   static_assert(triangle_type_of_v<M23> == triangle_type::none);
   static_assert(triangle_type_of_v<Mxx> == triangle_type::none);
   static_assert(triangle_type_of_v<M234> == triangle_type::none);
+
+  static_assert(triangle_type_of_v<M3> == triangle_type::lower);
+  static_assert(triangle_type_of_v<M3> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<Mx> == triangle_type::lower);
+  static_assert(triangle_type_of_v<Mx> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<M31> == triangle_type::lower);
+  static_assert(triangle_type_of_v<M31> != triangle_type::diagonal);
+
+  static_assert(triangle_type_of_v<Mx1> == triangle_type::lower);
+  static_assert(triangle_type_of_v<Mx1> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<M13> == triangle_type::upper);
+  static_assert(triangle_type_of_v<M13> != triangle_type::diagonal);
+  static_assert(triangle_type_of_v<M1x> == triangle_type::upper);
+  static_assert(triangle_type_of_v<M1x> != triangle_type::diagonal);
 
   static_assert(triangular_matrix<Z1, triangle_type::diagonal>);
   static_assert(triangular_matrix<Z1, triangle_type::upper>);
@@ -882,14 +904,21 @@ TEST(stl_interfaces, mdspan_special_matrices)
   static_assert(triangular_matrix<M1, triangle_type::diagonal>);
   static_assert(triangular_matrix<M1, triangle_type::upper>);
   static_assert(triangular_matrix<M1, triangle_type::lower>);
+
+  static_assert(triangular_matrix<Mx, triangle_type::lower>);
+  static_assert(not triangular_matrix<Mx, triangle_type::upper>);
+  static_assert(not triangular_matrix<Mx, triangle_type::diagonal>);
+
   static_assert(triangular_matrix<M11, triangle_type::diagonal>);
   static_assert(triangular_matrix<M11, triangle_type::upper>);
   static_assert(triangular_matrix<M11, triangle_type::lower>);
+
   static_assert(triangular_matrix<M111, triangle_type::diagonal>);
   static_assert(triangular_matrix<M111, triangle_type::upper>);
   static_assert(triangular_matrix<M111, triangle_type::lower>);
-  static_assert(not triangular_matrix<M234>);
-  static_assert(not triangular_matrix<Mx>);
+
+  static_assert(triangular_matrix<M234, triangle_type::none>);
+
   static_assert(triangular_matrix<I1, triangle_type::diagonal>);
   static_assert(triangular_matrix<I11, triangle_type::diagonal>);
   static_assert(triangular_matrix<I111, triangle_type::diagonal>);

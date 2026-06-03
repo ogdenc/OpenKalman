@@ -27,7 +27,7 @@ namespace OpenKalman::internal
 #else
   template<typename NestedObject, typename Descriptors>
 #endif
-  struct FixedSizeAdapter : AdapterBase<FixedSizeAdapter<NestedObject, Descriptors>, const NestedObject>
+  struct FixedSizeAdapter : adapter_base<FixedSizeAdapter<NestedObject, Descriptors>, const NestedObject>
   {
   private:
 
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
     static_assert(internal::less_fixed_than<NestedObject, Descriptors>);
 #endif
 
-    using Base = AdapterBase<FixedSizeAdapter, const NestedObject>;
+    using Base = adapter_base<FixedSizeAdapter, const NestedObject>;
 
   public:
 

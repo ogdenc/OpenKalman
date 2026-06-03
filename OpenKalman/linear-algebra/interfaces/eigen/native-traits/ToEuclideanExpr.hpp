@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 traits for Eigen3 general \ref ToEuclideanExpr
+ * \brief Native Eigen3 traits for Eigen3 general \ref to_stat_space_adapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_TOEUCLIDEANEXPR_HPP
@@ -21,10 +21,10 @@ namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_general NestedObject>
-  struct native_traits<OpenKalman::ToEuclideanExpr<NestedObject>>
+  struct native_traits<OpenKalman::to_stat_space_adapter<NestedObject>>
 #else
   template<typename NestedObject>
-  struct native_traits<OpenKalman::ToEuclideanExpr<NestedObject>, std::enable_if_t<
+  struct native_traits<OpenKalman::to_stat_space_adapter<NestedObject>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedObject>>

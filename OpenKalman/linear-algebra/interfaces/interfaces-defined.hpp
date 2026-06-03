@@ -78,53 +78,53 @@ namespace OpenKalman::interface
 #endif
 
 
+  // --------------------- //
+  //  triangle_type_value  //
+  // --------------------- //
+
+  #ifdef __cpp_concepts
+  template<typename T>
+  concept triangle_type_value_defined_for = std::convertible_to<
+    decltype(object_traits<std::remove_cvref_t<T>>::triangle_type_value), triangle_type>;
+  #else
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct triangle_type_value_defined_for_impl : std::false_type {};
+
+    template<typename T>
+    struct triangle_type_value_defined_for_impl<T, std::enable_if_t<stdex::convertible_to<
+          decltype(object_traits<stdex::remove_cvref_t<T>>::triangle_type_value), triangle_type>>>
+      : std::true_type {};
+  }
+
+  template<typename T>
+  constexpr bool triangle_type_value_defined_for = detail::triangle_type_value_defined_for_impl<T>::value;
+  #endif
+
+
   // ----------- //
   //  is_square  //
   // ----------- //
 
 #ifdef __cpp_concepts
-  template<typename T, applicability b = applicability::guaranteed>
+  template<typename T, std::size_t N = 2, applicability b = applicability::guaranteed>
   concept is_square_defined_for = std::convertible_to<
-    decltype(object_traits<std::remove_cvref_t<T>>::template is_square<b>), bool>;
+    decltype(object_traits<std::remove_cvref_t<T>>::template is_square<N, b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, applicability b, typename = void>
+    template<typename T, std::size_t N = 2, applicability b, typename = void>
     struct is_square_defined_for_impl : std::false_type {};
 
-    template<typename T, applicability b>
-    struct is_square_defined_for_impl<T, b, std::enable_if_t<stdex::convertible_to<
-          decltype(object_traits<stdex::remove_cvref_t<T>>::template is_square<b>), bool>>>
+    template<typename T, std::size_t N, applicability b>
+    struct is_square_defined_for_impl<T, N, b, std::enable_if_t<stdex::convertible_to<
+          decltype(object_traits<stdex::remove_cvref_t<T>>::template is_square<N, b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, applicability b = applicability::guaranteed>
-  constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, b>::value;
-#endif
-
-
-  // ----------------------- //
-  //  is_triangular_adapter  //
-  // ----------------------- //
-
-#ifdef __cpp_concepts
-  template<typename T>
-  concept is_triangular_adapter_defined_for = std::convertible_to<
-    decltype(object_traits<std::remove_cvref_t<T>>::is_triangular_adapter), bool>;
-#else
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_triangular_adapter_defined_for_impl : std::false_type {};
-
-    template<typename T>
-    struct is_triangular_adapter_defined_for_impl<T, std::enable_if_t<stdex::convertible_to<
-          decltype(object_traits<stdex::remove_cvref_t<T>>::is_triangular_adapter), bool>>>
-      : std::true_type {};
-  }
-
-  template<typename T>
-  constexpr bool is_triangular_adapter_defined_for = detail::is_triangular_adapter_defined_for_impl<T>::value;
+  template<typename T, std::size_t N = 2, applicability b = applicability::guaranteed>
+  constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, N, b>::value;
 #endif
 
 
@@ -168,7 +168,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<typename T>
   concept hermitian_adapter_type_defined_for = std::convertible_to<
-    decltype(object_traits<std::remove_cvref_t<T>>::hermitian_adapter_type), HermitianAdapterType>;
+    decltype(object_traits<std::remove_cvref_t<T>>::hermitian_adapter_type), triangle_type>;
 #else
   namespace detail
   {
@@ -177,7 +177,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct hermitian_adapter_type_defined_for_impl<T, std::enable_if_t<std::is_convertible_v<
-          decltype(object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type), HermitianAdapterType>>>
+          decltype(object_traits<stdex::remove_cvref_t<T>>::hermitian_adapter_type), triangle_type>>>
       : std::true_type {};
   }
 
@@ -216,367 +216,81 @@ namespace OpenKalman::interface
 #endif
 
 
-  // ----------- //
-  //  copy_from  //
-  // ----------- //
-
-#ifdef __cpp_concepts
-  template<typename LHS, typename RHS>
-  concept copy_from_defined_for = requires(LHS lhs, RHS rhs) {
-      library_interface<std::remove_cvref_t<LHS>>::copy(lhs, std::forward<RHS>(rhs));
-    };
-#else
-  namespace detail
-  {
-    template<typename LHS, typename RHS, typename = void>
-    struct copy_from_defined_for_impl : std::false_type {};
-
-    template<typename LHS, typename RHS>
-    struct copy_from_defined_for_impl<LHS, RHS,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<LHS>>::copy(std::declval<LHS>(), std::declval<RHS>()))>>
-      : std::true_type {};
-  }
-
-  template<typename LHS, typename RHS>
-  constexpr bool copy_from_defined_for = detail::copy_from_defined_for_impl<LHS, RHS>::value;
-#endif
-
-
-  // ------------- //
-  //  to_diagonal  //
-  // ------------- //
-
-#ifdef __cpp_concepts
-  template<typename Arg>
-  concept to_diagonal_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename Arg, typename = void>
-    struct to_diagonal_defined_for_impl: std::false_type {};
-
-    template<typename Arg>
-    struct to_diagonal_defined_for_impl<Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::to_diagonal(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename Arg>
-  constexpr bool to_diagonal_defined_for = detail::to_diagonal_defined_for_impl<Arg>::value;
-#endif
-
-
-  // ------------- //
-  //  diagonal_of  //
-  // ------------- //
-
-#ifdef __cpp_concepts
-  template<typename Arg>
-  concept diagonal_of_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename Arg, typename = void>
-    struct diagonal_of_defined_for_impl: std::false_type {};
-
-    template<typename Arg>
-    struct diagonal_of_defined_for_impl<Arg, std::void_t<
-      decltype(library_interface<stdex::remove_cvref_t<Arg>>::diagonal_of(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename Arg>
-  constexpr bool diagonal_of_defined_for = detail::diagonal_of_defined_for_impl<Arg>::value;
-#endif
-
-
-  // ----------- //
-  //  conjugate  //
-  // ----------- //
-
-#ifdef __cpp_concepts
-  template<typename Arg>
-  concept conjugate_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<Arg>>::conjugate(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename Arg, typename = void>
-    struct conjugate_defined_for_impl: std::false_type {};
-
-    template<typename Arg>
-    struct conjugate_defined_for_impl<Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::conjugate(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename Arg>
-  constexpr bool conjugate_defined_for = detail::conjugate_defined_for_impl<Arg>::value;
-#endif
-
-
-  // ----------- //
-  //  transpose  //
-  // ----------- //
-
-#ifdef __cpp_concepts
-  template<typename Arg, std::size_t indexa, std::size_t indexb>
-  concept transpose_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<Arg>>::template transpose<indexa, indexb>(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename Arg, std::size_t indexa, std::size_t indexb, typename = void>
-    struct transpose_defined_for_impl: std::false_type {};
-
-    template<typename Arg, std::size_t indexa, std::size_t indexb>
-    struct transpose_defined_for_impl<Arg, indexa, indexb,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::template transpose<indexa, indexb>(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename Arg, std::size_t indexa, std::size_t indexb>
-  constexpr bool transpose_defined_for = detail::transpose_defined_for_impl<Arg, indexa, indexb>::value;
-#endif
-
-
   // --------------------- //
   //  conjugate_transpose  //
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<typename Arg>
+  template<typename Arg, std::size_t indexa, std::size_t indexb>
   concept conjugate_transpose_defined_for = requires (Arg arg) {
-    library_interface<std::remove_cvref_t<Arg>>::conjugate_transpose(std::forward<Arg>(arg));
+    library_interface<std::remove_cvref_t<Arg>>::template conjugate_transpose<indexa, indexb>(std::forward<Arg>(arg));
   };
 #else
   namespace detail
   {
-    template<typename Arg, typename = void>
+    template<typename Arg, std::size_t indexa, std::size_t indexb, typename = void>
     struct conjugate_transpose_defined_for_impl: std::false_type {};
 
-    template<typename Arg>
-    struct conjugate_transpose_defined_for_impl<Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::conjugate_transpose(std::declval<Arg>()))>>
+    template<typename Arg, std::size_t indexa, std::size_t indexb>
+    struct conjugate_transpose_defined_for_impl<Arg, indexa, indexb,
+      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::template conjugate_transpose<indexa, indexb>(std::declval<Arg>()))>>
       : std::true_type {};
   }
 
-  template<typename Arg>
-  constexpr bool conjugate_transpose_defined_for = detail::conjugate_transpose_defined_for_impl<Arg>::value;
+  template<typename Arg, std::size_t indexa, std::size_t indexb>
+  constexpr bool conjugate_transpose_defined_for = detail::conjugate_transpose_defined_for_impl<Arg, indexa, indexb>::value;
 #endif
 
 
-  // ------------------ //
-  //  to_native_matrix  //
-  // ------------------ //
+  // --------------- //
+  //  to_triangular  //
+  // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, typename Arg>
-  concept to_native_matrix_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<T>>::to_native_matrix(std::forward<Arg>(arg));
+  template<typename Arg, triangle_type tri>
+  concept to_triangular_defined_for = requires (Arg arg) {
+      library_interface<std::remove_cvref_t<Arg>>::template to_triangular<tri>(std::forward<Arg>(arg));
     };
 #else
   namespace detail
   {
-    template<typename T, typename Arg, typename = void>
-    struct to_native_matrix_defined_for_impl: std::false_type {};
+    template<typename Arg, triangle_type tri, typename = void>
+    struct to_triangular_defined_for_impl: std::false_type {};
 
-    template<typename T, typename Arg>
-    struct to_native_matrix_defined_for_impl<T, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::to_native_matrix(std::declval<Arg>()))>>
+    template<typename Arg, triangle_type tri>
+    struct to_triangular_defined_for_impl<Arg, tri,
+      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::template to_triangular<tri>(std::declval<Arg>()))>>
       : std::true_type {};
   }
 
-  template<typename T, typename Arg>
-  constexpr bool to_native_matrix_defined_for = detail::to_native_matrix_defined_for_impl<T, Arg>::value;
+  template<typename Arg, triangle_type tri>
+  constexpr bool to_triangular_defined_for = detail::to_triangular_defined_for_impl<Arg, tri>::value;
 #endif
 
 
   // -------------- //
-  //  make_default  //
+  //  to_hermitian  //
   // -------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, typename layout, typename Scalar, typename D>
-  concept make_default_defined_for = requires(D d) {
-    library_interface<std::remove_cvref_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d));
-  };
-#else
-  namespace detail
-  {
-    template<typename T, typename layout, typename Scalar, typename D, typename = void>
-    struct make_default_defined_for_impl : std::false_type {};
-
-    template<typename T, typename layout, typename Scalar, typename D>
-    struct make_default_defined_for_impl<T, layout, Scalar, D,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::template make_default<layout, Scalar>(std::declval<D>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename layout, typename Scalar, typename D>
-  constexpr bool make_default_defined_for = detail::make_default_defined_for_impl<T, layout, Scalar, D>::value;
-#endif
-
-
-  // ----------------- //
-  //  fill_components  //
-  // ----------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename layout, typename Arg, typename...Scalars>
-  concept fill_components_defined_for = requires(Arg arg, Scalars...scalars) {
-    library_interface<std::remove_cvref_t<T>>::template fill_components<layout>(std::forward<Arg>(arg), std::forward<Scalars>(scalars)...);
-  };
-#else
-  namespace detail
-  {
-    template<typename T, typename layout, typename Arg, typename = void, typename...Scalars>
-    struct fill_components_defined_for_impl : std::false_type {};
-
-    template<typename T, typename layout, typename Arg, typename...Scalars>
-    struct fill_components_defined_for_impl<T, layout, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::template fill_components<layout>(std::declval<Arg>(), std::declval<Scalars>()...))>, Scalars...>
-      : std::true_type {};
-  }
-
-  template<typename T, typename layout, typename Arg, typename...Scalars>
-  constexpr bool fill_components_defined_for = detail::fill_components_defined_for_impl<T, layout, Arg, void, Scalars...>::value;
-#endif
-
-
-  // ------------------------ //
-  //  make_triangular_matrix  //
-  // ------------------------ //
-
-#ifdef __cpp_concepts
-  template<typename T, triangle_type tri, typename Arg>
-  concept make_triangular_matrix_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<T>>::template make_triangular_matrix<tri>(std::forward<Arg>(arg));
+  template<typename Arg, triangle_type storage_type>
+  concept to_hermitian_defined_for = requires (Arg arg) {
+      library_interface<std::remove_cvref_t<Arg>>::template to_hermitian<storage_type>(std::forward<Arg>(arg));
     };
 #else
   namespace detail
   {
-    template<typename T, triangle_type tri, typename Arg, typename = void>
-    struct make_triangular_matrix_defined_for_impl: std::false_type {};
+    template<typename Arg, triangle_type storage_type, typename = void>
+    struct to_hermitian_defined_for_impl: std::false_type {};
 
-    template<typename T, triangle_type tri, typename Arg>
-    struct make_triangular_matrix_defined_for_impl<T, tri, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::template make_triangular_matrix<tri>(std::declval<Arg>()))>>
+    template<typename Arg, triangle_type storage_type>
+    struct to_hermitian_defined_for_impl<T, storage_type, Arg,
+      std::void_t<decltype(library_interface<stdex::remove_cvref_t<Arg>>::template to_hermitian<storage_type>(std::declval<Arg>()))>>
       : std::true_type {};
   }
 
-  template<typename T, triangle_type tri, typename Arg>
-  constexpr bool make_triangular_matrix_defined_for = detail::make_triangular_matrix_defined_for_impl<T, tri, Arg>::value;
-#endif
-
-
-  // ------------------------ //
-  //  make_hermitian_adapter  //
-  // ------------------------ //
-
-#ifdef __cpp_concepts
-  template<typename T, HermitianAdapterType adapter_type, typename Arg>
-  concept make_hermitian_adapter_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<T>>::template make_hermitian_adapter<adapter_type>(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, HermitianAdapterType adapter_type, typename Arg, typename = void>
-    struct make_hermitian_adapter_defined_for_impl: std::false_type {};
-
-    template<typename T, HermitianAdapterType adapter_type, typename Arg>
-    struct make_hermitian_adapter_defined_for_impl<T, adapter_type, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::template make_hermitian_adapter<adapter_type>(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, HermitianAdapterType adapter_type, typename Arg>
-  constexpr bool make_hermitian_adapter_defined_for = detail::make_hermitian_adapter_defined_for_impl<T, adapter_type, Arg>::value;
-#endif
-
-
-  // -------------- //
-  //  to_euclidean  //
-  // -------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg>
-  concept to_euclidean_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<T>>::to_euclidean(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename = void>
-    struct to_euclidean_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg>
-    struct to_euclidean_defined_for_impl<T, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::to_euclidean(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg>
-  constexpr bool to_euclidean_defined_for = detail::to_euclidean_defined_for_impl<T, Arg>::value;
-#endif
-
-
-  // ---------------- //
-  //  from_euclidean  //
-  // ---------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg, typename V>
-  concept from_euclidean_defined_for = requires (Arg arg, V v) {
-      library_interface<std::remove_cvref_t<T>>::from_euclidean(std::forward<Arg>(arg), std::forward<V>(v));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename V, typename = void>
-    struct from_euclidean_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg, typename V>
-    struct from_euclidean_defined_for_impl<T, Arg, V,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::from_euclidean(std::declval<Arg>(), std::declval<V>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg, typename V>
-  constexpr bool from_euclidean_defined_for = detail::from_euclidean_defined_for_impl<T, Arg, V>::value;
-#endif
-
-
-  // ------------- //
-  //  wrap_angles  //
-  // ------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg>
-  concept wrap_angles_defined_for = requires (Arg arg) {
-      library_interface<std::remove_cvref_t<T>>::wrap_angles(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename = void>
-    struct wrap_angles_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg>
-    struct wrap_angles_defined_for_impl<T, Arg,
-      std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::wrap_angles(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg>
-  constexpr bool wrap_angles_defined_for = detail::wrap_angles_defined_for_impl<T, Arg>::value;
+  template<typename Arg, triangle_type storage_type>
+  constexpr bool to_hermitian_defined_for = detail::to_hermitian_defined_for_impl<Arg, storage_type>::value;
 #endif
 
 
@@ -923,23 +637,23 @@ namespace OpenKalman::interface
   // ----------------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+  template<typename T, triangle_type significant_triangle, typename A, typename U, typename Alpha>
   concept rank_update_self_adjoint_defined_for = requires (A a, U u, Alpha alpha) {
       library_interface<std::remove_cvref_t<T>>::template rank_update_hermitian<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
     };
 #else
   namespace detail
   {
-    template<typename T, HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha, typename = void>
+    template<typename T, triangle_type significant_triangle, typename A, typename U, typename Alpha, typename = void>
     struct rank_update_self_adjoint_defined_for_impl: std::false_type {};
 
-    template<typename T, HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+    template<typename T, triangle_type significant_triangle, typename A, typename U, typename Alpha>
     struct rank_update_self_adjoint_defined_for_impl<T, significant_triangle, A, U, Alpha,
       std::void_t<decltype(library_interface<stdex::remove_cvref_t<T>>::template rank_update_hermitian<significant_triangle>(std::declval<A>(), std::declval<U>(), std::declval<Alpha>()))>>
       : std::true_type {};
   }
 
-  template<typename T, HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+  template<typename T, triangle_type significant_triangle, typename A, typename U, typename Alpha>
   constexpr bool rank_update_self_adjoint_defined_for = detail::rank_update_self_adjoint_defined_for_impl<T, significant_triangle, A, U, Alpha>::value;
 #endif
 

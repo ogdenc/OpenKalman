@@ -21,7 +21,7 @@
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"
 #include "linear-algebra/concepts/zero.hpp"
-#include "linear-algebra/concepts/triangular_matrix.hpp"
+#include "linear-algebra/traits/triangle_type_of.hpp"
 
 namespace OpenKalman
 {
@@ -46,14 +46,20 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept constant_object =
     indexible<T> and
-    ((interface::get_constant_defined_for<T> and not triangular_matrix<T>) or
+    ((interface::get_constant_defined_for<T> and
+        (triangle_type_of_v<T> == triangle_type::none or
+          (triangle_type_of_v<T> == triangle_type::lower and vector<T, 0>) or
+          (triangle_type_of_v<T> == triangle_type::upper and vector<T, 1>))) or
       values::fixed<element_type_of_t<T>> or
       zero<T> or
       one_dimensional<T>);
 #else
   constexpr bool constant_object =
     indexible<T> and
-    ((interface::get_constant_defined_for<T> and not triangular_matrix<T>) or
+    ((interface::get_constant_defined_for<T> and
+        (triangle_type_of_v<T> == triangle_type::none or
+          (triangle_type_of_v<T> == triangle_type::lower and vector<T, 0>) or
+          (triangle_type_of_v<T> == triangle_type::upper and vector<T, 1>))) or
       detail::element_type_is_fixed<T>::value or
       zero<T> or
       one_dimensional<T>);

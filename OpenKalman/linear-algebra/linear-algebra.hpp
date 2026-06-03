@@ -79,11 +79,7 @@
 #include "traits/is_vector.hpp"
 #include "concepts/vector.hpp"
 
-// indices and access
-
 #include "concepts/index_collection_for.hpp"
-#include "traits/access.hpp"
-#include "traits/access_at.hpp"
 
 // special matrices
 
@@ -92,7 +88,8 @@
 #include "concepts/triangular_matrix.hpp"
 #include "concepts/diagonal_matrix.hpp"
 #include "concepts/hermitian_matrix.hpp"
-//#include "traits/hermitian_adapter_type_of.hpp"
+#include "traits/hermitian_adapter_type_of.hpp"
+#include "concepts/hermitian_adapter_concept.hpp"
 
 // constants
 
@@ -101,6 +98,13 @@
 #include "traits/constant_value.hpp"
 #include "traits/constant_value_of.hpp"
 #include "concepts/identity_matrix.hpp"
+
+// access
+
+#include "traits/access.hpp"
+#include "traits/access_at.hpp"
+
+#include "views/range_of.hpp"
 
 // linear algebra functions:
 
@@ -113,39 +117,51 @@
 #include "functions/make_constant.hpp"
 #include "functions/make_zero.hpp"
 
+#include "adapters/to_diagonal_adapter.hpp"
 #include "functions/to_diagonal.hpp"
+
 #include "functions/make_constant_diagonal.hpp"
 #include "functions/make_identity_matrix.hpp"
+
+#include "adapters/diagonal_of_adapter.hpp"
 #include "functions/diagonal_of.hpp"
 
-#include "functions/conjugate.hpp"
+#include "adapters/transpose_adapter.hpp"
 #include "functions/transpose.hpp"
+
+#include "adapters/conjugate_adapter.hpp"
+#include "functions/conjugate.hpp"
 #include "functions/conjugate_transpose.hpp"
+
+#include "adapters/triangular_adapter.hpp"
+#include "functions/to_triangular.hpp"
+
+#include "adapters/hermitian_adapter.hpp"
+#include "functions/to_hermitian.hpp"
+
+#include "adapters/to_stat_space_adapter.hpp"
+#include "functions/to_stat_space.hpp"
+
+//#include "adapters/from_stat_space_adapter.hpp"
+//#include "functions/from_stat_space.hpp"
+//#include "functions/wrap_angles.hpp"
+
 
 /*
 
-#include "functions/internal/make_fixed_size_adapter.hpp"
-#include "functions/internal/make_fixed_size_adapter_like.hpp"
-#include "functions/internal/make_fixed_square_adapter_like.hpp"
+--#include "functions/internal/make_fixed_size_adapter.hpp"
+--#include "functions/internal/make_fixed_size_adapter_like.hpp"
+--#include "functions/internal/make_fixed_square_adapter_like.hpp"
 
-#include "functions/internal/may_hold_components.hpp"
-#include "functions/fill_components.hpp"
+--#include "functions/internal/may_hold_components.hpp"
+--#include "functions/fill_components.hpp"
 
 
-#include "functions/make_dense_object.hpp"
-#include "functions/to_dense_object.hpp"
-#include "functions/make_dense_object_from.hpp"
+--#include "functions/make_dense_object.obsolete.hpp"
+--#include "functions/to_dense_object.obsolete.hpp"
+--#include "functions/make_dense_object_from.obsolete.hpp"
 
-#include "functions/make_diagonal_adapter.hpp"
-
-#include "functions/make_triangular_matrix.hpp"
-#include "functions/make_hermitian_matrix.hpp"
-
-#include "functions/internal/to_covariance_nestable.hpp"
-
-#include "functions/to_euclidean.hpp"
-#include "functions/from_euclidean.hpp"
-#include "functions/wrap_angles.hpp"
+--#include "functions/internal/to_covariance_nestable.hpp"
 
 #include "functions/broadcast.hpp"
 #include "functions/n_ary_operation.hpp"
@@ -199,7 +215,6 @@
 #include "concepts/pattern_collection_for.hpp"
 
 #include "concepts/has_untyped_index.hpp" // Is this necessary?
-#include "concepts/all_fixed_indices_are_euclidean.hpp" // Is this necessary?
 #include "concepts/wrappable.hpp"
 #include "traits/get_wrappable.hpp"
 
@@ -211,7 +226,6 @@
 
 #include "concepts/triangular_adapter.hpp"
 #include "concepts/internal/has_nested_vector.hpp"
-#include "concepts/hermitian_adapter.hpp"
 
 #include "concepts/object-types.hpp"
 

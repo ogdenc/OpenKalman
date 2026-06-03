@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 traits for Eigen3 general \ref FromEuclideanExpr
+ * \brief Native Eigen3 traits for Eigen3 general \ref from_stat_space_adapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_FROMEUCLIDEANEXPR_HPP
@@ -21,10 +21,10 @@ namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_general NestedObject, typename V0>
-  struct native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>>
+  struct native_traits<OpenKalman::from_stat_space_adapter<NestedObject, V0>>
 #else
   template<typename NestedObject, typename V0>
-  struct native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>, std::enable_if_t<
+  struct native_traits<OpenKalman::from_stat_space_adapter<NestedObject, V0>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedObject>>
@@ -46,10 +46,10 @@ namespace OpenKalman::Eigen3::internal
 
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_general NestedObject, typename V0>
-  struct native_traits<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<NestedObject>, V0>>
+  struct native_traits<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<NestedObject>, V0>>
 #else
     template<typename NestedObject, typename V0>
-  struct native_traits<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<NestedObject>, V0>, std::enable_if_t<
+  struct native_traits<OpenKalman::from_stat_space_adapter<OpenKalman::to_stat_space_adapter<NestedObject>, V0>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedObject>>

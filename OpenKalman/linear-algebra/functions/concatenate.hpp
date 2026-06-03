@@ -221,9 +221,9 @@ namespace OpenKalman
       return to_diagonal(concatenate<0>(diagonal_of(std::forward<Arg>(arg), std::forward<Args>(args)...)));
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
-      (triangle_type_of_v<Arg, Args...> != triangle_type::any) and (square_shaped<Arg> and ... and square_shaped<Args>))
+      (triangle_type_of_v<Arg, Args...> != triangle_type::none) and (square_shaped<Arg> and ... and square_shaped<Args>))
     {
-      return make_triangular_matrix<triangle_type_of_v<Arg>>(
+      return to_triangular<triangle_type_of_v<Arg, Args...>>(
         concatenate<0, 1>(nested_object(std::forward<Arg>(arg)), nested_object(std::forward<Args>(args))...));
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
@@ -235,7 +235,7 @@ namespace OpenKalman
         if constexpr(t == hermitian_adapter_type_of_v<M>) return nested_object(std::forward<M>(m));
         else return transpose(nested_object(std::forward<M>(m)));
       };
-      return make_hermitian_matrix<t>(
+      return to_hermitian<t>(
         concatenate_diagonal(nested_object(std::forward<Arg>(arg)), maybe_transpose(std::forward<Args>(args))...));
     }
     else if constexpr (sizeof...(indices) == 1)

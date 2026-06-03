@@ -74,20 +74,17 @@ namespace OpenKalman
       static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == applicability::permitted);
 
 
-      template<applicability b>
+      template<std::size_t N, applicability b>
       static constexpr bool is_square = true;
 
 
       static constexpr triangle_type triangle_type_value = triangle_type::diagonal;
 
 
-      static constexpr bool is_triangular_adapter = false;
-
-
       // is_hermitian not defined because matrix is diagonal;
 
 
-      // make_hermitian_adapter(Arg&& arg) not defined
+      // to_hermitian(Arg&& arg) not defined
 
     };
 

@@ -26,11 +26,11 @@ namespace OpenKalman::internal
 #else
   template<typename NestedObject, typename LibraryObject>
 #endif
-  struct LibraryWrapper : AdapterBase<LibraryWrapper<NestedObject, LibraryObject>, NestedObject, LibraryObject>
+  struct LibraryWrapper : adapter_base<LibraryWrapper<NestedObject, LibraryObject>, NestedObject, LibraryObject>
   {
   private:
 
-    using Base = AdapterBase<LibraryWrapper, NestedObject, LibraryObject>;
+    using Base = adapter_base<LibraryWrapper, NestedObject, LibraryObject>;
 
   public:
 

@@ -124,9 +124,6 @@ namespace OpenKalman::interface
     //  triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t>;
 
 
-    static constexpr bool is_triangular_adapter = false;
-
-
     static constexpr bool is_hermitian = collections::size_of_v<decltype(std::declval<Xpr>().indices())> == 1 and
       ((constant_diagonal_matrix<LhsXprType> and hermitian_matrix<RhsXprType, applicability::permitted>) or
       (constant_diagonal_matrix<RhsXprType> and hermitian_matrix<LhsXprType, applicability::permitted>));

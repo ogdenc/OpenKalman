@@ -79,7 +79,7 @@ TEST(collections, generate_view)
 
   static constexpr auto f0 = [](auto&& r)
   {
-    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
+    return [r = std::forward_as_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
         values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c0{}), i), c1{}),
@@ -110,7 +110,7 @@ TEST(collections, generate_view)
 
   static constexpr auto f1 = [](auto&& r)
   {
-    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
+    return [r = std::forward_as_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return (get_element(std::get<0>(r), c0{}) + i + 1) * (get_element(std::get<0>(r), c1{}) + i + 1) * (get_element(std::get<0>(r), c2{}) + i + 1);
     };
@@ -174,7 +174,7 @@ TEST(collections, generate_view_unsized)
 
   static constexpr auto f0 = [](auto&& r)
   {
-    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
+    return [r = std::forward_as_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
         values::operation(std::plus<>{}, values::operation(std::plus<>{}, get_element(std::get<0>(r), c0{}), i), c1{}),
@@ -205,7 +205,7 @@ TEST(collections, generate_view_unsized)
 
   static constexpr auto f1 = [](auto&& r)
   {
-    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
+    return [r = std::forward_as_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return (get_element(std::get<0>(r), c0{}) + i + 1) * (get_element(std::get<0>(r), c1{}) + i + 1) * (get_element(std::get<0>(r), c2{}) + i + 1);
     };

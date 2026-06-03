@@ -17,9 +17,11 @@
 #define OPENKALMAN_TRIANGLE_TYPE_OF_HPP
 
 #include "linear-algebra/enumerations.hpp"
-#include "linear-algebra/concepts/one_dimensional.hpp"
+#include "linear-algebra/interfaces/interfaces-defined.hpp"
 #include "linear-algebra/interfaces/object_traits.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"
+#include "linear-algebra/concepts/one_dimensional.hpp"
+#include "linear-algebra/concepts/vector.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 
 namespace OpenKalman
@@ -32,25 +34,19 @@ namespace OpenKalman
     template<typename T, typename = void>
 #endif
     struct triangle_type_of_impl
-      : std::integral_constant<triangle_type, zero<T> or one_dimensional<T, 2> ? triangle_type::diagonal : triangle_type::none> {};
+      : std::integral_constant<triangle_type, triangle_type::none> {};
 
 
 #ifdef __cpp_concepts
-    template<indexible T> requires
-      requires { interface::object_traits<std::remove_cvref_t<T>>::triangle_type_value; }
+    template<interface::triangle_type_value_defined_for T>
     struct triangle_type_of_impl<T>
 #else
     template<typename T>
-    struct triangle_type_of_impl<T, std::void_t<decltype(interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value)>>
+    struct triangle_type_of_impl<T, std::enable_if_t<interface::triangle_type_value_defined_for<T>>>
 #endif
-      : std::integral_constant<
-        triangle_type, zero<T> or one_dimensional<T, 2> ?
-        triangle_type::diagonal :
+      : std::integral_constant<triangle_type,
         interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value>
-    {
-      static_assert(interface::object_traits<stdex::remove_cvref_t<T>>::triangle_type_value != triangle_type::any,
-        "triangle_type_value interface member cannot be triangle_type::any");
-    };
+    {};
   }
 
 
@@ -63,7 +59,12 @@ namespace OpenKalman
    * every component other than its first component is zero.
    */
   template<typename T>
-  struct triangle_type_of : detail::triangle_type_of_impl<T> {};
+  struct triangle_type_of : std::integral_constant<triangle_type,
+    zero<T> or one_dimensional<T> or
+      detail::triangle_type_of_impl<T>::value == triangle_type::diagonal ? triangle_type::diagonal :
+    vector<T, 0> ? triangle_type::lower :
+    vector<T, 1> ? triangle_type::upper :
+    detail::triangle_type_of_impl<T>::value> {};
 
 
   /**

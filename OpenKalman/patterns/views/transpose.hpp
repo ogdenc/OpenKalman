@@ -221,7 +221,7 @@ namespace OpenKalman::patterns
 #endif
     {
       struct Max { constexpr auto operator()(std::size_t a) const { return std::max(a, indexb + 1_uz); } };
-      return values::operation(Max{}, get_size(p_.get()));
+      return values::operation(Max{}, collections::get_size(p_.get()));
     }
 
 

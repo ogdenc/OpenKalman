@@ -60,19 +60,19 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(diagonal_matrix<Sadvx2>);
   static_assert(diagonal_matrix<Sadvxx>);
 
-  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Lower>, HermitianAdapterType::lower>);
-  static_assert(not hermitian_adapter<Eigen::SelfAdjointView<CM22, Eigen::Lower>, HermitianAdapterType::lower>); // the diagonal must be real
+  static_assert(hermitian_adapter_concept<Eigen::SelfAdjointView<M33, Eigen::Lower>, triangle_type::lower>);
+  static_assert(not hermitian_adapter_concept<Eigen::SelfAdjointView<CM22, Eigen::Lower>, triangle_type::lower>); // the diagonal must be real
 
-  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Upper>, HermitianAdapterType::upper>);
-  static_assert(not hermitian_adapter<Eigen::SelfAdjointView<CM22, Eigen::Upper>, HermitianAdapterType::upper>); // the diagonal must be real
+  static_assert(hermitian_adapter_concept<Eigen::SelfAdjointView<M33, Eigen::Upper>, triangle_type::upper>);
+  static_assert(not hermitian_adapter_concept<Eigen::SelfAdjointView<CM22, Eigen::Upper>, triangle_type::upper>); // the diagonal must be real
 
   static_assert(hermitian_matrix<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
   static_assert(hermitian_matrix<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
 
-  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
-  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
-  static_assert(not hermitian_adapter<Eigen::SelfAdjointView<M43, Eigen::Lower>, HermitianAdapterType::lower>);
-  static_assert(not hermitian_adapter<Eigen::SelfAdjointView<M34, Eigen::Upper>, HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter_concept<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+  static_assert(hermitian_adapter_concept<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
+  static_assert(not hermitian_adapter_concept<Eigen::SelfAdjointView<M43, Eigen::Lower>, triangle_type::lower>);
+  static_assert(not hermitian_adapter_concept<Eigen::SelfAdjointView<M34, Eigen::Upper>, triangle_type::upper>);
 
   auto m22l = make_eigen_matrix<double, 2, 2>(9, 0, 3, 10);
   auto salv22 = m22l.template selfadjointView<Eigen::Lower>();

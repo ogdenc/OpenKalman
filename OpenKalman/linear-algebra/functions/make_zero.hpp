@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_MAKE_ZERO_HPP
 #define OPENKALMAN_MAKE_ZERO_HPP
 
+#include "patterns/patterns.hpp"
 #include "make_constant.hpp"
 
 namespace OpenKalman

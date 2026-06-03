@@ -18,7 +18,6 @@
 
 #include "patterns/patterns.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
-#include "linear-algebra/traits/get_mdspan.hpp"
 #include "linear-algebra/traits/element_type_of.hpp"
 #include "linear-algebra/traits/get_pattern_collection.hpp"
 #include "linear-algebra/concepts/diagonal_matrix.hpp"
@@ -26,12 +25,18 @@
 #include "linear-algebra/concepts/constant_object.hpp"
 #include "linear-algebra/traits/constant_value.hpp"
 #include "linear-algebra/functions/make_constant.hpp"
-#include "linear-algebra/functions/internal/make_wrapped_mdspan.hpp"
 #include "linear-algebra/functions/conjugate.hpp"
-#include "linear-algebra/interfaces/stl/transpose_mdspan_policies.hpp"
+#include "linear-algebra/adapters/transpose_adapter.hpp"
 
 namespace OpenKalman
 {
+  namespace interface
+  {
+    template<typename T, std::size_t indexa, std::size_t indexb>
+    struct transpose { static const bool is_specialized = false; };
+  }
+
+
   /**
    * \brief Swap any two indices of an \ref indexible_object
    * \details By default, the first two indices are transposed.
@@ -49,8 +54,8 @@ namespace OpenKalman
   transpose(Arg&& arg)
   {
     using P = decltype(get_pattern_collection(arg));
-    if constexpr (
-      patterns::compares_with<patterns::pattern_collection_element_t<indexa, P>, patterns::pattern_collection_element_t<indexb, P>> and
+    constexpr bool square = patterns::compares_with<patterns::pattern_collection_element_t<indexa, P>, patterns::pattern_collection_element_t<indexb, P>>;
+    if constexpr (square and
       (constant_object<Arg> or
         (indexb == 1 and
           (diagonal_matrix<Arg> or
@@ -58,48 +63,53 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::transpose_defined_for<Arg&&, indexa, indexb>)
+    else if constexpr (interface::transpose<stdex::remove_cvref_t<Arg>, indexa, indexb>::is_specialized)
     {
-      return interface::library_interface<stdex::remove_cvref_t<Arg>>::template transpose<indexa, indexb>(std::forward<Arg>(arg));
+      return interface::transpose<stdex::remove_cvref_t<Arg>, indexa, indexb>{}(std::forward<Arg>(arg));
     }
     else if constexpr (constant_object<Arg>)
     {
       return make_constant(constant_value(arg), patterns::views::transpose<indexa, indexb>(get_pattern_collection(arg)));
     }
-    else if constexpr (hermitian_matrix<Arg>)
+    else if constexpr (constant_diagonal_object<Arg>)
+    {
+      return make_constant_diagonal(constant_value(arg), patterns::views::transpose<indexa, indexb>(get_pattern_collection(arg)));
+    }
+    else if constexpr (hermitian_matrix<Arg> and square)
     {
       return conjugate(std::forward<Arg>(arg));
     }
+    else if constexpr (diagonal_matrix<Arg>)
+    {
+      return to_diagonal(diagonal_of(std::forward<Arg>(arg)), patterns::views::transpose<indexa, indexb>(get_pattern_collection(arg)));
+    }
     else
     {
-      auto p = patterns::views::transpose<indexa, indexb>(get_pattern_collection(arg));
-      auto n = get_mdspan(arg);
-      using nested_layout = typename std::decay_t<decltype(n)>::layout_type;
-      using extents_type = std::decay_t<decltype(to_extents(p))>;
-      if constexpr (indexb == 1 and n.rank() == 2)
-      {
-        using layout_type = stdex::linalg::layout_transpose<nested_layout>;
-        using mapping_type = typename layout_type::template mapping<extents_type>;
-        return internal::make_wrapped_mdspan(
-          std::forward<Arg>(arg),
-          stdex::identity{},
-          mapping_type(n.mapping()),
-          n.accessor(),
-          std::move(p));
-      }
-      else
-      {
-        using nested_mapping_type = typename std::decay_t<decltype(n)>::mapping_type;
-        using layout_type = interface::layout_transpose<nested_mapping_type, indexa, indexb>;
-        using mapping_type = typename layout_type::template mapping<extents_type>;
-        return internal::make_wrapped_mdspan(
-          std::forward<Arg>(arg),
-          stdex::identity{},
-          mapping_type(n.mapping(), to_extents(p)),
-          n.accessor(),
-          std::move(p));
-      }
+      return transpose_adapter<Arg, indexa, indexb>{std::forward<Arg>(arg)};
     }
+  }
+
+
+  namespace interface
+  {
+    template<typename Nested, typename PatternCollection, std::size_t indexa, std::size_t indexb>
+    struct transpose<pattern_adapter<Nested, PatternCollection>, indexa, indexb>
+    {
+      using NestedInterface = transpose<stdex::remove_cvref_t<Nested>, indexa, indexb>;
+
+      static const bool is_specialized = NestedInterface::is_specialized;
+
+      template<typename Arg>
+      constexpr auto
+      operator()(Arg&& arg)
+      {
+        return attach_patterns(
+          NestedInterface{}(std::forward<Arg>(arg).nested_object()),
+          patterns::views::transpose<indexa, indexb>(arg.pattern_collection()) );
+      }
+
+    };
+
   }
 
 

@@ -21,7 +21,7 @@
 namespace OpenKalman
 {
   // ------------------------------------------ //
-  //  diagonal_adapter, internal::diagonal_expr  //
+  //  to_diagonal_adapter, internal::diagonal_expr  //
   // ------------------------------------------ //
 
   /**
@@ -36,7 +36,7 @@ namespace OpenKalman
 #else
   template<typename NestedMatrix>
 #endif
-  struct diagonal_adapter;
+  struct to_diagonal_adapter;
 
 
   namespace internal
@@ -47,7 +47,7 @@ namespace OpenKalman
       struct is_diagonal_expr : std::false_type {};
 
       template<typename NestedMatrix>
-      struct is_diagonal_expr<diagonal_adapter<NestedMatrix>> : std::true_type {};
+      struct is_diagonal_expr<to_diagonal_adapter<NestedMatrix>> : std::true_type {};
     }
 
 
@@ -64,37 +64,21 @@ namespace OpenKalman
 
 
   // -------------------------------------------- //
-  //  HermitianAdapter, internal::hermitian_expr  //
+  //  hermitian_adapter, internal::hermitian_expr  //
   // -------------------------------------------- //
 
-  /**
-   * \brief A hermitian matrix wrapper.
-   * \details The matrix is guaranteed to be hermitian.
-   * Implicit conversions are available from any \ref hermitian_matrix of compatible size.
-   * \tparam NestedMatrix A nested \ref square_shaped expression, on which the self-adjoint matrix is based.
-   * \tparam storage_triangle The HermitianAdapterType (\ref HermitianAdapterType::lower "lower" or
-   * \ref HermitianAdapterType::upper "upper") in which the data is stored.
-   * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
-   * elements are mapped (as complex conjugates) from this selected triangle to the elements in the other triangle to
-   * ensure that the matrix is hermitian. Also, any imaginary part of the diagonal elements is discarded.
-   * If storage_triangle is triangle_type::diagonal, 0 is automatically mapped to each matrix element outside the
-   * diagonal.
-   */
 #ifdef __cpp_concepts
-  template<square_shaped<applicability::permitted> NestedMatrix, HermitianAdapterType storage_triangle =
-      triangular_matrix<NestedMatrix, triangle_type::diagonal> ? HermitianAdapterType::lower :
-      triangular_matrix<NestedMatrix, triangle_type::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
+  template<square_shaped<applicability::permitted> NestedMatrix, triangle_type storage_triangle =
+      triangular_matrix<NestedMatrix, triangle_type::lower> ? triangle_type::lower : triangle_type::upper> requires
     (index_count_v<NestedMatrix> <= 2) and
-    (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
+    (storage_triangle == triangle_type::lower or storage_triangle == triangle_type::upper) and
     (not constant_matrix<NestedMatrix> or values::not_complex<constant_value<NestedMatrix>>) and
-    (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_value<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, triangle_type::any> or triangular_matrix<NestedMatrix, static_cast<triangle_type>(storage_triangle)>)
+    (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_value<NestedMatrix>>)
 #else
-  template<typename NestedMatrix, HermitianAdapterType storage_triangle =
-    triangular_matrix<NestedMatrix, triangle_type::diagonal> ? HermitianAdapterType::lower :
-    triangular_matrix<NestedMatrix, triangle_type::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower>
+  template<typename NestedMatrix, triangle_type storage_triangle =
+    triangular_matrix<NestedMatrix, triangle_type::lower> ? triangle_type::lower : triangle_type::upper>
 #endif
-  struct HermitianAdapter;
+  struct hermitian_adapter;
 
 
   namespace internal
@@ -104,13 +88,13 @@ namespace OpenKalman
       template<typename T>
       struct is_hermitian_expr : std::false_type {};
 
-      template<typename NestedMatrix, HermitianAdapterType storage_triangle>
-      struct is_hermitian_expr<HermitianAdapter<NestedMatrix, storage_triangle>> : std::true_type {};
+      template<typename NestedMatrix, triangle_type storage_triangle>
+      struct is_hermitian_expr<hermitian_adapter<NestedMatrix, storage_triangle>> : std::true_type {};
     }
 
 
     /**
-     * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., HermitianAdapter).
+     * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., hermitian_adapter).
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -122,18 +106,9 @@ namespace OpenKalman
 
 
   // ---------------------------------------------- //
-  //  TriangularAdapter, internal::triangular_expr  //
+  //  triangular_adapter, internal::triangular_expr  //
   // ---------------------------------------------- //
 
-  /**
-   * \brief A \ref triangular_adapter, where components above or below the diagonal (or both) are zero.
-   * \details The matrix may be a diagonal matrix if tri is triangle_type::diagonal.
-   * Implicit conversions are available from any \ref triangular_matrix of compatible size.
-   * \tparam NestedMatrix A nested matrix on which the triangular matrix is based. Components above or below the diagonal
-   * (or both) are ignored and will read as zero.
-   * \tparam tri The triangle_type (\ref triangle_type::lower "lower", \ref triangle_type::upper "upper", or
-   * \ref triangle_type::diagonal "diagonal") in which the data is stored.
-   */
 #ifdef __cpp_concepts
   template<
     square_shaped<applicability::permitted> NestedMatrix,
@@ -144,7 +119,7 @@ namespace OpenKalman
   template<typename NestedMatrix, triangle_type tri = (diagonal_matrix<NestedMatrix> ? triangle_type::diagonal :
     (triangular_matrix<NestedMatrix, triangle_type::upper> ? triangle_type::upper : triangle_type::lower))>
 #endif
-  struct TriangularAdapter;
+  struct triangular_adapter;
 
 
   namespace internal
@@ -155,12 +130,12 @@ namespace OpenKalman
       struct is_triangular_expr : std::false_type {};
 
       template<typename NestedMatrix, triangle_type tri>
-      struct is_triangular_expr<TriangularAdapter<NestedMatrix, tri>> : std::true_type {};
+      struct is_triangular_expr<triangular_adapter<NestedMatrix, tri>> : std::true_type {};
     }
 
 
     /**
-     * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularAdapter).
+     * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., triangular_adapter).
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -172,60 +147,49 @@ namespace OpenKalman
 
 
   // -------------------------------------------------------- //
-  //  FromEuclideanExpr, from_euclidean_expr, euclidean_expr  //
+  //  from_stat_space_adapter, from_stat_space_expr, euclidean_expr  //
   // -------------------------------------------------------- //
 
-  /**
-   * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
-   * \details This is the counterpart expression to ToEuclideanExpr.
-   * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   * \tparam RowDescriptor The \ref patterns::pattern of the first index.
-   */
 #ifdef __cpp_concepts
   template<indexible NestedObject, patterns::pattern RowDescriptor> requires
     compares_with<vector_space_descriptor_of<NestedObject, 0>, patterns::Dimensions<patterns::stat_dimension_of_v<RowDescriptor>>, equal_to<>, applicability::permitted>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif
-  struct FromEuclideanExpr;
+  struct from_stat_space_adapter;
 
 
   namespace detail
   {
     template<typename T>
-    struct is_from_euclidean_expr : std::false_type {};
+    struct is_from_stat_space_expr : std::false_type {};
 
     template<typename NestedMatrix, typename D>
-    struct is_from_euclidean_expr<FromEuclideanExpr<NestedMatrix, D>> : std::true_type {};
+    struct is_from_stat_space_expr<from_stat_space_adapter<NestedMatrix, D>> : std::true_type {};
   }
 
 
   /**
-   * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., FromEuclideanExpr).
+   * \brief Specifies that T is an expression converting coefficients from Euclidean space (i.e., from_stat_space_adapter).
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+  concept from_stat_space_expr = detail::is_from_stat_space_expr<std::decay_t<T>>::value;
 #else
-  constexpr bool from_euclidean_expr = detail::is_from_euclidean_expr<std::decay_t<T>>::value;
+  constexpr bool from_stat_space_expr = detail::is_from_stat_space_expr<std::decay_t<T>>::value;
 #endif
 
 
   // ------------------------------------ //
-  //  ToEuclideanExpr, to_euclidean_expr  //
+  //  to_stat_space_adapter, to_euclidean_expr  //
   // ------------------------------------ //
 
-  /**
-   * \brief An expression that transforms vector space descriptors into Euclidean space for application of directional statistics.
-   * \details This is the counterpart expression to FromEuclideanExpr.
-   * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   */
 #ifdef __cpp_concepts
-  template<indexible NestedObject> requires (not from_euclidean_expr<NestedObject>)
+  template<indexible Nested> requires (not from_stat_space_expr<Nested>)
 #else
-  template<typename NestedObject>
+  template<typename Nested>
 #endif
-  struct ToEuclideanExpr;
+  struct to_stat_space_adapter;
 
 
   namespace detail
@@ -234,12 +198,12 @@ namespace OpenKalman
     struct is_to_euclidean_expr : std::false_type {};
 
     template<typename NestedObject>
-    struct is_to_euclidean_expr<ToEuclideanExpr<NestedObject>> : std::true_type {};
+    struct is_to_euclidean_expr<to_stat_space_adapter<NestedObject>> : std::true_type {};
   }
 
 
   /**
-   * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., ToEuclideanExpr).
+   * \brief Specifies that T is an expression converting coefficients to Euclidean space (i.e., to_stat_space_adapter).
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -250,13 +214,13 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_euclidean_expr.
+   * \brief Specifies that T is either \ref to_euclidean_expr or \ref from_stat_space_expr.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept euclidean_expr = to_euclidean_expr<T> or from_euclidean_expr<T>;
+  concept euclidean_expr = to_euclidean_expr<T> or from_stat_space_expr<T>;
 #else
-  constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
+  constexpr bool euclidean_expr = from_stat_space_expr<T> or to_euclidean_expr<T>;
 #endif
 
 

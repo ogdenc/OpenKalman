@@ -44,7 +44,7 @@ namespace OpenKalman
 #endif
   rank_update_hermitian(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)
   {
-    constexpr auto t = hermitian_adapter<A> ? hermitian_adapter_type_of_v<A> : HermitianAdapterType::lower;
+    constexpr auto t = hermitian_adapter_concept<A> ? hermitian_adapter_type_of_v<A> : triangle_type::lower;
 
     if constexpr (zero<U> or dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
     {
@@ -55,7 +55,7 @@ namespace OpenKalman
 
       if constexpr (zero<U>)
       {
-        return make_hermitian_matrix<t>(std::forward<A>(a));
+        return to_hermitian<t>(std::forward<A>(a));
       }
       else // A is known to be a 1-by-1 matrix.
       {
@@ -64,7 +64,7 @@ namespace OpenKalman
         if constexpr (writable_by_component<A&&>)
         {
           set_component(a, e, 0, 0);
-          return make_hermitian_matrix<t>(std::forward<A>(a));
+          return to_hermitian<t>(std::forward<A>(a));
         }
         else
         {
@@ -72,7 +72,7 @@ namespace OpenKalman
           if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
           {
             a = std::move(ret);
-            return make_hermitian_matrix<t>(std::forward<A>(a));
+            return to_hermitian<t>(std::forward<A>(a));
           }
           else return ret;
         }
@@ -93,19 +93,19 @@ namespace OpenKalman
       if constexpr (std::is_assignable_v<A, decltype(std::move(d))>) return a = std::move(d);
       else return d;
     }
-    else if constexpr (hermitian_adapter<A>)
+    else if constexpr (hermitian_adapter_concept<A>)
     {
       auto&& aw = internal::make_writable_square_matrix<U>(nested_object(std::forward<A>(a)));
       using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_hermitian<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
-      return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
+      return to_hermitian<t>(std::forward<decltype(ret)>(ret));
     }
-    else // hermitian_matrix but not hermitian_adapter
+    else // hermitian_matrix but not hermitian_adapter_concept
     {
       auto&& aw = internal::make_writable_square_matrix<U>(std::forward<A>(a));
       using Trait = interface::library_interface<stdex::remove_cvref_t<decltype(aw)>>;
       auto&& ret = Trait::template rank_update_hermitian<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
-      return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
+      return to_hermitian<t>(std::forward<decltype(ret)>(ret));
     }
   }
 

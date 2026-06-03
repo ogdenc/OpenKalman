@@ -110,10 +110,10 @@ namespace OpenKalman
         const auto x = dist();
         const auto y = trans(x, noise()...);
         if constexpr (return_cross)
-          return MonteCarloSum {1, x, to_euclidean(y), make_zero<OutputCovariance>(),
+          return MonteCarloSum {1, x, to_stat_space(y), make_zero<OutputCovariance>(),
             make_zero<CrossCovariance>()};
         else
-          return MonteCarloSum {1, x, to_euclidean(y), make_zero<OutputCovariance>()};
+          return MonteCarloSum {1, x, to_stat_space(y), make_zero<OutputCovariance>()};
       }
 
 
@@ -128,7 +128,7 @@ namespace OpenKalman
             const Scalar s_count = count;
             const auto x = (set1.count * set1.x + set2.x) / s_count;
             const auto y_E = (set1.count * set1.y_E + set2.y_E) / s_count;
-            const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
+            const auto delta = from_stat_space(set2.y_E) - from_stat_space(set1.y_E);
             const auto delta_adj_factor = conjugate_transpose(delta) * set1.count / s_count;
             const OutputCovariance yy {set1.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
@@ -147,7 +147,7 @@ namespace OpenKalman
             const Scalar s_count = count;
             const auto x = (set1.count * set1.x + set2.count * set2.x) / s_count;
             const auto y_E = (set1.count * set1.y_E + set2.count * set2.y_E) / s_count;
-            const auto delta = from_euclidean(set2.y_E) - from_euclidean(set1.y_E);
+            const auto delta = from_stat_space(set2.y_E) - from_stat_space(set1.y_E);
             const auto delta_adj_factor = conjugate_transpose(delta) * set1.count * set2.count / s_count;
             const OutputCovariance yy {set1.yy + set2.yy + delta * delta_adj_factor};
             if constexpr (return_cross)
@@ -250,7 +250,7 @@ namespace OpenKalman
       using MSum = typename MSet::MonteCarloSum;
 
       MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
-      auto mean_output = make_self_contained(from_euclidean(m_sum.y_E));
+      auto mean_output = make_self_contained(from_stat_space(m_sum.y_E));
       auto out_covariance = make_self_contained(m_sum.yy / (size - 1.));
       return GaussianDistribution {mean_output, out_covariance};
     }
@@ -283,7 +283,7 @@ namespace OpenKalman
       using MSum = typename MSet::MonteCarloSum;
 
       MSum m_sum = std::reduce(std::execution::par_unseq, m_set.begin(), m_set.end(), MSet::zero(), binary_op);
-      auto mean_output = make_self_contained(from_euclidean(m_sum.y_E));
+      auto mean_output = make_self_contained(from_stat_space(m_sum.y_E));
       auto out_covariance = make_self_contained(m_sum.yy / (size - 1.));
       auto cross_covariance = make_self_contained(m_sum.xy / (size - 1.));
       auto out = GaussianDistribution {mean_output, out_covariance};

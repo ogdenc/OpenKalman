@@ -23,13 +23,11 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that an argument is an \ref indexible object having
-   * a given \ref triangle_type (e.g., upper, lower, or diagonal).
-   * \details This can also test whether the argument is triangular (\ref triangle_type::none).
-   * To test whether the argument has any triangle type, use \ref triangle_type::any (which is the default).
-   * Diagonal matrices are considered to also be both upper and lower.
+   * a given \ref triangle_type (upper, lower, or diagonal, or none).
+   * \details Diagonal matrices are considered to also be both upper and lower.
    * \tparam t The \ref triangle_type
    */
-  template<typename T, triangle_type t = triangle_type::any>
+  template<typename T, triangle_type t>
 #ifdef __cpp_concepts
   concept triangular_matrix =
 #else
@@ -37,8 +35,8 @@ namespace OpenKalman
 #endif
     indexible<T> and
     (t == triangle_type_of_v<T> or
-      (t == triangle_type::any and triangle_type_of_v<T> != triangle_type::none) or
-      ((t == triangle_type::upper or t == triangle_type::lower) and triangle_type_of_v<T> == triangle_type::diagonal));
+      ((t == triangle_type::upper or t == triangle_type::lower) and
+        triangle_type_of_v<T> == triangle_type::diagonal));
 
 
 }

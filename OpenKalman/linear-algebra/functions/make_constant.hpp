@@ -18,7 +18,8 @@
 
 #include "linear-algebra/concepts/constant_object.hpp"
 #include "linear-algebra/functions/attach_patterns.hpp"
-#include "linear-algebra/interfaces/stl/constant_mdspan_policies.hpp"
+#include "linear-algebra/interfaces/stl/layout_constant.hpp"
+#include "linear-algebra/interfaces/stl/constant_accessor.hpp"
 
 namespace OpenKalman
 {
@@ -86,6 +87,27 @@ namespace OpenKalman
     return make_constant(std::move(c), P{});
   }
 
+
+  namespace interface
+  {
+    template<typename N, typename E>
+    struct object_traits<stdex::mdspan<N, E, layout_constant, constant_accessor<N>>>
+    {
+      static const bool is_specialized = true;
+
+      template<typename M>
+      static constexpr decltype(auto)
+      get_mdspan(M&& m) { return std::forward<M>(m); }
+
+      template<typename M>
+      static constexpr auto
+      get_constant(M&& m)
+      {
+        return m.accessor().access(m.data_handle(), 0);
+      }
+
+    };
+  };
 
 }
 

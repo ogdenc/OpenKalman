@@ -33,21 +33,21 @@ using Mean4 = Mean<C4, M4col>;
 using Mat2 = Matrix<C2, C2, M2>;
 using Mat3 = Matrix<C3, C3, M3>;
 using Mat4 = Matrix<C4, C4, M4>;
-using SA1l = HermitianAdapter<M1, triangle_type::lower>;
-using SA1u = HermitianAdapter<M1, triangle_type::upper>;
-using T1l = TriangularAdapter<M1, triangle_type::lower>;
-using T1u = TriangularAdapter<M1, triangle_type::upper>;
-using SA2l = HermitianAdapter<M2, triangle_type::lower>;
-using SA2u = HermitianAdapter<M2, triangle_type::upper>;
-using T2l = TriangularAdapter<M2, triangle_type::lower>;
-using T2u = TriangularAdapter<M2, triangle_type::upper>;
-using D2 = diagonal_adapter<M2col>;
+using SA1l = hermitian_adapter<M1, triangle_type::lower>;
+using SA1u = hermitian_adapter<M1, triangle_type::upper>;
+using T1l = triangular_adapter<M1, triangle_type::lower>;
+using T1u = triangular_adapter<M1, triangle_type::upper>;
+using SA2l = hermitian_adapter<M2, triangle_type::lower>;
+using SA2u = hermitian_adapter<M2, triangle_type::upper>;
+using T2l = triangular_adapter<M2, triangle_type::lower>;
+using T2u = triangular_adapter<M2, triangle_type::upper>;
+using D2 = to_diagonal_adapter<M2col>;
 using I2 = Eigen3::IdentityMatrix<M2>;
 using Z2 = zero_adapter<eigen_matrix_t<double, 2, 2>>;
-using SA4l = HermitianAdapter<M4, triangle_type::lower>;
-using SA4u = HermitianAdapter<M4, triangle_type::upper>;
-using T4l = TriangularAdapter<M4, triangle_type::lower>;
-using T4u = TriangularAdapter<M4, triangle_type::upper>;
+using SA4l = hermitian_adapter<M4, triangle_type::lower>;
+using SA4u = hermitian_adapter<M4, triangle_type::upper>;
+using T4l = triangular_adapter<M4, triangle_type::lower>;
+using T4u = triangular_adapter<M4, triangle_type::upper>;
 using CovSA2l = Covariance<C2, SA2l>;
 using CovSA2u = Covariance<C2, SA2u>;
 using CovT2l = Covariance<C2, T2l>;
@@ -424,10 +424,10 @@ TEST(matrices, GaussianDistribution_class_random)
   for (int i = 0; i < 1000; i++)
   {
     V x {dist()};
-    mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
+    mean_x = (mean_x * i + to_stat_space(x)) / (i + 1);
   }
-  EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), make_zero<V>(), nested_object_of_t<V>::Constant(0.2)));
+  EXPECT_NE(from_stat_space(mean_x), true_x);
+  EXPECT_TRUE(is_near(Mean(from_stat_space(mean_x) - true_x), make_zero<V>(), nested_object_of_t<V>::Constant(0.2)));
 }
 
 
@@ -444,10 +444,10 @@ TEST(matrices, GaussianDistribution_class_random_axis)
   for (int i = 0; i < 100; i++)
   {
     Mat x {dist()};
-    mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
+    mean_x = (mean_x * i + to_stat_space(x)) / (i + 1);
   }
-  EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_object_of_t<Mat>::Constant(1.0)));
+  EXPECT_NE(from_stat_space(mean_x), true_x);
+  EXPECT_TRUE(is_near(from_stat_space(mean_x), true_x, nested_object_of_t<Mat>::Constant(1.0)));
 }
 
 
@@ -468,10 +468,10 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random)
   for (int i = 0; i < 1000; i++)
   {
     V x {dist()};
-    mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
+    mean_x = (mean_x * i + to_stat_space(x)) / (i + 1);
   }
-  EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(Mean(from_euclidean(mean_x) - true_x), make_zero<V>(), nested_object_of_t<V>::Constant(0.2)));
+  EXPECT_NE(from_stat_space(mean_x), true_x);
+  EXPECT_TRUE(is_near(Mean(from_stat_space(mean_x) - true_x), make_zero<V>(), nested_object_of_t<V>::Constant(0.2)));
 }
 
 
@@ -481,7 +481,7 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random_axis)
   M2 m22;
   m22 << 3, 0, 1, 3;
   const Mat true_x {20, 30};
-  GaussianDistribution dist {true_x, TriangularAdapter {m22}};
+  GaussianDistribution dist {true_x, triangular_adapter {m22}};
   const Mat x1 {dist()};
   const Mat x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -490,10 +490,10 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random_axis)
   for (int i = 0; i < 100; i++)
   {
     Mat x {dist()};
-    mean_x = (mean_x * i + to_euclidean(x)) / (i + 1);
+    mean_x = (mean_x * i + to_stat_space(x)) / (i + 1);
   }
-  EXPECT_NE(from_euclidean(mean_x), true_x);
-  EXPECT_TRUE(is_near(from_euclidean(mean_x), true_x, nested_object_of_t<Mat>::Constant(1.0)));
+  EXPECT_NE(from_stat_space(mean_x), true_x);
+  EXPECT_TRUE(is_near(from_stat_space(mean_x), true_x, nested_object_of_t<Mat>::Constant(1.0)));
 }
 
 
@@ -719,20 +719,20 @@ TEST(matrices, GaussianDistribution_addition_subtraction)
   M2 d;
   d << 9, 3,
   3, 8;
-  GaussianDistribution dist1 {x_mean, HermitianAdapter(d)};
+  GaussianDistribution dist1 {x_mean, hermitian_adapter(d)};
   Mean<Dimensions<2>> y_mean {11, 23};
   M2 e;
   e << 7, 1,
   1, 3;
-  GaussianDistribution dist2 {y_mean, HermitianAdapter(e)};
+  GaussianDistribution dist2 {y_mean, hermitian_adapter(e)};
   auto sum1 = dist1 + dist2;
   EXPECT_TRUE(is_near(mean_of(sum1), Mean {31., 53}));
   EXPECT_TRUE(is_near(covariance_of(sum1), Covariance {16., 4, 4, 11}));
   auto diff1 = dist1 - dist2;
   EXPECT_TRUE(is_near(mean_of(diff1), Mean {9., 7.}));
   EXPECT_TRUE(is_near(covariance_of(diff1), Covariance {2., 2, 2, 5}));
-  GaussianDistribution dist1_chol {x_mean, cholesky_factor(HermitianAdapter {d})};
-  GaussianDistribution dist2_chol {y_mean, cholesky_factor(HermitianAdapter {e})};
+  GaussianDistribution dist1_chol {x_mean, cholesky_factor(hermitian_adapter {d})};
+  GaussianDistribution dist2_chol {y_mean, cholesky_factor(hermitian_adapter {e})};
   auto sum2 = dist1_chol + dist2_chol;
   EXPECT_TRUE(is_near(mean_of(sum2), Mean {31., 53}));
   EXPECT_TRUE(is_near(covariance_of(sum2), Covariance {16., 4, 4, 11}));

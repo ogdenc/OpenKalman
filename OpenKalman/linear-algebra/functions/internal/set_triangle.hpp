@@ -32,16 +32,18 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<triangle_type t, indexible A, indexible B> requires
-    (t != triangle_type::any) and (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and
+    (index_count_v<A> == stdex::dynamic_extent or index_count_v<A> <= 2) and
     (t != triangle_type::lower or dimension_size_of_index_is<A, 0, index_dimension_of_v<B, 0>, applicability::permitted>) and
     (t != triangle_type::upper or dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 1>, applicability::permitted>) and
-    (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == triangle_type::diagonal or diagonal_matrix<B>)
+    (t != triangle_type::lower or not triangular_matrix<B, triangle_type::upper>) and
+    (t != triangle_type::upper or not triangular_matrix<B, triangle_type::lower>)
 #else
   template<triangle_type t, typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
-    (t != triangle_type::any) and (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and
+    (index_count<A>::value == stdex::dynamic_extent or index_count<A>::value <= 2) and
     (t != triangle_type::lower or dimension_size_of_index_is<A, 0, index_dimension_of<B, 0>::value, applicability::permitted>) and
     (t != triangle_type::upper or dimension_size_of_index_is<A, 1, index_dimension_of<B, 1>::value, applicability::permitted>) and
-    (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == triangle_type::diagonal or diagonal_matrix<B>), int> = 0>
+    (t != triangle_type::lower or not triangular_matrix<B, triangle_type::upper>) and
+    (t != triangle_type::upper or not triangular_matrix<B, triangle_type::lower>), int> = 0>
 #endif
   constexpr A&&
   set_triangle(A&& a, B&& b)
@@ -58,10 +60,10 @@ namespace OpenKalman::internal
     {
       set_triangle<t>(nested_object(a), std::forward<B>(b));
     }
-    else if constexpr (hermitian_adapter<A>)
+    else if constexpr (hermitian_adapter_concept<A>)
     {
-      if constexpr ((t == triangle_type::lower and hermitian_adapter<A, HermitianAdapterType::upper>) or
-          (t == triangle_type::upper and hermitian_adapter<A, HermitianAdapterType::lower>))
+      if constexpr ((t == triangle_type::lower and hermitian_adapter_concept<A, triangle_type::upper>) or
+          (t == triangle_type::upper and hermitian_adapter_concept<A, triangle_type::lower>))
         set_triangle<t>(nested_object(a), conjugate_transpose(std::forward<B>(b)));
       else
         set_triangle<t>(nested_object(a), std::forward<B>(b));
@@ -93,31 +95,6 @@ namespace OpenKalman::internal
     return std::forward<A>(a);
   }
 
-
-  /**
-   * \overload
-   * \internal
-   * \brief Derives the triangle_type from the triangle types of the arguments.
-   */
-#ifdef __cpp_concepts
-  template<indexible A, vector_space_descriptors_may_match_with<A> B> requires (triangular_matrix<A> or triangular_matrix<B>) and
-    (triangle_type_of_v<A, B> != triangle_type::any or triangle_type_of_v<A> == triangle_type::any or triangle_type_of_v<B> == triangle_type::any)
-  constexpr vector_space_descriptors_may_match_with<A> decltype(auto)
-#else
-  template<typename A, typename B, std::enable_if_t<indexible<A> and vector_space_descriptors_may_match_with<B, A> and
-    (triangular_matrix<A> or triangular_matrix<B>) and
-    (triangle_type_of<A, B>::value != triangle_type::any or triangle_type_of<A>::value == triangle_type::any or
-      triangle_type_of<B>::value == triangle_type::any), int> = 0>
-  constexpr decltype(auto)
-#endif
-  set_triangle(A&& a, B&& b)
-  {
-    constexpr auto t =
-      diagonal_matrix<A> or diagonal_matrix<B> ? triangle_type::diagonal :
-      triangle_type_of_v<A, B> != triangle_type::any ? triangle_type_of_v<A, B> :
-      triangle_type_of_v<A> == triangle_type::any ? triangle_type_of_v<B> : triangle_type_of_v<A>;
-    return set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
-  }
 
 }
 

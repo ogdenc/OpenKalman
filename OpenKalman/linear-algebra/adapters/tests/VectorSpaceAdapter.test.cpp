@@ -27,10 +27,10 @@ namespace
   using Mat32 = VectorSpaceDescriptor<M32, C3, C2>;
   using Mat33 = VectorSpaceDescriptor<M33, C3, C3>;
 
-  using SA2l = HermitianAdapter<M22, triangle_type::lower>;
-  using SA2u = HermitianAdapter<M22, triangle_type::upper>;
-  using T2l = TriangularAdapter<M22, triangle_type::lower>;
-  using T2u = TriangularAdapter<M22, triangle_type::upper>;
+  using SA2l = hermitian_adapter<M22, triangle_type::lower>;
+  using SA2u = hermitian_adapter<M22, triangle_type::upper>;
+  using T2l = triangular_adapter<M22, triangle_type::lower>;
+  using T2u = triangular_adapter<M22, triangle_type::upper>;
 
   inline I22 i22 = M22::Identity();
   inline Z22 z22 = Z22();
@@ -190,7 +190,7 @@ TEST(adapters, VectorSpaceDescriptor_deduction_guides)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, hermitian_adapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
@@ -212,7 +212,7 @@ TEST(adapters, VectorSpaceDescriptor_make_functions)
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_patterns(b)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_patterns(b)), 1>, C3>);
 
-  auto c = Covariance<C2, HermitianAdapter<M22, triangle_type::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, hermitian_adapter<M22, triangle_type::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(attach_patterns(c), Mat22 {9, 3, 3, 10}));
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_patterns(c)), 0>, C2>);
   static_assert(compares_with<vector_space_descriptor_of_t<decltype(attach_patterns(c)), 1>, C2>);
@@ -265,7 +265,7 @@ TEST(adapters, VectorSpaceDescriptor_overloads)
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8, 10, 12}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>, Mat23>);
 
-  EXPECT_TRUE(is_near(to_euclidean(VectorSpaceDescriptor<C2, Dimensions<3>, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
+  EXPECT_TRUE(is_near(to_stat_space(VectorSpaceDescriptor<C2, Dimensions<3>, M23> {1, 2, 3, pi*7/3, pi*13/6, -pi*7/4}),
     EuclideanMean<C2, M33> {1, 2, 3,
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));

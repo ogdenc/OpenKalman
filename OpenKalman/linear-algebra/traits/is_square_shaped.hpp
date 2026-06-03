@@ -24,7 +24,7 @@ namespace OpenKalman
   /**
    * \brief At least 2 and at most N indices have the same extent.
    * \details N must be at least 2 or must be values::unbounded_size.
-   * If the latter, at least two indicess will be compared.
+   * If the latter, at least two indices will be compared.
    * If N is greater than the index count, the extents of T will effectively be padded with extent 1
    * so that there are N extents.
    * \note A 0-by-0 array is considered to be square, but a 0-by-1 or 1-by-0 array is not.

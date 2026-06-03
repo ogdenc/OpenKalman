@@ -45,24 +45,24 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
-  using D0 = diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = to_diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = to_diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
-  using L22 = HermitianAdapter<M22, HermitianAdapterType::lower>;
-  using L20 = HermitianAdapter<M2x, HermitianAdapterType::lower>;
-  using L02 = HermitianAdapter<Mx2, HermitianAdapterType::lower>;
-  using L00 = HermitianAdapter<Mxx, HermitianAdapterType::lower>;
+  using L22 = hermitian_adapter<M22, triangle_type::lower>;
+  using L20 = hermitian_adapter<M2x, triangle_type::lower>;
+  using L02 = hermitian_adapter<Mx2, triangle_type::lower>;
+  using L00 = hermitian_adapter<Mxx, triangle_type::lower>;
 
-  using U22 = HermitianAdapter<M22, HermitianAdapterType::upper>;
-  using U20 = HermitianAdapter<M2x, HermitianAdapterType::upper>;
-  using U02 = HermitianAdapter<Mx2, HermitianAdapterType::upper>;
-  using U00 = HermitianAdapter<Mxx, HermitianAdapterType::upper>;
+  using U22 = hermitian_adapter<M22, triangle_type::upper>;
+  using U20 = hermitian_adapter<M2x, triangle_type::upper>;
+  using U02 = hermitian_adapter<Mx2, triangle_type::upper>;
+  using U00 = hermitian_adapter<Mxx, triangle_type::upper>;
   
-  using CL22 = HermitianAdapter<C22, HermitianAdapterType::lower>;
-  using CU22 = HermitianAdapter<C22, HermitianAdapterType::upper>;
+  using CL22 = hermitian_adapter<C22, triangle_type::lower>;
+  using CU22 = hermitian_adapter<C22, triangle_type::upper>;
 
-  using DL2 = HermitianAdapter<D2, HermitianAdapterType::lower>;
-  using DL0 = HermitianAdapter<D0, HermitianAdapterType::lower>;
+  using DL2 = hermitian_adapter<D2, triangle_type::lower>;
+  using DL0 = hermitian_adapter<D0, triangle_type::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
@@ -70,11 +70,11 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = diagonal_adapter<T>;
-  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
-  template<typename T> using SAl = HermitianAdapter<T, HermitianAdapterType::lower>;
-  template<typename T> using SAu = HermitianAdapter<T, HermitianAdapterType::upper>;
+  template<typename T> using D = to_diagonal_adapter<T>;
+  template<typename T> using Tl = triangular_adapter<T, triangle_type::lower>;
+  template<typename T> using Tu = triangular_adapter<T, triangle_type::upper>;
+  template<typename T> using SAl = hermitian_adapter<T, triangle_type::lower>;
+  template<typename T> using SAu = hermitian_adapter<T, triangle_type::upper>;
 }
 
 

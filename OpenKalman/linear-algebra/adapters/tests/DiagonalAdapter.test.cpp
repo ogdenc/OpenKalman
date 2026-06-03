@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests relating to diagonal_adapter.
+ * \brief Tests relating to to_diagonal_adapter.
  */
 
 #include "adapters.gtest.hpp"
@@ -47,10 +47,10 @@ namespace
   Mx1 mx1_1 {m11};
   Mxx mxx_11 {m11};
 
-  using D5 = diagonal_adapter<M51>;
-  using D3 = diagonal_adapter<M31>;
-  using D2 = diagonal_adapter<M21>;
-  using Dx = diagonal_adapter<Mx1>;
+  using D5 = to_diagonal_adapter<M51>;
+  using D3 = to_diagonal_adapter<M31>;
+  using D2 = to_diagonal_adapter<M21>;
+  using Dx = to_diagonal_adapter<Mx1>;
 
   D2 d2 {m21};
   Dx dx_2 {m21};
@@ -58,9 +58,9 @@ namespace
   Dx dx_3 {m31};
   D5 d5 {m51};
   Dx dx_5 {m51};
-  diagonal_adapter<const M51> d5_const {m51};
+  to_diagonal_adapter<const M51> d5_const {m51};
 
-  template<typename Mat> using D = diagonal_adapter<Mat>;
+  template<typename Mat> using D = to_diagonal_adapter<Mat>;
 }
 
 
@@ -97,25 +97,25 @@ TEST(adapters, Diagonal_class)
   EXPECT_TRUE(is_near(d3a.nested_object(), m31));
 
   // construct dynamic diagonal matrix from dynamic eigen matrix; fill with comma expression
-  diagonal_adapter dxa_3 {Mx1 {make_dense_object_from<M31>(4, 5, 6)}};
+  to_diagonal_adapter dxa_3 {Mx1 {make_dense_object_from<M31>(4, 5, 6)}};
   static_assert(std::is_same_v<decltype(dxa_3), Dx>);
   dxa_3 << 1, 2, 3;
   EXPECT_TRUE(is_near(dxa_3, m33));
   EXPECT_TRUE(is_near(dxa_3.nested_object(), make_dense_object_from<M31>(1, 2, 3)));
 
   // move constructor, deduction guide (column vector)
-  diagonal_adapter d3b {diagonal_adapter {M31 {m31}}};
+  to_diagonal_adapter d3b {to_diagonal_adapter {M31 {m31}}};
   static_assert(std::is_same_v<decltype(d3b), D3>);
   EXPECT_TRUE(is_near(d3b, m33));
-  diagonal_adapter dxb_3 {Dx {M31 {m31}}}; // construct dynamic from fixed matrix, then move constructor
+  to_diagonal_adapter dxb_3 {Dx {M31 {m31}}}; // construct dynamic from fixed matrix, then move constructor
   static_assert(std::is_same_v<decltype(dxb_3), Dx>);
   EXPECT_TRUE(is_near(dxb_3, m33));
-  EXPECT_TRUE(is_near(diagonal_adapter {Dx {D3 {m31}}}, m33)); // construct dynamic from fixed diagonal, then move constructor
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Dx {D3 {m31}}}, m33)); // construct dynamic from fixed diagonal, then move constructor
 
   // copy constructor
-  diagonal_adapter d3c {d3b};
+  to_diagonal_adapter d3c {d3b};
   EXPECT_TRUE(is_near(d3c, m33));
-  diagonal_adapter dxc_3 {dxb_3};
+  to_diagonal_adapter dxc_3 {dxb_3};
   EXPECT_TRUE(is_near(dxc_3, m33));
 
   // column scalar constructor
@@ -125,101 +125,101 @@ TEST(adapters, Diagonal_class)
   EXPECT_TRUE(is_near(dxd_3, m33));
 
   // column vector constructor and deduction guide
-  EXPECT_TRUE(is_near(diagonal_adapter {m31}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {m3x_1}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {mx1_3}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {mxx_31}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {m31}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {m3x_1}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {mx1_3}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {mxx_31}.nested_object(), m31));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {M31 {m31}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {M3x {m3x_1}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Mx1 {mx1_3}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Mxx {mxx_31}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {M31 {m31}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {M3x {m3x_1}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Mx1 {mx1_3}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Mxx {mxx_31}}.nested_object(), m31));
 
   // diagonal constructor and diagonal deduction guide
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<M31> {m31}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<M3x> {m3x_1}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<Mx1> {mx1_3}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<Mxx> {mxx_31}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<M31> {m31}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<M3x> {m3x_1}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<Mx1> {mx1_3}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<Mxx> {mxx_31}}.nested_object(), m31));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<M13> {m13}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<M1x> {m1x_3}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<Mx3> {mx3_1}}.nested_object(), m31));
-  EXPECT_TRUE(is_near(diagonal_adapter {Eigen::DiagonalWrapper<Mxx> {mxx_13}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<M13> {m13}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<M1x> {m1x_3}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<Mx3> {mx3_1}}.nested_object(), m31));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Eigen::DiagonalWrapper<Mxx> {mxx_13}}.nested_object(), m31));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {m11}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {m1x_1}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {mx1_1}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {mxx_11}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {m11}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {m1x_1}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {mx1_1}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {mxx_11}.nested_object(), m11));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {M11 {m11}}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {M1x {m1x_1}}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {Mx1 {mx1_1}}.nested_object(), m11));
-  EXPECT_TRUE(is_near(diagonal_adapter {Mxx {mxx_11}}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {M11 {m11}}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {M1x {m1x_1}}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Mx1 {mx1_1}}.nested_object(), m11));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Mxx {mxx_11}}.nested_object(), m11));
 
-  // construct from zero matrix, and deduction guide (from non-diagonal_adapter diagonal)
-  static_assert(zero<decltype(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
-  static_assert(diagonal_matrix<decltype(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
-  static_assert(square_shaped<decltype(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}}), values::unbounded_size, applicability::permitted> );
-  static_assert(square_shaped<decltype(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
+  // construct from zero matrix, and deduction guide (from non-to_diagonal_adapter diagonal)
+  static_assert(zero<decltype(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
+  static_assert(diagonal_matrix<decltype(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
+  static_assert(square_shaped<decltype(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}}), values::unbounded_size, applicability::permitted> );
+  static_assert(square_shaped<decltype(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}})>);
 
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 3>>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 3>>{}}).nested_object()}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 3>>{}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 3>>{}}).nested_object()}, M33::Zero()));
   EXPECT_TRUE(is_near(Dx {zero_adapter<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
   EXPECT_TRUE(is_near(Dx {zero_adapter<eigen_matrix_t<double, 3, 3>>{}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {(diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>> {3, 3}}).nested_object()}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, stdex::dynamic_extent>>{1}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, stdex::dynamic_extent>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>> {3, 3}}).nested_object()}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, stdex::dynamic_extent>>{1}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, stdex::dynamic_extent>>{3}}, M33::Zero()));
   EXPECT_TRUE(is_near(D3 {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 3>>{3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 3>>{3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 3>>{3}}, M33::Zero()));
   EXPECT_TRUE(is_near(D3 {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>>{3, 3}}, M33::Zero()));
-  EXPECT_TRUE(is_near(diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>>{3, 3}}, M33::Zero()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, stdex::dynamic_extent>>{3, 3}}, M33::Zero()));
 
-  // construct from identity matrix, and deduction guide (from non-diagonal_adapter diagonal)
-  EXPECT_TRUE(is_near(diagonal_adapter {M33::Identity()}, M33::Identity()));
-  EXPECT_TRUE(is_near(diagonal_adapter {0.7 * M33::Identity()}, M33::Identity() * 0.7));
-  EXPECT_TRUE(is_near(diagonal_adapter {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
-  EXPECT_TRUE(is_near(diagonal_adapter {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
-  EXPECT_TRUE(is_near(diagonal_adapter {Mxx::Identity(3, 3)}, M33::Identity()));
-  EXPECT_TRUE(is_near(diagonal_adapter {0.7 * Mxx::Identity(3, 3)}, Mxx::Identity(3, 3) * 0.7));
+  // construct from identity matrix, and deduction guide (from non-to_diagonal_adapter diagonal)
+  EXPECT_TRUE(is_near(to_diagonal_adapter {M33::Identity()}, M33::Identity()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {0.7 * M33::Identity()}, M33::Identity() * 0.7));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {((0.7 * M33::Identity()) * (0.3 * M33::Identity() * 0.7 + 0.7 * M33::Identity()) - M33::Identity() * 0.3)}, M33::Identity() * 0.337));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {Mxx::Identity(3, 3)}, M33::Identity()));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {0.7 * Mxx::Identity(3, 3)}, Mxx::Identity(3, 3) * 0.7));
 
   M22 msa2 = make_dense_object_from<M22>(9, 0, 0, 10);
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<M22, HermitianAdapterType::lower>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Mxx, HermitianAdapterType::lower>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<M2x, HermitianAdapterType::lower>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Mx2, HermitianAdapterType::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<M22, triangle_type::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Mxx, triangle_type::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<M2x, triangle_type::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Mx2, triangle_type::lower>{msa2}}, msa2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<D2, HermitianAdapterType::lower>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Dx, HermitianAdapterType::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<D2, triangle_type::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Dx, triangle_type::lower>{msa2}}, msa2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<D2, HermitianAdapterType::lower>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Dx, HermitianAdapterType::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<D2, triangle_type::lower>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Dx, triangle_type::lower>{msa2}}, msa2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<M22, HermitianAdapterType::upper>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Mxx, HermitianAdapterType::upper>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<M2x, HermitianAdapterType::upper>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Mx2, HermitianAdapterType::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<M22, triangle_type::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Mxx, triangle_type::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<M2x, triangle_type::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Mx2, triangle_type::upper>{msa2}}, msa2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<D2, HermitianAdapterType::upper>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Dx, HermitianAdapterType::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<D2, triangle_type::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Dx, triangle_type::upper>{msa2}}, msa2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<D2, HermitianAdapterType::upper>{msa2}}, msa2));
-  EXPECT_TRUE(is_near(diagonal_adapter {HermitianAdapter<Dx, HermitianAdapterType::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<D2, triangle_type::upper>{msa2}}, msa2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {hermitian_adapter<Dx, triangle_type::upper>{msa2}}, msa2));
 
   M22 mt2 = make_dense_object_from<M22>(3, 0, 0, 3);
 
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<M22, triangle_type::diagonal>{mt2}}, mt2));
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<Mxx, triangle_type::diagonal>{mt2}}, mt2));
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<M2x, triangle_type::diagonal>{mt2}}, mt2));
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<Mx2, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<M22, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<Mxx, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<M2x, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<Mx2, triangle_type::diagonal>{mt2}}, mt2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<D2, triangle_type::diagonal>{mt2}}, mt2));
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<Dx, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<D2, triangle_type::diagonal>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<Dx, triangle_type::diagonal>{mt2}}, mt2));
 
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<D2, triangle_type::lower>{mt2}}, mt2));
-  EXPECT_TRUE(is_near(diagonal_adapter {TriangularAdapter<Dx, triangle_type::lower>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<D2, triangle_type::lower>{mt2}}, mt2));
+  EXPECT_TRUE(is_near(to_diagonal_adapter {triangular_adapter<Dx, triangle_type::lower>{mt2}}, mt2));
 
   zero_adapter<eigen_matrix_t<double, 3, 3>> z33 {};
 
@@ -235,14 +235,14 @@ TEST(adapters, Diagonal_class)
   dxd_3 = dxc_3;
   EXPECT_TRUE(is_near(dxd_3, m33b));
 
-  // assign from different-typed diagonal_adapter
-  d3c = diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>> {}};
+  // assign from different-typed to_diagonal_adapter
+  d3c = to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>> {}};
   EXPECT_TRUE(is_near(d3c, z33));
-  dxc_3 = diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>> {3}};
+  dxc_3 = to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>> {3}};
   EXPECT_TRUE(is_near(dxc_3, z33));
-  d3d = diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>> {3}};
+  d3d = to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, stdex::dynamic_extent, 1>> {3}};
   EXPECT_TRUE(is_near(d3d, z33));
-  dxd_3 = diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>> {}};
+  dxd_3 = to_diagonal_adapter {zero_adapter<eigen_matrix_t<double, 3, 1>> {}};
   EXPECT_TRUE(is_near(dxd_3, z33));
 
   // assign from zero
@@ -272,32 +272,32 @@ TEST(adapters, Diagonal_class)
   M22 m22b = make_dense_object_from<M22>(9, 0, 0, 10);
   M22 m22c = make_dense_object_from<M22>(3, 0, 0, 3);
 
-  d2a = TriangularAdapter<M22, triangle_type::diagonal>{m22c};
+  d2a = triangular_adapter<M22, triangle_type::diagonal>{m22c};
   EXPECT_TRUE(is_near(d2a, m22c));
-  d0a_2 = TriangularAdapter<Mxx, triangle_type::diagonal>{m22c};
+  d0a_2 = triangular_adapter<Mxx, triangle_type::diagonal>{m22c};
   EXPECT_TRUE(is_near(d0a_2, m22c));
 
-  d2a = TriangularAdapter<D2, triangle_type::diagonal>{D2 {m22c}};
+  d2a = triangular_adapter<D2, triangle_type::diagonal>{D2 {m22c}};
   EXPECT_TRUE(is_near(d2a, m22c));
-  d0a_2 = TriangularAdapter<Dx, triangle_type::diagonal>{Dx {m22c}};
+  d0a_2 = triangular_adapter<Dx, triangle_type::diagonal>{Dx {m22c}};
   EXPECT_TRUE(is_near(d0a_2, m22c));
 
-  d2a = HermitianAdapter<D2, HermitianAdapterType::lower>{D2 {m22b}};
+  d2a = hermitian_adapter<D2, triangle_type::lower>{D2 {m22b}};
   EXPECT_TRUE(is_near(d2a, m22b));
-  d0a_2 = HermitianAdapter<Dx, HermitianAdapterType::lower>{Dx {m22b}};
+  d0a_2 = hermitian_adapter<Dx, triangle_type::lower>{Dx {m22b}};
   EXPECT_TRUE(is_near(d0a_2, m22b));
-  d2a = TriangularAdapter<D2, triangle_type::lower>{D2 {m22c}};
+  d2a = triangular_adapter<D2, triangle_type::lower>{D2 {m22c}};
   EXPECT_TRUE(is_near(d2a, m22c));
-  d0a_2 = TriangularAdapter<Dx, triangle_type::lower>{Dx {m22c}};
+  d0a_2 = triangular_adapter<Dx, triangle_type::lower>{Dx {m22c}};
   EXPECT_TRUE(is_near(d0a_2, m22c));
 
-  d2a = HermitianAdapter<D2, HermitianAdapterType::upper>{D2 {m22b}};
+  d2a = hermitian_adapter<D2, triangle_type::upper>{D2 {m22b}};
   EXPECT_TRUE(is_near(d2a, m22b));
-  d0a_2 = HermitianAdapter<Dx, HermitianAdapterType::upper>{Dx {m22b}};
+  d0a_2 = hermitian_adapter<Dx, triangle_type::upper>{Dx {m22b}};
   EXPECT_TRUE(is_near(d0a_2, m22b));
-  d2a = TriangularAdapter<D2, triangle_type::upper>{D2 {m22c}};
+  d2a = triangular_adapter<D2, triangle_type::upper>{D2 {m22c}};
   EXPECT_TRUE(is_near(d2a, m22c));
-  d0a_2 = TriangularAdapter<Dx, triangle_type::upper>{Dx {m22c}};
+  d0a_2 = triangular_adapter<Dx, triangle_type::upper>{Dx {m22c}};
   EXPECT_TRUE(is_near(d0a_2, m22c));
 
   // Arithmetic
@@ -385,7 +385,7 @@ TEST(adapters, Diagonal_subscripts)
   try { dxa_3(1, 0) = 3; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
 
-  EXPECT_TRUE(is_near(d3a, diagonal_adapter<M31> {5., 6, 7}));
+  EXPECT_TRUE(is_near(d3a, to_diagonal_adapter<M31> {5., 6, 7}));
   EXPECT_NEAR(d3a(0, 0), 5, 1e-6);
   EXPECT_NEAR(d3a(1, 1), 6, 1e-6);
   EXPECT_NEAR(d3a(2, 2), 7, 1e-6);
@@ -399,7 +399,7 @@ TEST(adapters, Diagonal_subscripts)
   EXPECT_NEAR(d3a(2, 1), 0, 1e-6);
   EXPECT_NEAR(d3a(2, 2), 7, 1e-6);
 
-  EXPECT_TRUE(is_near(dxa_3, diagonal_adapter<M31> {5., 6, 7}));
+  EXPECT_TRUE(is_near(dxa_3, to_diagonal_adapter<M31> {5., 6, 7}));
   EXPECT_NEAR(dxa_3(0, 0), 5, 1e-6);
   EXPECT_NEAR(dxa_3(1, 1), 6, 1e-6);
   EXPECT_NEAR(dxa_3(2, 2), 7, 1e-6);
@@ -435,15 +435,15 @@ TEST(adapters, Diagonal_subscripts)
 
 TEST(adapters, Diagonal_traits)
 {
-  static_assert(diagonal_matrix<decltype(diagonal_adapter<M11>{2.})>);
-  static_assert(diagonal_matrix<decltype(diagonal_adapter<M21>{2, 3})>);
-  static_assert(hermitian_matrix<decltype(diagonal_adapter<M21>{2, 3})>);
-  static_assert(triangular_matrix<decltype(diagonal_adapter<M21>{2, 3})>);
-  static_assert(triangular_matrix<decltype(diagonal_adapter<M21>{2, 3}), triangle_type::lower>);
-  static_assert(triangular_matrix<decltype(diagonal_adapter<M21>{2, 3}), triangle_type::upper>);
-  static_assert(not identity_matrix<decltype(diagonal_adapter<M21>{2, 3})>);
-  static_assert(not zero<decltype(diagonal_adapter<M21>{2, 3})>);
-  static_assert(covariance_nestable<decltype(diagonal_adapter<M21>{2, 3})>);
+  static_assert(diagonal_matrix<decltype(to_diagonal_adapter<M11>{2.})>);
+  static_assert(diagonal_matrix<decltype(to_diagonal_adapter<M21>{2, 3})>);
+  static_assert(hermitian_matrix<decltype(to_diagonal_adapter<M21>{2, 3})>);
+  static_assert(triangular_matrix<decltype(to_diagonal_adapter<M21>{2, 3})>);
+  static_assert(triangular_matrix<decltype(to_diagonal_adapter<M21>{2, 3}), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(to_diagonal_adapter<M21>{2, 3}), triangle_type::upper>);
+  static_assert(not identity_matrix<decltype(to_diagonal_adapter<M21>{2, 3})>);
+  static_assert(not zero<decltype(to_diagonal_adapter<M21>{2, 3})>);
+  static_assert(covariance_nestable<decltype(to_diagonal_adapter<M21>{2, 3})>);
   static_assert(covariance_nestable<decltype(M33::Identity())>);
   static_assert(identity_matrix<decltype(M33::Identity() * M33::Identity())>);
   static_assert(diagonal_matrix<decltype(0.3 * M33::Identity() + 0.7 * M33::Identity() * 0.7)>);
@@ -476,25 +476,25 @@ TEST(adapters, to_diagonal)
   EXPECT_TRUE(is_near(to_diagonal(z31), M33::Zero()));
 }
 
-TEST(adapters, diagonal_make_triangular_matrix)
+TEST(adapters, diagonal_to_triangular)
 {
   auto m22h = make_dense_object_from<M22>(3, 1, 1, 3);
   auto m22d = make_dense_object_from<M22>(3, 0, 0, 3);
   auto m22_uppert = Eigen::TriangularView<M22, Eigen::Upper> {m22h};
   auto m22_lowert = Eigen::TriangularView<M22, Eigen::Lower> {m22h};
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_uppert), m22d));
-  static_assert(internal::diagonal_expr<decltype(make_triangular_matrix<triangle_type::lower>(m22_uppert))>);
-  static_assert(diagonal_matrix<decltype(make_triangular_matrix<triangle_type::lower>(m22_uppert))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::lower>(m22_uppert), m22d));
+  static_assert(internal::diagonal_expr<decltype(to_triangular<triangle_type::lower>(m22_uppert))>);
+  static_assert(diagonal_matrix<decltype(to_triangular<triangle_type::lower>(m22_uppert))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_lowert), m22d));
-  static_assert(internal::diagonal_expr<decltype(make_triangular_matrix<triangle_type::upper>(m22_lowert))>);
-  static_assert(diagonal_matrix<decltype(make_triangular_matrix<triangle_type::upper>(m22_lowert))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::upper>(m22_lowert), m22d));
+  static_assert(internal::diagonal_expr<decltype(to_triangular<triangle_type::upper>(m22_lowert))>);
+  static_assert(diagonal_matrix<decltype(to_triangular<triangle_type::upper>(m22_lowert))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::diagonal>(m22h), m22d));
-  static_assert(internal::diagonal_expr<decltype(make_triangular_matrix<triangle_type::diagonal>(m22h))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::diagonal>(m22h), m22d));
-  static_assert(internal::diagonal_expr<decltype(make_triangular_matrix<triangle_type::diagonal>(m22h))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::diagonal>(m22h), m22d));
+  static_assert(internal::diagonal_expr<decltype(to_triangular<triangle_type::diagonal>(m22h))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::diagonal>(m22h), m22d));
+  static_assert(internal::diagonal_expr<decltype(to_triangular<triangle_type::diagonal>(m22h))>);
 }
 
 TEST(adapters, diagonal_make_functions)
@@ -652,9 +652,9 @@ TEST(adapters, Diagonal_overloads)
   EXPECT_TRUE(is_near(cholesky_factor(M22::Identity() * 0.01), D2 {0.1, 0.1}));
   EXPECT_TRUE(is_near(cholesky_square(Mxx::Identity(2, 2) * 0.1), D2 {0.01, 0.01}));
   EXPECT_TRUE(is_near(cholesky_factor(Mxx::Identity(2, 2) * 0.01), D2 {0.1, 0.1}));
-  EXPECT_TRUE(is_near(cholesky_square(diagonal_adapter<M11> {9.}), M11 {81}));
+  EXPECT_TRUE(is_near(cholesky_square(to_diagonal_adapter<M11> {9.}), M11 {81}));
   EXPECT_TRUE(is_near(cholesky_square(Dx {M11 {9}}), M11 {81}));
-  EXPECT_TRUE(is_near(cholesky_factor(diagonal_adapter<M11> {9.}), M11 {3}));
+  EXPECT_TRUE(is_near(cholesky_factor(to_diagonal_adapter<M11> {9.}), M11 {3}));
   EXPECT_TRUE(is_near(cholesky_factor(Dx {M11 {9}}), M11 {3}));
 
   auto m21 = M21 {1, 4};
@@ -685,14 +685,14 @@ TEST(adapters, Diagonal_overloads)
   EXPECT_TRUE(is_near(diagonal_of(dx_3), m31));
 
   EXPECT_TRUE(is_near(transpose(d3), d3));
-  EXPECT_TRUE(is_near(transpose(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
+  EXPECT_TRUE(is_near(transpose(to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
 
   EXPECT_TRUE(is_near(conjugate_transpose(d3), d3));
-  EXPECT_TRUE(is_near(conjugate_transpose(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,-2), cdouble(2,-3), 3}));
+  EXPECT_TRUE(is_near(conjugate_transpose(to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), to_diagonal_adapter<M31> {cdouble(1,-2), cdouble(2,-3), 3}));
 
-  EXPECT_NEAR(determinant(diagonal_adapter<M31> {2., 3, 4}), 24, 1e-6);
+  EXPECT_NEAR(determinant(to_diagonal_adapter<M31> {2., 3, 4}), 24, 1e-6);
 
-  EXPECT_NEAR(trace(diagonal_adapter<M31> {2., 3, 4}), 9, 1e-6);
+  EXPECT_NEAR(trace(to_diagonal_adapter<M31> {2., 3, 4}), 9, 1e-6);
   //
   EXPECT_TRUE(is_near(solve(d3, make_dense_object_from<M31>(4., 10, 18)),
     make_eigen_matrix(4., 5, 6)));
@@ -700,10 +700,10 @@ TEST(adapters, Diagonal_overloads)
   EXPECT_TRUE(is_near(average_reduce<0>(d3), make_eigen_matrix(1., 2, 3)));
   EXPECT_TRUE(is_near(LQ_decomposition(d3), d3));
   EXPECT_TRUE(is_near(QR_decomposition(d3), d3));
-  EXPECT_TRUE(is_near(LQ_decomposition(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
-  EXPECT_TRUE(is_near(QR_decomposition(diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
-  EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), diagonal_adapter<M11> {4.}));
-  EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), diagonal_adapter<M11> {4.}));
+  EXPECT_TRUE(is_near(LQ_decomposition(to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
+  EXPECT_TRUE(is_near(QR_decomposition(to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}), to_diagonal_adapter<M31> {cdouble(1,2), cdouble(2,3), 3}));
+  EXPECT_TRUE(is_near(LQ_decomposition(M1by1 {4}), to_diagonal_adapter<M11> {4.}));
+  EXPECT_TRUE(is_near(QR_decomposition(M1by1 {4}), to_diagonal_adapter<M11> {4.}));
 
   using N = std::normal_distribution<double>;
 
@@ -901,19 +901,19 @@ TEST(adapters, Diagonal_blocks)
 TEST(adapters, Diagonal_arithmetic)
 {
   auto d3a = d3;
-  auto d3b = diagonal_adapter<M31> {4., 5, 6};
+  auto d3b = to_diagonal_adapter<M31> {4., 5, 6};
   auto i = M33::Identity();
   auto z = zero_adapter<eigen_matrix_t<double, 3, 3>> {};
-  EXPECT_TRUE(is_near(d3a + d3b, diagonal_adapter<M31> {5., 7, 9})); static_assert(internal::diagonal_expr<decltype(d3a + d3b)>);
-  EXPECT_TRUE(is_near(d3a + i, diagonal_adapter<M31> {2., 3, 4})); static_assert(internal::diagonal_expr<decltype(d3a + i)>);
+  EXPECT_TRUE(is_near(d3a + d3b, to_diagonal_adapter<M31> {5., 7, 9})); static_assert(internal::diagonal_expr<decltype(d3a + d3b)>);
+  EXPECT_TRUE(is_near(d3a + i, to_diagonal_adapter<M31> {2., 3, 4})); static_assert(internal::diagonal_expr<decltype(d3a + i)>);
   EXPECT_TRUE(is_near(d3a + z, d3a)); static_assert(internal::diagonal_expr<decltype(d3a + z)>);
-  EXPECT_TRUE(is_near(i + i, diagonal_adapter<M31> {2., 2, 2})); static_assert(diagonal_matrix<decltype(i + i)>);
+  EXPECT_TRUE(is_near(i + i, to_diagonal_adapter<M31> {2., 2, 2})); static_assert(diagonal_matrix<decltype(i + i)>);
   EXPECT_TRUE(is_near(i + z, i)); static_assert(identity_matrix<decltype(i + z)>);
   EXPECT_TRUE(is_near(z + i, i)); static_assert(identity_matrix<decltype(z + i)>);
   EXPECT_TRUE(is_near(z + z, z)); static_assert(zero<decltype(z + z)>);
 
-  EXPECT_TRUE(is_near(d3a - d3b, diagonal_adapter<M31> {-3., -3, -3})); static_assert(diagonal_matrix<decltype(d3a - d3b)>);
-  EXPECT_TRUE(is_near(d3a - i, diagonal_adapter<M31> {0., 1, 2})); static_assert(diagonal_matrix<decltype(d3a - i)>);
+  EXPECT_TRUE(is_near(d3a - d3b, to_diagonal_adapter<M31> {-3., -3, -3})); static_assert(diagonal_matrix<decltype(d3a - d3b)>);
+  EXPECT_TRUE(is_near(d3a - i, to_diagonal_adapter<M31> {0., 1, 2})); static_assert(diagonal_matrix<decltype(d3a - i)>);
   EXPECT_TRUE(is_near(d3a - z, d3a)); static_assert(diagonal_matrix<decltype(d3a - z)>);
   EXPECT_TRUE(is_near(i - i, z)); static_assert(zero<decltype(i - i)>);
   EXPECT_TRUE(is_near(i * (i - i), z)); static_assert(zero<decltype(i - i)>);
@@ -922,15 +922,15 @@ TEST(adapters, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(z - i, -i)); static_assert(diagonal_matrix<decltype(z - i)>);
   EXPECT_TRUE(is_near(z - z, z)); static_assert(zero<decltype(z - z)>);
 
-  EXPECT_TRUE(is_near(d3a * 4, diagonal_adapter<M31> {4., 8, 12})); static_assert(internal::diagonal_expr<decltype(d3a * 4)>);
-  EXPECT_TRUE(is_near(4 * d3a, diagonal_adapter<M31> {4., 8, 12})); static_assert(internal::diagonal_expr<decltype(4 * d3a)>);
-  EXPECT_TRUE(is_near(d3a / 2, diagonal_adapter<M31> {0.5, 1, 1.5})); static_assert(diagonal_matrix<decltype(d3a / 2)>);
+  EXPECT_TRUE(is_near(d3a * 4, to_diagonal_adapter<M31> {4., 8, 12})); static_assert(internal::diagonal_expr<decltype(d3a * 4)>);
+  EXPECT_TRUE(is_near(4 * d3a, to_diagonal_adapter<M31> {4., 8, 12})); static_assert(internal::diagonal_expr<decltype(4 * d3a)>);
+  EXPECT_TRUE(is_near(d3a / 2, to_diagonal_adapter<M31> {0.5, 1, 1.5})); static_assert(diagonal_matrix<decltype(d3a / 2)>);
   static_assert(diagonal_matrix<decltype(d3a / 0)>);
-  EXPECT_TRUE(is_near(i * 4, diagonal_adapter<M31> {4., 4, 4})); static_assert(diagonal_matrix<decltype(i * 4)>);
-  EXPECT_TRUE(is_near(4 * i, diagonal_adapter<M31> {4., 4, 4})); static_assert(diagonal_matrix<decltype(4 * i)>);
+  EXPECT_TRUE(is_near(i * 4, to_diagonal_adapter<M31> {4., 4, 4})); static_assert(diagonal_matrix<decltype(i * 4)>);
+  EXPECT_TRUE(is_near(4 * i, to_diagonal_adapter<M31> {4., 4, 4})); static_assert(diagonal_matrix<decltype(4 * i)>);
   static_assert(diagonal_matrix<decltype(i * 0)>);
   static_assert(not zero<decltype(i * 0)>);
-  EXPECT_TRUE(is_near(i / 2, diagonal_adapter<M31> {0.5, 0.5, 0.5})); static_assert(diagonal_matrix<decltype(i / 2)>);
+  EXPECT_TRUE(is_near(i / 2, to_diagonal_adapter<M31> {0.5, 0.5, 0.5})); static_assert(diagonal_matrix<decltype(i / 2)>);
   EXPECT_TRUE(is_near(z * 4, z)); static_assert(zero<decltype(z * 4)>);
   EXPECT_TRUE(is_near(4 * z, z)); static_assert(zero<decltype(4 * z)>);
   EXPECT_TRUE(is_near(z / 4, z)); static_assert(zero<decltype(z / 4)>);
@@ -939,11 +939,11 @@ TEST(adapters, Diagonal_arithmetic)
   EXPECT_TRUE(is_near((i - i) / 4, z)); static_assert(not zero<decltype((i - i) / 4)>);
   static_assert(diagonal_matrix<decltype(i / 0)>);
 
-  EXPECT_TRUE(is_near(-d3a, diagonal_adapter<M31> {-1., -2, -3})); static_assert(internal::diagonal_expr<decltype(-d3a)>);
-  EXPECT_TRUE(is_near(-i, diagonal_adapter<M31> {-1., -1, -1})); static_assert(diagonal_matrix<decltype(-i)>);
+  EXPECT_TRUE(is_near(-d3a, to_diagonal_adapter<M31> {-1., -2, -3})); static_assert(internal::diagonal_expr<decltype(-d3a)>);
+  EXPECT_TRUE(is_near(-i, to_diagonal_adapter<M31> {-1., -1, -1})); static_assert(diagonal_matrix<decltype(-i)>);
   EXPECT_TRUE(is_near(-z, z)); static_assert(zero<decltype(z)>);
 
-  EXPECT_TRUE(is_near(d3a * d3b, diagonal_adapter {4., 10, 18})); static_assert(internal::diagonal_expr<decltype(d3a * d3b)>);
+  EXPECT_TRUE(is_near(d3a * d3b, to_diagonal_adapter {4., 10, 18})); static_assert(internal::diagonal_expr<decltype(d3a * d3b)>);
   EXPECT_TRUE(is_near(d3a * constant_adapter<eigen_matrix_t<double, 3, 3>, 4> {}, make_dense_object_from<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
   EXPECT_TRUE(is_near(constant_adapter<eigen_matrix_t<double, 3, 3>, 4> {} * d3a, make_dense_object_from<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
   EXPECT_TRUE(is_near(d3a * i, d3a)); static_assert(internal::diagonal_expr<decltype(d3a * i)>);
@@ -953,28 +953,28 @@ TEST(adapters, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(i * i, i)); static_assert(identity_matrix<decltype(i * i)>);
   EXPECT_TRUE(is_near(z * z, z)); static_assert(zero<decltype(z * z)>);
 
-  EXPECT_TRUE(is_near(d3a * HermitianAdapter<M33, HermitianAdapterType::lower> {
+  EXPECT_TRUE(is_near(d3a * hermitian_adapter<M33, triangle_type::lower> {
     1., 2, 3,
     2, 4, 5,
     3, 5, 6}, make_eigen_matrix<3,3>(
       1., 2, 3,
       4, 8, 10,
       9, 15, 18)));
-  EXPECT_TRUE(is_near(HermitianAdapter<M33, HermitianAdapterType::upper> {
+  EXPECT_TRUE(is_near(hermitian_adapter<M33, triangle_type::upper> {
     1., 2, 3,
     2, 4, 5,
     3, 5, 6} * d3, make_eigen_matrix<3,3>(
     1., 4, 9,
     2, 8, 15,
     3, 10, 18)));
-  EXPECT_TRUE(is_near(d3 * TriangularAdapter<M33, triangle_type::lower> {
+  EXPECT_TRUE(is_near(d3 * triangular_adapter<M33, triangle_type::lower> {
     1., 0, 0,
     2, 3, 0,
     4, 5, 6}, make_eigen_matrix<3,3>(
     1., 0, 0,
     4, 6, 0,
     12, 15, 18)));
-  EXPECT_TRUE(is_near(TriangularAdapter<M33, triangle_type::upper> {
+  EXPECT_TRUE(is_near(triangular_adapter<M33, triangle_type::upper> {
     1., 0, 0,
     2, 3, 0,
     4, 5, 6} * d3, make_eigen_matrix<3,3>(
@@ -999,14 +999,14 @@ TEST(adapters, Diagonal_arithmetic)
 
 TEST(adapters, Diagonal_references)
 {
-  diagonal_adapter<const M31> n {4, 5, 6};
-  diagonal_adapter<M31> x = d3;
-  diagonal_adapter<M31&> x_l {x};
+  to_diagonal_adapter<const M31> n {4, 5, 6};
+  to_diagonal_adapter<M31> x = d3;
+  to_diagonal_adapter<M31&> x_l {x};
   EXPECT_TRUE(is_near(x_l, d3));
-  diagonal_adapter x_l2 {x_l};
+  to_diagonal_adapter x_l2 {x_l};
   static_assert(std::is_lvalue_reference_v<nested_object_of_t<decltype(x_l2)>>);
   EXPECT_TRUE(is_near(x_l, d3));
-  diagonal_adapter<const M31&> x_lc = x_l;
+  to_diagonal_adapter<const M31&> x_lc = x_l;
   EXPECT_TRUE(is_near(x_lc, d3));
   x = n;
   EXPECT_TRUE(is_near(x_l, n));
@@ -1018,17 +1018,17 @@ TEST(adapters, Diagonal_references)
   EXPECT_TRUE(is_near(x, d3));
   EXPECT_TRUE(is_near(x_l, d3));
   EXPECT_TRUE(is_near(x_lc, d3));
-  EXPECT_TRUE(is_near(diagonal_adapter<M31&> {d3}.nested_object(), (M31 {} << 1, 2, 3).finished() ));
+  EXPECT_TRUE(is_near(to_diagonal_adapter<M31&> {d3}.nested_object(), (M31 {} << 1, 2, 3).finished() ));
 
   M31 p; p << 10, 11, 12;
   M31 q; q << 13, 14, 15;
-  diagonal_adapter yl {p};
+  to_diagonal_adapter yl {p};
   static_assert(std::is_lvalue_reference_v<nested_object_of_t<decltype(yl)>>);
   EXPECT_TRUE(is_near(diagonal_of(yl), p));
-  diagonal_adapter yr {(M31 {} << 13, 14, 15).finished() * 1.0};
+  to_diagonal_adapter yr {(M31 {} << 13, 14, 15).finished() * 1.0};
   static_assert(not std::is_reference_v<nested_object_of_t<decltype(yr)>>);
   EXPECT_TRUE(is_near(diagonal_of(yr), q));
-  yl = diagonal_adapter {q};
+  yl = to_diagonal_adapter {q};
   EXPECT_TRUE(is_near(p, q));
   p = (M31 {} << 16, 17, 18).finished();
   EXPECT_TRUE(is_near(diagonal_of(yl), p));

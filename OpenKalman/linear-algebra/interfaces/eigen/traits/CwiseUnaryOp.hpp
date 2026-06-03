@@ -118,11 +118,8 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = square_shaped<XprType, b>;
-
-
-    static constexpr bool is_triangular_adapter = false;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<XprType, N, b>;
 
 
     template<triangle_type t>

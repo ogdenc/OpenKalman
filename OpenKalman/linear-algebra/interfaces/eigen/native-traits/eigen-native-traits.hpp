@@ -51,29 +51,29 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::constant_adapter<PatternMatrix, Scalar, constant...>> {};
 
 
-  template<typename NestedObject, OpenKalman::HermitianAdapterType storage_triangle>
-  struct traits<OpenKalman::HermitianAdapter<NestedObject, storage_triangle>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::HermitianAdapter<NestedObject, storage_triangle>> {};
+  template<typename NestedObject, OpenKalman::triangle_type storage_triangle>
+  struct traits<OpenKalman::hermitian_adapter<NestedObject, storage_triangle>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::hermitian_adapter<NestedObject, storage_triangle>> {};
 
 
   template<typename NestedObject, OpenKalman::triangle_type tri>
-  struct traits<OpenKalman::TriangularAdapter<NestedObject, tri>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularAdapter<NestedObject, tri>> {};
+  struct traits<OpenKalman::triangular_adapter<NestedObject, tri>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::triangular_adapter<NestedObject, tri>> {};
 
 
   template<typename NestedObject>
-  struct traits<OpenKalman::diagonal_adapter<NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::diagonal_adapter<NestedObject>> {};
+  struct traits<OpenKalman::to_diagonal_adapter<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::to_diagonal_adapter<NestedObject>> {};
 
 
   template<typename NestedObject>
-  struct traits<OpenKalman::ToEuclideanExpr<NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ToEuclideanExpr<NestedObject>> {};
+  struct traits<OpenKalman::to_stat_space_adapter<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::to_stat_space_adapter<NestedObject>> {};
 
 
   template<typename NestedObject, typename V0>
-  struct traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>> {};
+  struct traits<OpenKalman::from_stat_space_adapter<NestedObject, V0>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::from_stat_space_adapter<NestedObject, V0>> {};
 
   
   

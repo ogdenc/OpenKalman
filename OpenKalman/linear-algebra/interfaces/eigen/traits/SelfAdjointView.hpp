@@ -80,15 +80,12 @@ namespace OpenKalman
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<applicability b>
-      static constexpr bool is_square = square_shaped<MatrixType, b>;
+      template<std::size_t N, applicability b>
+      static constexpr bool is_square = square_shaped<MatrixType, N, b>;
 
 
       template<triangle_type t>
       static constexpr bool triangle_type_value = diagonal_matrix<MatrixType>;
-
-
-      static constexpr bool is_triangular_adapter = false;
 
 
       static constexpr bool is_hermitian =
@@ -97,8 +94,8 @@ namespace OpenKalman
         values::not_complex<constant_diagonal_value<MatrixType>>;
 
 
-      static constexpr HermitianAdapterType hermitian_adapter_type =
-        (UpLo & Eigen::Upper) != 0 ? HermitianAdapterType::upper : HermitianAdapterType::lower;
+      static constexpr triangle_type hermitian_adapter_type =
+        (UpLo & Eigen::Upper) != 0 ? triangle_type::upper : triangle_type::lower;
 
     };
 
@@ -106,14 +103,14 @@ namespace OpenKalman
 
 
   /**
-   * \brief Deduction guide for converting Eigen::SelfAdjointView to HermitianAdapter
+   * \brief Deduction guide for converting Eigen::SelfAdjointView to hermitian_adapter
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_SelfAdjointView M>
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
 #endif
-  HermitianAdapter(M&&) -> HermitianAdapter<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
+  hermitian_adapter(M&&) -> hermitian_adapter<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
 }
 

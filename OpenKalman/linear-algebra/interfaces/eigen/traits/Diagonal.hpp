@@ -84,8 +84,8 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = dimension_size_of_index_is<Xpr, 0, 1, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = one_dimensional<b>;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = one_dimensional<N, b>;
 
   };
 

@@ -52,8 +52,8 @@ TEST(transform_linear, linearized_additive1)
   EXPECT_TRUE(is_near(out3 + noise3, GaussianDistribution{M2(5, 10), Mat2 {15, 31, 31, 75}}));
   EXPECT_TRUE(is_near(cross3, Mat2 {4, 11, 5, 10}));
 
-  const GaussianDistribution input4 {M2(1, 2), diagonal_adapter(1., 1)};
-  const GaussianDistribution noise4 {make_zero<M2>(), diagonal_adapter(1., 1)};
+  const GaussianDistribution input4 {M2(1, 2), to_diagonal_adapter(1., 1)};
+  const GaussianDistribution noise4 {make_zero<M2>(), to_diagonal_adapter(1., 1)};
   auto [out4, cross4] = t.transform_with_cross_covariance(input4, g);
   EXPECT_TRUE(is_near(out4 + noise4, GaussianDistribution{M2(5, 10), Mat2 {6, 10, 10, 26}}));
   EXPECT_TRUE(is_near(cross4, Mat2 {1, 4, 2, 3}));

@@ -64,8 +64,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief The \ref triangle_type of the object (including \ref triangle_type::none "none" if it is not triangular.
-     * \details This value cannot be \ref triangle_type::any.
-     * This trait should propagate from any nested matrices or matrices involved in any expression arguments.
+     * \details This trait should propagate from any nested matrices or matrices involved in any expression arguments.
      * \note Optional. Defaults to \ref triangle_type::none if omitted.
      */
     static constexpr triangle_type
@@ -89,18 +88,11 @@ namespace OpenKalman::interface
      * \note: Optional.
      * \details This is only necessary if the object is known to be square but the specific dimension is
      * unknown at compile time.
+     * \tparam N The number of square dimensions. See \ref square_shaped.
      */
-    template<applicability b>
+    template<auto N, applicability b>
     static constexpr bool
     is_square = false;
-
-
-    /**
-     * \brief Whether T is a \ref triangular_adapter.
-     * \note Optional. Defaults to false if omitted.
-     */
-    static constexpr bool
-    is_triangular_adapter = false;
 
 
     /**
@@ -112,17 +104,6 @@ namespace OpenKalman::interface
      */
     static constexpr bool
     is_hermitian = false;
-
-
-    /**
-     * \brief If T is a \ref hermitian adapter, this specifies its \ref HermitianAdapterType.
-     * \details A hermitian adapter is a (potentially) hermitian matrix formed by nesting a non-hermitian matrix within
-     * an adapter that copies conjugated elements from the lower to upper triangle, or vice versa.
-     * \note Optional. If omitted, or if HermitianAdapterType::none, T is not considered to be hermitian adapter.
-     * It is also meaningless if \ref is_hermitian is false.
-     */
-    static constexpr HermitianAdapterType
-    hermitian_adapter_type = HermitianAdapterType::any;
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS
   };

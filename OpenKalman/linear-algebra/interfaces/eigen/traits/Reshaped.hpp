@@ -115,8 +115,8 @@ namespace OpenKalman::interface
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
 
-    template<applicability b>
-    static constexpr bool is_square =
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = N == 2 and
       (b != applicability::guaranteed or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and not has_dynamic_dimensions<XprType>)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
@@ -130,9 +130,6 @@ namespace OpenKalman::interface
     template<triangle_type t>
     static constexpr bool triangle_type_value = triangular_matrix<XprType, t> and
       ((Rows != Eigen::Dynamic and Rows == XprType::RowsAtCompileTime) or (Cols != Eigen::Dynamic and Cols == XprType::ColsAtCompileTime));
-
-
-    static constexpr bool is_triangular_adapter = false;
 
 
     static constexpr bool is_hermitian = hermitian_matrix<XprType, applicability::permitted> and

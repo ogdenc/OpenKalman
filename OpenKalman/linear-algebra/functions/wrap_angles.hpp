@@ -37,7 +37,7 @@ namespace OpenKalman
     }
     else
     {
-      return from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_pattern_collection<0>(arg));
+      return from_stat_space(to_stat_space(std::forward<Arg>(arg)), get_pattern_collection<0>(arg));
     }
   }
 

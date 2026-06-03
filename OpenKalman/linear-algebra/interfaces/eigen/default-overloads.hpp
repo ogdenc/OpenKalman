@@ -243,8 +243,8 @@ namespace OpenKalman
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, tri>;
-    using SA = HermitianAdapter<Mat, tri == triangle_type::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
+    using T = triangular_adapter<Mat, tri>;
+    using SA = hermitian_adapter<Mat, tri == triangle_type::upper ? triangle_type::upper : triangle_type::lower>;
     return Covariance<StaticDescriptor, T>(SA {make_dense_object_from<Mat>(static_cast<const Scalar>(args)...)});
   }
 
@@ -270,7 +270,7 @@ namespace OpenKalman
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     auto mat = make_dense_object_from<Mat>(static_cast<const Scalar>(args)...);
-    using SA = HermitianAdapter<Mat>;
+    using SA = hermitian_adapter<Mat>;
     return Covariance<StaticDescriptor, SA>(SA {mat});
   }
 
@@ -343,7 +343,7 @@ namespace OpenKalman
   auto make_covariance()
   {
     using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, tri>;
+    using T = triangular_adapter<Mat, tri>;
     return Covariance<StaticDescriptor, T>();
   }
 
@@ -364,7 +364,7 @@ namespace OpenKalman
   auto make_covariance()
   {
     using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
-    using SA = HermitianAdapter<Mat>;
+    using SA = hermitian_adapter<Mat>;
     return Covariance<StaticDescriptor, SA>();
   }
 
@@ -394,7 +394,7 @@ namespace OpenKalman
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
     auto mat = make_dense_object_from<Mat>(static_cast<const Scalar>(args)...);
-    using Tri = TriangularAdapter<Mat, tri>;
+    using Tri = triangular_adapter<Mat, tri>;
     auto tri = Tri {mat};
     return SquareRootCovariance<StaticDescriptor, Tri>(tri);
   }
@@ -446,7 +446,7 @@ namespace OpenKalman
   auto make_square_root_covariance()
   {
     using Mat = Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>;
-    using T = TriangularAdapter<Mat, tri>;
+    using T = triangular_adapter<Mat, tri>;
     return SquareRootCovariance<StaticDescriptor, T>();
   }
 
@@ -561,12 +561,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+    hermitian_adapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
   requires (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename StaticDescriptor, typename NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+    hermitian_adapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
 #endif
   struct Covariance;
 
@@ -582,7 +582,7 @@ namespace OpenKalman
       static_cast<std::size_t>(values::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   explicit Covariance(const Args& ...) -> Covariance<Dimensions<static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>,
-  HermitianAdapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
+  hermitian_adapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
     static_cast<std::size_t>(values::sqrt(sizeof...(Args))), static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>>>;
 
 
@@ -592,12 +592,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, covariance_nestable NestedMatrix =
-  HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+  hermitian_adapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
     requires (patterns::dimension_of_v<StaticDescriptor> == index_dimension_of_v<NestedMatrix, 0>) and
       (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename StaticDescriptor, typename NestedMatrix =
-    HermitianAdapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
+    hermitian_adapter<Eigen3::eigen_matrix_t<double, patterns::dimension_of_v<StaticDescriptor>, patterns::dimension_of_v<StaticDescriptor>>>>
 #endif
   struct SquareRootCovariance;
 
@@ -614,7 +614,7 @@ namespace OpenKalman
 #endif
   explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<
     Dimensions<static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>,
-    TriangularAdapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
+    triangular_adapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
     static_cast<std::size_t>(values::sqrt(sizeof...(Args))), static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>>>;
 
 

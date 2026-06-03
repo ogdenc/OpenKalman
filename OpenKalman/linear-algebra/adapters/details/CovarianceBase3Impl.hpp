@@ -32,11 +32,11 @@ namespace OpenKalman::internal
    * In this case, NestedMatrix and the cholesky nested matrix are different.
    */
   template<typename Derived, typename NestedMatrix>
-  struct CovarianceBase3Impl : AdapterBase<Derived, NestedMatrix>
+  struct CovarianceBase3Impl : adapter_base<Derived, NestedMatrix>
   {
   private:
 
-    using Base = AdapterBase<Derived, NestedMatrix>;
+    using Base = adapter_base<Derived, NestedMatrix>;
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
 

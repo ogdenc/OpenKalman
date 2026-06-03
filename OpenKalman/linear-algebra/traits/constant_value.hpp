@@ -29,10 +29,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T> requires constant_object<T> or constant_diagonal_object<T>
-  constexpr std::convertible_to<element_type_of_t<T>> auto
+  constexpr std::convertible_to<element_type_of_t<T>> decltype(auto)
 #else
   template<typename T, std::enable_if_t<constant_object<T> or constant_diagonal_object<T>, int> = 0>
-  constexpr auto
+  constexpr decltype(auto)
 #endif
   constant_value(T&& t)
   {

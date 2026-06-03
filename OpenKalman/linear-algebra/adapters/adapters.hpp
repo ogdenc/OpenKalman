@@ -33,21 +33,21 @@
 #ifndef OPENKALMAN_ADAPTERS_HPP
 #define OPENKALMAN_ADAPTERS_HPP
 
-#include "constant_adapter.hpp"
+#include "constant_adapter.obsolete.hpp"
 
 #include "internal/ElementAccessor.hpp"
-#include "internal/AdapterBase.hpp"
+#include "internal/adapter_base.hpp"
 
 #include "pattern_adapter.hpp"
 #include "interfaces/VectorSpaceAdapter.hpp"
 
-#include "diagonal_adapter.hpp"
-#include "HermitianAdapter.hpp"
-#include "TriangularAdapter.hpp"
+#include "to_diagonal_adapter.obsolete.hpp"
+#include "hermitian_adapter.hpp"
+#include "triangular_adapter.hpp"
 #include "interfaces/adapters-interface.hpp"
 
-#include "ToEuclideanExpr.hpp"
-#include "FromEuclideanExpr.hpp"
+#include "to_stat_space_adapter.hpp"
+#include "from_stat_space_adapter.hpp"
 
 #include "internal/LibraryWrapper.hpp"
 #include "interfaces/LibraryWrapper.hpp"

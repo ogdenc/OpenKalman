@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2026 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,11 +11,11 @@
 /**
  * \internal
  * \file
- * \brief Definition of AdapterBase.
+ * \brief Definition of adapter_base.
  */
 
-#ifndef OPENKALMAN_ADAPTERBASE_HPP
-#define OPENKALMAN_ADAPTERBASE_HPP
+#ifndef OPENKALMAN_ADAPTER_BASE_HPP
+#define OPENKALMAN_ADAPTER_BASE_HPP
 
 #include "linear-algebra/traits/internal/library_base.hpp"
 #include "linear-algebra/traits/access.hpp"
@@ -35,7 +35,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename Nested, typename LibraryObject = Nested>
 #endif
-  struct AdapterBase : library_base_t<Derived, LibraryObject>
+  struct adapter_base : library_base_t<Derived, LibraryObject>
   {
 
 #ifndef __cpp_concepts
@@ -48,7 +48,7 @@ namespace OpenKalman::internal
      * \brief Default constructor.
      */
     constexpr
-    AdapterBase() = default;
+    adapter_base() = default;
 
 
     /**
@@ -64,7 +64,7 @@ namespace OpenKalman::internal
       stdex::constructible_from<Nested, Arg&&>, int> = 0>
 #endif
     constexpr explicit
-    AdapterBase(Arg&& arg) : nested_ {std::forward<Arg>(arg)} {}
+    adapter_base(Arg&& arg) : nested_ {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -72,18 +72,23 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_explicit_this_parameter 
     template<typename Self>
-    constexpr decltype(auto) nested_object(this Self&& self) { return std::forward<Self>(self).nested_; }
+    constexpr decltype(auto)
+    nested_object(this Self&& self) { return std::forward<Self>(self).nested_; }
 #else
-    constexpr Nested& nested_object() & { return nested_; }
+    constexpr Nested&
+    nested_object() & { return nested_; }
 
     /// \overload
-    constexpr const Nested& nested_object() const & { return nested_; }
+    constexpr const Nested&
+    nested_object() const & { return nested_; }
 
     /// \overload
-    constexpr Nested&& nested_object() && { return std::move(*this).nested_; }
+    constexpr Nested&&
+    nested_object() && { return std::move(*this).nested_; }
 
     /// \overload
-    constexpr const Nested&& nested_object() const && { return std::move(*this).nested_; }
+    constexpr const Nested&&
+    nested_object() const && { return std::move(*this).nested_; }
 #endif
 
 

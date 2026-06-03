@@ -57,17 +57,14 @@ namespace OpenKalman::interface
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<applicability b>
-    static constexpr bool is_square = square_shaped<MatrixType, b>;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<MatrixType, N, b>;
 
 
     template<triangle_type t>
     static constexpr bool triangle_type_value = diagonal_matrix<MatrixType> or
       (t == triangle_type::lower and triangular_matrix<MatrixType, triangle_type::upper>) or
       (t == triangle_type::upper and triangular_matrix<MatrixType, triangle_type::lower>);
-
-
-    static constexpr bool is_triangular_adapter = false;
 
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, applicability::permitted>;

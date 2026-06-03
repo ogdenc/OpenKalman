@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief mdspan policies for \ref constant_object
+ * \brief mdspan layout for a \ref constant_object
  */
 
-#ifndef OPENKALMAN_CONSTANT_MDSPAN_POLICIES_HPP
-#define OPENKALMAN_CONSTANT_MDSPAN_POLICIES_HPP
+#ifndef OPENKALMAN_LAYOUT_CONSTANT_HPP
+#define OPENKALMAN_LAYOUT_CONSTANT_HPP
 
 #include "basics/basics.hpp"
 
@@ -85,38 +85,6 @@ namespace OpenKalman::interface
       extents_type extents_;
 
     };
-  };
-
-
-  /**
-   * \internal
-   * \brief An accessor that returns a constant value for every index.
-   */
-  template<typename ElementType>
-  struct constant_accessor {
-    using element_type = ElementType;
-    using reference = const element_type;
-    using data_handle_type = element_type;
-    using offset_policy = constant_accessor;
-
-    constexpr constant_accessor() noexcept = default;
-
-#ifdef __cpp_concepts
-    template<stdex::convertible_to<element_type> OtherElementType> requires
-      (not std::is_same_v<element_type, OtherElementType>)
-#else
-    template<typename OtherElementType, std::enable_if_t<
-      stdex::convertible_to<OtherElementType, element_type> and
-      (not std::is_same_v<element_type, OtherElementType>), int> = 0>
-#endif
-    constexpr constant_accessor(const constant_accessor<OtherElementType>& other) noexcept {}
-
-    constexpr reference
-    access(data_handle_type p, std::size_t) const noexcept { return std::move(p); }
-
-    constexpr data_handle_type
-    offset(data_handle_type p, std::size_t) const noexcept { return std::move(p); }
-
   };
 
 

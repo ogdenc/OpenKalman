@@ -113,10 +113,10 @@ namespace OpenKalman
   {
     auto s {internal::make_fixed_size_adapter_like<Ts...>(detail::sum_impl(std::forward<Ts>(ts)...))};
     constexpr auto t = triangle_type_of_v<Ts...>;
-    if constexpr (t != triangle_type::any and not triangular_matrix<decltype(s), t>)
-      return make_triangular_matrix<t>(std::move(s));
+    if constexpr (t != triangle_type::none and not triangular_matrix<decltype(s), t>)
+      return to_triangular<t>(std::move(s));
     else if constexpr ((... and hermitian_matrix<Ts>) and not hermitian_matrix<decltype(s)>)
-      return make_hermitian_matrix(std::move(s));
+      return to_hermitian(std::move(s));
     else
       return s;
   }

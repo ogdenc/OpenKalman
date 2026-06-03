@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief mdspan policies for \ref to_diagonal operation
+ * \brief mdspan layout for \ref to_diagonal operation
  */
 
-#ifndef OPENKALMAN_TO_DIAGONAL_MDSPAN_POLICIES_HPP
-#define OPENKALMAN_TO_DIAGONAL_MDSPAN_POLICIES_HPP
+#ifndef OPENKALMAN_LAYOUT_TO_DIAGONAL_HPP
+#define OPENKALMAN_LAYOUT_TO_DIAGONAL_HPP
 
 #include "patterns/patterns.hpp"
 
@@ -23,7 +23,8 @@ namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief A layout policy that returns a 1D index to the main diagonal of the nested object.
+   * \brief A layout policy that returns a 1D index to accessor of the nested object, if on the diagonal,
+   * or the nested required_span_size() otherwise.
    */
   template<typename NestedLayout, typename NestedExtents>
   struct layout_to_diagonal
@@ -112,7 +113,7 @@ namespace OpenKalman::interface
       required_span_size() const noexcept
       {
         auto s = nested_mapping_.required_span_size();
-        return s == 0 ? 0 : s + 1;
+        return s <= 1 ? s : s + 1;
       }
 
       static constexpr bool
@@ -133,14 +134,15 @@ namespace OpenKalman::interface
       constexpr bool
       is_unique() const
       {
-        if (not nested_mapping_type::is_unique()) return false;
+        if (not nested_mapping_.is_unique()) return false;
         if constexpr (extents_type::rank() == 0) return true;
-        else if constexpr (extents_type::rank() == 1) return extents_.extent(0) == 1;
-        else return extents_.extent(0) == 1 and extents_.extent(1) == 1;
+        else if constexpr (extents_type::rank() == 1) return extents_.extent(0) <= 2;
+        else return extents_.extent(0) <= 2 and extents_.extent(1) <= 2 and
+          (extents_.extent(0) <= 1 or extents_.extent(1) <= 1);
       }
 
       constexpr bool
-      is_exhaustive() const { return nested_mapping_type::is_exhaustive(); }
+      is_exhaustive() const { return nested_mapping_.is_exhaustive(); }
 
       constexpr bool
       is_strided() const { return false; }
@@ -165,80 +167,6 @@ namespace OpenKalman::interface
       extents_type extents_;
 
     };
-  };
-
-
-  /**
-   * \internal
-   * \brief An accessor that returns a diagonal element or 0.
-   * \details The accessor returns 0 if the index is a special index designated for as the off-diagonal index.
-   */
-  template<typename NestedAccessor>
-  struct to_diagonal_accessor
-  {
-    using element_type = values::value_type_of_t<typename NestedAccessor::element_type>;
-    using reference = element_type;
-    using data_handle_type = std::tuple<typename NestedAccessor::data_handle_type, std::size_t>;
-    using offset_policy = to_diagonal_accessor;
-
-    static_assert(values::value<element_type>);
-#ifdef __cpp_concepts
-    static_assert(requires { static_cast<reference>(std::declval<int>()); });
-    static_assert(requires { static_cast<reference>(std::declval<typename NestedAccessor::reference>()); });
-#endif
-
-    /**
-     * \brief
-     * \param acc The nested accessor
-     */
-    constexpr
-    to_diagonal_accessor(NestedAccessor acc) : nested_accessor_(std::move(acc)) {}
-
-    to_diagonal_accessor() = delete;
-
-#ifdef __cpp_concepts
-    template<stdex::convertible_to<NestedAccessor> OtherNestedAccessor> requires
-      (not std::is_same_v<NestedAccessor, OtherNestedAccessor>)
-#else
-    template<typename OtherNestedAccessor, std::enable_if_t<
-      stdex::convertible_to<OtherNestedAccessor, NestedAccessor> and
-      (not std::is_same_v<NestedAccessor, OtherNestedAccessor>), int> = 0>
-#endif
-    constexpr to_diagonal_accessor(const to_diagonal_accessor<OtherNestedAccessor>& other) noexcept
-      : nested_accessor_ {other.element_} {}
-
-#ifdef __cpp_concepts
-    template<stdex::convertible_to<NestedAccessor> OtherNestedAccessor> requires
-      (not std::is_same_v<NestedAccessor, OtherNestedAccessor>)
-#else
-    template<typename OtherNestedAccessor, std::enable_if_t<
-      stdex::convertible_to<OtherNestedAccessor, NestedAccessor> and
-      (not std::is_same_v<NestedAccessor, OtherNestedAccessor>), int> = 0>
-#endif
-    constexpr to_diagonal_accessor(to_diagonal_accessor<OtherNestedAccessor>&& other) noexcept
-      : nested_accessor_ {std::move(other).element_} {}
-
-    constexpr reference
-    access(data_handle_type p, std::size_t i) const noexcept
-    {
-      if (i == std::get<1>(p)) return static_cast<reference>(0);
-      return static_cast<reference>(nested_accessor_.access(std::get<0>(std::move(p)), i));
-    }
-
-    constexpr data_handle_type
-    offset(data_handle_type p, std::size_t i) const noexcept
-    {
-      if (i == 0) return p;
-      return {std::get<0>(std::move(p)), std::get<1>(p) - i};
-    }
-
-    const NestedAccessor&
-    nested_accessor() const noexcept { return nested_accessor_; }
-
-  private:
-
-    NestedAccessor nested_accessor_;
-
   };
 
 

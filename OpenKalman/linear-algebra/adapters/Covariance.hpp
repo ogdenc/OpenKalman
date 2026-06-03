@@ -1119,8 +1119,8 @@ namespace OpenKalman
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<applicability b>
-      static constexpr bool is_square = true;
+      template<std::size_t N, applicability b>
+      static constexpr bool is_square = N == 2;
 
 
       template<triangle_type t>

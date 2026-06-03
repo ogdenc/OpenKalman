@@ -50,8 +50,8 @@ namespace OpenKalman::interface
     template<applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<ExpressionType, b>;
 
-    template<applicability b>
-    static constexpr bool is_square = square_shaped<ExpressionType, b>;
+    template<std::size_t N, applicability b>
+    static constexpr bool is_square = square_shaped<ExpressionType, N, b>;
 
     // No get or set defined.
   };

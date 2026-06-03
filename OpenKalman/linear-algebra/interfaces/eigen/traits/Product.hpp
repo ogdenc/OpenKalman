@@ -103,9 +103,6 @@ namespace OpenKalman::interface
     static constexpr bool triangle_type_value = triangular_matrix<LhsType, t> and triangular_matrix<RhsType, t>;
 
 
-    static constexpr bool is_triangular_adapter = false;
-
-
     /// A constant diagonal matrix times a hermitian matrix (or vice versa) is hermitian.
     static constexpr bool is_hermitian =
       (constant_diagonal_matrix<LhsType> and

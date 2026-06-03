@@ -38,9 +38,7 @@ namespace OpenKalman
   constexpr bool constant_diagonal_object =
 #endif
     indexible<T> and
-    ((interface::get_constant_defined_for<T> and diagonal_matrix<T>) or
-      zero<T> or
-      one_dimensional<T, 2>);
+    ((interface::get_constant_defined_for<T> and diagonal_matrix<T>) or zero<T> or one_dimensional<T>);
 
 }
 

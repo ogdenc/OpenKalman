@@ -206,43 +206,43 @@ TEST(eigen3, make_special)
   auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22u};
   auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22l};
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22h), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22h))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22h), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22h))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::upper>(m22h), m22u));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::upper>(m22h))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::lower>(m22h), m22l));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::lower>(m22h))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_uppert), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_uppert))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_lowert), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::upper>(m22_uppert), m22u));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::lower>(m22_lowert), m22l));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::lower>(m22_lowert))>);
 
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_upperh), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_upperh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_upperh), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_upperh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::lower>(m22_lowerh), m22l));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::lower>(m22_lowerh))>);
-  EXPECT_TRUE(is_near(make_triangular_matrix<triangle_type::upper>(m22_lowerh), m22u));
-  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<triangle_type::upper>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::upper>(m22_upperh), m22u));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::upper>(m22_upperh))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::lower>(m22_upperh), m22l));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::lower>(m22_upperh))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::lower>(m22_lowerh), m22l));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::lower>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(to_triangular<triangle_type::upper>(m22_lowerh), m22u));
+  static_assert(eigen_TriangularView<decltype(to_triangular<triangle_type::upper>(m22_lowerh))>);
 
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22u), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22l))>);
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22l), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22u))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::upper>(m22u), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::upper>(m22l))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::lower>(m22l), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::lower>(m22u))>);
 
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_upperh), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_upperh))>);
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowerh), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::upper>(m22_upperh), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::upper>(m22_upperh))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::lower>(m22_lowerh), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::lower>(m22_lowerh))>);
 
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert))>);
-  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert), m22h));
-  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::upper>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::lower>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::upper>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::upper>(m22_lowert))>);
+  EXPECT_TRUE(is_near(to_hermitian<triangle_type::lower>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(to_hermitian<triangle_type::lower>(m22_lowert))>);
 
   EXPECT_TRUE(is_near(make_identity_matrix_like(M33{}), M33::Identity()));
   static_assert(identity_matrix<decltype(make_identity_matrix_like(M33{}))>);

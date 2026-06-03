@@ -178,28 +178,23 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<RhsType, b>);
 
 
-    template<applicability b>
+    template<std::size_t N, applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsType, 2, applicability::permitted> and
-      square_shaped<RhsType, 2, applicability::permitted> and
+      square_shaped<LhsType, N, applicability::permitted> and
+      square_shaped<RhsType, N, applicability::permitted> and
       (b != applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
-        square_shaped<LhsType, b> or
-        square_shaped<RhsType, b>);
+        square_shaped<LhsType, N, b> or
+        square_shaped<RhsType, N, b>);
 
 
-    static constexpr bool is_triangular_adapter = false;
-
-
-    template<triangle_type t>
-    static constexpr bool triangle_type_value =
+    static constexpr triangle_type
+    triangle_type_value =
       Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
-        triangular_matrix<LhsType, t> and triangular_matrix<RhsType, t> and
-          (t != triangle_type::any or triangle_type_of_v<LhsType, RhsType> != triangle_type::any) :
-      Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and
-        (triangular_matrix<LhsType, t> or triangular_matrix<RhsType, t> or
-          (triangular_matrix<LhsType, triangle_type::lower> and triangular_matrix<RhsType, triangle_type::upper>) or
-          (triangular_matrix<LhsType, triangle_type::upper> and triangular_matrix<RhsType, triangle_type::lower>));
+      triangle_type_of_v<LhsType> + triangle_type_of_v<RhsType> :
+      Traits::binary_functor_type == Eigen3::BinaryFunctorType::product ?
+      triangle_type_of_v<LhsType> * triangle_type_of_v<RhsType> :
+      triangle_type::none;
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and

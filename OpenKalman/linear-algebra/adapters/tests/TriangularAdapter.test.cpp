@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests relating to TriangularAdapter.
+ * \brief Tests relating to triangular_adapter.
  */
 
 #include "adapters.gtest.hpp"
@@ -34,20 +34,20 @@ namespace
   using Mx2 = eigen_matrix_t<double, dynamic_size_v, 2>;
 
   using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
-  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
-  using Lower = TriangularAdapter<M22, triangle_type::lower>;
-  using Upper = TriangularAdapter<M22, triangle_type::upper>;
-  using CLower = TriangularAdapter<CM2, triangle_type::lower>;
-  using CUpper = TriangularAdapter<CM2, triangle_type::upper>;
-  using Diagonal = TriangularAdapter<M22, triangle_type::diagonal>;
-  using Diagonal2 = TriangularAdapter<D2, triangle_type::diagonal>;
-  using Diagonal3 = TriangularAdapter<D2, triangle_type::lower>;
+  using D2 = to_diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using Lower = triangular_adapter<M22, triangle_type::lower>;
+  using Upper = triangular_adapter<M22, triangle_type::upper>;
+  using CLower = triangular_adapter<CM2, triangle_type::lower>;
+  using CUpper = triangular_adapter<CM2, triangle_type::upper>;
+  using Diagonal = triangular_adapter<M22, triangle_type::diagonal>;
+  using Diagonal2 = triangular_adapter<D2, triangle_type::diagonal>;
+  using Diagonal3 = triangular_adapter<D2, triangle_type::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
 
-  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
+  template<typename T> using Tl = triangular_adapter<T, triangle_type::lower>;
+  template<typename T> using Tu = triangular_adapter<T, triangle_type::upper>;
 }
 
 
@@ -173,8 +173,8 @@ TEST(special_matrices, TriangularAdapter_class)
   Upper u2 {make_dense_writable_matrix_from<M22>(3, 1, 0, 3)};
   EXPECT_TRUE(is_near(u1, u2));
   //
-  EXPECT_TRUE(is_near(Lower(diagonal_adapter {3., 4}), make_dense_writable_matrix_from<M22>(3, 0, 0, 4)));
-  EXPECT_TRUE(is_near(Upper(diagonal_adapter {3., 4}), make_dense_writable_matrix_from<M22>(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(Lower(to_diagonal_adapter {3., 4}), make_dense_writable_matrix_from<M22>(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(Upper(to_diagonal_adapter {3., 4}), make_dense_writable_matrix_from<M22>(3, 0, 0, 4)));
   //
   EXPECT_TRUE(is_near(Lower(make_zero_matrix_like<M22>()), M22::Zero()));
   EXPECT_TRUE(is_near(Upper(make_zero_matrix_like<M22>()), M22::Zero()));
@@ -196,9 +196,9 @@ TEST(special_matrices, TriangularAdapter_class)
   Upper u4 = Upper{3, 1, 0, 3}; // move constructor
   EXPECT_TRUE(is_near(u4, mu));
   //
-  Lower l5 = TriangularAdapter<decltype(M22::Zero()), triangle_type::lower>(M22::Zero()); // compatible triangular matrix
+  Lower l5 = triangular_adapter<decltype(M22::Zero()), triangle_type::lower>(M22::Zero()); // compatible triangular matrix
   EXPECT_TRUE(is_near(l5, M22::Zero()));
-  Upper u5 = TriangularAdapter<decltype(M22::Zero()), triangle_type::upper>(M22::Zero()); // compatible triangular matrix
+  Upper u5 = triangular_adapter<decltype(M22::Zero()), triangle_type::upper>(M22::Zero()); // compatible triangular matrix
   EXPECT_TRUE(is_near(u5, M22::Zero()));
   //
   Lower l7 {ml.triangularView<Eigen::Lower>()};
@@ -246,9 +246,9 @@ TEST(special_matrices, TriangularAdapter_class)
   u5 = Upper {3., 1, 0, 3}; // move assignment
   EXPECT_TRUE(is_near(u5, mu));
   //
-  l2 = TriangularAdapter<decltype(M22::Zero()), triangle_type::lower>(M22::Zero()); // copy assignment from compatible triangular matrix
+  l2 = triangular_adapter<decltype(M22::Zero()), triangle_type::lower>(M22::Zero()); // copy assignment from compatible triangular matrix
   EXPECT_TRUE(is_near(l2, M22::Zero()));
-  u2 = TriangularAdapter<decltype(M22::Zero()), triangle_type::upper>(M22::Zero()); // copy assignment from compatible triangular matrix
+  u2 = triangular_adapter<decltype(M22::Zero()), triangle_type::upper>(M22::Zero()); // copy assignment from compatible triangular matrix
   EXPECT_TRUE(is_near(u2, M22::Zero()));
   //
   l9 = Diagonal {4., 4}; // copy from a diagonal triangular matrix
@@ -345,7 +345,7 @@ TEST(special_matrices, TriangularAdapter_class)
   u1 += u2;
   EXPECT_TRUE(is_near(u1, mat22(6., 2, 0, 6)));
   //
-  l1 -= TriangularAdapter {3., 0, 1, 3};
+  l1 -= triangular_adapter {3., 0, 1, 3};
   EXPECT_TRUE(is_near(l1, mat22(3., 0, 1, 3)));
   u1 -= Upper {3., 1, 0, 3};
   EXPECT_TRUE(is_near(u1, mat22(3., 1, 0, 3)));
@@ -405,11 +405,11 @@ TEST(special_matrices, TriangularAdapter_subscripts)
   static_assert(not element_settable<const Diagonal3&, 2>);
   static_assert(not element_settable<const Diagonal3&, 1>);
 
-  static_assert(not element_settable<TriangularAdapter<const M22, triangle_type::lower>&, 2>);
-  static_assert(not element_settable<TriangularAdapter<const D2, triangle_type::lower>&, 2>);
-  static_assert(not element_settable<TriangularAdapter<const D2, triangle_type::lower>&, 1>);
-  static_assert(not element_settable<TriangularAdapter<diagonal_adapter<const eigen_matrix_t<double, 2, 1>>, triangle_type::lower>&, 2>);
-  static_assert(not element_settable<TriangularAdapter<diagonal_adapter<const eigen_matrix_t<double, 2, 1>>, triangle_type::lower>&, 1>);
+  static_assert(not element_settable<triangular_adapter<const M22, triangle_type::lower>&, 2>);
+  static_assert(not element_settable<triangular_adapter<const D2, triangle_type::lower>&, 2>);
+  static_assert(not element_settable<triangular_adapter<const D2, triangle_type::lower>&, 1>);
+  static_assert(not element_settable<triangular_adapter<to_diagonal_adapter<const eigen_matrix_t<double, 2, 1>>, triangle_type::lower>&, 2>);
+  static_assert(not element_settable<triangular_adapter<to_diagonal_adapter<const eigen_matrix_t<double, 2, 1>>, triangle_type::lower>&, 1>);
 
   auto l1 = Lower {3, 0, 1, 3};
   set_element(l1, 1.1, 1, 0);
@@ -490,9 +490,9 @@ TEST(special_matrices, TriangularAdapter_subscripts)
   d9c(1, 0) = 0;
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
-  EXPECT_NEAR((TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::diagonal> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::diagonal> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((Diagonal {2, 3})(0), 2, 1e-6);
   EXPECT_NEAR((Diagonal {2, 3})(1), 3, 1e-6);
   EXPECT_NEAR((Diagonal2 {2, 3})(0), 2, 1e-6);
@@ -574,20 +574,20 @@ TEST(special_matrices, TriangularAdapter_view)
 
 TEST(special_matrices, TriangularAdapter_make)
 {
-  static_assert(zero_matrix<decltype(make_triangular_matrix<triangle_type::upper>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_triangular_matrix<triangle_type::lower>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_triangular_matrix(make_zero_matrix_like<M22>()))>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix<triangle_type::upper>(make_dense_writable_matrix_from<M22>(3, 1, 0, 3))), triangle_type::upper>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix<triangle_type::lower>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), triangle_type::lower>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), triangle_type::lower>);
-  static_assert(diagonal_matrix<decltype(make_triangular_matrix<triangle_type::upper>(diagonal_adapter {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_triangular_matrix<triangle_type::lower>(diagonal_adapter {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_triangular_matrix(diagonal_adapter {3., 4}))>);
+  static_assert(zero_matrix<decltype(to_triangular<triangle_type::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(to_triangular<triangle_type::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(to_triangular(make_zero_matrix_like<M22>()))>);
+  static_assert(triangular_matrix<decltype(to_triangular<triangle_type::upper>(make_dense_writable_matrix_from<M22>(3, 1, 0, 3))), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(to_triangular<triangle_type::lower>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(to_triangular(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), triangle_type::lower>);
+  static_assert(diagonal_matrix<decltype(to_triangular<triangle_type::upper>(to_diagonal_adapter {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(to_triangular<triangle_type::lower>(to_diagonal_adapter {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(to_triangular(to_diagonal_adapter {3., 4}))>);
 
-  static_assert(triangular_matrix<decltype(make_triangular_matrix<triangle_type::upper>(Upper {3, 1, 0, 3})), triangle_type::upper>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix<triangle_type::lower>(Lower {3, 0, 1, 3})), triangle_type::lower>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix(Upper {3, 1, 0, 3})), triangle_type::upper>);
-  static_assert(triangular_matrix<decltype(make_triangular_matrix(Lower {3, 0, 1, 3})), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(to_triangular<triangle_type::upper>(Upper {3, 1, 0, 3})), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(to_triangular<triangle_type::lower>(Lower {3, 0, 1, 3})), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(to_triangular(Upper {3, 1, 0, 3})), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(to_triangular(Lower {3, 0, 1, 3})), triangle_type::lower>);
 }
 
 
@@ -596,8 +596,8 @@ TEST(special_matrices, TriangularAdapter_traits)
   M22 ml, mu;
   ml << 3, 0, 1, 3;
   mu << 3, 1, 0, 3;
-  using Dl = TriangularAdapter<M22, triangle_type::lower>;
-  using Du = TriangularAdapter<M22, triangle_type::upper>;
+  using Dl = triangular_adapter<M22, triangle_type::lower>;
+  using Du = triangular_adapter<M22, triangle_type::upper>;
   //
   //
   EXPECT_TRUE(is_near(make_zero_matrix_like<Dl>(), M22::Zero()));
@@ -611,9 +611,9 @@ TEST(special_matrices, TriangularAdapter_traits)
   static_assert(diagonal_matrix<Diagonal>);
   static_assert(diagonal_matrix<Diagonal2>);
   static_assert(diagonal_matrix<Diagonal3>);
-  static_assert(zero_matrix<decltype(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>()))>);
-  static_assert(identity_matrix<decltype(TriangularAdapter<decltype(make_identity_matrix_like<M22>()), triangle_type::lower>(make_identity_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(identity_matrix<decltype(triangular_adapter<decltype(make_identity_matrix_like<M22>()), triangle_type::lower>(make_identity_matrix_like<M22>()))>);
 }
 
 
@@ -632,64 +632,64 @@ TEST(special_matrices, TriangularAdapter_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Upper {9, 3, 3, 10} * 2))>, Upper>);
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))), eigen_matrix_t<double, 1, 1>(16)));
-  static_assert(one_by_one_matrix<decltype(Cholesky_square(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))))>);
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))), eigen_matrix_t<double, 1, 1>(16)));
+  static_assert(one_by_one_matrix<decltype(Cholesky_square(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())), M22::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())), M22::Identity()));
-  static_assert(identity_matrix<decltype(Cholesky_square(TriangularAdapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())))>);
-  static_assert(identity_matrix<decltype(Cholesky_square(TriangularAdapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())), M22::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())), M22::Identity()));
+  static_assert(identity_matrix<decltype(Cholesky_square(triangular_adapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_square(triangular_adapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_square(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())))>);
-  static_assert(zero_matrix<decltype(Cholesky_square(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_square(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(diagonal_adapter{2., 3}), triangle_type::lower>(diagonal_adapter{2., 3})), diagonal_adapter{4., 9}));
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<decltype(diagonal_adapter{2., 3}), triangle_type::upper>(diagonal_adapter{2., 3})), diagonal_adapter{4., 9}));
-  static_assert(internal::diagonal_expr<decltype(Cholesky_square(TriangularAdapter<decltype(diagonal_adapter{2., 3}), triangle_type::lower>(diagonal_adapter{2., 3})))>);
-  static_assert(internal::diagonal_expr<decltype(Cholesky_square(TriangularAdapter<decltype(diagonal_adapter{2., 3}), triangle_type::upper>(diagonal_adapter{2., 3})))>);
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(to_diagonal_adapter{2., 3}), triangle_type::lower>(to_diagonal_adapter{2., 3})), to_diagonal_adapter{4., 9}));
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<decltype(to_diagonal_adapter{2., 3}), triangle_type::upper>(to_diagonal_adapter{2., 3})), to_diagonal_adapter{4., 9}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(triangular_adapter<decltype(to_diagonal_adapter{2., 3}), triangle_type::lower>(to_diagonal_adapter{2., 3})))>);
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(triangular_adapter<decltype(to_diagonal_adapter{2., 3}), triangle_type::upper>(to_diagonal_adapter{2., 3})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<M22, triangle_type::diagonal>(ml)), diagonal_adapter{9., 9}));
-  static_assert(internal::diagonal_expr<decltype(Cholesky_square(TriangularAdapter<M22, triangle_type::diagonal>(ml)))>);
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<M22, triangle_type::diagonal>(ml)), to_diagonal_adapter{9., 9}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(triangular_adapter<M22, triangle_type::diagonal>(ml)))>);
   //
   Lower lower {3., 0, 1, 3};
   EXPECT_TRUE(is_near(Cholesky_square(lower), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Lower {3., 0, 1, 3}), mat22(9., 3, 3, 10)));
-  static_assert(hermitian_adapter<decltype(Cholesky_square(Lower {3, 0, 1, 3})), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter_concept<decltype(Cholesky_square(Lower {3, 0, 1, 3})), triangle_type::lower>);
   //
   Upper upper {3., 1, 0, 3};
   EXPECT_TRUE(is_near(Cholesky_square(upper), mat22(9., 3, 3, 10)));
   EXPECT_TRUE(is_near(Cholesky_square(Upper {3., 1, 0, 3}), mat22(9., 3, 3, 10)));
-  static_assert(hermitian_adapter<decltype(Cholesky_square(Upper {3, 1, 0, 3})), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter_concept<decltype(Cholesky_square(Upper {3, 1, 0, 3})), triangle_type::upper>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
-  EXPECT_TRUE(is_near(Cholesky_square(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))), eigen_matrix_t<double, 1, 1>(2)));
-  static_assert(one_by_one_matrix<decltype(Cholesky_factor(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))), eigen_matrix_t<double, 1, 1>(2)));
+  static_assert(one_by_one_matrix<decltype(Cholesky_factor(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(4))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())), M22::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())), M22::Identity()));
-  static_assert(identity_matrix<decltype(Cholesky_factor(TriangularAdapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())))>);
-  static_assert(identity_matrix<decltype(Cholesky_factor(TriangularAdapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())), M22::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())), M22::Identity()));
+  static_assert(identity_matrix<decltype(Cholesky_factor(triangular_adapter<decltype(M22::Identity()), triangle_type::lower>(M22::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_factor(triangular_adapter<decltype(M22::Identity()), triangle_type::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())))>);
-  static_assert(zero_matrix<decltype(Cholesky_factor(TriangularAdapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_factor(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(triangular_adapter<decltype(make_zero_matrix_like<M22>()), triangle_type::upper>(make_zero_matrix_like<M22>())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(diagonal_adapter{4., 9}), triangle_type::lower>(diagonal_adapter{4., 9})), diagonal_adapter{2., 3}));
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<decltype(diagonal_adapter{4., 9}), triangle_type::upper>(diagonal_adapter{4., 9})), diagonal_adapter{2., 3}));
-  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(TriangularAdapter<decltype(diagonal_adapter{4., 9}), triangle_type::lower>(diagonal_adapter{4., 9})))>);
-  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(TriangularAdapter<decltype(diagonal_adapter{4., 9}), triangle_type::upper>(diagonal_adapter{4., 9})))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(to_diagonal_adapter{4., 9}), triangle_type::lower>(to_diagonal_adapter{4., 9})), to_diagonal_adapter{2., 3}));
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<decltype(to_diagonal_adapter{4., 9}), triangle_type::upper>(to_diagonal_adapter{4., 9})), to_diagonal_adapter{2., 3}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(triangular_adapter<decltype(to_diagonal_adapter{4., 9}), triangle_type::lower>(to_diagonal_adapter{4., 9})))>);
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(triangular_adapter<decltype(to_diagonal_adapter{4., 9}), triangle_type::upper>(to_diagonal_adapter{4., 9})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<M22, triangle_type::diagonal>(ml)), diagonal_adapter{std::sqrt(3.), std::sqrt(3.)}));
-  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(TriangularAdapter<M22, triangle_type::diagonal>(ml)))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<M22, triangle_type::diagonal>(ml)), to_diagonal_adapter{std::sqrt(3.), std::sqrt(3.)}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(triangular_adapter<M22, triangle_type::diagonal>(ml)))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
-  EXPECT_TRUE(is_near(Cholesky_factor(TriangularAdapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(triangular_adapter<eigen_matrix_t<double, 1, 1>, triangle_type::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
   //
   //
   EXPECT_TRUE(is_near(diagonal_of(Lower {3., 0, 1, 3}), make_eigen_matrix<double, 2, 1>(3, 3)));
@@ -796,19 +796,19 @@ TEST(special_matrices, TriangularAdapter_decompositions)
 
 TEST(special_matrices, TriangularAdapter_blocks_lower)
 {
-  auto ma = TriangularAdapter<eigen_matrix_t<double, 3, 3>, triangle_type::lower> {1, 0, 0,
+  auto ma = triangular_adapter<eigen_matrix_t<double, 3, 3>, triangle_type::lower> {1, 0, 0,
                                                                                      2, 4, 0,
                                                                                      3, 5, 6};
-  auto mb = TriangularAdapter<eigen_matrix_t<double, 3, 3>, triangle_type::lower> {4, 0, 0,
+  auto mb = triangular_adapter<eigen_matrix_t<double, 3, 3>, triangle_type::lower> {4, 0, 0,
                                                                                      5, 7, 0,
                                                                                      6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb),
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb),
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}));
-  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb)), triangle_type::lower>);
+  static_assert(triangular_matrix<decltype(concatenate_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb)), triangle_type::lower>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 0, 0,
@@ -821,25 +821,25 @@ TEST(special_matrices, TriangularAdapter_blocks_lower)
     make_eigen_matrix<3, 6>(1., 0, 0, 4, 0, 0,
                                      2, 4, 0, 5, 7, 0,
                                      3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
-    std::tuple {TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb}));
+    std::tuple {triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3}, mb}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
-    std::tuple {TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3},
-               TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {4., 0, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
+    std::tuple {triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 0, 2, 3},
+               triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {4., 0, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -850,7 +850,7 @@ TEST(special_matrices, TriangularAdapter_blocks_lower)
                                                0, 0, 5, 7, 0,
                                                0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -859,9 +859,9 @@ TEST(special_matrices, TriangularAdapter_blocks_lower)
                                                2, 3, 0, 0, 0),
                make_eigen_matrix<2,5>(0., 0, 4, 0, 0,
                                                0, 0, 5, 7, 0)}));
-  EXPECT_TRUE(is_near(split_horizontal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 0, 0,
                                                                               0, 0, 5, 7, 0,
@@ -869,7 +869,7 @@ TEST(special_matrices, TriangularAdapter_blocks_lower)
     std::tuple {make_eigen_matrix<5,2>(1., 0, 2, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 0, 0, 5, 7, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::lower> {1, 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
@@ -919,19 +919,19 @@ TEST(special_matrices, TriangularAdapter_blocks_lower)
 
 TEST(special_matrices, TriangularAdapter_blocks_upper)
 {
-  auto ma = TriangularAdapter<eigen_matrix_t<double, 3, 3>, triangle_type::upper> {1, 2, 3,
+  auto ma = triangular_adapter<eigen_matrix_t<double, 3, 3>, triangle_type::upper> {1, 2, 3,
                                                                                      0, 4, 5,
                                                                                      0, 0, 6};
-  auto mb = TriangularAdapter<eigen_matrix_t<double, 3, 3>, triangle_type::upper> {4., 5, 6,
+  auto mb = triangular_adapter<eigen_matrix_t<double, 3, 3>, triangle_type::upper> {4., 5, 6,
                                                                                      0, 7, 8,
                                                                                      0, 0, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb),
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb),
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}));
-  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb)), triangle_type::upper>);
+  static_assert(triangular_matrix<decltype(concatenate_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb)), triangle_type::upper>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -945,24 +945,24 @@ TEST(special_matrices, TriangularAdapter_blocks_upper)
                                     0, 4, 5, 0, 7, 8,
                                     0, 0, 6, 0, 0, 9)));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
-    std::tuple {TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb}));
-  EXPECT_TRUE(is_near(split_diagonal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
+    std::tuple {triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3}, mb}));
+  EXPECT_TRUE(is_near(split_diagonal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
-    std::tuple {TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3},
-               TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {4., 5, 0, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
+    std::tuple {triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 0, 3},
+               triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {4., 5, 0, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -973,7 +973,7 @@ TEST(special_matrices, TriangularAdapter_blocks_upper)
                                                0, 0, 0, 7, 8,
                                                0, 0, 0, 0, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -982,9 +982,9 @@ TEST(special_matrices, TriangularAdapter_blocks_upper)
                                                0, 3, 0, 0, 0),
                make_eigen_matrix<2,5>(0., 0, 4, 5, 6,
                                                0, 0, 0, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(TriangularAdapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(triangular_adapter<eigen_matrix_t<double, 2, 2>, triangle_type::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -992,7 +992,7 @@ TEST(special_matrices, TriangularAdapter_blocks_upper)
     std::tuple {make_eigen_matrix<5,2>(1., 2, 0, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 0, 7, 8, 0, 0, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    TriangularAdapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
+    triangular_adapter<eigen_matrix_t<double, 5, 5>, triangle_type::upper> {1, 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
@@ -1033,7 +1033,7 @@ TEST(special_matrices, TriangularAdapter_arithmetic_lower)
 {
   auto ma = Lower {4., 0, 5, 6};
   auto mb = Lower {1., 0, 2, 3};
-  auto d = diagonal_adapter<eigen_matrix_t<double, 2, 1>> {1, 3};
+  auto d = to_diagonal_adapter<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = zero_adapter<eigen_matrix_t<double, 2, 2>> {};
 
@@ -1059,12 +1059,12 @@ TEST(special_matrices, TriangularAdapter_arithmetic_lower)
   static_assert(triangular_matrix<decltype(ma / 0), triangle_type::lower>);
   EXPECT_TRUE(is_near(-ma, mat22(-4, 0, -5, -6)));  static_assert(triangular_matrix<decltype(-ma), triangle_type::lower>);
 
-  EXPECT_TRUE(is_near(TriangularAdapter<decltype(i), triangle_type::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(TriangularAdapter<decltype(i), triangle_type::diagonal> {i} * 2)>);
-  EXPECT_TRUE(is_near(2 * TriangularAdapter<decltype(i), triangle_type::diagonal> {i}, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(2 * TriangularAdapter<decltype(i), triangle_type::diagonal> {i})>);
-  EXPECT_TRUE(is_near(TriangularAdapter<decltype(i), triangle_type::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(TriangularAdapter<decltype(i), triangle_type::diagonal> {i} / 2)>);
+  EXPECT_TRUE(is_near(triangular_adapter<decltype(i), triangle_type::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(triangular_adapter<decltype(i), triangle_type::diagonal> {i} * 2)>);
+  EXPECT_TRUE(is_near(2 * triangular_adapter<decltype(i), triangle_type::diagonal> {i}, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(2 * triangular_adapter<decltype(i), triangle_type::diagonal> {i})>);
+  EXPECT_TRUE(is_near(triangular_adapter<decltype(i), triangle_type::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(triangular_adapter<decltype(i), triangle_type::diagonal> {i} / 2)>);
 
   EXPECT_TRUE(is_near(ma * mb, mat22(4, 0, 17, 18))); static_assert(triangular_matrix<decltype(ma * mb), triangle_type::lower>);
   EXPECT_TRUE(is_near(ma * d, mat22(4, 0, 5, 18))); static_assert(triangular_matrix<decltype(ma * d), triangle_type::lower>);
@@ -1083,7 +1083,7 @@ TEST(special_matrices, TriangularAdapter_arithmetic_upper)
 {
   auto ma = Upper {4., 5, 0, 6};
   auto mb = Upper {1., 2, 0, 3};
-  auto d = diagonal_adapter<eigen_matrix_t<double, 2, 1>> {1, 3};
+  auto d = to_diagonal_adapter<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = zero_adapter<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 0, 9))); static_assert(triangular_matrix<decltype(ma + mb), triangle_type::upper>);
@@ -1139,17 +1139,17 @@ TEST(special_matrices, TriangularAdapter_references)
   M22 m, n;
   m << 2, 0, 1, 2;
   n << 3, 0, 1, 3;
-  using Tl = TriangularAdapter<M22, triangle_type::lower>;
+  using Tl = triangular_adapter<M22, triangle_type::lower>;
   Tl x {m};
-  TriangularAdapter<M22&, triangle_type::lower> x_lvalue {x};
+  triangular_adapter<M22&, triangle_type::lower> x_lvalue {x};
   EXPECT_TRUE(is_near(x_lvalue, m));
   x = Tl {n};
   EXPECT_TRUE(is_near(x_lvalue, n));
   x_lvalue = Tl {m};
   EXPECT_TRUE(is_near(x, m));
-  EXPECT_TRUE(is_near(TriangularAdapter<M22&, triangle_type::lower> {m}.nested_matrix(), mat22(2, 0, 1, 2)));
+  EXPECT_TRUE(is_near(triangular_adapter<M22&, triangle_type::lower> {m}.nested_matrix(), mat22(2, 0, 1, 2)));
   //
-  using V = TriangularAdapter<eigen_matrix_t<double, 3, 3>>;
+  using V = triangular_adapter<eigen_matrix_t<double, 3, 3>>;
   V v1 {1., 0, 0,
         2, 4, 0,
         3, -6, -3};
@@ -1158,18 +1158,18 @@ TEST(special_matrices, TriangularAdapter_references)
   EXPECT_TRUE(test);
   v1(0, 1) = 0;
   EXPECT_EQ(v1(1,0), 2);
-  TriangularAdapter<eigen_matrix_t<double, 3, 3>&> v2 = v1;
+  triangular_adapter<eigen_matrix_t<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));
   v1(1,0) = 4.1;
   EXPECT_EQ(v2(1,0), 4.1);
   v2(2, 0) = 5.2;
   EXPECT_EQ(v1(2,0), 5.2);
-  TriangularAdapter<eigen_matrix_t<double, 3, 3>> v3 = std::move(v2);
+  triangular_adapter<eigen_matrix_t<double, 3, 3>> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
-  TriangularAdapter<const eigen_matrix_t<double, 3, 3>&> v4 = v3;
+  triangular_adapter<const eigen_matrix_t<double, 3, 3>&> v4 = v3;
   v3(2,1) = 7.3;
   EXPECT_EQ(v4(2,1), 7.3);
-  TriangularAdapter<eigen_matrix_t<double, 3, 3>> v5 = v3;
+  triangular_adapter<eigen_matrix_t<double, 3, 3>> v5 = v3;
   v3(1,1) = 8.4;
   EXPECT_EQ(v3(1,1), 8.4);
   EXPECT_EQ(v5(1,1), 4);

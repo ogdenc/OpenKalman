@@ -147,8 +147,8 @@ namespace OpenKalman::patterns::views
 
   /**
    * \brief A RangeAdapterObject that converts one \ref pattern_collection to another corresponding to the \ref diagonal_matrix of the argument.
-   * \details In the result, the pattern for rank 0 will be the the pattern for rank 0 in the argument,
-   * except that it is potentially truncated if the argument's pattern for rank 1 is shorter.
+   * \details In the result, the pattern for rank 0 will be the pattern for ranks 0 and 1 in the argument,
+   * except that it is potentially truncated if the argument's pattern for one of the two first ranks is shorter than the other.
    */
   inline constexpr detail::diagonal_of_adapter diagonal_of;
 

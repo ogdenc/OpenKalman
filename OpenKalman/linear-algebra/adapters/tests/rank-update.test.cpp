@@ -23,32 +23,32 @@ using namespace OpenKalman::test;
 
 namespace
 {
-  using D2 = diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
-  using Dx = diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = to_diagonal_adapter<eigen_matrix_t<double, 2, 1>>;
+  using Dx = to_diagonal_adapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
-  using L22 = HermitianAdapter<M22, HermitianAdapterType::lower>;
-  using L20 = HermitianAdapter<M2x, HermitianAdapterType::lower>;
-  using L02 = HermitianAdapter<Mx2, HermitianAdapterType::lower>;
-  using L00 = HermitianAdapter<Mxx, HermitianAdapterType::lower>;
+  using L22 = hermitian_adapter<M22, triangle_type::lower>;
+  using L20 = hermitian_adapter<M2x, triangle_type::lower>;
+  using L02 = hermitian_adapter<Mx2, triangle_type::lower>;
+  using L00 = hermitian_adapter<Mxx, triangle_type::lower>;
 
-  using U22 = HermitianAdapter<M22, HermitianAdapterType::upper>;
-  using U20 = HermitianAdapter<M2x, HermitianAdapterType::upper>;
-  using U02 = HermitianAdapter<Mx2, HermitianAdapterType::upper>;
-  using U00 = HermitianAdapter<Mxx, HermitianAdapterType::upper>;
+  using U22 = hermitian_adapter<M22, triangle_type::upper>;
+  using U20 = hermitian_adapter<M2x, triangle_type::upper>;
+  using U02 = hermitian_adapter<Mx2, triangle_type::upper>;
+  using U00 = hermitian_adapter<Mxx, triangle_type::upper>;
   
-  using CL22 = HermitianAdapter<CM22, HermitianAdapterType::lower>;
-  using CU22 = HermitianAdapter<CM22, HermitianAdapterType::upper>;
+  using CL22 = hermitian_adapter<CM22, triangle_type::lower>;
+  using CU22 = hermitian_adapter<CM22, triangle_type::upper>;
 
-  using DM22 = HermitianAdapter<M22, HermitianAdapterType::diagonal>;
-  using DM20 = HermitianAdapter<M2x, HermitianAdapterType::diagonal>;
-  using DM02 = HermitianAdapter<Mx2, HermitianAdapterType::diagonal>;
-  using DM00 = HermitianAdapter<Mxx, HermitianAdapterType::diagonal>;
+  using DM22 = hermitian_adapter<M22, triangle_type::diagonal>;
+  using DM20 = hermitian_adapter<M2x, triangle_type::diagonal>;
+  using DM02 = hermitian_adapter<Mx2, triangle_type::diagonal>;
+  using DM00 = hermitian_adapter<Mxx, triangle_type::diagonal>;
   
-  using DD2 = HermitianAdapter<D2, HermitianAdapterType::diagonal>;
-  using DD0 = HermitianAdapter<Dx, HermitianAdapterType::diagonal>;
+  using DD2 = hermitian_adapter<D2, triangle_type::diagonal>;
+  using DD0 = hermitian_adapter<Dx, triangle_type::diagonal>;
   
-  using DL2 = HermitianAdapter<D2, HermitianAdapterType::lower>;
-  using DL0 = HermitianAdapter<Dx, HermitianAdapterType::lower>;
+  using DL2 = hermitian_adapter<D2, triangle_type::lower>;
+  using DL0 = hermitian_adapter<Dx, triangle_type::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
@@ -56,20 +56,20 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = diagonal_adapter<T>;
-  template<typename T> using Tl = TriangularAdapter<T, triangle_type::lower>;
-  template<typename T> using Tu = TriangularAdapter<T, triangle_type::upper>;
-  template<typename T> using SAl = HermitianAdapter<T, triangle_type::lower>;
-  template<typename T> using SAu = HermitianAdapter<T, triangle_type::upper>;
+  template<typename T> using D = to_diagonal_adapter<T>;
+  template<typename T> using Tl = triangular_adapter<T, triangle_type::lower>;
+  template<typename T> using Tu = triangular_adapter<T, triangle_type::upper>;
+  template<typename T> using SAl = hermitian_adapter<T, triangle_type::lower>;
+  template<typename T> using SAu = hermitian_adapter<T, triangle_type::upper>;
 }
 
 
 TEST(special_matrices, DiagonalMatrix_rank_update_1x1)
 {
-  auto s2 = diagonal_adapter {3., 3};
-  rank_update(s2, diagonal_adapter {2., 2}, 4);
+  auto s2 = to_diagonal_adapter {3., 3};
+  rank_update(s2, to_diagonal_adapter {2., 2}, 4);
   EXPECT_TRUE(is_near(s2, make_dense_writable_matrix_from<M22>(5., 0, 0, 5)));
-  s2 = diagonal_adapter {3., 3};
+  s2 = to_diagonal_adapter {3., 3};
   rank_update(s2, 2 * M22::Identity(), 4);
   EXPECT_TRUE(is_near(s2, make_dense_writable_matrix_from<M22>(5., 0, 0, 5)));
   //
@@ -78,9 +78,9 @@ TEST(special_matrices, DiagonalMatrix_rank_update_1x1)
   rank_update(s2a, M1by1 {2.}, 4);
   EXPECT_TRUE(is_near(s2a, M1by1 {5.}));
   //
-  EXPECT_TRUE(is_near(rank_update(diagonal_adapter {3., 3}, diagonal_adapter {2., 2}, 4), make_eigen_matrix<double, 2, 2>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(diagonal_adapter {3., 3}, 2 * M22::Identity(), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(diagonal_adapter {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 0, 2.), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(to_diagonal_adapter {3., 3}, to_diagonal_adapter {2., 2}, 4), make_eigen_matrix<double, 2, 2>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(to_diagonal_adapter {3., 3}, 2 * M22::Identity(), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
+  EXPECT_TRUE(is_near(rank_update(to_diagonal_adapter {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 0, 2.), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
   //
   EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
 }
@@ -168,7 +168,7 @@ TEST(eigen3, rank_update_diagonal)
 
   // a and u are both diagonal:
 
-  diagonal_adapter d22_3 {make_dense_writable_matrix_from<M21>(3, 3)};
+  to_diagonal_adapter d22_3 {make_dense_writable_matrix_from<M21>(3, 3)};
   const Eigen::DiagonalMatrix<double, 2> d22_19 {make_dense_writable_matrix_from<M21>(19, 19)};
   EXPECT_TRUE(is_near(rank_update_self_adjoint(std::as_const(d22_3), d22_2, 4), d22_19));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(d22_3, d22_2, 4), d22_19));
@@ -259,10 +259,10 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Mx2{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Mxx{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
 
-  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M22{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M2x{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(Mx2{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(Mxx{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter_concept<decltype(rank_update_self_adjoint(M22{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), triangle_type::lower>);
+  static_assert(hermitian_adapter_concept<decltype(rank_update_self_adjoint(M2x{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), triangle_type::lower>);
+  static_assert(hermitian_adapter_concept<decltype(rank_update_self_adjoint(Mx2{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), triangle_type::lower>);
+  static_assert(hermitian_adapter_concept<decltype(rank_update_self_adjoint(Mxx{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), triangle_type::lower>);
 
   auto z22 = M22::Identity() - M22::Identity(); static_assert(zero_matrix<decltype(z22)>);
 
@@ -290,7 +290,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(ru_93310_2102_4_rvalue, m22_29111126));
   EXPECT_TRUE(is_near(m22_93310.selfadjointView<Eigen::Upper>(), m22_29111126));
   static_assert(internal::hermitian_expr<decltype(ru_93310_2102_4_rvalue)>);
-  static_assert(hermitian_adapter<decltype(ru_93310_2102_4_rvalue), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter_concept<decltype(ru_93310_2102_4_rvalue), triangle_type::upper>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2102_4_rvalue)>>);
 
   m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
@@ -301,7 +301,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(sa_93310_2012_4, m22_25111130));
   EXPECT_TRUE(is_near(m22_93310.template selfadjointView<Eigen::Lower>(), m22_25111130));
   static_assert(internal::hermitian_expr<decltype(ru_93310_2012_4_lvalue)>);
-  static_assert(hermitian_adapter<decltype(ru_93310_2012_4_lvalue), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter_concept<decltype(ru_93310_2012_4_lvalue), triangle_type::lower>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_lvalue)>>);
 
   m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);

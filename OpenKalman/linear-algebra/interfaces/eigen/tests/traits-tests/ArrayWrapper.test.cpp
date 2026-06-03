@@ -38,8 +38,8 @@ TEST(eigen3, Eigen_ArrayWrapper)
   static_assert(zero<Eigen::ArrayWrapper<Z23>>);
 
   static_assert(diagonal_matrix<DW21>);
-  static_assert(not hermitian_adapter<Eigen::ArrayWrapper<Z22>>);
-  static_assert(not hermitian_adapter<Eigen::ArrayWrapper<C22_2>>);
+  static_assert(not hermitian_adapter_concept<Eigen::ArrayWrapper<Z22>>);
+  static_assert(not hermitian_adapter_concept<Eigen::ArrayWrapper<C22_2>>);
   static_assert(triangular_matrix<DW21, triangle_type::lower>);
   static_assert(triangular_matrix<DW21, triangle_type::upper>);
 }

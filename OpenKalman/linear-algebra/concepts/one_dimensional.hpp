@@ -25,65 +25,57 @@ namespace OpenKalman
 {
   namespace detail
   {
-#ifndef __cpp_concepts
-    template<typename T, auto N, applicability b, typename = void>
-    struct one_dimensional_impl : std::false_type {};
-
-    template<typename T, auto N, applicability b>
-    struct one_dimensional_impl<T, N, b, std::enable_if_t<
-      patterns::collection_patterns_compare_with_dimension<typename pattern_collection_type_of<T>::type, 1, &stdex::is_eq, N, b>>>
-        : std::true_type {};
-#endif
-
-
     template<typename T, std::size_t N, typename = std::make_index_sequence<N>>
-    struct any_1d_index_impl : std::false_type {};
+    struct any_1d_index : std::false_type {};
 
     template<typename T, std::size_t N, std::size_t...i>
-    struct any_1d_index_impl<T, N, std::index_sequence<i...>>
+    struct any_1d_index<T, N, std::index_sequence<i...>>
       : std::bool_constant<(... or dimension_size_of_index_is<T, i, 1>)> {};
 
 
-    template<typename T, auto N>
+#ifndef __cpp_concepts
+    template<typename T, typename Size>
     constexpr bool
-    any_1d_index()
+    one_dimensional_impl()
     {
-#ifdef __cpp_concepts
-      if constexpr (stdex::same_as<std::decay_t<decltype(N)>, values::unbounded_size_t>)
-#else
-      if constexpr (N == std::size_t(values::unbounded_size))
-#endif
+      if constexpr (values::fixed<Size>)
       {
-        if constexpr (values::fixed<index_count<T>>)
-          return any_1d_index_impl<T, index_count_v<T>>::value;
-        else
-          return false;
+        constexpr std::size_t s = values::fixed_value_of_v<Size>;
+        if constexpr (s == 1) return square_shaped<T, 1>;
+        else return square_shaped<T, s> and any_1d_index<T, s>::value;
       }
-      else return any_1d_index_impl<T, N>::value;
+      else return false;
     }
+
+    template<typename T, applicability b, typename = void>
+    struct pattern_compare_impl : std::false_type {};
+
+    template<typename T, applicability b>
+    struct pattern_compare_impl<T, b, std::void_t<typename pattern_collection_type_of<T>::type>>
+      : std::bool_constant<(
+        patterns::collection_patterns_compare_with_dimension<pattern_collection_type_of_t<T>, 1, &stdex::is_eq, values::unbounded_size, b> or
+        (b == applicability::guaranteed and detail::one_dimensional_impl<T, collections::size_of<pattern_collection_type_of_t<T>>>()))> {};
+#endif
   }
 
 
   /**
-   * \brief Specifies that a type is one-dimensional in each of the first N indices.
-   * \details N must be a non-negative number or \ref values::unbounded_size.
-   * Note that the dimension of any indices greater than \ref index_count_v<T> will naturally be 1.
+   * \brief Specifies that a type is one-dimensional in all of its indices.
+   * \details Note that the dimension of any indices greater than \ref index_count_v<T> will naturally be 1.
    */
 #ifdef __cpp_concepts
-  template<typename T, auto N = values::unbounded_size, applicability b = applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   concept one_dimensional =
     indexible<T> and
-    (values::integral<decltype(N)> or stdex::same_as<std::decay_t<decltype(N)>, values::unbounded_size_t>) and
-    (not values::integral<decltype(N)> or N >= 0) and
-    (patterns::collection_patterns_compare_with_dimension<pattern_collection_type_of_t<T>, 1, &stdex::is_eq, N, b> or
-      (square_shaped<T, N> and detail::any_1d_index<T, N>()));
+    (patterns::collection_patterns_compare_with_dimension<pattern_collection_type_of_t<T>, 1, &stdex::is_eq, values::unbounded_size, b> or
+      (b == applicability::guaranteed and
+        square_shaped<T, collections::size_of_v<pattern_collection_type_of_t<T>>> and
+        (collections::size_of_v<pattern_collection_type_of_t<T>> == 1 or
+          detail::any_1d_index<T, collections::size_of_v<pattern_collection_type_of_t<T>>>::value)));
 #else
-  template<typename T, std::size_t N = values::unbounded_size, applicability b = applicability::guaranteed>
+  template<typename T, applicability b = applicability::guaranteed>
   constexpr inline bool one_dimensional =
-    indexible<T> and
-    (N == values::unbounded_size or N >= 0) and
-    detail::one_dimensional_impl<T, N, b>::value or
-    (square_shaped<T, N> and detail::any_1d_index<T, N>());
+    indexible<T> and detail::pattern_compare_impl<T, b>::value;
 #endif
 
 
